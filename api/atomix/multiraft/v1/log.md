@@ -5,6 +5,7 @@
 
 - [atomix/multiraft/v1/log.proto](#atomix_multiraft_v1_log-proto)
     - [RaftLogEntry](#atomix-multiraft-v1-RaftLogEntry)
+    - [StreamId](#atomix-multiraft-v1-StreamId)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -25,9 +26,24 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| node_id | [uint32](#uint32) |  |  |
-| stream_id | [uint64](#uint64) |  |  |
+| stream_id | [StreamId](#atomix-multiraft-v1-StreamId) |  |  |
 | command | [CommandInput](#atomix-multiraft-v1-CommandInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-StreamId"></a>
+
+### StreamId
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| term | [uint64](#uint64) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
 
 
 
