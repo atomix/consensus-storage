@@ -71,7 +71,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session | [PrimitiveRequestHeaders](#atomix-multiraft-v1-PrimitiveRequestHeaders) |  |  |
-| operation_id | [uint32](#uint32) |  |  |
+| operation_id | [string](#string) |  |  |
 
 
 

@@ -4,6 +4,10 @@
 
 package v1
 
+type NodeID uint8
+
+type StreamID uint64
+
 type PartitionID uint32
 
 type SessionID uint64

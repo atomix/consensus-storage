@@ -1,0 +1,26 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.v1;
+
+import "atomix/multiraft/v1/fsm.proto";
+import "gogoproto/gogo.proto";
+
+message RaftLogEntry {
+    uint32 node_id = 1 [
+        (gogoproto.customname) = "NodeID",
+        (gogoproto.casttype) = "NodeID"
+    ];
+    uint64 stream_id = 2 [
+        (gogoproto.customname) = "StreamID",
+        (gogoproto.casttype) = "StreamID"
+    ];
+    CommandInput command = 3 [
+        (gogoproto.nullable) = false
+    ];
+}

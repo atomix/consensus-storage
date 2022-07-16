@@ -64,7 +64,7 @@ message OperationRequestHeaders {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    uint32 operation_id = 2 [
+    string operation_id = 2 [
         (gogoproto.customname) = "OperationID",
         (gogoproto.casttype) = "OperationID"
     ];
