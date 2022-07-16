@@ -5,8 +5,8 @@
 
 - [atomix/multiraft/v1/config.proto](#atomix_multiraft_v1_config-proto)
     - [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig)
-  
-    - [NodeType](#atomix-multiraft-v1-NodeType)
+    - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
+    - [PartitionConfig.MembersEntry](#atomix-multiraft-v1-PartitionConfig-MembersEntry)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -36,19 +36,39 @@
 
 
 
+
+<a name="atomix-multiraft-v1-PartitionConfig"></a>
+
+### PartitionConfig
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| partition_id | [uint32](#uint32) |  |  |
+| members | [PartitionConfig.MembersEntry](#atomix-multiraft-v1-PartitionConfig-MembersEntry) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PartitionConfig-MembersEntry"></a>
+
+### PartitionConfig.MembersEntry
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [uint64](#uint64) |  |  |
+| value | [string](#string) |  |  |
+
+
+
+
+
  
-
-
-<a name="atomix-multiraft-v1-NodeType"></a>
-
-### NodeType
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| MEMBER | 0 |  |
-| OBSERVER | 1 |  |
-
 
  
 

@@ -4,10 +4,12 @@
 ## Table of Contents
 
 - [atomix/multiraft/v1/node.proto](#atomix_multiraft_v1_node-proto)
-    - [JoinPartitionRequest](#atomix-multiraft-v1-JoinPartitionRequest)
-    - [JoinPartitionResponse](#atomix-multiraft-v1-JoinPartitionResponse)
-    - [LeavePartitionRequest](#atomix-multiraft-v1-LeavePartitionRequest)
-    - [LeavePartitionResponse](#atomix-multiraft-v1-LeavePartitionResponse)
+    - [BootstrapRequest](#atomix-multiraft-v1-BootstrapRequest)
+    - [BootstrapResponse](#atomix-multiraft-v1-BootstrapResponse)
+    - [JoinRequest](#atomix-multiraft-v1-JoinRequest)
+    - [JoinResponse](#atomix-multiraft-v1-JoinResponse)
+    - [LeaveRequest](#atomix-multiraft-v1-LeaveRequest)
+    - [LeaveResponse](#atomix-multiraft-v1-LeaveResponse)
   
     - [Node](#atomix-multiraft-v1-Node)
   
@@ -22,9 +24,59 @@
 
 
 
-<a name="atomix-multiraft-v1-JoinPartitionRequest"></a>
+<a name="atomix-multiraft-v1-BootstrapRequest"></a>
 
-### JoinPartitionRequest
+### BootstrapRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| partitions | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-BootstrapResponse"></a>
+
+### BootstrapResponse
+
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-JoinRequest"></a>
+
+### JoinRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| partition | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-JoinResponse"></a>
+
+### JoinResponse
+
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-LeaveRequest"></a>
+
+### LeaveRequest
 
 
 
@@ -37,34 +89,9 @@
 
 
 
-<a name="atomix-multiraft-v1-JoinPartitionResponse"></a>
+<a name="atomix-multiraft-v1-LeaveResponse"></a>
 
-### JoinPartitionResponse
-
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-LeavePartitionRequest"></a>
-
-### LeavePartitionRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition_id | [uint32](#uint32) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-LeavePartitionResponse"></a>
-
-### LeavePartitionResponse
+### LeaveResponse
 
 
 
@@ -85,8 +112,9 @@
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| JoinPartition | [JoinPartitionRequest](#atomix-multiraft-v1-JoinPartitionRequest) | [JoinPartitionResponse](#atomix-multiraft-v1-JoinPartitionResponse) |  |
-| LeavePartition | [LeavePartitionRequest](#atomix-multiraft-v1-LeavePartitionRequest) | [LeavePartitionResponse](#atomix-multiraft-v1-LeavePartitionResponse) |  |
+| Bootstrap | [BootstrapRequest](#atomix-multiraft-v1-BootstrapRequest) | [BootstrapResponse](#atomix-multiraft-v1-BootstrapResponse) |  |
+| Join | [JoinRequest](#atomix-multiraft-v1-JoinRequest) | [JoinResponse](#atomix-multiraft-v1-JoinResponse) |  |
+| Leave | [LeaveRequest](#atomix-multiraft-v1-LeaveRequest) | [LeaveResponse](#atomix-multiraft-v1-LeaveResponse) |  |
 
  
 

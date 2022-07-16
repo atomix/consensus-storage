@@ -9,32 +9,43 @@ syntax = "proto3";
 package atomix.multiraft.v1;
 
 import "gogoproto/gogo.proto";
+import "atomix/multiraft/v1/config.proto";
 import "atomix/multiraft/v1/headers.proto";
 import "atomix/multiraft/v1/fsm.proto";
 
 service Node {
-    rpc JoinPartition(JoinPartitionRequest) returns (JoinPartitionResponse);
-    rpc LeavePartition(LeavePartitionRequest) returns (LeavePartitionResponse);
+    rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
+    rpc Join(JoinRequest) returns (JoinResponse);
+    rpc Leave(LeaveRequest) returns (LeaveResponse);
 }
 
-message JoinPartitionRequest {
+message BootstrapRequest {
+    repeated PartitionConfig partitions = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message BootstrapResponse {
+
+}
+
+message JoinRequest {
+    PartitionConfig partition = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message JoinResponse {
+
+}
+
+message LeaveRequest {
     uint32 partition_id = 1 [
         (gogoproto.customname) = "PartitionID",
         (gogoproto.casttype) = "PartitionID"
     ];
 }
 
-message JoinPartitionResponse {
-
-}
-
-message LeavePartitionRequest {
-    uint32 partition_id = 1 [
-        (gogoproto.customname) = "PartitionID",
-        (gogoproto.casttype) = "PartitionID"
-    ];
-}
-
-message LeavePartitionResponse {
+message LeaveResponse {
 
 }
