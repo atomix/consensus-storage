@@ -1,0 +1,28 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.v1;
+
+import "google/protobuf/duration.proto";
+import "gogoproto/gogo.proto";
+
+message MultiRaftConfig {
+    google.protobuf.Duration heartbeat_period = 1 [
+        (gogoproto.stdduration) = true
+    ];
+    google.protobuf.Duration election_timeout = 2 [
+        (gogoproto.stdduration) = true
+    ];
+    uint64 snapshot_entry_threshold = 3;
+    uint64 compaction_retain_entries = 4;
+}
+
+enum NodeType {
+    MEMBER = 0;
+    OBSERVER = 1;
+}
