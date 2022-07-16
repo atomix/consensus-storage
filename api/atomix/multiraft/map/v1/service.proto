@@ -1,0 +1,275 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.map.v1;
+
+import "atomix/multiraft/map/v1/fsm.proto";
+import "atomix/multiraft/v1/descriptor.proto";
+import "atomix/multiraft/v1/headers.proto";
+import "gogoproto/gogo.proto";
+
+// Map is a service for a map primitive
+service Map {
+    option (atomix.multiraft.v1.input_type) = "MapInput";
+    option (atomix.multiraft.v1.output_type) = "MapOutput";
+    option (atomix.multiraft.v1.snapshot_type) = "MapSnapshot";
+
+    // Create creates the map
+    rpc Create (CreateRequest) returns (CreateResponse) {
+        option (atomix.multiraft.v1.operation_type) = CREATE;
+    }
+
+    // Close closes the map
+    rpc Close (CloseRequest) returns (CloseResponse) {
+        option (atomix.multiraft.v1.operation_type) = CLOSE;
+    }
+}
+
+message CreateRequest {
+    atomix.multiraft.v1.SessionRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message CreateResponse {
+    atomix.multiraft.v1.SessionResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message CloseRequest {
+    atomix.multiraft.v1.ServiceRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message CloseResponse {
+    atomix.multiraft.v1.ServiceResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message SizeRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    SizeInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message SizeResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    SizeOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message PutRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    PutInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message PutResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    PutOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message InsertRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    InsertInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message InsertResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    InsertOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UpdateRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UpdateInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UpdateResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UpdateOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message GetRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    GetInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message GetResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    GetOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message RemoveRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    RemoveInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message RemoveResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    RemoveOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ClearRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    ClearInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ClearResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    ClearOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message EntriesRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    EntriesInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message EntriesResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    EntriesOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message EventsRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    EventsInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message EventsResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    EventsOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}

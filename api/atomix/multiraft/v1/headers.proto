@@ -1,0 +1,134 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.v1;
+
+import "gogoproto/gogo.proto";
+
+message PartitionRequestHeaders {
+    uint32 partition_id = 1 [
+        (gogoproto.customname) = "PartitionID",
+        (gogoproto.casttype) = "PartitionID"
+    ];
+}
+
+message PartitionResponseHeaders {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "Index"
+    ];
+    Status status = 2;
+    string message = 3;
+
+    enum Status {
+        UNKNOWN = 0;
+        OK = 1;
+        ERROR = 2;
+        CANCELED = 3;
+        NOT_FOUND = 4;
+        ALREADY_EXISTS = 5;
+        UNAUTHORIZED = 6;
+        FORBIDDEN = 7;
+        CONFLICT = 8;
+        INVALID = 9;
+        UNAVAILABLE = 10;
+        NOT_SUPPORTED = 11;
+        TIMEOUT = 12;
+        INTERNAL = 13;
+    }
+}
+
+message SessionRequestHeaders {
+    PartitionRequestHeaders partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 session_id = 2 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+}
+
+message SessionResponseHeaders {
+    PartitionResponseHeaders partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ServiceRequestHeaders {
+    SessionRequestHeaders session = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 service_id = 2 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+}
+
+message ServiceResponseHeaders {
+    SessionResponseHeaders session = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message OperationRequestHeaders {
+    ServiceRequestHeaders session = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint32 operation_id = 2 [
+        (gogoproto.customname) = "OperationID",
+        (gogoproto.casttype) = "OperationID"
+    ];
+}
+
+message OperationResponseHeaders {
+    ServiceResponseHeaders session = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CommandRequestHeaders {
+    OperationRequestHeaders operation = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 command_sequence_num = 2 [
+        (gogoproto.casttype) = "CommandSequenceNum"
+    ];
+}
+
+message CommandResponseHeaders {
+    OperationResponseHeaders operation = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 output_sequence_num = 2 [
+        (gogoproto.casttype) = "OutputSequenceNum"
+    ];
+}
+
+message QueryRequestHeaders {
+    OperationRequestHeaders operation = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 last_command_sequence_num = 2 [
+        (gogoproto.casttype) = "CommandSequenceNum"
+    ];
+}
+
+message QueryResponseHeaders {
+    OperationResponseHeaders operation = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}

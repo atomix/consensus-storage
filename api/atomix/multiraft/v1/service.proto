@@ -1,0 +1,79 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.v1;
+
+import "gogoproto/gogo.proto";
+import "atomix/multiraft/v1/headers.proto";
+import "atomix/multiraft/v1/fsm.proto";
+
+service MultiRaftService {
+    rpc OpenSession(OpenSessionRequest) returns (OpenSessionResponse);
+    rpc KeepAlive(KeepAliveRequest) returns (KeepAliveResponse);
+    rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse);
+}
+
+message OpenSessionRequest {
+    PartitionRequestHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    OpenSessionInput input = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message OpenSessionResponse {
+    PartitionResponseHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    OpenSessionOutput output = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message KeepAliveRequest {
+    PartitionRequestHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    KeepAliveInput input = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message KeepAliveResponse {
+    PartitionResponseHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    KeepAliveOutput output = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CloseSessionRequest {
+    PartitionRequestHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    CloseSessionInput input = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CloseSessionResponse {
+    PartitionResponseHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    CloseSessionOutput output = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}

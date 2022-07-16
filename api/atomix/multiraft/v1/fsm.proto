@@ -1,0 +1,123 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.v1;
+
+import "gogoproto/gogo.proto";
+
+message PartitionInput {
+    oneof payload {
+        OpenSessionInput open_session = 1;
+        KeepAliveInput keep_alive = 2;
+        CloseSessionInput close_session = 3;
+        SessionInput session_input = 4;
+    }
+}
+
+message PartitionOutput {
+    oneof payload {
+        OpenSessionOutput open_session = 1;
+        KeepAliveOutput keep_alive = 2;
+        CloseSessionOutput close_session = 3;
+        SessionOutput session_output = 4;
+    }
+}
+
+message SessionInput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    oneof payload {
+        CreateServiceInput create_service = 2;
+        CloseServiceInput close_service = 3;
+        ServiceInput service_input = 4;
+    }
+}
+
+message SessionOutput {
+    oneof payload {
+        CreateServiceOutput create_service = 1;
+        CloseServiceOutput close_service = 2;
+        ServiceOutput service_output = 3;
+    }
+}
+
+message CreateServiceInput {
+    string service = 1;
+    string namespace = 2;
+    string name = 3;
+}
+
+message CreateServiceOutput {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+}
+
+message CloseServiceInput {
+
+}
+
+message CloseServiceOutput {
+
+}
+
+message ServiceInput {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+    bytes payload = 2;
+}
+
+message ServiceOutput {
+    bytes payload = 1;
+}
+
+message OpenSessionInput {
+
+}
+
+message OpenSessionOutput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+}
+
+message KeepAliveInput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    uint64 last_command_sequence_num = 2 [
+        (gogoproto.casttype) = "CommandSequenceNum"
+    ];
+    bytes pending_commands_filter = 3;
+    map<uint64, uint64> output_stream_sequence_nums = 4 [
+        (gogoproto.castkey) = "CommandSequenceNum",
+        (gogoproto.castvalue) = "OutputSequenceNum"
+    ];
+}
+
+message KeepAliveOutput {
+
+}
+
+message CloseSessionInput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+}
+
+message CloseSessionOutput {
+
+}

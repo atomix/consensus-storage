@@ -1,0 +1,208 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.map.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+message MapInput {
+    oneof payload {
+        SizeInput size = 1;
+        PutInput put = 2;
+        InsertInput insert = 3;
+        UpdateInput update = 4;
+        GetInput get = 5;
+        RemoveInput remove = 6;
+        ClearInput clear = 7;
+        EventsInput events = 8;
+        EntriesInput entries = 9;
+    }
+}
+
+message MapOutput {
+    oneof payload {
+        SizeOutput size = 1;
+        PutOutput put = 2;
+        InsertOutput insert = 3;
+        UpdateOutput update = 4;
+        GetOutput get = 5;
+        RemoveOutput remove = 6;
+        ClearOutput clear = 7;
+        EventsOutput events = 8;
+        EntriesOutput entries = 9;
+    }
+}
+
+message MapSnapshot {
+    repeated MapListener listeners = 1 [
+        (gogoproto.nullable) = false
+    ];
+    repeated MapEntry entries = 2 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message MapListener {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+    ];
+    string key = 2;
+}
+
+message MapEntry {
+    MapKey key = 1 [
+        (gogoproto.nullable) = false
+    ];
+    MapValue value = 2;
+}
+
+message MapKey {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+    ];
+    string key = 2;
+}
+
+message MapValue {
+    bytes value = 1;
+    google.protobuf.Timestamp expire = 2 [
+        (gogoproto.stdtime) = true
+    ];
+}
+
+message SizeInput {
+
+}
+
+message SizeOutput {
+    uint32 size = 1;
+}
+
+message PutInput {
+    string key = 1;
+    Value value = 2;
+    uint64 index = 3 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message PutOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message InsertInput {
+    string key = 1;
+    Value value = 2;
+}
+
+message InsertOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message UpdateInput {
+    string key = 1;
+    Value value = 2;
+    uint64 index = 3 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message UpdateOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message GetInput {
+    string key = 1;
+}
+
+message GetOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message RemoveInput {
+    string key = 1;
+    uint64 index = 2 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message RemoveOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message ClearInput {
+
+}
+
+message ClearOutput {
+
+}
+
+message EntriesInput {
+
+}
+
+message EntriesOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message EventsInput {
+    string key = 1;
+    bool replay = 2;
+}
+
+message EventsOutput {
+    Event event = 2 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message Event {
+    Type type = 1;
+    Entry entry = 2 [
+        (gogoproto.nullable) = false
+    ];
+
+    enum Type {
+        NONE = 0;
+        INSERT = 1;
+        UPDATE = 2;
+        REMOVE = 3;
+        REPLAY = 4;
+    }
+}
+
+message Entry {
+    string key = 1;
+    Value value = 2;
+    uint64 index = 3 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message Value {
+    bytes value = 1;
+    google.protobuf.Duration ttl = 2 [
+        (gogoproto.customname) = "TTL",
+        (gogoproto.stdduration) = true
+    ];
+}

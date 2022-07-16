@@ -1,0 +1,204 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.counter.v1;
+
+import "atomix/multiraft/counter/v1/fsm.proto";
+import "atomix/multiraft/v1/descriptor.proto";
+import "atomix/multiraft/v1/headers.proto";
+import "gogoproto/gogo.proto";
+
+// Counter is a service for a counter primitive
+service Counter {
+    option (atomix.multiraft.v1.input_type) = "CounterInput";
+    option (atomix.multiraft.v1.output_type) = "CounterOutput";
+    option (atomix.multiraft.v1.snapshot_type) = "CounterSnapshot";
+
+    // Create creates the counter
+    rpc Create (CreateRequest) returns (CreateResponse) {
+        option (atomix.multiraft.v1.operation_type) = CREATE;
+    }
+
+    // Close closes the counter
+    rpc Close (CloseRequest) returns (CloseResponse) {
+        option (atomix.multiraft.v1.operation_type) = CLOSE;
+    }
+
+    // Set sets the counter value
+    rpc Set (SetRequest) returns (SetResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // CompareAndSet sets the counter value
+    rpc CompareAndSet (CompareAndSetRequest) returns (CompareAndSetResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Get gets the current counter value
+    rpc Get (GetRequest) returns (GetResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
+
+    // Increment increments the counter value
+    rpc Increment (IncrementRequest) returns (IncrementResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Decrement decrements the counter value
+    rpc Decrement (DecrementRequest) returns (DecrementResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+}
+
+message CreateRequest {
+    atomix.multiraft.v1.SessionRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message CreateResponse {
+    atomix.multiraft.v1.SessionResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message CloseRequest {
+    atomix.multiraft.v1.ServiceRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message CloseResponse {
+    atomix.multiraft.v1.ServiceResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+}
+
+message IncrementRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    IncrementInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message IncrementResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    IncrementOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message DecrementRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    DecrementInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message DecrementResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    DecrementOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message GetRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    GetInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message GetResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    GetOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message SetRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    SetInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message SetResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    SetOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CompareAndSetRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    CompareAndSetInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CompareAndSetResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    CompareAndSetOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
