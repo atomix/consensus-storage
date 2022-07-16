@@ -8,6 +8,7 @@ syntax = "proto3";
 
 package atomix.multiraft.v1;
 
+import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 import "atomix/multiraft/v1/config.proto";
 import "atomix/multiraft/v1/headers.proto";
@@ -17,12 +18,14 @@ service Node {
     rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
     rpc Join(JoinRequest) returns (JoinResponse);
     rpc Leave(LeaveRequest) returns (LeaveResponse);
+    rpc Watch(WatchRequest) returns (stream RaftEvent);
 }
 
 message BootstrapRequest {
     repeated PartitionConfig partitions = 1 [
         (gogoproto.nullable) = false
     ];
+    MemberRole role = 2;
 }
 
 message BootstrapResponse {
@@ -33,6 +36,7 @@ message JoinRequest {
     PartitionConfig partition = 1 [
         (gogoproto.nullable) = false
     ];
+    MemberRole role = 2;
 }
 
 message JoinResponse {
@@ -48,4 +52,167 @@ message LeaveRequest {
 
 message LeaveResponse {
 
+}
+
+message WatchRequest {
+
+}
+
+message RaftEvent {
+    google.protobuf.Timestamp timestamp = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.stdtime) = true
+    ];
+    oneof event {
+        MemberReadyEvent member_ready = 2;
+        LeaderUpdatedEvent leader_updated = 3;
+        MembershipChangedEvent membership_changed = 4;
+        SendSnapshotStartedEvent send_snapshot_started = 5;
+        SendSnapshotCompletedEvent send_snapshot_completed = 6;
+        SendSnapshotAbortedEvent send_snapshot_aborted = 7;
+        SnapshotReceivedEvent snapshot_received = 8;
+        SnapshotRecoveredEvent snapshot_recovered = 9;
+        SnapshotCreatedEvent snapshot_created = 10;
+        SnapshotCompactedEvent snapshot_compacted = 11;
+        LogCompactedEvent log_compacted = 12;
+        LogDBCompactedEvent logdb_compacted = 13;
+        ConnectionEstablishedEvent connection_established = 14;
+        ConnectionFailedEvent connection_failed = 15;
+    }
+}
+
+message PartitionEvent {
+    uint32 partition = 1;
+}
+
+message MemberReadyEvent {
+    PartitionEvent partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message MembershipChangedEvent {
+    PartitionEvent partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LeaderEvent {
+    PartitionEvent partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 term = 2;
+    string leader = 3;
+}
+
+message LeaderUpdatedEvent {
+    LeaderEvent leader = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message SnapshotEvent {
+    PartitionEvent partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 index = 2;
+}
+
+message SendSnapshotStartedEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    string to = 2;
+}
+
+message SendSnapshotCompletedEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    string to = 2;
+}
+
+message SendSnapshotAbortedEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    string to = 2;
+}
+
+message SnapshotReceivedEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    string from = 2;
+}
+
+message SnapshotRecoveredEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message SnapshotCreatedEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message SnapshotCompactedEvent {
+    SnapshotEvent snapshot = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LogEvent {
+    PartitionEvent partition = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+    uint64 index = 2;
+}
+
+message LogCompactedEvent {
+    LogEvent log = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LogDBCompactedEvent {
+    LogEvent log = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ConnectionEvent {
+    string address = 1;
+    bool snapshot = 2;
+}
+
+message ConnectionEstablishedEvent {
+    ConnectionEvent connection = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ConnectionFailedEvent {
+    ConnectionEvent connection = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
 }

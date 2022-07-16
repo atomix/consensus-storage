@@ -8,6 +8,8 @@
     - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
     - [PartitionConfig.MembersEntry](#atomix-multiraft-v1-PartitionConfig-MembersEntry)
   
+    - [MemberRole](#atomix-multiraft-v1-MemberRole)
+  
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -69,6 +71,20 @@
 
 
  
+
+
+<a name="atomix-multiraft-v1-MemberRole"></a>
+
+### MemberRole
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| UNKNOWN | 0 |  |
+| MEMBER | 1 |  |
+| OBSERVER | 2 |  |
+| WITNESS | 3 |  |
+
 
  
 

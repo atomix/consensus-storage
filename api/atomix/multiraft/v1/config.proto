@@ -29,3 +29,10 @@ message PartitionConfig {
     ];
     map<uint64, string> members = 2;
 }
+
+enum MemberRole {
+    UNKNOWN = 0;
+    MEMBER = 1;
+    OBSERVER = 2;
+    WITNESS = 3;
+}
