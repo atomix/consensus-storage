@@ -8,6 +8,7 @@
     - [CloseServiceOutput](#atomix-multiraft-v1-CloseServiceOutput)
     - [CloseSessionInput](#atomix-multiraft-v1-CloseSessionInput)
     - [CloseSessionOutput](#atomix-multiraft-v1-CloseSessionOutput)
+    - [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot)
     - [CreateServiceInput](#atomix-multiraft-v1-CreateServiceInput)
     - [CreateServiceOutput](#atomix-multiraft-v1-CreateServiceOutput)
     - [KeepAliveInput](#atomix-multiraft-v1-KeepAliveInput)
@@ -17,10 +18,16 @@
     - [OpenSessionOutput](#atomix-multiraft-v1-OpenSessionOutput)
     - [PartitionInput](#atomix-multiraft-v1-PartitionInput)
     - [PartitionOutput](#atomix-multiraft-v1-PartitionOutput)
+    - [PartitionSnapshot](#atomix-multiraft-v1-PartitionSnapshot)
     - [ServiceInput](#atomix-multiraft-v1-ServiceInput)
     - [ServiceOutput](#atomix-multiraft-v1-ServiceOutput)
+    - [ServiceSnapshot](#atomix-multiraft-v1-ServiceSnapshot)
+    - [ServiceSpec](#atomix-multiraft-v1-ServiceSpec)
     - [SessionInput](#atomix-multiraft-v1-SessionInput)
     - [SessionOutput](#atomix-multiraft-v1-SessionOutput)
+    - [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot)
+  
+    - [CommandState](#atomix-multiraft-v1-CommandState)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -78,6 +85,24 @@
 
 
 
+<a name="atomix-multiraft-v1-CommandSnapshot"></a>
+
+### CommandSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| command_sequence_num | [uint64](#uint64) |  |  |
+| state | [CommandState](#atomix-multiraft-v1-CommandState) |  |  |
+| input | [ServiceInput](#atomix-multiraft-v1-ServiceInput) |  |  |
+| pending_outputs | [ServiceOutput](#atomix-multiraft-v1-ServiceOutput) | repeated |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-v1-CreateServiceInput"></a>
 
 ### CreateServiceInput
@@ -86,9 +111,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| service | [string](#string) |  |  |
-| namespace | [string](#string) |  |  |
-| name | [string](#string) |  |  |
+| spec | [ServiceSpec](#atomix-multiraft-v1-ServiceSpec) |  |  |
 
 
 
@@ -215,6 +238,24 @@
 
 
 
+<a name="atomix-multiraft-v1-PartitionSnapshot"></a>
+
+### PartitionSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| sessions | [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot) | repeated |  |
+| services | [ServiceSnapshot](#atomix-multiraft-v1-ServiceSnapshot) | repeated |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-v1-ServiceInput"></a>
 
 ### ServiceInput
@@ -240,6 +281,41 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | payload | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-ServiceSnapshot"></a>
+
+### ServiceSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| service_id | [uint64](#uint64) |  |  |
+| spec | [ServiceSpec](#atomix-multiraft-v1-ServiceSpec) |  |  |
+| data | [bytes](#bytes) |  |  |
+| sessions | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-ServiceSpec"></a>
+
+### ServiceSpec
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| service | [string](#string) |  |  |
+| namespace | [string](#string) |  |  |
+| name | [string](#string) |  |  |
 
 
 
@@ -280,7 +356,37 @@
 
 
 
+
+<a name="atomix-multiraft-v1-SessionSnapshot"></a>
+
+### SessionSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| session_id | [uint64](#uint64) |  |  |
+| timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+| last_updated | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| commands | [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot) | repeated |  |
+
+
+
+
+
  
+
+
+<a name="atomix-multiraft-v1-CommandState"></a>
+
+### CommandState
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| COMMAND_OPEN | 0 |  |
+| COMMAND_COMPLETE | 1 |  |
+
 
  
 

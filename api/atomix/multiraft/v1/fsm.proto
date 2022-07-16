@@ -8,6 +8,8 @@ syntax = "proto3";
 
 package atomix.multiraft.v1;
 
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
 message PartitionInput {
@@ -49,9 +51,9 @@ message SessionOutput {
 }
 
 message CreateServiceInput {
-    string service = 1;
-    string namespace = 2;
-    string name = 3;
+    ServiceSpec spec = 1 [
+        (gogoproto.nullable) = false
+    ];
 }
 
 message CreateServiceOutput {
@@ -120,4 +122,67 @@ message CloseSessionInput {
 
 message CloseSessionOutput {
 
+}
+
+message PartitionSnapshot {
+    uint64 index = 1 [(gogoproto.casttype) = "Index"];
+    google.protobuf.Timestamp timestamp = 2 [
+        (gogoproto.stdtime) = true,
+        (gogoproto.nullable) = false
+    ];
+    repeated SessionSnapshot sessions = 3;
+    repeated ServiceSnapshot services = 4;
+}
+
+message SessionSnapshot {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    google.protobuf.Duration timeout = 2 [
+        (gogoproto.stdduration) = true,
+        (gogoproto.nullable) = false
+    ];
+    google.protobuf.Timestamp last_updated = 3 [
+        (gogoproto.stdtime) = true,
+        (gogoproto.nullable) = false
+    ];
+    repeated CommandSnapshot commands = 4;
+}
+
+message CommandSnapshot {
+    uint64 command_sequence_num = 1 [
+        (gogoproto.casttype) = "CommandSequenceNum"
+    ];
+    CommandState state = 2;
+    ServiceInput input = 3;
+    repeated ServiceOutput pending_outputs = 4 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+enum CommandState {
+    COMMAND_OPEN = 0;
+    COMMAND_COMPLETE = 1;
+}
+
+message ServiceSnapshot {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+    ServiceSpec spec = 2 [
+        (gogoproto.nullable) = false
+    ];
+    bytes data = 3;
+    repeated uint64 sessions = 4 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+}
+
+message ServiceSpec {
+    string service = 1;
+    string namespace = 2;
+    string name = 3;
 }
