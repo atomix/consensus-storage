@@ -54,7 +54,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | partitions | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) | repeated |  |
-| role | [MemberRole](#atomix-multiraft-v1-MemberRole) |  |  |
 
 
 
@@ -126,7 +125,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | partition | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) |  |  |
-| role | [MemberRole](#atomix-multiraft-v1-MemberRole) |  |  |
 
 
 
@@ -153,7 +151,7 @@
 | ----- | ---- | ----- | ----------- |
 | partition | [PartitionEvent](#atomix-multiraft-v1-PartitionEvent) |  |  |
 | term | [uint64](#uint64) |  |  |
-| leader | [string](#string) |  |  |
+| leader | [uint64](#uint64) |  |  |
 
 
 
@@ -284,7 +282,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| partition | [uint32](#uint32) |  |  |
+| partition_id | [uint32](#uint32) |  |  |
 
 
 
@@ -329,7 +327,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| to | [string](#string) |  |  |
+| to | [uint64](#uint64) |  |  |
 
 
 
@@ -345,7 +343,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| to | [string](#string) |  |  |
+| to | [uint64](#uint64) |  |  |
 
 
 
@@ -361,7 +359,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| to | [string](#string) |  |  |
+| to | [uint64](#uint64) |  |  |
 
 
 
@@ -423,7 +421,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| from | [string](#string) |  |  |
+| from | [uint64](#uint64) |  |  |
 
 
 

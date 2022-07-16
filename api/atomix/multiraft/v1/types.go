@@ -18,4 +18,6 @@ type OperationID string
 
 type SequenceNum uint64
 
+type Term uint64
+
 type Index uint64

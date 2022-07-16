@@ -27,12 +27,24 @@ message PartitionConfig {
         (gogoproto.customname) = "PartitionID",
         (gogoproto.casttype) = "PartitionID"
     ];
-    map<uint64, string> members = 2;
+    repeated MemberConfig members = 2 [
+        (gogoproto.nullable) = false
+    ];
 }
 
-enum MemberRole {
-    UNKNOWN = 0;
-    MEMBER = 1;
-    OBSERVER = 2;
-    WITNESS = 3;
+message MemberConfig {
+    uint64 node_id = 1 [
+        (gogoproto.customname) = "NodeID",
+        (gogoproto.casttype) = "NodeID"
+    ];
+    string host = 2;
+    int32 port = 3;
+    Role role = 4;
+
+    enum Role {
+        UNKNOWN = 0;
+        MEMBER = 1;
+        OBSERVER = 2;
+        WITNESS = 3;
+    }
 }

@@ -12,7 +12,6 @@ import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 import "atomix/multiraft/v1/config.proto";
 import "atomix/multiraft/v1/headers.proto";
-import "atomix/multiraft/v1/fsm.proto";
 
 service Node {
     rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
@@ -25,7 +24,6 @@ message BootstrapRequest {
     repeated PartitionConfig partitions = 1 [
         (gogoproto.nullable) = false
     ];
-    MemberRole role = 2;
 }
 
 message BootstrapResponse {
@@ -36,7 +34,6 @@ message JoinRequest {
     PartitionConfig partition = 1 [
         (gogoproto.nullable) = false
     ];
-    MemberRole role = 2;
 }
 
 message JoinResponse {
@@ -82,7 +79,10 @@ message RaftEvent {
 }
 
 message PartitionEvent {
-    uint32 partition = 1;
+    uint32 partition_id = 1 [
+        (gogoproto.customname) = "PartitionID",
+        (gogoproto.casttype) = "PartitionID"
+    ];
 }
 
 message MemberReadyEvent {
@@ -104,8 +104,12 @@ message LeaderEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    uint64 term = 2;
-    string leader = 3;
+    uint64 term = 2 [
+        (gogoproto.casttype) = "Term"
+    ];
+    uint64 leader = 3 [
+        (gogoproto.casttype) = "NodeID"
+    ];
 }
 
 message LeaderUpdatedEvent {
@@ -120,7 +124,9 @@ message SnapshotEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    uint64 index = 2;
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
 }
 
 message SendSnapshotStartedEvent {
@@ -128,7 +134,9 @@ message SendSnapshotStartedEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    string to = 2;
+    uint64 to = 2 [
+        (gogoproto.casttype) = "NodeID"
+    ];
 }
 
 message SendSnapshotCompletedEvent {
@@ -136,7 +144,9 @@ message SendSnapshotCompletedEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    string to = 2;
+    uint64 to = 2 [
+        (gogoproto.casttype) = "NodeID"
+    ];
 }
 
 message SendSnapshotAbortedEvent {
@@ -144,7 +154,9 @@ message SendSnapshotAbortedEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    string to = 2;
+    uint64 to = 2 [
+        (gogoproto.casttype) = "NodeID"
+    ];
 }
 
 message SnapshotReceivedEvent {
@@ -152,7 +164,9 @@ message SnapshotReceivedEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    string from = 2;
+    uint64 from = 2 [
+        (gogoproto.casttype) = "NodeID"
+    ];
 }
 
 message SnapshotRecoveredEvent {
@@ -181,7 +195,9 @@ message LogEvent {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    uint64 index = 2;
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
 }
 
 message LogCompactedEvent {
