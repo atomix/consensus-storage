@@ -12,7 +12,7 @@ import "gogoproto/gogo.proto";
 import "atomix/multiraft/v1/headers.proto";
 import "atomix/multiraft/v1/fsm.proto";
 
-service MultiRaftService {
+service Partition {
     rpc OpenSession(OpenSessionRequest) returns (OpenSessionResponse);
     rpc KeepAlive(KeepAliveRequest) returns (KeepAliveResponse);
     rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse);

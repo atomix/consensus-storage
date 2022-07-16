@@ -11,7 +11,7 @@
     - [OpenSessionRequest](#atomix-multiraft-v1-OpenSessionRequest)
     - [OpenSessionResponse](#atomix-multiraft-v1-OpenSessionResponse)
   
-    - [MultiRaftService](#atomix-multiraft-v1-MultiRaftService)
+    - [Partition](#atomix-multiraft-v1-Partition)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -126,9 +126,9 @@
  
 
 
-<a name="atomix-multiraft-v1-MultiRaftService"></a>
+<a name="atomix-multiraft-v1-Partition"></a>
 
-### MultiRaftService
+### Partition
 
 
 | Method Name | Request Type | Response Type | Description |
