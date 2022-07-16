@@ -305,8 +305,15 @@ message PrimitiveSnapshot {
     ];
 }
 
+message PrimitiveType {
+    string name = 1;
+    string version = 2;
+}
+
 message PrimitiveSpec {
-    string type = 1;
+    PrimitiveType type = 1 [
+        (gogoproto.nullable) = false
+    ];
     string namespace = 2;
     string name = 3;
 }

@@ -31,6 +31,7 @@
     - [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput)
     - [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot)
     - [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec)
+    - [PrimitiveType](#atomix-multiraft-v1-PrimitiveType)
     - [QueryInput](#atomix-multiraft-v1-QueryInput)
     - [QueryOutput](#atomix-multiraft-v1-QueryOutput)
     - [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput)
@@ -467,9 +468,25 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| type | [string](#string) |  |  |
+| type | [PrimitiveType](#atomix-multiraft-v1-PrimitiveType) |  |  |
 | namespace | [string](#string) |  |  |
 | name | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveType"></a>
+
+### PrimitiveType
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  |  |
+| version | [string](#string) |  |  |
 
 
 

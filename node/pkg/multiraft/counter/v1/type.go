@@ -10,12 +10,12 @@ import (
 	"google.golang.org/grpc"
 )
 
-var Type = multiraft.NewType(register)
+var Type = multiraft.NewType(register, create)
 
 func register(server *grpc.Server, protocol *multiraft.Protocol) {
 	counterv1.RegisterCounterServer(server, newServer(protocol))
 }
 
-func create() multiraft.StateMachine {
+func create() multiraft.PrimitiveStateMachine {
 
 }
