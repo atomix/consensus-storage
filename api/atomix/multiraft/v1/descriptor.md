@@ -12,8 +12,6 @@
     - [File-level Extensions](#atomix_multiraft_v1_descriptor-proto-extensions)
     - [File-level Extensions](#atomix_multiraft_v1_descriptor-proto-extensions)
     - [File-level Extensions](#atomix_multiraft_v1_descriptor-proto-extensions)
-    - [File-level Extensions](#atomix_multiraft_v1_descriptor-proto-extensions)
-    - [File-level Extensions](#atomix_multiraft_v1_descriptor-proto-extensions)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -37,8 +35,6 @@ OperationType is an enum for specifying the type of operation
 | ---- | ------ | ----------- |
 | COMMAND | 0 |  |
 | QUERY | 1 |  |
-| CREATE | 2 |  |
-| CLOSE | 3 |  |
 
 
  
@@ -54,9 +50,7 @@ OperationType is an enum for specifying the type of operation
 | output | bool | .google.protobuf.FieldOptions | 62002 |  |
 | operation_id | uint32 | .google.protobuf.MethodOptions | 61000 |  |
 | operation_type | OperationType | .google.protobuf.MethodOptions | 61001 |  |
-| input_type | string | .google.protobuf.ServiceOptions | 60000 |  |
-| output_type | string | .google.protobuf.ServiceOptions | 60001 |  |
-| snapshot_type | string | .google.protobuf.ServiceOptions | 60002 |  |
+| snapshot_type | string | .google.protobuf.ServiceOptions | 60000 |  |
 
  
 

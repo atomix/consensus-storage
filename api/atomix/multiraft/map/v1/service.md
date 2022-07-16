@@ -6,10 +6,6 @@
 - [atomix/multiraft/map/v1/service.proto](#atomix_multiraft_map_v1_service-proto)
     - [ClearRequest](#atomix-multiraft-map-v1-ClearRequest)
     - [ClearResponse](#atomix-multiraft-map-v1-ClearResponse)
-    - [CloseRequest](#atomix-multiraft-map-v1-CloseRequest)
-    - [CloseResponse](#atomix-multiraft-map-v1-CloseResponse)
-    - [CreateRequest](#atomix-multiraft-map-v1-CreateRequest)
-    - [CreateResponse](#atomix-multiraft-map-v1-CreateResponse)
     - [EntriesRequest](#atomix-multiraft-map-v1-EntriesRequest)
     - [EntriesResponse](#atomix-multiraft-map-v1-EntriesResponse)
     - [EventsRequest](#atomix-multiraft-map-v1-EventsRequest)
@@ -66,66 +62,6 @@
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.QueryResponseHeaders](#atomix-multiraft-v1-QueryResponseHeaders) |  |  |
 | output | [ClearOutput](#atomix-multiraft-map-v1-ClearOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-CloseRequest"></a>
-
-### CloseRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.ServiceRequestHeaders](#atomix-multiraft-v1-ServiceRequestHeaders) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-CloseResponse"></a>
-
-### CloseResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.ServiceResponseHeaders](#atomix-multiraft-v1-ServiceResponseHeaders) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-CreateRequest"></a>
-
-### CreateRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-CreateResponse"></a>
-
-### CreateResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
 
 
 
@@ -401,8 +337,15 @@ Map is a service for a map primitive
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Create | [CreateRequest](#atomix-multiraft-map-v1-CreateRequest) | [CreateResponse](#atomix-multiraft-map-v1-CreateResponse) | Create creates the map |
-| Close | [CloseRequest](#atomix-multiraft-map-v1-CloseRequest) | [CloseResponse](#atomix-multiraft-map-v1-CloseResponse) | Close closes the map |
+| Size | [SizeRequest](#atomix-multiraft-map-v1-SizeRequest) | [SizeResponse](#atomix-multiraft-map-v1-SizeResponse) | Size returns the size of the map |
+| Put | [PutRequest](#atomix-multiraft-map-v1-PutRequest) | [PutResponse](#atomix-multiraft-map-v1-PutResponse) | Put puts an entry into the map |
+| Insert | [InsertRequest](#atomix-multiraft-map-v1-InsertRequest) | [InsertResponse](#atomix-multiraft-map-v1-InsertResponse) | Insert inserts an entry into the map |
+| Update | [UpdateRequest](#atomix-multiraft-map-v1-UpdateRequest) | [UpdateResponse](#atomix-multiraft-map-v1-UpdateResponse) | Update updates an entry in the map |
+| Get | [GetRequest](#atomix-multiraft-map-v1-GetRequest) | [GetResponse](#atomix-multiraft-map-v1-GetResponse) | Get gets the entry for a key |
+| Remove | [RemoveRequest](#atomix-multiraft-map-v1-RemoveRequest) | [RemoveResponse](#atomix-multiraft-map-v1-RemoveResponse) | Remove removes an entry from the map |
+| Clear | [ClearRequest](#atomix-multiraft-map-v1-ClearRequest) | [ClearResponse](#atomix-multiraft-map-v1-ClearResponse) | Clear removes all entries from the map |
+| Events | [EventsRequest](#atomix-multiraft-map-v1-EventsRequest) | [EventsResponse](#atomix-multiraft-map-v1-EventsResponse) stream | Events listens for change events |
+| Entries | [EntriesRequest](#atomix-multiraft-map-v1-EntriesRequest) | [EntriesResponse](#atomix-multiraft-map-v1-EntriesResponse) stream | Entries lists all entries in the map |
 
  
 

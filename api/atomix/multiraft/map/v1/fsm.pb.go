@@ -59,359 +59,7 @@ func (x Event_Type) String() string {
 }
 
 func (Event_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{25, 0}
-}
-
-type MapInput struct {
-	// Types that are valid to be assigned to Payload:
-	//	*MapInput_Size_
-	//	*MapInput_Put
-	//	*MapInput_Insert
-	//	*MapInput_Update
-	//	*MapInput_Get
-	//	*MapInput_Remove
-	//	*MapInput_Clear
-	//	*MapInput_Events
-	//	*MapInput_Entries
-	Payload isMapInput_Payload `protobuf_oneof:"payload"`
-}
-
-func (m *MapInput) Reset()         { *m = MapInput{} }
-func (m *MapInput) String() string { return proto.CompactTextString(m) }
-func (*MapInput) ProtoMessage()    {}
-func (*MapInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{0}
-}
-func (m *MapInput) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MapInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MapInput.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MapInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MapInput.Merge(m, src)
-}
-func (m *MapInput) XXX_Size() int {
-	return m.Size()
-}
-func (m *MapInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_MapInput.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MapInput proto.InternalMessageInfo
-
-type isMapInput_Payload interface {
-	isMapInput_Payload()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type MapInput_Size_ struct {
-	Size_ *SizeInput `protobuf:"bytes,1,opt,name=size,proto3,oneof" json:"size,omitempty"`
-}
-type MapInput_Put struct {
-	Put *PutInput `protobuf:"bytes,2,opt,name=put,proto3,oneof" json:"put,omitempty"`
-}
-type MapInput_Insert struct {
-	Insert *InsertInput `protobuf:"bytes,3,opt,name=insert,proto3,oneof" json:"insert,omitempty"`
-}
-type MapInput_Update struct {
-	Update *UpdateInput `protobuf:"bytes,4,opt,name=update,proto3,oneof" json:"update,omitempty"`
-}
-type MapInput_Get struct {
-	Get *GetInput `protobuf:"bytes,5,opt,name=get,proto3,oneof" json:"get,omitempty"`
-}
-type MapInput_Remove struct {
-	Remove *RemoveInput `protobuf:"bytes,6,opt,name=remove,proto3,oneof" json:"remove,omitempty"`
-}
-type MapInput_Clear struct {
-	Clear *ClearInput `protobuf:"bytes,7,opt,name=clear,proto3,oneof" json:"clear,omitempty"`
-}
-type MapInput_Events struct {
-	Events *EventsInput `protobuf:"bytes,8,opt,name=events,proto3,oneof" json:"events,omitempty"`
-}
-type MapInput_Entries struct {
-	Entries *EntriesInput `protobuf:"bytes,9,opt,name=entries,proto3,oneof" json:"entries,omitempty"`
-}
-
-func (*MapInput_Size_) isMapInput_Payload()   {}
-func (*MapInput_Put) isMapInput_Payload()     {}
-func (*MapInput_Insert) isMapInput_Payload()  {}
-func (*MapInput_Update) isMapInput_Payload()  {}
-func (*MapInput_Get) isMapInput_Payload()     {}
-func (*MapInput_Remove) isMapInput_Payload()  {}
-func (*MapInput_Clear) isMapInput_Payload()   {}
-func (*MapInput_Events) isMapInput_Payload()  {}
-func (*MapInput_Entries) isMapInput_Payload() {}
-
-func (m *MapInput) GetPayload() isMapInput_Payload {
-	if m != nil {
-		return m.Payload
-	}
-	return nil
-}
-
-func (m *MapInput) GetSize_() *SizeInput {
-	if x, ok := m.GetPayload().(*MapInput_Size_); ok {
-		return x.Size_
-	}
-	return nil
-}
-
-func (m *MapInput) GetPut() *PutInput {
-	if x, ok := m.GetPayload().(*MapInput_Put); ok {
-		return x.Put
-	}
-	return nil
-}
-
-func (m *MapInput) GetInsert() *InsertInput {
-	if x, ok := m.GetPayload().(*MapInput_Insert); ok {
-		return x.Insert
-	}
-	return nil
-}
-
-func (m *MapInput) GetUpdate() *UpdateInput {
-	if x, ok := m.GetPayload().(*MapInput_Update); ok {
-		return x.Update
-	}
-	return nil
-}
-
-func (m *MapInput) GetGet() *GetInput {
-	if x, ok := m.GetPayload().(*MapInput_Get); ok {
-		return x.Get
-	}
-	return nil
-}
-
-func (m *MapInput) GetRemove() *RemoveInput {
-	if x, ok := m.GetPayload().(*MapInput_Remove); ok {
-		return x.Remove
-	}
-	return nil
-}
-
-func (m *MapInput) GetClear() *ClearInput {
-	if x, ok := m.GetPayload().(*MapInput_Clear); ok {
-		return x.Clear
-	}
-	return nil
-}
-
-func (m *MapInput) GetEvents() *EventsInput {
-	if x, ok := m.GetPayload().(*MapInput_Events); ok {
-		return x.Events
-	}
-	return nil
-}
-
-func (m *MapInput) GetEntries() *EntriesInput {
-	if x, ok := m.GetPayload().(*MapInput_Entries); ok {
-		return x.Entries
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*MapInput) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*MapInput_Size_)(nil),
-		(*MapInput_Put)(nil),
-		(*MapInput_Insert)(nil),
-		(*MapInput_Update)(nil),
-		(*MapInput_Get)(nil),
-		(*MapInput_Remove)(nil),
-		(*MapInput_Clear)(nil),
-		(*MapInput_Events)(nil),
-		(*MapInput_Entries)(nil),
-	}
-}
-
-type MapOutput struct {
-	// Types that are valid to be assigned to Payload:
-	//	*MapOutput_Size_
-	//	*MapOutput_Put
-	//	*MapOutput_Insert
-	//	*MapOutput_Update
-	//	*MapOutput_Get
-	//	*MapOutput_Remove
-	//	*MapOutput_Clear
-	//	*MapOutput_Events
-	//	*MapOutput_Entries
-	Payload isMapOutput_Payload `protobuf_oneof:"payload"`
-}
-
-func (m *MapOutput) Reset()         { *m = MapOutput{} }
-func (m *MapOutput) String() string { return proto.CompactTextString(m) }
-func (*MapOutput) ProtoMessage()    {}
-func (*MapOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{1}
-}
-func (m *MapOutput) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MapOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MapOutput.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MapOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MapOutput.Merge(m, src)
-}
-func (m *MapOutput) XXX_Size() int {
-	return m.Size()
-}
-func (m *MapOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_MapOutput.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MapOutput proto.InternalMessageInfo
-
-type isMapOutput_Payload interface {
-	isMapOutput_Payload()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type MapOutput_Size_ struct {
-	Size_ *SizeOutput `protobuf:"bytes,1,opt,name=size,proto3,oneof" json:"size,omitempty"`
-}
-type MapOutput_Put struct {
-	Put *PutOutput `protobuf:"bytes,2,opt,name=put,proto3,oneof" json:"put,omitempty"`
-}
-type MapOutput_Insert struct {
-	Insert *InsertOutput `protobuf:"bytes,3,opt,name=insert,proto3,oneof" json:"insert,omitempty"`
-}
-type MapOutput_Update struct {
-	Update *UpdateOutput `protobuf:"bytes,4,opt,name=update,proto3,oneof" json:"update,omitempty"`
-}
-type MapOutput_Get struct {
-	Get *GetOutput `protobuf:"bytes,5,opt,name=get,proto3,oneof" json:"get,omitempty"`
-}
-type MapOutput_Remove struct {
-	Remove *RemoveOutput `protobuf:"bytes,6,opt,name=remove,proto3,oneof" json:"remove,omitempty"`
-}
-type MapOutput_Clear struct {
-	Clear *ClearOutput `protobuf:"bytes,7,opt,name=clear,proto3,oneof" json:"clear,omitempty"`
-}
-type MapOutput_Events struct {
-	Events *EventsOutput `protobuf:"bytes,8,opt,name=events,proto3,oneof" json:"events,omitempty"`
-}
-type MapOutput_Entries struct {
-	Entries *EntriesOutput `protobuf:"bytes,9,opt,name=entries,proto3,oneof" json:"entries,omitempty"`
-}
-
-func (*MapOutput_Size_) isMapOutput_Payload()   {}
-func (*MapOutput_Put) isMapOutput_Payload()     {}
-func (*MapOutput_Insert) isMapOutput_Payload()  {}
-func (*MapOutput_Update) isMapOutput_Payload()  {}
-func (*MapOutput_Get) isMapOutput_Payload()     {}
-func (*MapOutput_Remove) isMapOutput_Payload()  {}
-func (*MapOutput_Clear) isMapOutput_Payload()   {}
-func (*MapOutput_Events) isMapOutput_Payload()  {}
-func (*MapOutput_Entries) isMapOutput_Payload() {}
-
-func (m *MapOutput) GetPayload() isMapOutput_Payload {
-	if m != nil {
-		return m.Payload
-	}
-	return nil
-}
-
-func (m *MapOutput) GetSize_() *SizeOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Size_); ok {
-		return x.Size_
-	}
-	return nil
-}
-
-func (m *MapOutput) GetPut() *PutOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Put); ok {
-		return x.Put
-	}
-	return nil
-}
-
-func (m *MapOutput) GetInsert() *InsertOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Insert); ok {
-		return x.Insert
-	}
-	return nil
-}
-
-func (m *MapOutput) GetUpdate() *UpdateOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Update); ok {
-		return x.Update
-	}
-	return nil
-}
-
-func (m *MapOutput) GetGet() *GetOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Get); ok {
-		return x.Get
-	}
-	return nil
-}
-
-func (m *MapOutput) GetRemove() *RemoveOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Remove); ok {
-		return x.Remove
-	}
-	return nil
-}
-
-func (m *MapOutput) GetClear() *ClearOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Clear); ok {
-		return x.Clear
-	}
-	return nil
-}
-
-func (m *MapOutput) GetEvents() *EventsOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Events); ok {
-		return x.Events
-	}
-	return nil
-}
-
-func (m *MapOutput) GetEntries() *EntriesOutput {
-	if x, ok := m.GetPayload().(*MapOutput_Entries); ok {
-		return x.Entries
-	}
-	return nil
-}
-
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*MapOutput) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*MapOutput_Size_)(nil),
-		(*MapOutput_Put)(nil),
-		(*MapOutput_Insert)(nil),
-		(*MapOutput_Update)(nil),
-		(*MapOutput_Get)(nil),
-		(*MapOutput_Remove)(nil),
-		(*MapOutput_Clear)(nil),
-		(*MapOutput_Events)(nil),
-		(*MapOutput_Entries)(nil),
-	}
+	return fileDescriptor_a0b1180f3b549f7a, []int{23, 0}
 }
 
 type MapSnapshot struct {
@@ -423,7 +71,7 @@ func (m *MapSnapshot) Reset()         { *m = MapSnapshot{} }
 func (m *MapSnapshot) String() string { return proto.CompactTextString(m) }
 func (*MapSnapshot) ProtoMessage()    {}
 func (*MapSnapshot) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{2}
+	return fileDescriptor_a0b1180f3b549f7a, []int{0}
 }
 func (m *MapSnapshot) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -475,7 +123,7 @@ func (m *MapListener) Reset()         { *m = MapListener{} }
 func (m *MapListener) String() string { return proto.CompactTextString(m) }
 func (*MapListener) ProtoMessage()    {}
 func (*MapListener) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{3}
+	return fileDescriptor_a0b1180f3b549f7a, []int{1}
 }
 func (m *MapListener) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -527,7 +175,7 @@ func (m *MapEntry) Reset()         { *m = MapEntry{} }
 func (m *MapEntry) String() string { return proto.CompactTextString(m) }
 func (*MapEntry) ProtoMessage()    {}
 func (*MapEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{4}
+	return fileDescriptor_a0b1180f3b549f7a, []int{2}
 }
 func (m *MapEntry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -579,7 +227,7 @@ func (m *MapKey) Reset()         { *m = MapKey{} }
 func (m *MapKey) String() string { return proto.CompactTextString(m) }
 func (*MapKey) ProtoMessage()    {}
 func (*MapKey) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{5}
+	return fileDescriptor_a0b1180f3b549f7a, []int{3}
 }
 func (m *MapKey) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -631,7 +279,7 @@ func (m *MapValue) Reset()         { *m = MapValue{} }
 func (m *MapValue) String() string { return proto.CompactTextString(m) }
 func (*MapValue) ProtoMessage()    {}
 func (*MapValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{6}
+	return fileDescriptor_a0b1180f3b549f7a, []int{4}
 }
 func (m *MapValue) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -681,7 +329,7 @@ func (m *SizeInput) Reset()         { *m = SizeInput{} }
 func (m *SizeInput) String() string { return proto.CompactTextString(m) }
 func (*SizeInput) ProtoMessage()    {}
 func (*SizeInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{7}
+	return fileDescriptor_a0b1180f3b549f7a, []int{5}
 }
 func (m *SizeInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -718,7 +366,7 @@ func (m *SizeOutput) Reset()         { *m = SizeOutput{} }
 func (m *SizeOutput) String() string { return proto.CompactTextString(m) }
 func (*SizeOutput) ProtoMessage()    {}
 func (*SizeOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{8}
+	return fileDescriptor_a0b1180f3b549f7a, []int{6}
 }
 func (m *SizeOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -764,7 +412,7 @@ func (m *PutInput) Reset()         { *m = PutInput{} }
 func (m *PutInput) String() string { return proto.CompactTextString(m) }
 func (*PutInput) ProtoMessage()    {}
 func (*PutInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{9}
+	return fileDescriptor_a0b1180f3b549f7a, []int{7}
 }
 func (m *PutInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -822,7 +470,7 @@ func (m *PutOutput) Reset()         { *m = PutOutput{} }
 func (m *PutOutput) String() string { return proto.CompactTextString(m) }
 func (*PutOutput) ProtoMessage()    {}
 func (*PutOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{10}
+	return fileDescriptor_a0b1180f3b549f7a, []int{8}
 }
 func (m *PutOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -867,7 +515,7 @@ func (m *InsertInput) Reset()         { *m = InsertInput{} }
 func (m *InsertInput) String() string { return proto.CompactTextString(m) }
 func (*InsertInput) ProtoMessage()    {}
 func (*InsertInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{11}
+	return fileDescriptor_a0b1180f3b549f7a, []int{9}
 }
 func (m *InsertInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -918,7 +566,7 @@ func (m *InsertOutput) Reset()         { *m = InsertOutput{} }
 func (m *InsertOutput) String() string { return proto.CompactTextString(m) }
 func (*InsertOutput) ProtoMessage()    {}
 func (*InsertOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{12}
+	return fileDescriptor_a0b1180f3b549f7a, []int{10}
 }
 func (m *InsertOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -964,7 +612,7 @@ func (m *UpdateInput) Reset()         { *m = UpdateInput{} }
 func (m *UpdateInput) String() string { return proto.CompactTextString(m) }
 func (*UpdateInput) ProtoMessage()    {}
 func (*UpdateInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{13}
+	return fileDescriptor_a0b1180f3b549f7a, []int{11}
 }
 func (m *UpdateInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1022,7 +670,7 @@ func (m *UpdateOutput) Reset()         { *m = UpdateOutput{} }
 func (m *UpdateOutput) String() string { return proto.CompactTextString(m) }
 func (*UpdateOutput) ProtoMessage()    {}
 func (*UpdateOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{14}
+	return fileDescriptor_a0b1180f3b549f7a, []int{12}
 }
 func (m *UpdateOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1066,7 +714,7 @@ func (m *GetInput) Reset()         { *m = GetInput{} }
 func (m *GetInput) String() string { return proto.CompactTextString(m) }
 func (*GetInput) ProtoMessage()    {}
 func (*GetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{15}
+	return fileDescriptor_a0b1180f3b549f7a, []int{13}
 }
 func (m *GetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1110,7 +758,7 @@ func (m *GetOutput) Reset()         { *m = GetOutput{} }
 func (m *GetOutput) String() string { return proto.CompactTextString(m) }
 func (*GetOutput) ProtoMessage()    {}
 func (*GetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{16}
+	return fileDescriptor_a0b1180f3b549f7a, []int{14}
 }
 func (m *GetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1155,7 +803,7 @@ func (m *RemoveInput) Reset()         { *m = RemoveInput{} }
 func (m *RemoveInput) String() string { return proto.CompactTextString(m) }
 func (*RemoveInput) ProtoMessage()    {}
 func (*RemoveInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{17}
+	return fileDescriptor_a0b1180f3b549f7a, []int{15}
 }
 func (m *RemoveInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1206,7 +854,7 @@ func (m *RemoveOutput) Reset()         { *m = RemoveOutput{} }
 func (m *RemoveOutput) String() string { return proto.CompactTextString(m) }
 func (*RemoveOutput) ProtoMessage()    {}
 func (*RemoveOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{18}
+	return fileDescriptor_a0b1180f3b549f7a, []int{16}
 }
 func (m *RemoveOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1249,7 +897,7 @@ func (m *ClearInput) Reset()         { *m = ClearInput{} }
 func (m *ClearInput) String() string { return proto.CompactTextString(m) }
 func (*ClearInput) ProtoMessage()    {}
 func (*ClearInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{19}
+	return fileDescriptor_a0b1180f3b549f7a, []int{17}
 }
 func (m *ClearInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1285,7 +933,7 @@ func (m *ClearOutput) Reset()         { *m = ClearOutput{} }
 func (m *ClearOutput) String() string { return proto.CompactTextString(m) }
 func (*ClearOutput) ProtoMessage()    {}
 func (*ClearOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{20}
+	return fileDescriptor_a0b1180f3b549f7a, []int{18}
 }
 func (m *ClearOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1321,7 +969,7 @@ func (m *EntriesInput) Reset()         { *m = EntriesInput{} }
 func (m *EntriesInput) String() string { return proto.CompactTextString(m) }
 func (*EntriesInput) ProtoMessage()    {}
 func (*EntriesInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{21}
+	return fileDescriptor_a0b1180f3b549f7a, []int{19}
 }
 func (m *EntriesInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1358,7 +1006,7 @@ func (m *EntriesOutput) Reset()         { *m = EntriesOutput{} }
 func (m *EntriesOutput) String() string { return proto.CompactTextString(m) }
 func (*EntriesOutput) ProtoMessage()    {}
 func (*EntriesOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{22}
+	return fileDescriptor_a0b1180f3b549f7a, []int{20}
 }
 func (m *EntriesOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1403,7 +1051,7 @@ func (m *EventsInput) Reset()         { *m = EventsInput{} }
 func (m *EventsInput) String() string { return proto.CompactTextString(m) }
 func (*EventsInput) ProtoMessage()    {}
 func (*EventsInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{23}
+	return fileDescriptor_a0b1180f3b549f7a, []int{21}
 }
 func (m *EventsInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1454,7 +1102,7 @@ func (m *EventsOutput) Reset()         { *m = EventsOutput{} }
 func (m *EventsOutput) String() string { return proto.CompactTextString(m) }
 func (*EventsOutput) ProtoMessage()    {}
 func (*EventsOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{24}
+	return fileDescriptor_a0b1180f3b549f7a, []int{22}
 }
 func (m *EventsOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1499,7 +1147,7 @@ func (m *Event) Reset()         { *m = Event{} }
 func (m *Event) String() string { return proto.CompactTextString(m) }
 func (*Event) ProtoMessage()    {}
 func (*Event) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{25}
+	return fileDescriptor_a0b1180f3b549f7a, []int{23}
 }
 func (m *Event) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1552,7 +1200,7 @@ func (m *Entry) Reset()         { *m = Entry{} }
 func (m *Entry) String() string { return proto.CompactTextString(m) }
 func (*Entry) ProtoMessage()    {}
 func (*Entry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{26}
+	return fileDescriptor_a0b1180f3b549f7a, []int{24}
 }
 func (m *Entry) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1611,7 +1259,7 @@ func (m *Value) Reset()         { *m = Value{} }
 func (m *Value) String() string { return proto.CompactTextString(m) }
 func (*Value) ProtoMessage()    {}
 func (*Value) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a0b1180f3b549f7a, []int{27}
+	return fileDescriptor_a0b1180f3b549f7a, []int{25}
 }
 func (m *Value) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1656,8 +1304,6 @@ func (m *Value) GetTTL() *time.Duration {
 
 func init() {
 	proto.RegisterEnum("atomix.multiraft.map.v1.Event_Type", Event_Type_name, Event_Type_value)
-	proto.RegisterType((*MapInput)(nil), "atomix.multiraft.map.v1.MapInput")
-	proto.RegisterType((*MapOutput)(nil), "atomix.multiraft.map.v1.MapOutput")
 	proto.RegisterType((*MapSnapshot)(nil), "atomix.multiraft.map.v1.MapSnapshot")
 	proto.RegisterType((*MapListener)(nil), "atomix.multiraft.map.v1.MapListener")
 	proto.RegisterType((*MapEntry)(nil), "atomix.multiraft.map.v1.MapEntry")
@@ -1689,515 +1335,57 @@ func init() {
 func init() { proto.RegisterFile("atomix/multiraft/map/v1/fsm.proto", fileDescriptor_a0b1180f3b549f7a) }
 
 var fileDescriptor_a0b1180f3b549f7a = []byte{
-	// 1020 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0xcf, 0x6f, 0x1b, 0x45,
-	0x14, 0xf6, 0xc6, 0x6b, 0xc7, 0x7e, 0x76, 0x2a, 0x6b, 0x54, 0xc1, 0x12, 0x21, 0x3b, 0x99, 0xd6,
-	0x88, 0x0b, 0x6b, 0x95, 0x1f, 0x4d, 0x29, 0xa8, 0x21, 0xa6, 0x56, 0x9b, 0x36, 0x4e, 0xa2, 0x8d,
-	0x53, 0x04, 0xb7, 0x49, 0x3d, 0x71, 0x57, 0xd8, 0xde, 0x91, 0x3d, 0x6b, 0xc5, 0x15, 0x7f, 0x44,
-	0x8f, 0x88, 0x3b, 0x12, 0x12, 0x7f, 0x03, 0x5c, 0xe9, 0xb1, 0x47, 0x4e, 0x01, 0x25, 0xff, 0x05,
-	0x27, 0x34, 0x33, 0x3b, 0xbb, 0x1b, 0x27, 0xde, 0x15, 0x72, 0x84, 0x7a, 0x9b, 0xb5, 0xdf, 0xf7,
-	0xde, 0xf7, 0x9e, 0xbf, 0x7d, 0xdf, 0x18, 0xd6, 0x09, 0xf7, 0x06, 0xee, 0x49, 0x63, 0xe0, 0xf7,
-	0xb9, 0x3b, 0x22, 0xc7, 0xbc, 0x31, 0x20, 0xac, 0x31, 0xb9, 0xd3, 0x38, 0x1e, 0x0f, 0x6c, 0x36,
-	0xf2, 0xb8, 0x87, 0xde, 0x55, 0x21, 0x76, 0x18, 0x62, 0x0f, 0x08, 0xb3, 0x27, 0x77, 0x56, 0xab,
-	0x3d, 0xcf, 0xeb, 0xf5, 0x69, 0x43, 0x86, 0x1d, 0xf9, 0xc7, 0x8d, 0xae, 0x3f, 0x22, 0xdc, 0xf5,
-	0x86, 0x0a, 0xb8, 0x5a, 0x9b, 0xfd, 0x9e, 0xbb, 0x03, 0x3a, 0xe6, 0x64, 0xc0, 0x82, 0x80, 0x9b,
-	0x3d, 0xaf, 0xe7, 0xc9, 0x63, 0x43, 0x9c, 0xd4, 0xa7, 0xf8, 0x37, 0x13, 0x0a, 0x6d, 0xc2, 0xb6,
-	0x87, 0xcc, 0xe7, 0xe8, 0x1e, 0x98, 0x63, 0xf7, 0x25, 0xb5, 0x8c, 0x35, 0xe3, 0xc3, 0xd2, 0xc7,
-	0xd8, 0x9e, 0xc3, 0xc5, 0x3e, 0x70, 0x5f, 0x52, 0x89, 0x78, 0x9c, 0x71, 0x24, 0x02, 0x7d, 0x06,
-	0x59, 0xe6, 0x73, 0x6b, 0x49, 0x02, 0xd7, 0xe7, 0x02, 0xf7, 0x7d, 0xae, 0x71, 0x22, 0x1e, 0x3d,
-	0x80, 0xbc, 0x3b, 0x1c, 0xd3, 0x11, 0xb7, 0xb2, 0x12, 0x79, 0x7b, 0x2e, 0x72, 0x5b, 0x86, 0x69,
-	0x70, 0x80, 0x12, 0x78, 0x9f, 0x75, 0x09, 0xa7, 0x96, 0x99, 0x82, 0x3f, 0x94, 0x61, 0x21, 0x5e,
-	0xa1, 0x04, 0xed, 0x1e, 0xe5, 0x56, 0x2e, 0x85, 0xf6, 0x23, 0x1a, 0xd1, 0xee, 0x51, 0x59, 0x76,
-	0x44, 0x07, 0xde, 0x84, 0x5a, 0xf9, 0x94, 0xb2, 0x8e, 0x0c, 0x0b, 0xcb, 0x2a, 0x14, 0xfa, 0x02,
-	0x72, 0xcf, 0xfb, 0x94, 0x8c, 0xac, 0x65, 0x09, 0xbf, 0x35, 0x17, 0xfe, 0xb5, 0x88, 0xd2, 0x68,
-	0x85, 0x11, 0xc5, 0xe9, 0x84, 0x0e, 0xf9, 0xd8, 0x2a, 0xa4, 0x14, 0x6f, 0xc9, 0xb0, 0xb0, 0xb8,
-	0x42, 0xa1, 0x2d, 0x58, 0xa6, 0x43, 0x3e, 0x72, 0xe9, 0xd8, 0x2a, 0xca, 0x04, 0xf5, 0xf9, 0x09,
-	0x54, 0x9c, 0xce, 0xa0, 0x71, 0xcd, 0x22, 0x2c, 0x33, 0x32, 0xed, 0x7b, 0xa4, 0x8b, 0xff, 0x30,
-	0xa1, 0xd8, 0x26, 0x6c, 0xcf, 0xe7, 0xe2, 0xf7, 0xfc, 0xfc, 0x82, 0x80, 0x6e, 0x25, 0x0a, 0x48,
-	0x41, 0x42, 0x05, 0xdd, 0x8d, 0x2b, 0x08, 0x27, 0x29, 0x28, 0x04, 0x4a, 0x09, 0x6d, 0xce, 0x48,
-	0xa8, 0x9e, 0x22, 0xa1, 0x10, 0xad, 0x35, 0xb4, 0x39, 0xa3, 0xa1, 0x7a, 0x8a, 0x86, 0xa2, 0x04,
-	0x81, 0x88, 0xee, 0xc6, 0x45, 0x84, 0x93, 0x44, 0x14, 0x31, 0x17, 0x2a, 0xda, 0x9c, 0x51, 0x51,
-	0x3d, 0x45, 0x45, 0x51, 0xe1, 0x40, 0x46, 0x5f, 0x5e, 0x94, 0xd1, 0xed, 0x64, 0x19, 0x85, 0xf0,
-	0x40, 0x47, 0x9b, 0x33, 0x3a, 0xaa, 0xa7, 0xe8, 0x28, 0x2a, 0x1f, 0x08, 0xa9, 0x39, 0x2b, 0xa4,
-	0x0f, 0xd2, 0x84, 0x14, 0xa6, 0xb8, 0x4a, 0x49, 0x3f, 0x19, 0x50, 0x6a, 0x13, 0x76, 0x30, 0x24,
-	0x6c, 0xfc, 0xc2, 0xe3, 0xe8, 0x31, 0x14, 0xfb, 0xee, 0x98, 0xd3, 0x21, 0x1d, 0x8d, 0x2d, 0x63,
-	0x2d, 0x9b, 0xd8, 0x61, 0x9b, 0xb0, 0x9d, 0x20, 0xb8, 0x69, 0xbe, 0x3e, 0xad, 0x65, 0x9c, 0x08,
-	0x1c, 0x57, 0xfc, 0x92, 0xcc, 0xb3, 0x9e, 0x94, 0x47, 0x70, 0x9d, 0x06, 0x49, 0x34, 0x0e, 0xfb,
-	0x92, 0x9b, 0x2e, 0x81, 0x3a, 0x90, 0x73, 0x87, 0x5d, 0x7a, 0x22, 0x85, 0x6e, 0x36, 0x1f, 0xfc,
-	0x73, 0x5a, 0xbb, 0xdf, 0x73, 0xf9, 0x0b, 0xff, 0xc8, 0x7e, 0xee, 0x0d, 0x1a, 0xf1, 0x35, 0xff,
-	0x91, 0xdc, 0xf3, 0x84, 0xb9, 0x8d, 0x4b, 0xcb, 0x5f, 0x6a, 0xb2, 0x4b, 0x4f, 0x1c, 0x95, 0x0c,
-	0x55, 0x20, 0xfb, 0x3d, 0x9d, 0xca, 0x57, 0xa0, 0xe8, 0x88, 0x23, 0xfe, 0x41, 0x2e, 0x67, 0xc9,
-	0x08, 0x6d, 0xa8, 0x6f, 0xd5, 0xab, 0x55, 0x4b, 0xea, 0xe0, 0x29, 0xd5, 0xfc, 0x05, 0x02, 0x6d,
-	0x40, 0x6e, 0x42, 0xfa, 0x3e, 0x4d, 0xdd, 0xce, 0x6d, 0xc2, 0x9e, 0x89, 0x40, 0x47, 0xc5, 0x63,
-	0x06, 0x79, 0x95, 0xed, 0x7f, 0xeb, 0xf7, 0x3b, 0xd9, 0xaf, 0x24, 0x81, 0x6e, 0x6a, 0xda, 0xa2,
-	0x66, 0x39, 0xe0, 0x84, 0xee, 0x41, 0x9e, 0x9e, 0x30, 0x77, 0xa4, 0xbb, 0x59, 0xb5, 0x95, 0xef,
-	0xd9, 0xda, 0xf7, 0xec, 0x8e, 0xf6, 0xbd, 0xa6, 0xf9, 0xea, 0xaf, 0x9a, 0xe1, 0x04, 0xf1, 0xb8,
-	0x04, 0xc5, 0xd0, 0xb7, 0xf0, 0x1a, 0x40, 0xb4, 0x83, 0x10, 0x8a, 0xad, 0xad, 0x15, 0xb5, 0x8f,
-	0xf0, 0x2f, 0x06, 0x14, 0xb4, 0x5d, 0x69, 0xa6, 0x46, 0xc8, 0x14, 0x7d, 0x7a, 0x71, 0xa8, 0xd5,
-	0xb9, 0x43, 0x8d, 0x4f, 0x34, 0x9a, 0x63, 0xf6, 0x1a, 0xe7, 0x88, 0x1f, 0x41, 0x31, 0x5c, 0x8b,
-	0xe8, 0x3e, 0xe4, 0x84, 0x68, 0xb5, 0x50, 0xaa, 0x89, 0xef, 0xa4, 0xd6, 0x89, 0x82, 0xe0, 0x43,
-	0x28, 0xc5, 0x7c, 0xf6, 0xba, 0xba, 0xc6, 0x4f, 0xa0, 0x1c, 0xdf, 0xbd, 0x0b, 0x51, 0xfc, 0xd5,
-	0x80, 0x52, 0xcc, 0xcb, 0xdf, 0xf2, 0x5f, 0xe6, 0x09, 0x94, 0xe3, 0xa6, 0xb1, 0x50, 0xe7, 0xef,
-	0x43, 0x41, 0xdf, 0x43, 0x2e, 0x77, 0x2d, 0x34, 0x10, 0x1a, 0xcc, 0x42, 0x65, 0x7c, 0x28, 0xc5,
-	0x2e, 0x2d, 0x57, 0xcc, 0x37, 0x9c, 0xd4, 0xd2, 0x35, 0x4f, 0x2a, 0xee, 0x72, 0x0b, 0xb5, 0x50,
-	0x06, 0x88, 0x2e, 0x4e, 0x78, 0x05, 0x4a, 0x31, 0xff, 0xc3, 0x37, 0xa0, 0x1c, 0xbf, 0xd6, 0xe0,
-	0xa7, 0xb0, 0x72, 0xc1, 0x9d, 0x16, 0xaa, 0xbc, 0x01, 0xa5, 0xd8, 0xa5, 0xeb, 0x8a, 0xe1, 0xbd,
-	0x23, 0x3c, 0x9f, 0xf5, 0x89, 0xda, 0x7a, 0x05, 0x27, 0x78, 0x12, 0xed, 0xc7, 0x5d, 0x56, 0x92,
-	0x10, 0xcf, 0xa9, 0x22, 0x96, 0xa8, 0x90, 0x84, 0x78, 0xc0, 0xbf, 0x1b, 0x90, 0x93, 0x1f, 0xa3,
-	0x0d, 0x30, 0xf9, 0x94, 0xa9, 0xbd, 0x76, 0x23, 0xe1, 0x3a, 0x26, 0xa3, 0xed, 0xce, 0x94, 0x51,
-	0x47, 0x02, 0xa2, 0x19, 0x2c, 0xfd, 0xf7, 0x19, 0x7c, 0x05, 0xa6, 0xc8, 0x84, 0x0a, 0x60, 0xee,
-	0xee, 0xed, 0xb6, 0x2a, 0x19, 0x04, 0x90, 0xdf, 0xde, 0x3d, 0x68, 0x39, 0x9d, 0x8a, 0x21, 0xce,
-	0x87, 0xfb, 0x0f, 0xb7, 0x3a, 0xad, 0xca, 0x92, 0x38, 0x3b, 0xad, 0xf6, 0xde, 0xb3, 0x56, 0x25,
-	0xab, 0xce, 0xfb, 0x3b, 0x5b, 0xdf, 0x56, 0x4c, 0xfc, 0xb3, 0x68, 0x40, 0x7a, 0xde, 0xdb, 0xfd,
-	0x76, 0x7f, 0x03, 0xb9, 0x64, 0xab, 0xca, 0x72, 0xde, 0x0f, 0x88, 0xbe, 0x77, 0xc9, 0xa7, 0x1e,
-	0x06, 0xff, 0xdf, 0x9a, 0xa5, 0xb3, 0xd3, 0x5a, 0xb6, 0xd3, 0xd9, 0xf9, 0x51, 0xb8, 0x95, 0x80,
-	0x34, 0xad, 0xd7, 0x67, 0x55, 0xe3, 0xcd, 0x59, 0xd5, 0xf8, 0xfb, 0xac, 0x6a, 0xbc, 0x3a, 0xaf,
-	0x66, 0xde, 0x9c, 0x57, 0x33, 0x7f, 0x9e, 0x57, 0x33, 0x47, 0x79, 0x09, 0xff, 0xe4, 0xdf, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xf9, 0x3a, 0xe6, 0xbb, 0x4a, 0x0e, 0x00, 0x00,
+	// 758 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x56, 0xcf, 0x6b, 0xdb, 0x48,
+	0x14, 0xb6, 0x6c, 0xd9, 0x6b, 0x3f, 0x39, 0xc1, 0x0c, 0x61, 0xd7, 0x1b, 0x16, 0xd9, 0xd1, 0xee,
+	0x21, 0x97, 0x95, 0x48, 0x5a, 0x70, 0xc9, 0xa1, 0x34, 0x6e, 0x44, 0xea, 0xfc, 0x34, 0x8a, 0x93,
+	0xd2, 0xde, 0x94, 0x66, 0xe2, 0x88, 0x5a, 0xd2, 0x20, 0x8d, 0x4c, 0x1c, 0xfa, 0x47, 0xe4, 0x58,
+	0x7a, 0x2f, 0x14, 0xfa, 0x3f, 0xf4, 0x9c, 0x63, 0x8e, 0x3d, 0xa5, 0xc5, 0xf9, 0x2f, 0x7a, 0x2a,
+	0x33, 0x23, 0x39, 0x6e, 0x83, 0x1d, 0x0a, 0xa2, 0xb4, 0xb7, 0xf7, 0xac, 0xf7, 0xbe, 0xf7, 0x7d,
+	0x9f, 0x9e, 0x66, 0x0c, 0x0b, 0x36, 0xf5, 0x5d, 0xe7, 0xd4, 0x70, 0xa3, 0x1e, 0x75, 0x02, 0xfb,
+	0x98, 0x1a, 0xae, 0x4d, 0x8c, 0xfe, 0x92, 0x71, 0x1c, 0xba, 0x3a, 0x09, 0x7c, 0xea, 0xa3, 0xbf,
+	0x44, 0x89, 0x3e, 0x2a, 0xd1, 0x5d, 0x9b, 0xe8, 0xfd, 0xa5, 0x79, 0xb5, 0xeb, 0xfb, 0xdd, 0x1e,
+	0x36, 0x78, 0xd9, 0x61, 0x74, 0x6c, 0x1c, 0x45, 0x81, 0x4d, 0x1d, 0xdf, 0x13, 0x8d, 0xf3, 0xb5,
+	0xef, 0x9f, 0x53, 0xc7, 0xc5, 0x21, 0xb5, 0x5d, 0x12, 0x17, 0xcc, 0x75, 0xfd, 0xae, 0xcf, 0x43,
+	0x83, 0x45, 0xe2, 0x57, 0xed, 0x8d, 0x04, 0xca, 0xb6, 0x4d, 0xf6, 0x3c, 0x9b, 0x84, 0x27, 0x3e,
+	0x45, 0x4f, 0xa0, 0xd4, 0x73, 0x42, 0x8a, 0x3d, 0x1c, 0x84, 0x55, 0xa9, 0x9e, 0x5b, 0x54, 0x96,
+	0xff, 0xd3, 0x27, 0x70, 0xd2, 0xb7, 0x6d, 0xb2, 0x15, 0x17, 0x37, 0xe5, 0x8b, 0xab, 0x5a, 0xc6,
+	0xba, 0x69, 0x46, 0xab, 0xf0, 0x07, 0xf6, 0x68, 0xe0, 0xe0, 0xb0, 0x9a, 0xe5, 0x38, 0x0b, 0xd3,
+	0x70, 0x4c, 0x8f, 0x06, 0x83, 0x18, 0x24, 0xe9, 0xd3, 0x22, 0xce, 0x2d, 0x19, 0x81, 0x3a, 0x90,
+	0x77, 0xbc, 0x23, 0x7c, 0x5a, 0x95, 0xea, 0xd2, 0xa2, 0xdc, 0x7c, 0xf8, 0xe5, 0xaa, 0xb6, 0xd2,
+	0x75, 0xe8, 0x49, 0x74, 0xa8, 0xbf, 0xf0, 0x5d, 0x63, 0xdc, 0xdc, 0xff, 0xb9, 0xbb, 0x36, 0x71,
+	0x8c, 0x5b, 0x96, 0xf7, 0x97, 0xf4, 0x16, 0x43, 0xb1, 0x04, 0x18, 0xaa, 0x40, 0xee, 0x25, 0x1e,
+	0x54, 0xb3, 0x75, 0x69, 0xb1, 0x64, 0xb1, 0x50, 0x7b, 0x05, 0xc5, 0x84, 0x11, 0x6a, 0x88, 0xa7,
+	0x6c, 0xa2, 0xb2, 0x5c, 0x9b, 0xa6, 0x60, 0x13, 0x27, 0xfc, 0x59, 0x07, 0x6a, 0x40, 0xbe, 0x6f,
+	0xf7, 0x22, 0xcc, 0x81, 0xef, 0x10, 0x7f, 0xc0, 0x0a, 0x2d, 0x51, 0xaf, 0x11, 0x28, 0x08, 0xb4,
+	0x9f, 0xa6, 0xf7, 0x39, 0xd7, 0xcb, 0x49, 0xa0, 0xb9, 0x84, 0x36, 0x9b, 0x59, 0x8e, 0x39, 0xa1,
+	0x07, 0x50, 0xc0, 0xa7, 0xc4, 0x09, 0x12, 0x35, 0xf3, 0xba, 0xd8, 0x36, 0x3d, 0xd9, 0x36, 0xbd,
+	0x93, 0x6c, 0x5b, 0x53, 0x3e, 0xff, 0x54, 0x93, 0xac, 0xb8, 0x5e, 0x53, 0xa0, 0xb4, 0xe7, 0x9c,
+	0xe1, 0x96, 0x47, 0x22, 0xaa, 0xd5, 0x01, 0x58, 0xb2, 0x1b, 0x51, 0x12, 0x51, 0x84, 0x40, 0x0e,
+	0x9d, 0x33, 0x31, 0x69, 0xc6, 0xe2, 0xb1, 0xf6, 0x4e, 0x82, 0x62, 0x3b, 0xa2, 0xbc, 0x3c, 0x61,
+	0x2a, 0x8d, 0x98, 0xa2, 0xfb, 0xdf, 0x9a, 0xaa, 0x4e, 0x34, 0x75, 0xdc, 0xd1, 0x1b, 0x1f, 0x73,
+	0x29, 0xfa, 0xa8, 0xad, 0x43, 0xa9, 0x1d, 0xd1, 0x58, 0xcb, 0x0a, 0xe4, 0xd9, 0xd2, 0x26, 0x8b,
+	0x32, 0x99, 0xd8, 0xf8, 0x9e, 0x8b, 0x16, 0x6d, 0x1f, 0x94, 0x96, 0x17, 0xe2, 0x20, 0x5d, 0xd5,
+	0xda, 0x06, 0x94, 0x05, 0x6c, 0x0a, 0x14, 0xdf, 0x4b, 0xa0, 0xec, 0x93, 0x23, 0x9b, 0xe2, 0xdf,
+	0xe1, 0xcd, 0x6c, 0x40, 0x59, 0x90, 0x4d, 0x41, 0xf9, 0x3f, 0x50, 0x5c, 0xc7, 0x93, 0xde, 0x0c,
+	0xdb, 0x81, 0x75, 0x9c, 0x86, 0xc1, 0x11, 0x28, 0x16, 0x76, 0xfd, 0xfe, 0x44, 0x7f, 0x47, 0x4e,
+	0x65, 0x53, 0x76, 0x4a, 0x8c, 0x4d, 0x41, 0x42, 0x19, 0xe0, 0x71, 0x0f, 0xdb, 0x81, 0xf8, 0xd4,
+	0x67, 0x40, 0xe1, 0x99, 0x00, 0xd6, 0x66, 0xa1, 0x6c, 0x8a, 0x43, 0x5d, 0x3c, 0xde, 0x84, 0x99,
+	0x38, 0x4f, 0x61, 0x72, 0x03, 0x14, 0xb3, 0x8f, 0x3d, 0x1a, 0x4e, 0x32, 0xef, 0x4f, 0x28, 0x04,
+	0x98, 0xf4, 0x6c, 0x71, 0xea, 0x15, 0xad, 0x38, 0x63, 0xf2, 0x45, 0xe3, 0x18, 0x09, 0x96, 0xdf,
+	0xb9, 0xc4, 0xbc, 0x6b, 0x44, 0x82, 0x25, 0xda, 0x07, 0x09, 0xf2, 0xfc, 0x67, 0xd4, 0x00, 0x99,
+	0x0e, 0x88, 0x38, 0xd7, 0x66, 0x97, 0xff, 0x9d, 0x0e, 0xa2, 0x77, 0x06, 0x04, 0x5b, 0xbc, 0xe1,
+	0xc6, 0x83, 0xec, 0x8f, 0x7b, 0xf0, 0x08, 0x64, 0x86, 0x84, 0x8a, 0x20, 0xef, 0xec, 0xee, 0x98,
+	0x95, 0x0c, 0x02, 0x28, 0xb4, 0x76, 0xf6, 0x4c, 0xab, 0x53, 0x91, 0x58, 0xbc, 0xdf, 0x5e, 0x5b,
+	0xed, 0x98, 0x95, 0x2c, 0x8b, 0x2d, 0x73, 0x7b, 0xf7, 0xc0, 0xac, 0xe4, 0x44, 0xdc, 0xde, 0x5a,
+	0x7d, 0x56, 0x91, 0xb5, 0xb7, 0x4c, 0x00, 0xbf, 0xf3, 0x7e, 0xed, 0xaf, 0xfb, 0x29, 0xe4, 0xa7,
+	0x5f, 0x55, 0x39, 0x4a, 0x7b, 0x31, 0xd1, 0xbf, 0x6f, 0xdd, 0x53, 0x6b, 0xf1, 0xbf, 0xa6, 0xa6,
+	0x32, 0xbc, 0xaa, 0xe5, 0x3a, 0x9d, 0xad, 0xd7, 0xec, 0xb6, 0x62, 0x2d, 0xcd, 0xea, 0xc5, 0x50,
+	0x95, 0x2e, 0x87, 0xaa, 0xf4, 0x79, 0xa8, 0x4a, 0xe7, 0xd7, 0x6a, 0xe6, 0xf2, 0x5a, 0xcd, 0x7c,
+	0xbc, 0x56, 0x33, 0x87, 0x05, 0xde, 0x7e, 0xef, 0x6b, 0x00, 0x00, 0x00, 0xff, 0xff, 0x2c, 0xc8,
+	0xb8, 0x15, 0xc0, 0x09, 0x00, 0x00,
 }
 
-func (m *MapInput) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MapInput) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Payload != nil {
-		{
-			size := m.Payload.Size()
-			i -= size
-			if _, err := m.Payload.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MapInput_Size_) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Size_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Size_ != nil {
-		{
-			size, err := m.Size_.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Put) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Put) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Put != nil {
-		{
-			size, err := m.Put.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Insert) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Insert) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Insert != nil {
-		{
-			size, err := m.Insert.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Update) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Update) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Update != nil {
-		{
-			size, err := m.Update.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Get) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Get) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Get != nil {
-		{
-			size, err := m.Get.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Remove) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Remove) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Remove != nil {
-		{
-			size, err := m.Remove.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x32
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Clear) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Clear) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Clear != nil {
-		{
-			size, err := m.Clear.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Events) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Events) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Events != nil {
-		{
-			size, err := m.Events.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x42
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapInput_Entries) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapInput_Entries) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Entries != nil {
-		{
-			size, err := m.Entries.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x4a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MapOutput) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Payload != nil {
-		{
-			size := m.Payload.Size()
-			i -= size
-			if _, err := m.Payload.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MapOutput_Size_) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Size_) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Size_ != nil {
-		{
-			size, err := m.Size_.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Put) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Put) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Put != nil {
-		{
-			size, err := m.Put.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Insert) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Insert) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Insert != nil {
-		{
-			size, err := m.Insert.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Update) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Update) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Update != nil {
-		{
-			size, err := m.Update.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Get) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Get) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Get != nil {
-		{
-			size, err := m.Get.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Remove) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Remove) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Remove != nil {
-		{
-			size, err := m.Remove.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x32
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Clear) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Clear) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Clear != nil {
-		{
-			size, err := m.Clear.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Events) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Events) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Events != nil {
-		{
-			size, err := m.Events.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x42
-	}
-	return len(dAtA) - i, nil
-}
-func (m *MapOutput_Entries) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MapOutput_Entries) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.Entries != nil {
-		{
-			size, err := m.Entries.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintFsm(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x4a
-	}
-	return len(dAtA) - i, nil
-}
 func (m *MapSnapshot) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -2385,12 +1573,12 @@ func (m *MapValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	if m.Expire != nil {
-		n21, err21 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Expire, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.Expire):])
-		if err21 != nil {
-			return 0, err21
+		n3, err3 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Expire, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.Expire):])
+		if err3 != nil {
+			return 0, err3
 		}
-		i -= n21
-		i = encodeVarintFsm(dAtA, i, uint64(n21))
+		i -= n3
+		i = encodeVarintFsm(dAtA, i, uint64(n3))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -3102,12 +2290,12 @@ func (m *Value) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	if m.TTL != nil {
-		n34, err34 := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TTL, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TTL):])
-		if err34 != nil {
-			return 0, err34
+		n16, err16 := github_com_gogo_protobuf_types.StdDurationMarshalTo(*m.TTL, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TTL):])
+		if err16 != nil {
+			return 0, err16
 		}
-		i -= n34
-		i = encodeVarintFsm(dAtA, i, uint64(n34))
+		i -= n16
+		i = encodeVarintFsm(dAtA, i, uint64(n16))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -3131,246 +2319,6 @@ func encodeVarintFsm(dAtA []byte, offset int, v uint64) int {
 	}
 	dAtA[offset] = uint8(v)
 	return base
-}
-func (m *MapInput) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Payload != nil {
-		n += m.Payload.Size()
-	}
-	return n
-}
-
-func (m *MapInput_Size_) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Size_ != nil {
-		l = m.Size_.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Put) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Put != nil {
-		l = m.Put.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Insert) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Insert != nil {
-		l = m.Insert.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Update) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Update != nil {
-		l = m.Update.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Get) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Get != nil {
-		l = m.Get.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Remove) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Remove != nil {
-		l = m.Remove.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Clear) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Clear != nil {
-		l = m.Clear.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Events) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Events != nil {
-		l = m.Events.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapInput_Entries) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Entries != nil {
-		l = m.Entries.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Payload != nil {
-		n += m.Payload.Size()
-	}
-	return n
-}
-
-func (m *MapOutput_Size_) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Size_ != nil {
-		l = m.Size_.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Put) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Put != nil {
-		l = m.Put.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Insert) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Insert != nil {
-		l = m.Insert.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Update) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Update != nil {
-		l = m.Update.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Get) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Get != nil {
-		l = m.Get.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Remove) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Remove != nil {
-		l = m.Remove.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Clear) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Clear != nil {
-		l = m.Clear.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Events) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Events != nil {
-		l = m.Events.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-func (m *MapOutput_Entries) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Entries != nil {
-		l = m.Entries.Size()
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
 }
 func (m *MapSnapshot) Size() (n int) {
 	if m == nil {
@@ -3740,736 +2688,6 @@ func sovFsm(x uint64) (n int) {
 }
 func sozFsm(x uint64) (n int) {
 	return sovFsm(uint64((x << 1) ^ uint64((int64(x) >> 63))))
-}
-func (m *MapInput) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFsm
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MapInput: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MapInput: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SizeInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Size_{v}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Put", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &PutInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Put{v}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Insert", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &InsertInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Insert{v}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Update", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &UpdateInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Update{v}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Get", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &GetInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Get{v}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Remove", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &RemoveInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Remove{v}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Clear", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ClearInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Clear{v}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &EventsInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Events{v}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Entries", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &EntriesInput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapInput_Entries{v}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFsm(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MapOutput) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFsm
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MapOutput: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MapOutput: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SizeOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Size_{v}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Put", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &PutOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Put{v}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Insert", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &InsertOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Insert{v}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Update", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &UpdateOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Update{v}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Get", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &GetOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Get{v}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Remove", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &RemoveOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Remove{v}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Clear", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &ClearOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Clear{v}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Events", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &EventsOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Events{v}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Entries", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &EntriesOutput{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Payload = &MapOutput_Entries{v}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFsm(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
 }
 func (m *MapSnapshot) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

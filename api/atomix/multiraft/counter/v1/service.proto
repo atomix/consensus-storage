@@ -15,19 +15,7 @@ import "gogoproto/gogo.proto";
 
 // Counter is a service for a counter primitive
 service Counter {
-    option (atomix.multiraft.v1.input_type) = "CounterInput";
-    option (atomix.multiraft.v1.output_type) = "CounterOutput";
     option (atomix.multiraft.v1.snapshot_type) = "CounterSnapshot";
-
-    // Create creates the counter
-    rpc Create (CreateRequest) returns (CreateResponse) {
-        option (atomix.multiraft.v1.operation_type) = CREATE;
-    }
-
-    // Close closes the counter
-    rpc Close (CloseRequest) returns (CloseResponse) {
-        option (atomix.multiraft.v1.operation_type) = CLOSE;
-    }
 
     // Set sets the counter value
     rpc Set (SetRequest) returns (SetResponse) {
@@ -53,34 +41,6 @@ service Counter {
     rpc Decrement (DecrementRequest) returns (DecrementResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
-}
-
-message CreateRequest {
-    atomix.multiraft.v1.SessionRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-}
-
-message CreateResponse {
-    atomix.multiraft.v1.SessionResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-}
-
-message CloseRequest {
-    atomix.multiraft.v1.ServiceRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-}
-
-message CloseResponse {
-    atomix.multiraft.v1.ServiceResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
 }
 
 message IncrementRequest {

@@ -17,7 +17,7 @@
     - [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders)
     - [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders)
   
-    - [PartitionResponseHeaders.Status](#atomix-multiraft-v1-PartitionResponseHeaders-Status)
+    - [OperationResponseHeaders.Status](#atomix-multiraft-v1-OperationResponseHeaders-Status)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -39,7 +39,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | operation | [OperationRequestHeaders](#atomix-multiraft-v1-OperationRequestHeaders) |  |  |
-| command_sequence_num | [uint64](#uint64) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
 
 
 
@@ -87,6 +87,8 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session | [ServiceResponseHeaders](#atomix-multiraft-v1-ServiceResponseHeaders) |  |  |
+| status | [OperationResponseHeaders.Status](#atomix-multiraft-v1-OperationResponseHeaders-Status) |  |  |
+| message | [string](#string) |  |  |
 
 
 
@@ -117,8 +119,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | index | [uint64](#uint64) |  |  |
-| status | [PartitionResponseHeaders.Status](#atomix-multiraft-v1-PartitionResponseHeaders-Status) |  |  |
-| message | [string](#string) |  |  |
 
 
 
@@ -134,7 +134,8 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | operation | [OperationRequestHeaders](#atomix-multiraft-v1-OperationRequestHeaders) |  |  |
-| last_command_sequence_num | [uint64](#uint64) |  |  |
+| max_received_index | [uint64](#uint64) |  |  |
+| last_sequence_num | [uint64](#uint64) |  |  |
 
 
 
@@ -220,9 +221,9 @@
  
 
 
-<a name="atomix-multiraft-v1-PartitionResponseHeaders-Status"></a>
+<a name="atomix-multiraft-v1-OperationResponseHeaders-Status"></a>
 
-### PartitionResponseHeaders.Status
+### OperationResponseHeaders.Status
 
 
 | Name | Number | Description |

@@ -12,79 +12,51 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
-message PartitionInput {
-    oneof payload {
-        OpenSessionInput open_session = 1;
-        KeepAliveInput keep_alive = 2;
-        CloseSessionInput close_session = 3;
-        SessionInput session_input = 4;
-    }
-}
-
-message PartitionOutput {
-    oneof payload {
-        OpenSessionOutput open_session = 1;
-        KeepAliveOutput keep_alive = 2;
-        CloseSessionOutput close_session = 3;
-        SessionOutput session_output = 4;
-    }
-}
-
-message SessionInput {
-    uint64 session_id = 1 [
-        (gogoproto.customname) = "SessionID",
-        (gogoproto.casttype) = "SessionID"
+message PartitionCommandInput {
+    uint32 partition_id = 1 [
+        (gogoproto.customname) = "PartitionID",
+        (gogoproto.casttype) = "PartitionID"
     ];
-    oneof payload {
-        CreateServiceInput create_service = 2;
-        CloseServiceInput close_service = 3;
-        ServiceInput service_input = 4;
-    }
-}
-
-message SessionOutput {
-    oneof payload {
-        CreateServiceOutput create_service = 1;
-        CloseServiceOutput close_service = 2;
-        ServiceOutput service_output = 3;
-    }
-}
-
-message CreateServiceInput {
-    ServiceSpec spec = 1 [
+    CommandInput command = 2 [
         (gogoproto.nullable) = false
     ];
 }
 
-message CreateServiceOutput {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message PartitionCommandOutput {
+    CommandOutput command = 1 [
+        (gogoproto.nullable) = false
     ];
 }
 
-message CloseServiceInput {
-
-}
-
-message CloseServiceOutput {
-
-}
-
-message ServiceInput {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message CommandInput {
+    google.protobuf.Timestamp timestamp = 1 [
+        (gogoproto.stdtime) = true
     ];
-    bytes payload = 2;
+    oneof input {
+        OpenSessionInput open_session = 2;
+        KeepAliveInput keep_alive = 3;
+        CloseSessionInput close_session = 4;
+        SessionCommandInput session_command = 5;
+    }
 }
 
-message ServiceOutput {
-    bytes payload = 1;
+message CommandOutput {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "Index"
+    ];
+    oneof output {
+        OpenSessionOutput open_session = 2;
+        KeepAliveOutput keep_alive = 3;
+        CloseSessionOutput close_session = 4;
+        SessionCommandOutput session_command = 5;
+    }
 }
 
 message OpenSessionInput {
-
+    google.protobuf.Duration timeout = 1 [
+        (gogoproto.stdduration) = true,
+        (gogoproto.nullable) = false
+    ];
 }
 
 message OpenSessionOutput {
@@ -99,13 +71,13 @@ message KeepAliveInput {
         (gogoproto.customname) = "SessionID",
         (gogoproto.casttype) = "SessionID"
     ];
-    uint64 last_command_sequence_num = 2 [
-        (gogoproto.casttype) = "CommandSequenceNum"
+    bytes input_filter = 2;
+    uint64 last_input_sequence_num = 3 [
+        (gogoproto.casttype) = "SequenceNum"
     ];
-    bytes pending_commands_filter = 3;
-    map<uint64, uint64> output_stream_sequence_nums = 4 [
-        (gogoproto.castkey) = "CommandSequenceNum",
-        (gogoproto.castvalue) = "OutputSequenceNum"
+    map<uint64, uint64> last_output_sequence_nums = 4 [
+        (gogoproto.castkey) = "SequenceNum",
+        (gogoproto.castvalue) = "SequenceNum"
     ];
 }
 
@@ -122,6 +94,157 @@ message CloseSessionInput {
 
 message CloseSessionOutput {
 
+}
+
+message SessionCommandInput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    oneof input {
+        CreateServiceInput create_service = 2;
+        CloseServiceInput close_service = 3;
+        ServiceCommandInput service_command = 4;
+    }
+}
+
+message SessionCommandOutput {
+    oneof output {
+        CreateServiceOutput create_service = 1;
+        CloseServiceOutput close_service = 2;
+        ServiceCommandOutput service_command = 3;
+    }
+}
+
+message CreateServiceInput {
+    ServiceSpec spec = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CreateServiceOutput {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+}
+
+message CloseServiceInput {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+}
+
+message CloseServiceOutput {
+
+}
+
+message ServiceCommandInput {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+    uint64 sequence_num = 2 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
+    OperationInput operation = 3;
+}
+
+message ServiceCommandOutput {
+    uint64 sequence_num = 1 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
+    OperationOutput operation = 2;
+}
+
+message PartitionQueryInput {
+    uint32 partition_id = 1 [
+        (gogoproto.customname) = "PartitionID",
+        (gogoproto.casttype) = "PartitionID"
+    ];
+    QueryInput query = 2 [
+        (gogoproto.nullable) = false
+    ];
+    bool sync = 3;
+}
+
+message PartitionQueryOutput {
+    QueryOutput query = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message QueryInput {
+    uint64 max_received_index = 1 [
+        (gogoproto.casttype) = "Index"
+    ];
+    oneof input {
+        SessionQueryInput session_query = 2;
+    }
+}
+
+message QueryOutput {
+    oneof output {
+        SessionQueryOutput session_query = 1;
+    }
+}
+
+message SessionQueryInput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    oneof input {
+        ServiceQueryInput service_query = 2;
+    }
+}
+
+message SessionQueryOutput {
+    oneof output {
+        ServiceQueryOutput service_query = 1;
+    }
+}
+
+message ServiceQueryInput {
+    uint64 service_id = 1 [
+        (gogoproto.customname) = "ServiceID",
+        (gogoproto.casttype) = "ServiceID"
+    ];
+    OperationInput operation = 2;
+}
+
+message ServiceQueryOutput {
+    OperationOutput operation = 1;
+}
+
+message OperationInput {
+    string name = 1;
+    bytes payload = 2;
+}
+
+message OperationOutput {
+    Status status = 1;
+    bytes payload = 2;
+    string message = 3;
+
+    enum Status {
+        UNKNOWN = 0;
+        OK = 1;
+        ERROR = 2;
+        CANCELED = 3;
+        NOT_FOUND = 4;
+        ALREADY_EXISTS = 5;
+        UNAUTHORIZED = 6;
+        FORBIDDEN = 7;
+        CONFLICT = 8;
+        INVALID = 9;
+        UNAVAILABLE = 10;
+        NOT_SUPPORTED = 11;
+        TIMEOUT = 12;
+        INTERNAL = 13;
+    }
 }
 
 message PartitionSnapshot {
@@ -155,8 +278,8 @@ message CommandSnapshot {
         (gogoproto.casttype) = "CommandSequenceNum"
     ];
     CommandState state = 2;
-    ServiceInput input = 3;
-    repeated ServiceOutput pending_outputs = 4 [
+    ServiceCommandInput input = 3;
+    repeated ServiceCommandOutput pending_outputs = 4 [
         (gogoproto.nullable) = false
     ];
 }

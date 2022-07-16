@@ -8,25 +8,7 @@ syntax = "proto3";
 
 package atomix.multiraft.counter.v1;
 
-message CounterInput {
-    oneof payload {
-        SetInput set = 1;
-        CompareAndSetInput compare_and_set = 2;
-        GetInput get = 3;
-        IncrementInput increment = 4;
-        DecrementInput decrement = 5;
-    }
-}
-
-message CounterOutput {
-    oneof payload {
-        SetOutput set = 1;
-        CompareAndSetOutput compare_and_set = 2;
-        GetOutput get = 3;
-        IncrementOutput increment = 4;
-        DecrementOutput decrement = 5;
-    }
-}
+import "atomix/multiraft/v1/descriptor.proto";
 
 message CounterSnapshot {
     int64 value = 1;

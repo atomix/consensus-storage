@@ -15,47 +15,52 @@ import "gogoproto/gogo.proto";
 
 // Map is a service for a map primitive
 service Map {
-    option (atomix.multiraft.v1.input_type) = "MapInput";
-    option (atomix.multiraft.v1.output_type) = "MapOutput";
     option (atomix.multiraft.v1.snapshot_type) = "MapSnapshot";
 
-    // Create creates the map
-    rpc Create (CreateRequest) returns (CreateResponse) {
-        option (atomix.multiraft.v1.operation_type) = CREATE;
+    // Size returns the size of the map
+    rpc Size (SizeRequest) returns (SizeResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
     }
 
-    // Close closes the map
-    rpc Close (CloseRequest) returns (CloseResponse) {
-        option (atomix.multiraft.v1.operation_type) = CLOSE;
+    // Put puts an entry into the map
+    rpc Put (PutRequest) returns (PutResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
-}
 
-message CreateRequest {
-    atomix.multiraft.v1.SessionRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-}
+    // Insert inserts an entry into the map
+    rpc Insert (InsertRequest) returns (InsertResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
 
-message CreateResponse {
-    atomix.multiraft.v1.SessionResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-}
+    // Update updates an entry in the map
+    rpc Update (UpdateRequest) returns (UpdateResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
 
-message CloseRequest {
-    atomix.multiraft.v1.ServiceRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-}
+    // Get gets the entry for a key
+    rpc Get (GetRequest) returns (GetResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
 
-message CloseResponse {
-    atomix.multiraft.v1.ServiceResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
+    // Remove removes an entry from the map
+    rpc Remove (RemoveRequest) returns (RemoveResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Clear removes all entries from the map
+    rpc Clear (ClearRequest) returns (ClearResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Events listens for change events
+    rpc Events (EventsRequest) returns (stream EventsResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Entries lists all entries in the map
+    rpc Entries (EntriesRequest) returns (stream EntriesResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
 }
 
 message SizeRequest {

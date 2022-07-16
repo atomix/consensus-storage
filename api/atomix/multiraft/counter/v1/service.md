@@ -4,12 +4,8 @@
 ## Table of Contents
 
 - [atomix/multiraft/counter/v1/service.proto](#atomix_multiraft_counter_v1_service-proto)
-    - [CloseRequest](#atomix-multiraft-counter-v1-CloseRequest)
-    - [CloseResponse](#atomix-multiraft-counter-v1-CloseResponse)
     - [CompareAndSetRequest](#atomix-multiraft-counter-v1-CompareAndSetRequest)
     - [CompareAndSetResponse](#atomix-multiraft-counter-v1-CompareAndSetResponse)
-    - [CreateRequest](#atomix-multiraft-counter-v1-CreateRequest)
-    - [CreateResponse](#atomix-multiraft-counter-v1-CreateResponse)
     - [DecrementRequest](#atomix-multiraft-counter-v1-DecrementRequest)
     - [DecrementResponse](#atomix-multiraft-counter-v1-DecrementResponse)
     - [GetRequest](#atomix-multiraft-counter-v1-GetRequest)
@@ -29,36 +25,6 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## atomix/multiraft/counter/v1/service.proto
-
-
-
-<a name="atomix-multiraft-counter-v1-CloseRequest"></a>
-
-### CloseRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.ServiceRequestHeaders](#atomix-multiraft-v1-ServiceRequestHeaders) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-CloseResponse"></a>
-
-### CloseResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.ServiceResponseHeaders](#atomix-multiraft-v1-ServiceResponseHeaders) |  |  |
-
-
-
 
 
 
@@ -88,36 +54,6 @@
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
 | output | [CompareAndSetOutput](#atomix-multiraft-counter-v1-CompareAndSetOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-CreateRequest"></a>
-
-### CreateRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-CreateResponse"></a>
-
-### CreateResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
 
 
 
@@ -265,8 +201,6 @@ Counter is a service for a counter primitive
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Create | [CreateRequest](#atomix-multiraft-counter-v1-CreateRequest) | [CreateResponse](#atomix-multiraft-counter-v1-CreateResponse) | Create creates the counter |
-| Close | [CloseRequest](#atomix-multiraft-counter-v1-CloseRequest) | [CloseResponse](#atomix-multiraft-counter-v1-CloseResponse) | Close closes the counter |
 | Set | [SetRequest](#atomix-multiraft-counter-v1-SetRequest) | [SetResponse](#atomix-multiraft-counter-v1-SetResponse) | Set sets the counter value |
 | CompareAndSet | [CompareAndSetRequest](#atomix-multiraft-counter-v1-CompareAndSetRequest) | [CompareAndSetResponse](#atomix-multiraft-counter-v1-CompareAndSetResponse) | CompareAndSet sets the counter value |
 | Get | [GetRequest](#atomix-multiraft-counter-v1-GetRequest) | [GetResponse](#atomix-multiraft-counter-v1-GetResponse) | Get gets the current counter value |

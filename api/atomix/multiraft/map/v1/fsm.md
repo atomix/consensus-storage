@@ -17,10 +17,8 @@
     - [InsertInput](#atomix-multiraft-map-v1-InsertInput)
     - [InsertOutput](#atomix-multiraft-map-v1-InsertOutput)
     - [MapEntry](#atomix-multiraft-map-v1-MapEntry)
-    - [MapInput](#atomix-multiraft-map-v1-MapInput)
     - [MapKey](#atomix-multiraft-map-v1-MapKey)
     - [MapListener](#atomix-multiraft-map-v1-MapListener)
-    - [MapOutput](#atomix-multiraft-map-v1-MapOutput)
     - [MapSnapshot](#atomix-multiraft-map-v1-MapSnapshot)
     - [MapValue](#atomix-multiraft-map-v1-MapValue)
     - [PutInput](#atomix-multiraft-map-v1-PutInput)
@@ -232,29 +230,6 @@
 
 
 
-<a name="atomix-multiraft-map-v1-MapInput"></a>
-
-### MapInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| size | [SizeInput](#atomix-multiraft-map-v1-SizeInput) |  |  |
-| put | [PutInput](#atomix-multiraft-map-v1-PutInput) |  |  |
-| insert | [InsertInput](#atomix-multiraft-map-v1-InsertInput) |  |  |
-| update | [UpdateInput](#atomix-multiraft-map-v1-UpdateInput) |  |  |
-| get | [GetInput](#atomix-multiraft-map-v1-GetInput) |  |  |
-| remove | [RemoveInput](#atomix-multiraft-map-v1-RemoveInput) |  |  |
-| clear | [ClearInput](#atomix-multiraft-map-v1-ClearInput) |  |  |
-| events | [EventsInput](#atomix-multiraft-map-v1-EventsInput) |  |  |
-| entries | [EntriesInput](#atomix-multiraft-map-v1-EntriesInput) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-map-v1-MapKey"></a>
 
 ### MapKey
@@ -281,29 +256,6 @@
 | ----- | ---- | ----- | ----------- |
 | index | [uint64](#uint64) |  |  |
 | key | [string](#string) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-MapOutput"></a>
-
-### MapOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| size | [SizeOutput](#atomix-multiraft-map-v1-SizeOutput) |  |  |
-| put | [PutOutput](#atomix-multiraft-map-v1-PutOutput) |  |  |
-| insert | [InsertOutput](#atomix-multiraft-map-v1-InsertOutput) |  |  |
-| update | [UpdateOutput](#atomix-multiraft-map-v1-UpdateOutput) |  |  |
-| get | [GetOutput](#atomix-multiraft-map-v1-GetOutput) |  |  |
-| remove | [RemoveOutput](#atomix-multiraft-map-v1-RemoveOutput) |  |  |
-| clear | [ClearOutput](#atomix-multiraft-map-v1-ClearOutput) |  |  |
-| events | [EventsOutput](#atomix-multiraft-map-v1-EventsOutput) |  |  |
-| entries | [EntriesOutput](#atomix-multiraft-map-v1-EntriesOutput) |  |  |
 
 
 

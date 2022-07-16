@@ -12,8 +12,6 @@ type ServiceID uint64
 
 type OperationID uint8
 
-type CommandSequenceNum uint64
-
-type OutputSequenceNum uint64
+type SequenceNum uint64
 
 type Index uint64
