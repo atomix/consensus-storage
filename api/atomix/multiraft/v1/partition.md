@@ -3,7 +3,7 @@
 
 ## Table of Contents
 
-- [atomix/multiraft/v1/service.proto](#atomix_multiraft_v1_service-proto)
+- [atomix/multiraft/v1/partition.proto](#atomix_multiraft_v1_partition-proto)
     - [CloseSessionRequest](#atomix-multiraft-v1-CloseSessionRequest)
     - [CloseSessionResponse](#atomix-multiraft-v1-CloseSessionResponse)
     - [KeepAliveRequest](#atomix-multiraft-v1-KeepAliveRequest)
@@ -17,10 +17,10 @@
 
 
 
-<a name="atomix_multiraft_v1_service-proto"></a>
+<a name="atomix_multiraft_v1_partition-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## atomix/multiraft/v1/service.proto
+## atomix/multiraft/v1/partition.proto
 
 
 

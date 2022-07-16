@@ -1,0 +1,58 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.v1;
+
+import "gogoproto/gogo.proto";
+import "atomix/multiraft/v1/headers.proto";
+import "atomix/multiraft/v1/fsm.proto";
+
+service Session {
+    rpc CreateService(CreateServiceRequest) returns (CreateServiceResponse);
+    rpc CloseService(CloseServiceRequest) returns (CloseServiceResponse);
+}
+
+message CreateServiceRequest {
+    SessionRequestHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    CreateServiceInput input = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CreateServiceResponse {
+    SessionResponseHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    CreateServiceOutput output = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CloseServiceRequest {
+    SessionRequestHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    CloseServiceInput input = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message CloseServiceResponse {
+    SessionResponseHeaders headers = 1 [
+        (gogoproto.nullable) = false
+    ];
+    CloseServiceOutput output = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
