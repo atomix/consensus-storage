@@ -53,7 +53,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| partitions | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) | repeated |  |
+| cluster | [ClusterConfig](#atomix-multiraft-v1-ClusterConfig) |  |  |
 
 
 

@@ -4,6 +4,7 @@
 ## Table of Contents
 
 - [atomix/multiraft/v1/config.proto](#atomix_multiraft_v1_config-proto)
+    - [ClusterConfig](#atomix-multiraft-v1-ClusterConfig)
     - [MemberConfig](#atomix-multiraft-v1-MemberConfig)
     - [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig)
     - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
@@ -18,6 +19,21 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## atomix/multiraft/v1/config.proto
+
+
+
+<a name="atomix-multiraft-v1-ClusterConfig"></a>
+
+### ClusterConfig
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| partitions | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) | repeated |  |
+
+
+
 
 
 

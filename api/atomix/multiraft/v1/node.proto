@@ -21,7 +21,7 @@ service Node {
 }
 
 message BootstrapRequest {
-    repeated PartitionConfig partitions = 1 [
+    ClusterConfig cluster = 1 [
         (gogoproto.nullable) = false
     ];
 }

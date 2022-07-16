@@ -22,6 +22,12 @@ message MultiRaftConfig {
     uint64 compaction_retain_entries = 4;
 }
 
+message ClusterConfig {
+    repeated PartitionConfig partitions = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
 message PartitionConfig {
     uint32 partition_id = 1 [
         (gogoproto.customname) = "PartitionID",
