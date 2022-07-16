@@ -102,49 +102,49 @@ message SessionCommandInput {
         (gogoproto.casttype) = "SessionID"
     ];
     oneof input {
-        CreateServiceInput create_service = 2;
-        CloseServiceInput close_service = 3;
-        ServiceCommandInput service_command = 4;
+        CreatePrimitiveInput create_primitive = 2;
+        ClosePrimitiveInput close_primitive = 3;
+        PrimitiveCommandInput primitive_command = 4;
     }
 }
 
 message SessionCommandOutput {
     oneof output {
-        CreateServiceOutput create_service = 1;
-        CloseServiceOutput close_service = 2;
-        ServiceCommandOutput service_command = 3;
+        CreatePrimitiveOutput create_primitive = 1;
+        ClosePrimitiveOutput close_primitive = 2;
+        PrimitiveCommandOutput primitive_command = 3;
     }
 }
 
-message CreateServiceInput {
-    ServiceSpec spec = 1 [
+message CreatePrimitiveInput {
+    PrimitiveSpec spec = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
-message CreateServiceOutput {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message CreatePrimitiveOutput {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
 }
 
-message CloseServiceInput {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message ClosePrimitiveInput {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
 }
 
-message CloseServiceOutput {
+message ClosePrimitiveOutput {
 
 }
 
-message ServiceCommandInput {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message PrimitiveCommandInput {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
     uint64 sequence_num = 2 [
         (gogoproto.casttype) = "SequenceNum"
@@ -152,7 +152,7 @@ message ServiceCommandInput {
     OperationInput operation = 3;
 }
 
-message ServiceCommandOutput {
+message PrimitiveCommandOutput {
     uint64 sequence_num = 1 [
         (gogoproto.casttype) = "SequenceNum"
     ];
@@ -197,25 +197,25 @@ message SessionQueryInput {
         (gogoproto.casttype) = "SessionID"
     ];
     oneof input {
-        ServiceQueryInput service_query = 2;
+        PrimitiveQueryInput primitive_query = 2;
     }
 }
 
 message SessionQueryOutput {
     oneof output {
-        ServiceQueryOutput service_query = 1;
+        PrimitiveQueryOutput primitive_query = 1;
     }
 }
 
-message ServiceQueryInput {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message PrimitiveQueryInput {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
     OperationInput operation = 2;
 }
 
-message ServiceQueryOutput {
+message PrimitiveQueryOutput {
     OperationOutput operation = 1;
 }
 
@@ -254,7 +254,7 @@ message PartitionSnapshot {
         (gogoproto.nullable) = false
     ];
     repeated SessionSnapshot sessions = 3;
-    repeated ServiceSnapshot services = 4;
+    repeated PrimitiveSnapshot primitives = 4;
 }
 
 message SessionSnapshot {
@@ -274,27 +274,28 @@ message SessionSnapshot {
 }
 
 message CommandSnapshot {
-    uint64 command_sequence_num = 1 [
-        (gogoproto.casttype) = "CommandSequenceNum"
+    uint64 sequence_num = 1 [
+        (gogoproto.casttype) = "SequenceNum"
     ];
-    CommandState state = 2;
-    ServiceCommandInput input = 3;
-    repeated ServiceCommandOutput pending_outputs = 4 [
+    State state = 2;
+    PrimitiveCommandInput input = 3;
+    repeated PrimitiveCommandOutput pending_outputs = 4 [
         (gogoproto.nullable) = false
     ];
+
+    enum State {
+        UNKNOWN = 0;
+        OPEN = 1;
+        COMPLETE = 2;
+    }
 }
 
-enum CommandState {
-    COMMAND_OPEN = 0;
-    COMMAND_COMPLETE = 1;
-}
-
-message ServiceSnapshot {
-    uint64 service_id = 1 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+message PrimitiveSnapshot {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
-    ServiceSpec spec = 2 [
+    PrimitiveSpec spec = 2 [
         (gogoproto.nullable) = false
     ];
     bytes data = 3;
@@ -304,8 +305,8 @@ message ServiceSnapshot {
     ];
 }
 
-message ServiceSpec {
-    string service = 1;
+message PrimitiveSpec {
+    string type = 1;
     string namespace = 2;
     string name = 3;
 }

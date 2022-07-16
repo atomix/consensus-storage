@@ -4,15 +4,15 @@
 ## Table of Contents
 
 - [atomix/multiraft/v1/fsm.proto](#atomix_multiraft_v1_fsm-proto)
-    - [CloseServiceInput](#atomix-multiraft-v1-CloseServiceInput)
-    - [CloseServiceOutput](#atomix-multiraft-v1-CloseServiceOutput)
+    - [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput)
+    - [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput)
     - [CloseSessionInput](#atomix-multiraft-v1-CloseSessionInput)
     - [CloseSessionOutput](#atomix-multiraft-v1-CloseSessionOutput)
     - [CommandInput](#atomix-multiraft-v1-CommandInput)
     - [CommandOutput](#atomix-multiraft-v1-CommandOutput)
     - [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot)
-    - [CreateServiceInput](#atomix-multiraft-v1-CreateServiceInput)
-    - [CreateServiceOutput](#atomix-multiraft-v1-CreateServiceOutput)
+    - [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput)
+    - [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput)
     - [KeepAliveInput](#atomix-multiraft-v1-KeepAliveInput)
     - [KeepAliveInput.LastOutputSequenceNumsEntry](#atomix-multiraft-v1-KeepAliveInput-LastOutputSequenceNumsEntry)
     - [KeepAliveOutput](#atomix-multiraft-v1-KeepAliveOutput)
@@ -25,21 +25,21 @@
     - [PartitionQueryInput](#atomix-multiraft-v1-PartitionQueryInput)
     - [PartitionQueryOutput](#atomix-multiraft-v1-PartitionQueryOutput)
     - [PartitionSnapshot](#atomix-multiraft-v1-PartitionSnapshot)
+    - [PrimitiveCommandInput](#atomix-multiraft-v1-PrimitiveCommandInput)
+    - [PrimitiveCommandOutput](#atomix-multiraft-v1-PrimitiveCommandOutput)
+    - [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput)
+    - [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput)
+    - [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot)
+    - [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec)
     - [QueryInput](#atomix-multiraft-v1-QueryInput)
     - [QueryOutput](#atomix-multiraft-v1-QueryOutput)
-    - [ServiceCommandInput](#atomix-multiraft-v1-ServiceCommandInput)
-    - [ServiceCommandOutput](#atomix-multiraft-v1-ServiceCommandOutput)
-    - [ServiceQueryInput](#atomix-multiraft-v1-ServiceQueryInput)
-    - [ServiceQueryOutput](#atomix-multiraft-v1-ServiceQueryOutput)
-    - [ServiceSnapshot](#atomix-multiraft-v1-ServiceSnapshot)
-    - [ServiceSpec](#atomix-multiraft-v1-ServiceSpec)
     - [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput)
     - [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput)
     - [SessionQueryInput](#atomix-multiraft-v1-SessionQueryInput)
     - [SessionQueryOutput](#atomix-multiraft-v1-SessionQueryOutput)
     - [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot)
   
-    - [CommandState](#atomix-multiraft-v1-CommandState)
+    - [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State)
     - [OperationOutput.Status](#atomix-multiraft-v1-OperationOutput-Status)
   
 - [Scalar Value Types](#scalar-value-types)
@@ -53,24 +53,24 @@
 
 
 
-<a name="atomix-multiraft-v1-CloseServiceInput"></a>
+<a name="atomix-multiraft-v1-ClosePrimitiveInput"></a>
 
-### CloseServiceInput
+### ClosePrimitiveInput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| service_id | [uint64](#uint64) |  |  |
+| primitive_id | [uint64](#uint64) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-CloseServiceOutput"></a>
+<a name="atomix-multiraft-v1-ClosePrimitiveOutput"></a>
 
-### CloseServiceOutput
+### ClosePrimitiveOutput
 
 
 
@@ -149,40 +149,40 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| command_sequence_num | [uint64](#uint64) |  |  |
-| state | [CommandState](#atomix-multiraft-v1-CommandState) |  |  |
-| input | [ServiceCommandInput](#atomix-multiraft-v1-ServiceCommandInput) |  |  |
-| pending_outputs | [ServiceCommandOutput](#atomix-multiraft-v1-ServiceCommandOutput) | repeated |  |
+| sequence_num | [uint64](#uint64) |  |  |
+| state | [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State) |  |  |
+| input | [PrimitiveCommandInput](#atomix-multiraft-v1-PrimitiveCommandInput) |  |  |
+| pending_outputs | [PrimitiveCommandOutput](#atomix-multiraft-v1-PrimitiveCommandOutput) | repeated |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-CreateServiceInput"></a>
+<a name="atomix-multiraft-v1-CreatePrimitiveInput"></a>
 
-### CreateServiceInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| spec | [ServiceSpec](#atomix-multiraft-v1-ServiceSpec) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-CreateServiceOutput"></a>
-
-### CreateServiceOutput
+### CreatePrimitiveInput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| service_id | [uint64](#uint64) |  |  |
+| spec | [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-CreatePrimitiveOutput"></a>
+
+### CreatePrimitiveOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| primitive_id | [uint64](#uint64) |  |  |
 
 
 
@@ -370,7 +370,106 @@
 | index | [uint64](#uint64) |  |  |
 | timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | sessions | [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot) | repeated |  |
-| services | [ServiceSnapshot](#atomix-multiraft-v1-ServiceSnapshot) | repeated |  |
+| primitives | [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveCommandInput"></a>
+
+### PrimitiveCommandInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| primitive_id | [uint64](#uint64) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
+| operation | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveCommandOutput"></a>
+
+### PrimitiveCommandOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| sequence_num | [uint64](#uint64) |  |  |
+| operation | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveQueryInput"></a>
+
+### PrimitiveQueryInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| primitive_id | [uint64](#uint64) |  |  |
+| operation | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveQueryOutput"></a>
+
+### PrimitiveQueryOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| operation | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveSnapshot"></a>
+
+### PrimitiveSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| primitive_id | [uint64](#uint64) |  |  |
+| spec | [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec) |  |  |
+| data | [bytes](#bytes) |  |  |
+| sessions | [uint64](#uint64) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveSpec"></a>
+
+### PrimitiveSpec
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| type | [string](#string) |  |  |
+| namespace | [string](#string) |  |  |
+| name | [string](#string) |  |  |
 
 
 
@@ -408,105 +507,6 @@
 
 
 
-<a name="atomix-multiraft-v1-ServiceCommandInput"></a>
-
-### ServiceCommandInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| service_id | [uint64](#uint64) |  |  |
-| sequence_num | [uint64](#uint64) |  |  |
-| operation | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceCommandOutput"></a>
-
-### ServiceCommandOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| sequence_num | [uint64](#uint64) |  |  |
-| operation | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceQueryInput"></a>
-
-### ServiceQueryInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| service_id | [uint64](#uint64) |  |  |
-| operation | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceQueryOutput"></a>
-
-### ServiceQueryOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| operation | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceSnapshot"></a>
-
-### ServiceSnapshot
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| service_id | [uint64](#uint64) |  |  |
-| spec | [ServiceSpec](#atomix-multiraft-v1-ServiceSpec) |  |  |
-| data | [bytes](#bytes) |  |  |
-| sessions | [uint64](#uint64) | repeated |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceSpec"></a>
-
-### ServiceSpec
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| service | [string](#string) |  |  |
-| namespace | [string](#string) |  |  |
-| name | [string](#string) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-v1-SessionCommandInput"></a>
 
 ### SessionCommandInput
@@ -516,9 +516,9 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
-| create_service | [CreateServiceInput](#atomix-multiraft-v1-CreateServiceInput) |  |  |
-| close_service | [CloseServiceInput](#atomix-multiraft-v1-CloseServiceInput) |  |  |
-| service_command | [ServiceCommandInput](#atomix-multiraft-v1-ServiceCommandInput) |  |  |
+| create_primitive | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
+| close_primitive | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
+| primitive_command | [PrimitiveCommandInput](#atomix-multiraft-v1-PrimitiveCommandInput) |  |  |
 
 
 
@@ -533,9 +533,9 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| create_service | [CreateServiceOutput](#atomix-multiraft-v1-CreateServiceOutput) |  |  |
-| close_service | [CloseServiceOutput](#atomix-multiraft-v1-CloseServiceOutput) |  |  |
-| service_command | [ServiceCommandOutput](#atomix-multiraft-v1-ServiceCommandOutput) |  |  |
+| create_primitive | [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput) |  |  |
+| close_primitive | [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput) |  |  |
+| primitive_command | [PrimitiveCommandOutput](#atomix-multiraft-v1-PrimitiveCommandOutput) |  |  |
 
 
 
@@ -551,7 +551,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
-| service_query | [ServiceQueryInput](#atomix-multiraft-v1-ServiceQueryInput) |  |  |
+| primitive_query | [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput) |  |  |
 
 
 
@@ -566,7 +566,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| service_query | [ServiceQueryOutput](#atomix-multiraft-v1-ServiceQueryOutput) |  |  |
+| primitive_query | [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput) |  |  |
 
 
 
@@ -593,15 +593,16 @@
  
 
 
-<a name="atomix-multiraft-v1-CommandState"></a>
+<a name="atomix-multiraft-v1-CommandSnapshot-State"></a>
 
-### CommandState
+### CommandSnapshot.State
 
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| COMMAND_OPEN | 0 |  |
-| COMMAND_COMPLETE | 1 |  |
+| UNKNOWN | 0 |  |
+| OPEN | 1 |  |
+| COMPLETE | 2 |  |
 
 
 

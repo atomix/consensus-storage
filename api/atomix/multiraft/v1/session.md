@@ -4,10 +4,10 @@
 ## Table of Contents
 
 - [atomix/multiraft/v1/session.proto](#atomix_multiraft_v1_session-proto)
-    - [CloseServiceRequest](#atomix-multiraft-v1-CloseServiceRequest)
-    - [CloseServiceResponse](#atomix-multiraft-v1-CloseServiceResponse)
-    - [CreateServiceRequest](#atomix-multiraft-v1-CreateServiceRequest)
-    - [CreateServiceResponse](#atomix-multiraft-v1-CreateServiceResponse)
+    - [ClosePrimitiveRequest](#atomix-multiraft-v1-ClosePrimitiveRequest)
+    - [ClosePrimitiveResponse](#atomix-multiraft-v1-ClosePrimitiveResponse)
+    - [CreatePrimitiveRequest](#atomix-multiraft-v1-CreatePrimitiveRequest)
+    - [CreatePrimitiveResponse](#atomix-multiraft-v1-CreatePrimitiveResponse)
   
     - [Session](#atomix-multiraft-v1-Session)
   
@@ -22,64 +22,64 @@
 
 
 
-<a name="atomix-multiraft-v1-CloseServiceRequest"></a>
+<a name="atomix-multiraft-v1-ClosePrimitiveRequest"></a>
 
-### CloseServiceRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
-| input | [CloseServiceInput](#atomix-multiraft-v1-CloseServiceInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-CloseServiceResponse"></a>
-
-### CloseServiceResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
-| output | [CloseServiceOutput](#atomix-multiraft-v1-CloseServiceOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-CreateServiceRequest"></a>
-
-### CreateServiceRequest
+### ClosePrimitiveRequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
-| input | [CreateServiceInput](#atomix-multiraft-v1-CreateServiceInput) |  |  |
+| input | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-CreateServiceResponse"></a>
+<a name="atomix-multiraft-v1-ClosePrimitiveResponse"></a>
 
-### CreateServiceResponse
+### ClosePrimitiveResponse
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
-| output | [CreateServiceOutput](#atomix-multiraft-v1-CreateServiceOutput) |  |  |
+| output | [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-CreatePrimitiveRequest"></a>
+
+### CreatePrimitiveRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
+| input | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-CreatePrimitiveResponse"></a>
+
+### CreatePrimitiveResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
+| output | [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput) |  |  |
 
 
 
@@ -99,8 +99,8 @@
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| CreateService | [CreateServiceRequest](#atomix-multiraft-v1-CreateServiceRequest) | [CreateServiceResponse](#atomix-multiraft-v1-CreateServiceResponse) |  |
-| CloseService | [CloseServiceRequest](#atomix-multiraft-v1-CloseServiceRequest) | [CloseServiceResponse](#atomix-multiraft-v1-CloseServiceResponse) |  |
+| CreatePrimitive | [CreatePrimitiveRequest](#atomix-multiraft-v1-CreatePrimitiveRequest) | [CreatePrimitiveResponse](#atomix-multiraft-v1-CreatePrimitiveResponse) |  |
+| ClosePrimitive | [ClosePrimitiveRequest](#atomix-multiraft-v1-ClosePrimitiveRequest) | [ClosePrimitiveResponse](#atomix-multiraft-v1-ClosePrimitiveResponse) |  |
 
  
 

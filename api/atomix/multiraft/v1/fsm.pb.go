@@ -27,31 +27,6 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type CommandState int32
-
-const (
-	CommandState_COMMAND_OPEN     CommandState = 0
-	CommandState_COMMAND_COMPLETE CommandState = 1
-)
-
-var CommandState_name = map[int32]string{
-	0: "COMMAND_OPEN",
-	1: "COMMAND_COMPLETE",
-}
-
-var CommandState_value = map[string]int32{
-	"COMMAND_OPEN":     0,
-	"COMMAND_COMPLETE": 1,
-}
-
-func (x CommandState) String() string {
-	return proto.EnumName(CommandState_name, int32(x))
-}
-
-func (CommandState) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_9ab16e7f9ceaca8f, []int{0}
-}
-
 type OperationOutput_Status int32
 
 const (
@@ -111,6 +86,34 @@ func (x OperationOutput_Status) String() string {
 
 func (OperationOutput_Status) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{27, 0}
+}
+
+type CommandSnapshot_State int32
+
+const (
+	CommandSnapshot_UNKNOWN  CommandSnapshot_State = 0
+	CommandSnapshot_OPEN     CommandSnapshot_State = 1
+	CommandSnapshot_COMPLETE CommandSnapshot_State = 2
+)
+
+var CommandSnapshot_State_name = map[int32]string{
+	0: "UNKNOWN",
+	1: "OPEN",
+	2: "COMPLETE",
+}
+
+var CommandSnapshot_State_value = map[string]int32{
+	"UNKNOWN":  0,
+	"OPEN":     1,
+	"COMPLETE": 2,
+}
+
+func (x CommandSnapshot_State) String() string {
+	return proto.EnumName(CommandSnapshot_State_name, int32(x))
+}
+
+func (CommandSnapshot_State) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_9ab16e7f9ceaca8f, []int{30, 0}
 }
 
 type PartitionCommandInput struct {
@@ -722,9 +725,9 @@ var xxx_messageInfo_CloseSessionOutput proto.InternalMessageInfo
 type SessionCommandInput struct {
 	SessionID SessionID `protobuf:"varint,1,opt,name=session_id,json=sessionId,proto3,casttype=SessionID" json:"session_id,omitempty"`
 	// Types that are valid to be assigned to Input:
-	//	*SessionCommandInput_CreateService
-	//	*SessionCommandInput_CloseService
-	//	*SessionCommandInput_ServiceCommand
+	//	*SessionCommandInput_CreatePrimitive
+	//	*SessionCommandInput_ClosePrimitive
+	//	*SessionCommandInput_PrimitiveCommand
 	Input isSessionCommandInput_Input `protobuf_oneof:"input"`
 }
 
@@ -767,19 +770,19 @@ type isSessionCommandInput_Input interface {
 	Size() int
 }
 
-type SessionCommandInput_CreateService struct {
-	CreateService *CreateServiceInput `protobuf:"bytes,2,opt,name=create_service,json=createService,proto3,oneof" json:"create_service,omitempty"`
+type SessionCommandInput_CreatePrimitive struct {
+	CreatePrimitive *CreatePrimitiveInput `protobuf:"bytes,2,opt,name=create_primitive,json=createPrimitive,proto3,oneof" json:"create_primitive,omitempty"`
 }
-type SessionCommandInput_CloseService struct {
-	CloseService *CloseServiceInput `protobuf:"bytes,3,opt,name=close_service,json=closeService,proto3,oneof" json:"close_service,omitempty"`
+type SessionCommandInput_ClosePrimitive struct {
+	ClosePrimitive *ClosePrimitiveInput `protobuf:"bytes,3,opt,name=close_primitive,json=closePrimitive,proto3,oneof" json:"close_primitive,omitempty"`
 }
-type SessionCommandInput_ServiceCommand struct {
-	ServiceCommand *ServiceCommandInput `protobuf:"bytes,4,opt,name=service_command,json=serviceCommand,proto3,oneof" json:"service_command,omitempty"`
+type SessionCommandInput_PrimitiveCommand struct {
+	PrimitiveCommand *PrimitiveCommandInput `protobuf:"bytes,4,opt,name=primitive_command,json=primitiveCommand,proto3,oneof" json:"primitive_command,omitempty"`
 }
 
-func (*SessionCommandInput_CreateService) isSessionCommandInput_Input()  {}
-func (*SessionCommandInput_CloseService) isSessionCommandInput_Input()   {}
-func (*SessionCommandInput_ServiceCommand) isSessionCommandInput_Input() {}
+func (*SessionCommandInput_CreatePrimitive) isSessionCommandInput_Input()  {}
+func (*SessionCommandInput_ClosePrimitive) isSessionCommandInput_Input()   {}
+func (*SessionCommandInput_PrimitiveCommand) isSessionCommandInput_Input() {}
 
 func (m *SessionCommandInput) GetInput() isSessionCommandInput_Input {
 	if m != nil {
@@ -795,23 +798,23 @@ func (m *SessionCommandInput) GetSessionID() SessionID {
 	return 0
 }
 
-func (m *SessionCommandInput) GetCreateService() *CreateServiceInput {
-	if x, ok := m.GetInput().(*SessionCommandInput_CreateService); ok {
-		return x.CreateService
+func (m *SessionCommandInput) GetCreatePrimitive() *CreatePrimitiveInput {
+	if x, ok := m.GetInput().(*SessionCommandInput_CreatePrimitive); ok {
+		return x.CreatePrimitive
 	}
 	return nil
 }
 
-func (m *SessionCommandInput) GetCloseService() *CloseServiceInput {
-	if x, ok := m.GetInput().(*SessionCommandInput_CloseService); ok {
-		return x.CloseService
+func (m *SessionCommandInput) GetClosePrimitive() *ClosePrimitiveInput {
+	if x, ok := m.GetInput().(*SessionCommandInput_ClosePrimitive); ok {
+		return x.ClosePrimitive
 	}
 	return nil
 }
 
-func (m *SessionCommandInput) GetServiceCommand() *ServiceCommandInput {
-	if x, ok := m.GetInput().(*SessionCommandInput_ServiceCommand); ok {
-		return x.ServiceCommand
+func (m *SessionCommandInput) GetPrimitiveCommand() *PrimitiveCommandInput {
+	if x, ok := m.GetInput().(*SessionCommandInput_PrimitiveCommand); ok {
+		return x.PrimitiveCommand
 	}
 	return nil
 }
@@ -819,17 +822,17 @@ func (m *SessionCommandInput) GetServiceCommand() *ServiceCommandInput {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*SessionCommandInput) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*SessionCommandInput_CreateService)(nil),
-		(*SessionCommandInput_CloseService)(nil),
-		(*SessionCommandInput_ServiceCommand)(nil),
+		(*SessionCommandInput_CreatePrimitive)(nil),
+		(*SessionCommandInput_ClosePrimitive)(nil),
+		(*SessionCommandInput_PrimitiveCommand)(nil),
 	}
 }
 
 type SessionCommandOutput struct {
 	// Types that are valid to be assigned to Output:
-	//	*SessionCommandOutput_CreateService
-	//	*SessionCommandOutput_CloseService
-	//	*SessionCommandOutput_ServiceCommand
+	//	*SessionCommandOutput_CreatePrimitive
+	//	*SessionCommandOutput_ClosePrimitive
+	//	*SessionCommandOutput_PrimitiveCommand
 	Output isSessionCommandOutput_Output `protobuf_oneof:"output"`
 }
 
@@ -872,19 +875,19 @@ type isSessionCommandOutput_Output interface {
 	Size() int
 }
 
-type SessionCommandOutput_CreateService struct {
-	CreateService *CreateServiceOutput `protobuf:"bytes,1,opt,name=create_service,json=createService,proto3,oneof" json:"create_service,omitempty"`
+type SessionCommandOutput_CreatePrimitive struct {
+	CreatePrimitive *CreatePrimitiveOutput `protobuf:"bytes,1,opt,name=create_primitive,json=createPrimitive,proto3,oneof" json:"create_primitive,omitempty"`
 }
-type SessionCommandOutput_CloseService struct {
-	CloseService *CloseServiceOutput `protobuf:"bytes,2,opt,name=close_service,json=closeService,proto3,oneof" json:"close_service,omitempty"`
+type SessionCommandOutput_ClosePrimitive struct {
+	ClosePrimitive *ClosePrimitiveOutput `protobuf:"bytes,2,opt,name=close_primitive,json=closePrimitive,proto3,oneof" json:"close_primitive,omitempty"`
 }
-type SessionCommandOutput_ServiceCommand struct {
-	ServiceCommand *ServiceCommandOutput `protobuf:"bytes,3,opt,name=service_command,json=serviceCommand,proto3,oneof" json:"service_command,omitempty"`
+type SessionCommandOutput_PrimitiveCommand struct {
+	PrimitiveCommand *PrimitiveCommandOutput `protobuf:"bytes,3,opt,name=primitive_command,json=primitiveCommand,proto3,oneof" json:"primitive_command,omitempty"`
 }
 
-func (*SessionCommandOutput_CreateService) isSessionCommandOutput_Output()  {}
-func (*SessionCommandOutput_CloseService) isSessionCommandOutput_Output()   {}
-func (*SessionCommandOutput_ServiceCommand) isSessionCommandOutput_Output() {}
+func (*SessionCommandOutput_CreatePrimitive) isSessionCommandOutput_Output()  {}
+func (*SessionCommandOutput_ClosePrimitive) isSessionCommandOutput_Output()   {}
+func (*SessionCommandOutput_PrimitiveCommand) isSessionCommandOutput_Output() {}
 
 func (m *SessionCommandOutput) GetOutput() isSessionCommandOutput_Output {
 	if m != nil {
@@ -893,23 +896,23 @@ func (m *SessionCommandOutput) GetOutput() isSessionCommandOutput_Output {
 	return nil
 }
 
-func (m *SessionCommandOutput) GetCreateService() *CreateServiceOutput {
-	if x, ok := m.GetOutput().(*SessionCommandOutput_CreateService); ok {
-		return x.CreateService
+func (m *SessionCommandOutput) GetCreatePrimitive() *CreatePrimitiveOutput {
+	if x, ok := m.GetOutput().(*SessionCommandOutput_CreatePrimitive); ok {
+		return x.CreatePrimitive
 	}
 	return nil
 }
 
-func (m *SessionCommandOutput) GetCloseService() *CloseServiceOutput {
-	if x, ok := m.GetOutput().(*SessionCommandOutput_CloseService); ok {
-		return x.CloseService
+func (m *SessionCommandOutput) GetClosePrimitive() *ClosePrimitiveOutput {
+	if x, ok := m.GetOutput().(*SessionCommandOutput_ClosePrimitive); ok {
+		return x.ClosePrimitive
 	}
 	return nil
 }
 
-func (m *SessionCommandOutput) GetServiceCommand() *ServiceCommandOutput {
-	if x, ok := m.GetOutput().(*SessionCommandOutput_ServiceCommand); ok {
-		return x.ServiceCommand
+func (m *SessionCommandOutput) GetPrimitiveCommand() *PrimitiveCommandOutput {
+	if x, ok := m.GetOutput().(*SessionCommandOutput_PrimitiveCommand); ok {
+		return x.PrimitiveCommand
 	}
 	return nil
 }
@@ -917,28 +920,28 @@ func (m *SessionCommandOutput) GetServiceCommand() *ServiceCommandOutput {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*SessionCommandOutput) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*SessionCommandOutput_CreateService)(nil),
-		(*SessionCommandOutput_CloseService)(nil),
-		(*SessionCommandOutput_ServiceCommand)(nil),
+		(*SessionCommandOutput_CreatePrimitive)(nil),
+		(*SessionCommandOutput_ClosePrimitive)(nil),
+		(*SessionCommandOutput_PrimitiveCommand)(nil),
 	}
 }
 
-type CreateServiceInput struct {
-	ServiceSpec `protobuf:"bytes,1,opt,name=spec,proto3,embedded=spec" json:"spec"`
+type CreatePrimitiveInput struct {
+	PrimitiveSpec `protobuf:"bytes,1,opt,name=spec,proto3,embedded=spec" json:"spec"`
 }
 
-func (m *CreateServiceInput) Reset()         { *m = CreateServiceInput{} }
-func (m *CreateServiceInput) String() string { return proto.CompactTextString(m) }
-func (*CreateServiceInput) ProtoMessage()    {}
-func (*CreateServiceInput) Descriptor() ([]byte, []int) {
+func (m *CreatePrimitiveInput) Reset()         { *m = CreatePrimitiveInput{} }
+func (m *CreatePrimitiveInput) String() string { return proto.CompactTextString(m) }
+func (*CreatePrimitiveInput) ProtoMessage()    {}
+func (*CreatePrimitiveInput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{12}
 }
-func (m *CreateServiceInput) XXX_Unmarshal(b []byte) error {
+func (m *CreatePrimitiveInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateServiceInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreatePrimitiveInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateServiceInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreatePrimitiveInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -948,34 +951,34 @@ func (m *CreateServiceInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *CreateServiceInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateServiceInput.Merge(m, src)
+func (m *CreatePrimitiveInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreatePrimitiveInput.Merge(m, src)
 }
-func (m *CreateServiceInput) XXX_Size() int {
+func (m *CreatePrimitiveInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateServiceInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateServiceInput.DiscardUnknown(m)
+func (m *CreatePrimitiveInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreatePrimitiveInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateServiceInput proto.InternalMessageInfo
+var xxx_messageInfo_CreatePrimitiveInput proto.InternalMessageInfo
 
-type CreateServiceOutput struct {
-	ServiceID ServiceID `protobuf:"varint,1,opt,name=service_id,json=serviceId,proto3,casttype=ServiceID" json:"service_id,omitempty"`
+type CreatePrimitiveOutput struct {
+	PrimitiveID PrimitiveID `protobuf:"varint,1,opt,name=primitive_id,json=primitiveId,proto3,casttype=PrimitiveID" json:"primitive_id,omitempty"`
 }
 
-func (m *CreateServiceOutput) Reset()         { *m = CreateServiceOutput{} }
-func (m *CreateServiceOutput) String() string { return proto.CompactTextString(m) }
-func (*CreateServiceOutput) ProtoMessage()    {}
-func (*CreateServiceOutput) Descriptor() ([]byte, []int) {
+func (m *CreatePrimitiveOutput) Reset()         { *m = CreatePrimitiveOutput{} }
+func (m *CreatePrimitiveOutput) String() string { return proto.CompactTextString(m) }
+func (*CreatePrimitiveOutput) ProtoMessage()    {}
+func (*CreatePrimitiveOutput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{13}
 }
-func (m *CreateServiceOutput) XXX_Unmarshal(b []byte) error {
+func (m *CreatePrimitiveOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateServiceOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreatePrimitiveOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateServiceOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreatePrimitiveOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -985,41 +988,41 @@ func (m *CreateServiceOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *CreateServiceOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateServiceOutput.Merge(m, src)
+func (m *CreatePrimitiveOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreatePrimitiveOutput.Merge(m, src)
 }
-func (m *CreateServiceOutput) XXX_Size() int {
+func (m *CreatePrimitiveOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateServiceOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateServiceOutput.DiscardUnknown(m)
+func (m *CreatePrimitiveOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreatePrimitiveOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateServiceOutput proto.InternalMessageInfo
+var xxx_messageInfo_CreatePrimitiveOutput proto.InternalMessageInfo
 
-func (m *CreateServiceOutput) GetServiceID() ServiceID {
+func (m *CreatePrimitiveOutput) GetPrimitiveID() PrimitiveID {
 	if m != nil {
-		return m.ServiceID
+		return m.PrimitiveID
 	}
 	return 0
 }
 
-type CloseServiceInput struct {
-	ServiceID ServiceID `protobuf:"varint,1,opt,name=service_id,json=serviceId,proto3,casttype=ServiceID" json:"service_id,omitempty"`
+type ClosePrimitiveInput struct {
+	PrimitiveID PrimitiveID `protobuf:"varint,1,opt,name=primitive_id,json=primitiveId,proto3,casttype=PrimitiveID" json:"primitive_id,omitempty"`
 }
 
-func (m *CloseServiceInput) Reset()         { *m = CloseServiceInput{} }
-func (m *CloseServiceInput) String() string { return proto.CompactTextString(m) }
-func (*CloseServiceInput) ProtoMessage()    {}
-func (*CloseServiceInput) Descriptor() ([]byte, []int) {
+func (m *ClosePrimitiveInput) Reset()         { *m = ClosePrimitiveInput{} }
+func (m *ClosePrimitiveInput) String() string { return proto.CompactTextString(m) }
+func (*ClosePrimitiveInput) ProtoMessage()    {}
+func (*ClosePrimitiveInput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{14}
 }
-func (m *CloseServiceInput) XXX_Unmarshal(b []byte) error {
+func (m *ClosePrimitiveInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CloseServiceInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClosePrimitiveInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CloseServiceInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClosePrimitiveInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1029,40 +1032,40 @@ func (m *CloseServiceInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *CloseServiceInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CloseServiceInput.Merge(m, src)
+func (m *ClosePrimitiveInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClosePrimitiveInput.Merge(m, src)
 }
-func (m *CloseServiceInput) XXX_Size() int {
+func (m *ClosePrimitiveInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *CloseServiceInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_CloseServiceInput.DiscardUnknown(m)
+func (m *ClosePrimitiveInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClosePrimitiveInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CloseServiceInput proto.InternalMessageInfo
+var xxx_messageInfo_ClosePrimitiveInput proto.InternalMessageInfo
 
-func (m *CloseServiceInput) GetServiceID() ServiceID {
+func (m *ClosePrimitiveInput) GetPrimitiveID() PrimitiveID {
 	if m != nil {
-		return m.ServiceID
+		return m.PrimitiveID
 	}
 	return 0
 }
 
-type CloseServiceOutput struct {
+type ClosePrimitiveOutput struct {
 }
 
-func (m *CloseServiceOutput) Reset()         { *m = CloseServiceOutput{} }
-func (m *CloseServiceOutput) String() string { return proto.CompactTextString(m) }
-func (*CloseServiceOutput) ProtoMessage()    {}
-func (*CloseServiceOutput) Descriptor() ([]byte, []int) {
+func (m *ClosePrimitiveOutput) Reset()         { *m = ClosePrimitiveOutput{} }
+func (m *ClosePrimitiveOutput) String() string { return proto.CompactTextString(m) }
+func (*ClosePrimitiveOutput) ProtoMessage()    {}
+func (*ClosePrimitiveOutput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{15}
 }
-func (m *CloseServiceOutput) XXX_Unmarshal(b []byte) error {
+func (m *ClosePrimitiveOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CloseServiceOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClosePrimitiveOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CloseServiceOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClosePrimitiveOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1072,36 +1075,36 @@ func (m *CloseServiceOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *CloseServiceOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CloseServiceOutput.Merge(m, src)
+func (m *ClosePrimitiveOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClosePrimitiveOutput.Merge(m, src)
 }
-func (m *CloseServiceOutput) XXX_Size() int {
+func (m *ClosePrimitiveOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *CloseServiceOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_CloseServiceOutput.DiscardUnknown(m)
+func (m *ClosePrimitiveOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClosePrimitiveOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CloseServiceOutput proto.InternalMessageInfo
+var xxx_messageInfo_ClosePrimitiveOutput proto.InternalMessageInfo
 
-type ServiceCommandInput struct {
-	ServiceID   ServiceID       `protobuf:"varint,1,opt,name=service_id,json=serviceId,proto3,casttype=ServiceID" json:"service_id,omitempty"`
+type PrimitiveCommandInput struct {
+	PrimitiveID PrimitiveID     `protobuf:"varint,1,opt,name=primitive_id,json=primitiveId,proto3,casttype=PrimitiveID" json:"primitive_id,omitempty"`
 	SequenceNum SequenceNum     `protobuf:"varint,2,opt,name=sequence_num,json=sequenceNum,proto3,casttype=SequenceNum" json:"sequence_num,omitempty"`
 	Operation   *OperationInput `protobuf:"bytes,3,opt,name=operation,proto3" json:"operation,omitempty"`
 }
 
-func (m *ServiceCommandInput) Reset()         { *m = ServiceCommandInput{} }
-func (m *ServiceCommandInput) String() string { return proto.CompactTextString(m) }
-func (*ServiceCommandInput) ProtoMessage()    {}
-func (*ServiceCommandInput) Descriptor() ([]byte, []int) {
+func (m *PrimitiveCommandInput) Reset()         { *m = PrimitiveCommandInput{} }
+func (m *PrimitiveCommandInput) String() string { return proto.CompactTextString(m) }
+func (*PrimitiveCommandInput) ProtoMessage()    {}
+func (*PrimitiveCommandInput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{16}
 }
-func (m *ServiceCommandInput) XXX_Unmarshal(b []byte) error {
+func (m *PrimitiveCommandInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceCommandInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PrimitiveCommandInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceCommandInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PrimitiveCommandInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1111,56 +1114,56 @@ func (m *ServiceCommandInput) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *ServiceCommandInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceCommandInput.Merge(m, src)
+func (m *PrimitiveCommandInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrimitiveCommandInput.Merge(m, src)
 }
-func (m *ServiceCommandInput) XXX_Size() int {
+func (m *PrimitiveCommandInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceCommandInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceCommandInput.DiscardUnknown(m)
+func (m *PrimitiveCommandInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrimitiveCommandInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceCommandInput proto.InternalMessageInfo
+var xxx_messageInfo_PrimitiveCommandInput proto.InternalMessageInfo
 
-func (m *ServiceCommandInput) GetServiceID() ServiceID {
+func (m *PrimitiveCommandInput) GetPrimitiveID() PrimitiveID {
 	if m != nil {
-		return m.ServiceID
+		return m.PrimitiveID
 	}
 	return 0
 }
 
-func (m *ServiceCommandInput) GetSequenceNum() SequenceNum {
+func (m *PrimitiveCommandInput) GetSequenceNum() SequenceNum {
 	if m != nil {
 		return m.SequenceNum
 	}
 	return 0
 }
 
-func (m *ServiceCommandInput) GetOperation() *OperationInput {
+func (m *PrimitiveCommandInput) GetOperation() *OperationInput {
 	if m != nil {
 		return m.Operation
 	}
 	return nil
 }
 
-type ServiceCommandOutput struct {
+type PrimitiveCommandOutput struct {
 	SequenceNum SequenceNum      `protobuf:"varint,1,opt,name=sequence_num,json=sequenceNum,proto3,casttype=SequenceNum" json:"sequence_num,omitempty"`
 	Operation   *OperationOutput `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
 }
 
-func (m *ServiceCommandOutput) Reset()         { *m = ServiceCommandOutput{} }
-func (m *ServiceCommandOutput) String() string { return proto.CompactTextString(m) }
-func (*ServiceCommandOutput) ProtoMessage()    {}
-func (*ServiceCommandOutput) Descriptor() ([]byte, []int) {
+func (m *PrimitiveCommandOutput) Reset()         { *m = PrimitiveCommandOutput{} }
+func (m *PrimitiveCommandOutput) String() string { return proto.CompactTextString(m) }
+func (*PrimitiveCommandOutput) ProtoMessage()    {}
+func (*PrimitiveCommandOutput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{17}
 }
-func (m *ServiceCommandOutput) XXX_Unmarshal(b []byte) error {
+func (m *PrimitiveCommandOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceCommandOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PrimitiveCommandOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceCommandOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PrimitiveCommandOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1170,26 +1173,26 @@ func (m *ServiceCommandOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *ServiceCommandOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceCommandOutput.Merge(m, src)
+func (m *PrimitiveCommandOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrimitiveCommandOutput.Merge(m, src)
 }
-func (m *ServiceCommandOutput) XXX_Size() int {
+func (m *PrimitiveCommandOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceCommandOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceCommandOutput.DiscardUnknown(m)
+func (m *PrimitiveCommandOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrimitiveCommandOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceCommandOutput proto.InternalMessageInfo
+var xxx_messageInfo_PrimitiveCommandOutput proto.InternalMessageInfo
 
-func (m *ServiceCommandOutput) GetSequenceNum() SequenceNum {
+func (m *PrimitiveCommandOutput) GetSequenceNum() SequenceNum {
 	if m != nil {
 		return m.SequenceNum
 	}
 	return 0
 }
 
-func (m *ServiceCommandOutput) GetOperation() *OperationOutput {
+func (m *PrimitiveCommandOutput) GetOperation() *OperationOutput {
 	if m != nil {
 		return m.Operation
 	}
@@ -1455,7 +1458,7 @@ func (*QueryOutput) XXX_OneofWrappers() []interface{} {
 type SessionQueryInput struct {
 	SessionID SessionID `protobuf:"varint,1,opt,name=session_id,json=sessionId,proto3,casttype=SessionID" json:"session_id,omitempty"`
 	// Types that are valid to be assigned to Input:
-	//	*SessionQueryInput_ServiceQuery
+	//	*SessionQueryInput_PrimitiveQuery
 	Input isSessionQueryInput_Input `protobuf_oneof:"input"`
 }
 
@@ -1498,11 +1501,11 @@ type isSessionQueryInput_Input interface {
 	Size() int
 }
 
-type SessionQueryInput_ServiceQuery struct {
-	ServiceQuery *ServiceQueryInput `protobuf:"bytes,2,opt,name=service_query,json=serviceQuery,proto3,oneof" json:"service_query,omitempty"`
+type SessionQueryInput_PrimitiveQuery struct {
+	PrimitiveQuery *PrimitiveQueryInput `protobuf:"bytes,2,opt,name=primitive_query,json=primitiveQuery,proto3,oneof" json:"primitive_query,omitempty"`
 }
 
-func (*SessionQueryInput_ServiceQuery) isSessionQueryInput_Input() {}
+func (*SessionQueryInput_PrimitiveQuery) isSessionQueryInput_Input() {}
 
 func (m *SessionQueryInput) GetInput() isSessionQueryInput_Input {
 	if m != nil {
@@ -1518,9 +1521,9 @@ func (m *SessionQueryInput) GetSessionID() SessionID {
 	return 0
 }
 
-func (m *SessionQueryInput) GetServiceQuery() *ServiceQueryInput {
-	if x, ok := m.GetInput().(*SessionQueryInput_ServiceQuery); ok {
-		return x.ServiceQuery
+func (m *SessionQueryInput) GetPrimitiveQuery() *PrimitiveQueryInput {
+	if x, ok := m.GetInput().(*SessionQueryInput_PrimitiveQuery); ok {
+		return x.PrimitiveQuery
 	}
 	return nil
 }
@@ -1528,13 +1531,13 @@ func (m *SessionQueryInput) GetServiceQuery() *ServiceQueryInput {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*SessionQueryInput) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*SessionQueryInput_ServiceQuery)(nil),
+		(*SessionQueryInput_PrimitiveQuery)(nil),
 	}
 }
 
 type SessionQueryOutput struct {
 	// Types that are valid to be assigned to Output:
-	//	*SessionQueryOutput_ServiceQuery
+	//	*SessionQueryOutput_PrimitiveQuery
 	Output isSessionQueryOutput_Output `protobuf_oneof:"output"`
 }
 
@@ -1577,11 +1580,11 @@ type isSessionQueryOutput_Output interface {
 	Size() int
 }
 
-type SessionQueryOutput_ServiceQuery struct {
-	ServiceQuery *ServiceQueryOutput `protobuf:"bytes,1,opt,name=service_query,json=serviceQuery,proto3,oneof" json:"service_query,omitempty"`
+type SessionQueryOutput_PrimitiveQuery struct {
+	PrimitiveQuery *PrimitiveQueryOutput `protobuf:"bytes,1,opt,name=primitive_query,json=primitiveQuery,proto3,oneof" json:"primitive_query,omitempty"`
 }
 
-func (*SessionQueryOutput_ServiceQuery) isSessionQueryOutput_Output() {}
+func (*SessionQueryOutput_PrimitiveQuery) isSessionQueryOutput_Output() {}
 
 func (m *SessionQueryOutput) GetOutput() isSessionQueryOutput_Output {
 	if m != nil {
@@ -1590,9 +1593,9 @@ func (m *SessionQueryOutput) GetOutput() isSessionQueryOutput_Output {
 	return nil
 }
 
-func (m *SessionQueryOutput) GetServiceQuery() *ServiceQueryOutput {
-	if x, ok := m.GetOutput().(*SessionQueryOutput_ServiceQuery); ok {
-		return x.ServiceQuery
+func (m *SessionQueryOutput) GetPrimitiveQuery() *PrimitiveQueryOutput {
+	if x, ok := m.GetOutput().(*SessionQueryOutput_PrimitiveQuery); ok {
+		return x.PrimitiveQuery
 	}
 	return nil
 }
@@ -1600,27 +1603,27 @@ func (m *SessionQueryOutput) GetServiceQuery() *ServiceQueryOutput {
 // XXX_OneofWrappers is for the internal use of the proto package.
 func (*SessionQueryOutput) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*SessionQueryOutput_ServiceQuery)(nil),
+		(*SessionQueryOutput_PrimitiveQuery)(nil),
 	}
 }
 
-type ServiceQueryInput struct {
-	ServiceID ServiceID       `protobuf:"varint,1,opt,name=service_id,json=serviceId,proto3,casttype=ServiceID" json:"service_id,omitempty"`
-	Operation *OperationInput `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+type PrimitiveQueryInput struct {
+	PrimitiveID PrimitiveID     `protobuf:"varint,1,opt,name=primitive_id,json=primitiveId,proto3,casttype=PrimitiveID" json:"primitive_id,omitempty"`
+	Operation   *OperationInput `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
 }
 
-func (m *ServiceQueryInput) Reset()         { *m = ServiceQueryInput{} }
-func (m *ServiceQueryInput) String() string { return proto.CompactTextString(m) }
-func (*ServiceQueryInput) ProtoMessage()    {}
-func (*ServiceQueryInput) Descriptor() ([]byte, []int) {
+func (m *PrimitiveQueryInput) Reset()         { *m = PrimitiveQueryInput{} }
+func (m *PrimitiveQueryInput) String() string { return proto.CompactTextString(m) }
+func (*PrimitiveQueryInput) ProtoMessage()    {}
+func (*PrimitiveQueryInput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{24}
 }
-func (m *ServiceQueryInput) XXX_Unmarshal(b []byte) error {
+func (m *PrimitiveQueryInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceQueryInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PrimitiveQueryInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceQueryInput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PrimitiveQueryInput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1630,48 +1633,48 @@ func (m *ServiceQueryInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *ServiceQueryInput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceQueryInput.Merge(m, src)
+func (m *PrimitiveQueryInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrimitiveQueryInput.Merge(m, src)
 }
-func (m *ServiceQueryInput) XXX_Size() int {
+func (m *PrimitiveQueryInput) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceQueryInput) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceQueryInput.DiscardUnknown(m)
+func (m *PrimitiveQueryInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrimitiveQueryInput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceQueryInput proto.InternalMessageInfo
+var xxx_messageInfo_PrimitiveQueryInput proto.InternalMessageInfo
 
-func (m *ServiceQueryInput) GetServiceID() ServiceID {
+func (m *PrimitiveQueryInput) GetPrimitiveID() PrimitiveID {
 	if m != nil {
-		return m.ServiceID
+		return m.PrimitiveID
 	}
 	return 0
 }
 
-func (m *ServiceQueryInput) GetOperation() *OperationInput {
+func (m *PrimitiveQueryInput) GetOperation() *OperationInput {
 	if m != nil {
 		return m.Operation
 	}
 	return nil
 }
 
-type ServiceQueryOutput struct {
+type PrimitiveQueryOutput struct {
 	Operation *OperationOutput `protobuf:"bytes,1,opt,name=operation,proto3" json:"operation,omitempty"`
 }
 
-func (m *ServiceQueryOutput) Reset()         { *m = ServiceQueryOutput{} }
-func (m *ServiceQueryOutput) String() string { return proto.CompactTextString(m) }
-func (*ServiceQueryOutput) ProtoMessage()    {}
-func (*ServiceQueryOutput) Descriptor() ([]byte, []int) {
+func (m *PrimitiveQueryOutput) Reset()         { *m = PrimitiveQueryOutput{} }
+func (m *PrimitiveQueryOutput) String() string { return proto.CompactTextString(m) }
+func (*PrimitiveQueryOutput) ProtoMessage()    {}
+func (*PrimitiveQueryOutput) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{25}
 }
-func (m *ServiceQueryOutput) XXX_Unmarshal(b []byte) error {
+func (m *PrimitiveQueryOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceQueryOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PrimitiveQueryOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceQueryOutput.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PrimitiveQueryOutput.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1681,19 +1684,19 @@ func (m *ServiceQueryOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *ServiceQueryOutput) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceQueryOutput.Merge(m, src)
+func (m *PrimitiveQueryOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrimitiveQueryOutput.Merge(m, src)
 }
-func (m *ServiceQueryOutput) XXX_Size() int {
+func (m *PrimitiveQueryOutput) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceQueryOutput) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceQueryOutput.DiscardUnknown(m)
+func (m *PrimitiveQueryOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrimitiveQueryOutput.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceQueryOutput proto.InternalMessageInfo
+var xxx_messageInfo_PrimitiveQueryOutput proto.InternalMessageInfo
 
-func (m *ServiceQueryOutput) GetOperation() *OperationOutput {
+func (m *PrimitiveQueryOutput) GetOperation() *OperationOutput {
 	if m != nil {
 		return m.Operation
 	}
@@ -1813,10 +1816,10 @@ func (m *OperationOutput) GetMessage() string {
 }
 
 type PartitionSnapshot struct {
-	Index     Index              `protobuf:"varint,1,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
-	Timestamp time.Time          `protobuf:"bytes,2,opt,name=timestamp,proto3,stdtime" json:"timestamp"`
-	Sessions  []*SessionSnapshot `protobuf:"bytes,3,rep,name=sessions,proto3" json:"sessions,omitempty"`
-	Services  []*ServiceSnapshot `protobuf:"bytes,4,rep,name=services,proto3" json:"services,omitempty"`
+	Index      Index                `protobuf:"varint,1,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	Timestamp  time.Time            `protobuf:"bytes,2,opt,name=timestamp,proto3,stdtime" json:"timestamp"`
+	Sessions   []*SessionSnapshot   `protobuf:"bytes,3,rep,name=sessions,proto3" json:"sessions,omitempty"`
+	Primitives []*PrimitiveSnapshot `protobuf:"bytes,4,rep,name=primitives,proto3" json:"primitives,omitempty"`
 }
 
 func (m *PartitionSnapshot) Reset()         { *m = PartitionSnapshot{} }
@@ -1873,9 +1876,9 @@ func (m *PartitionSnapshot) GetSessions() []*SessionSnapshot {
 	return nil
 }
 
-func (m *PartitionSnapshot) GetServices() []*ServiceSnapshot {
+func (m *PartitionSnapshot) GetPrimitives() []*PrimitiveSnapshot {
 	if m != nil {
-		return m.Services
+		return m.Primitives
 	}
 	return nil
 }
@@ -1949,10 +1952,10 @@ func (m *SessionSnapshot) GetCommands() []*CommandSnapshot {
 }
 
 type CommandSnapshot struct {
-	CommandSequenceNum CommandSequenceNum     `protobuf:"varint,1,opt,name=command_sequence_num,json=commandSequenceNum,proto3,casttype=CommandSequenceNum" json:"command_sequence_num,omitempty"`
-	State              CommandState           `protobuf:"varint,2,opt,name=state,proto3,enum=atomix.multiraft.v1.CommandState" json:"state,omitempty"`
-	Input              *ServiceCommandInput   `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
-	PendingOutputs     []ServiceCommandOutput `protobuf:"bytes,4,rep,name=pending_outputs,json=pendingOutputs,proto3" json:"pending_outputs"`
+	SequenceNum    SequenceNum              `protobuf:"varint,1,opt,name=sequence_num,json=sequenceNum,proto3,casttype=SequenceNum" json:"sequence_num,omitempty"`
+	State          CommandSnapshot_State    `protobuf:"varint,2,opt,name=state,proto3,enum=atomix.multiraft.v1.CommandSnapshot_State" json:"state,omitempty"`
+	Input          *PrimitiveCommandInput   `protobuf:"bytes,3,opt,name=input,proto3" json:"input,omitempty"`
+	PendingOutputs []PrimitiveCommandOutput `protobuf:"bytes,4,rep,name=pending_outputs,json=pendingOutputs,proto3" json:"pending_outputs"`
 }
 
 func (m *CommandSnapshot) Reset()         { *m = CommandSnapshot{} }
@@ -1988,53 +1991,53 @@ func (m *CommandSnapshot) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CommandSnapshot proto.InternalMessageInfo
 
-func (m *CommandSnapshot) GetCommandSequenceNum() CommandSequenceNum {
+func (m *CommandSnapshot) GetSequenceNum() SequenceNum {
 	if m != nil {
-		return m.CommandSequenceNum
+		return m.SequenceNum
 	}
 	return 0
 }
 
-func (m *CommandSnapshot) GetState() CommandState {
+func (m *CommandSnapshot) GetState() CommandSnapshot_State {
 	if m != nil {
 		return m.State
 	}
-	return CommandState_COMMAND_OPEN
+	return CommandSnapshot_UNKNOWN
 }
 
-func (m *CommandSnapshot) GetInput() *ServiceCommandInput {
+func (m *CommandSnapshot) GetInput() *PrimitiveCommandInput {
 	if m != nil {
 		return m.Input
 	}
 	return nil
 }
 
-func (m *CommandSnapshot) GetPendingOutputs() []ServiceCommandOutput {
+func (m *CommandSnapshot) GetPendingOutputs() []PrimitiveCommandOutput {
 	if m != nil {
 		return m.PendingOutputs
 	}
 	return nil
 }
 
-type ServiceSnapshot struct {
-	ServiceID ServiceID   `protobuf:"varint,1,opt,name=service_id,json=serviceId,proto3,casttype=ServiceID" json:"service_id,omitempty"`
-	Spec      ServiceSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec"`
-	Data      []byte      `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
-	SessionID []SessionID `protobuf:"varint,4,rep,packed,name=sessions,proto3,casttype=SessionID" json:"sessions,omitempty"`
+type PrimitiveSnapshot struct {
+	PrimitiveID PrimitiveID   `protobuf:"varint,1,opt,name=primitive_id,json=primitiveId,proto3,casttype=PrimitiveID" json:"primitive_id,omitempty"`
+	Spec        PrimitiveSpec `protobuf:"bytes,2,opt,name=spec,proto3" json:"spec"`
+	Data        []byte        `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	SessionID   []SessionID   `protobuf:"varint,4,rep,packed,name=sessions,proto3,casttype=SessionID" json:"sessions,omitempty"`
 }
 
-func (m *ServiceSnapshot) Reset()         { *m = ServiceSnapshot{} }
-func (m *ServiceSnapshot) String() string { return proto.CompactTextString(m) }
-func (*ServiceSnapshot) ProtoMessage()    {}
-func (*ServiceSnapshot) Descriptor() ([]byte, []int) {
+func (m *PrimitiveSnapshot) Reset()         { *m = PrimitiveSnapshot{} }
+func (m *PrimitiveSnapshot) String() string { return proto.CompactTextString(m) }
+func (*PrimitiveSnapshot) ProtoMessage()    {}
+func (*PrimitiveSnapshot) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{31}
 }
-func (m *ServiceSnapshot) XXX_Unmarshal(b []byte) error {
+func (m *PrimitiveSnapshot) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceSnapshot) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PrimitiveSnapshot) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceSnapshot.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PrimitiveSnapshot.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -2044,64 +2047,64 @@ func (m *ServiceSnapshot) XXX_Marshal(b []byte, deterministic bool) ([]byte, err
 		return b[:n], nil
 	}
 }
-func (m *ServiceSnapshot) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceSnapshot.Merge(m, src)
+func (m *PrimitiveSnapshot) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrimitiveSnapshot.Merge(m, src)
 }
-func (m *ServiceSnapshot) XXX_Size() int {
+func (m *PrimitiveSnapshot) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceSnapshot) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceSnapshot.DiscardUnknown(m)
+func (m *PrimitiveSnapshot) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrimitiveSnapshot.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceSnapshot proto.InternalMessageInfo
+var xxx_messageInfo_PrimitiveSnapshot proto.InternalMessageInfo
 
-func (m *ServiceSnapshot) GetServiceID() ServiceID {
+func (m *PrimitiveSnapshot) GetPrimitiveID() PrimitiveID {
 	if m != nil {
-		return m.ServiceID
+		return m.PrimitiveID
 	}
 	return 0
 }
 
-func (m *ServiceSnapshot) GetSpec() ServiceSpec {
+func (m *PrimitiveSnapshot) GetSpec() PrimitiveSpec {
 	if m != nil {
 		return m.Spec
 	}
-	return ServiceSpec{}
+	return PrimitiveSpec{}
 }
 
-func (m *ServiceSnapshot) GetData() []byte {
+func (m *PrimitiveSnapshot) GetData() []byte {
 	if m != nil {
 		return m.Data
 	}
 	return nil
 }
 
-func (m *ServiceSnapshot) GetSessionID() []SessionID {
+func (m *PrimitiveSnapshot) GetSessionID() []SessionID {
 	if m != nil {
 		return m.SessionID
 	}
 	return nil
 }
 
-type ServiceSpec struct {
-	Service   string `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+type PrimitiveSpec struct {
+	Type      string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
 	Name      string `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
 }
 
-func (m *ServiceSpec) Reset()         { *m = ServiceSpec{} }
-func (m *ServiceSpec) String() string { return proto.CompactTextString(m) }
-func (*ServiceSpec) ProtoMessage()    {}
-func (*ServiceSpec) Descriptor() ([]byte, []int) {
+func (m *PrimitiveSpec) Reset()         { *m = PrimitiveSpec{} }
+func (m *PrimitiveSpec) String() string { return proto.CompactTextString(m) }
+func (*PrimitiveSpec) ProtoMessage()    {}
+func (*PrimitiveSpec) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9ab16e7f9ceaca8f, []int{32}
 }
-func (m *ServiceSpec) XXX_Unmarshal(b []byte) error {
+func (m *PrimitiveSpec) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *PrimitiveSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceSpec.Marshal(b, m, deterministic)
+		return xxx_messageInfo_PrimitiveSpec.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -2111,33 +2114,33 @@ func (m *ServiceSpec) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *ServiceSpec) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceSpec.Merge(m, src)
+func (m *PrimitiveSpec) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PrimitiveSpec.Merge(m, src)
 }
-func (m *ServiceSpec) XXX_Size() int {
+func (m *PrimitiveSpec) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceSpec) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceSpec.DiscardUnknown(m)
+func (m *PrimitiveSpec) XXX_DiscardUnknown() {
+	xxx_messageInfo_PrimitiveSpec.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceSpec proto.InternalMessageInfo
+var xxx_messageInfo_PrimitiveSpec proto.InternalMessageInfo
 
-func (m *ServiceSpec) GetService() string {
+func (m *PrimitiveSpec) GetType() string {
 	if m != nil {
-		return m.Service
+		return m.Type
 	}
 	return ""
 }
 
-func (m *ServiceSpec) GetNamespace() string {
+func (m *PrimitiveSpec) GetNamespace() string {
 	if m != nil {
 		return m.Namespace
 	}
 	return ""
 }
 
-func (m *ServiceSpec) GetName() string {
+func (m *PrimitiveSpec) GetName() string {
 	if m != nil {
 		return m.Name
 	}
@@ -2145,8 +2148,8 @@ func (m *ServiceSpec) GetName() string {
 }
 
 func init() {
-	proto.RegisterEnum("atomix.multiraft.v1.CommandState", CommandState_name, CommandState_value)
 	proto.RegisterEnum("atomix.multiraft.v1.OperationOutput_Status", OperationOutput_Status_name, OperationOutput_Status_value)
+	proto.RegisterEnum("atomix.multiraft.v1.CommandSnapshot_State", CommandSnapshot_State_name, CommandSnapshot_State_value)
 	proto.RegisterType((*PartitionCommandInput)(nil), "atomix.multiraft.v1.PartitionCommandInput")
 	proto.RegisterType((*PartitionCommandOutput)(nil), "atomix.multiraft.v1.PartitionCommandOutput")
 	proto.RegisterType((*CommandInput)(nil), "atomix.multiraft.v1.CommandInput")
@@ -2160,142 +2163,142 @@ func init() {
 	proto.RegisterType((*CloseSessionOutput)(nil), "atomix.multiraft.v1.CloseSessionOutput")
 	proto.RegisterType((*SessionCommandInput)(nil), "atomix.multiraft.v1.SessionCommandInput")
 	proto.RegisterType((*SessionCommandOutput)(nil), "atomix.multiraft.v1.SessionCommandOutput")
-	proto.RegisterType((*CreateServiceInput)(nil), "atomix.multiraft.v1.CreateServiceInput")
-	proto.RegisterType((*CreateServiceOutput)(nil), "atomix.multiraft.v1.CreateServiceOutput")
-	proto.RegisterType((*CloseServiceInput)(nil), "atomix.multiraft.v1.CloseServiceInput")
-	proto.RegisterType((*CloseServiceOutput)(nil), "atomix.multiraft.v1.CloseServiceOutput")
-	proto.RegisterType((*ServiceCommandInput)(nil), "atomix.multiraft.v1.ServiceCommandInput")
-	proto.RegisterType((*ServiceCommandOutput)(nil), "atomix.multiraft.v1.ServiceCommandOutput")
+	proto.RegisterType((*CreatePrimitiveInput)(nil), "atomix.multiraft.v1.CreatePrimitiveInput")
+	proto.RegisterType((*CreatePrimitiveOutput)(nil), "atomix.multiraft.v1.CreatePrimitiveOutput")
+	proto.RegisterType((*ClosePrimitiveInput)(nil), "atomix.multiraft.v1.ClosePrimitiveInput")
+	proto.RegisterType((*ClosePrimitiveOutput)(nil), "atomix.multiraft.v1.ClosePrimitiveOutput")
+	proto.RegisterType((*PrimitiveCommandInput)(nil), "atomix.multiraft.v1.PrimitiveCommandInput")
+	proto.RegisterType((*PrimitiveCommandOutput)(nil), "atomix.multiraft.v1.PrimitiveCommandOutput")
 	proto.RegisterType((*PartitionQueryInput)(nil), "atomix.multiraft.v1.PartitionQueryInput")
 	proto.RegisterType((*PartitionQueryOutput)(nil), "atomix.multiraft.v1.PartitionQueryOutput")
 	proto.RegisterType((*QueryInput)(nil), "atomix.multiraft.v1.QueryInput")
 	proto.RegisterType((*QueryOutput)(nil), "atomix.multiraft.v1.QueryOutput")
 	proto.RegisterType((*SessionQueryInput)(nil), "atomix.multiraft.v1.SessionQueryInput")
 	proto.RegisterType((*SessionQueryOutput)(nil), "atomix.multiraft.v1.SessionQueryOutput")
-	proto.RegisterType((*ServiceQueryInput)(nil), "atomix.multiraft.v1.ServiceQueryInput")
-	proto.RegisterType((*ServiceQueryOutput)(nil), "atomix.multiraft.v1.ServiceQueryOutput")
+	proto.RegisterType((*PrimitiveQueryInput)(nil), "atomix.multiraft.v1.PrimitiveQueryInput")
+	proto.RegisterType((*PrimitiveQueryOutput)(nil), "atomix.multiraft.v1.PrimitiveQueryOutput")
 	proto.RegisterType((*OperationInput)(nil), "atomix.multiraft.v1.OperationInput")
 	proto.RegisterType((*OperationOutput)(nil), "atomix.multiraft.v1.OperationOutput")
 	proto.RegisterType((*PartitionSnapshot)(nil), "atomix.multiraft.v1.PartitionSnapshot")
 	proto.RegisterType((*SessionSnapshot)(nil), "atomix.multiraft.v1.SessionSnapshot")
 	proto.RegisterType((*CommandSnapshot)(nil), "atomix.multiraft.v1.CommandSnapshot")
-	proto.RegisterType((*ServiceSnapshot)(nil), "atomix.multiraft.v1.ServiceSnapshot")
-	proto.RegisterType((*ServiceSpec)(nil), "atomix.multiraft.v1.ServiceSpec")
+	proto.RegisterType((*PrimitiveSnapshot)(nil), "atomix.multiraft.v1.PrimitiveSnapshot")
+	proto.RegisterType((*PrimitiveSpec)(nil), "atomix.multiraft.v1.PrimitiveSpec")
 }
 
 func init() { proto.RegisterFile("atomix/multiraft/v1/fsm.proto", fileDescriptor_9ab16e7f9ceaca8f) }
 
 var fileDescriptor_9ab16e7f9ceaca8f = []byte{
-	// 1739 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0xcf, 0x6f, 0x1b, 0x4f,
-	0x15, 0xcf, 0xae, 0xed, 0x24, 0x7e, 0x76, 0xec, 0xcd, 0xc4, 0x94, 0x7c, 0x03, 0xd8, 0xf9, 0x2e,
-	0xa5, 0x04, 0x90, 0x1c, 0x7d, 0x83, 0xd4, 0x42, 0x81, 0x80, 0x1d, 0x6f, 0x88, 0x89, 0xb3, 0x9b,
-	0x8e, 0xed, 0xd2, 0x22, 0x24, 0x6b, 0x6b, 0x6f, 0x82, 0x55, 0xdb, 0xbb, 0xf5, 0xae, 0xa3, 0xe4,
-	0xca, 0x11, 0x09, 0x54, 0x2e, 0x08, 0x90, 0xe0, 0x88, 0xc4, 0x85, 0x7f, 0x83, 0xde, 0xe8, 0x81,
-	0x03, 0xa7, 0x14, 0xd2, 0x7f, 0x81, 0x53, 0xc5, 0x01, 0xcd, 0xcc, 0xfe, 0x98, 0x5d, 0x3b, 0x1b,
-	0x17, 0x73, 0xdb, 0x7d, 0x33, 0xef, 0xf3, 0xde, 0x7c, 0xfc, 0xde, 0xc7, 0x6f, 0x16, 0xbe, 0xa4,
-	0x3b, 0xe6, 0xb0, 0x7f, 0xb9, 0x3b, 0x9c, 0x0c, 0x9c, 0xfe, 0x58, 0x3f, 0x73, 0x76, 0x2f, 0x3e,
-	0xdb, 0x3d, 0xb3, 0x87, 0x65, 0x6b, 0x6c, 0x3a, 0x26, 0xda, 0x60, 0xcb, 0x65, 0x7f, 0xb9, 0x7c,
-	0xf1, 0xd9, 0x56, 0xf1, 0xdc, 0x34, 0xcf, 0x07, 0xc6, 0x2e, 0xdd, 0xf2, 0x62, 0x72, 0xb6, 0xdb,
-	0x9b, 0x8c, 0x75, 0xa7, 0x6f, 0x8e, 0x98, 0xd3, 0x56, 0x29, 0xba, 0xee, 0xf4, 0x87, 0x86, 0xed,
-	0xe8, 0x43, 0xcb, 0xdd, 0x50, 0x38, 0x37, 0xcf, 0x4d, 0xfa, 0xb8, 0x4b, 0x9e, 0x98, 0x55, 0xfe,
-	0x83, 0x00, 0x9f, 0x3b, 0xd5, 0xc7, 0x4e, 0x9f, 0x40, 0x1d, 0x98, 0xc3, 0xa1, 0x3e, 0xea, 0xd5,
-	0x47, 0xd6, 0xc4, 0x41, 0x15, 0xc8, 0x5a, 0xde, 0x42, 0xa7, 0xdf, 0xdb, 0x14, 0xb6, 0x85, 0x9d,
-	0xb5, 0x6a, 0xf1, 0xe6, 0xba, 0x94, 0xf1, 0x1d, 0xea, 0xb5, 0x0f, 0xe1, 0x57, 0x9c, 0xf1, 0x7d,
-	0xea, 0x3d, 0x54, 0x81, 0x95, 0x2e, 0x83, 0xdc, 0x14, 0xb7, 0x85, 0x9d, 0xcc, 0xde, 0xa7, 0xe5,
-	0x19, 0x47, 0x2b, 0xf3, 0x61, 0xab, 0xc9, 0x37, 0xd7, 0xa5, 0x25, 0xec, 0xf9, 0xc9, 0x3f, 0x85,
-	0x7b, 0xd1, 0xf4, 0xb4, 0x89, 0x43, 0xf2, 0xab, 0x06, 0xe0, 0x02, 0x05, 0x97, 0xe3, 0xc0, 0x99,
-	0x53, 0x14, 0xfd, 0x97, 0x09, 0xc8, 0x86, 0x0e, 0xbd, 0x0f, 0x69, 0x9f, 0x37, 0x17, 0x76, 0xab,
-	0xcc, 0x98, 0x2d, 0x7b, 0xcc, 0x96, 0x5b, 0xde, 0x8e, 0x6a, 0xf2, 0xf5, 0xbb, 0x92, 0x80, 0x03,
-	0x17, 0xf4, 0x23, 0xc8, 0x9a, 0x96, 0x31, 0xea, 0xd8, 0x86, 0x6d, 0xf7, 0xcd, 0x91, 0x7b, 0xec,
-	0xaf, 0xcc, 0xcc, 0x4c, 0xb3, 0x8c, 0x51, 0x93, 0xed, 0xa3, 0xc1, 0x8f, 0x96, 0x70, 0xc6, 0x0c,
-	0x6c, 0xa8, 0x06, 0xf0, 0xd2, 0x30, 0xac, 0x8e, 0x3e, 0xe8, 0x5f, 0x18, 0x9b, 0x09, 0x8a, 0xf4,
-	0xe5, 0x99, 0x48, 0xc7, 0x86, 0x61, 0x55, 0xc8, 0x2e, 0x0f, 0x27, 0xfd, 0xd2, 0xb3, 0xa0, 0x13,
-	0x58, 0xeb, 0x0e, 0x4c, 0xdb, 0xf0, 0x53, 0x4a, 0x52, 0xa0, 0x07, 0xb3, 0xc9, 0x22, 0x3b, 0x23,
-	0x39, 0x65, 0xbb, 0x9c, 0x11, 0x35, 0x21, 0xef, 0x02, 0x75, 0x3c, 0xf6, 0x53, 0x14, 0x70, 0x67,
-	0x26, 0xa0, 0xeb, 0xc6, 0x73, 0x7c, 0xb4, 0x84, 0x73, 0x76, 0xc8, 0x5c, 0x5d, 0x81, 0x54, 0x9f,
-	0x2c, 0xc9, 0xff, 0x16, 0x61, 0x2d, 0xfc, 0x2b, 0x97, 0xc8, 0x52, 0xcf, 0xb8, 0xa4, 0x3f, 0x46,
-	0xb2, 0x9a, 0xfe, 0x70, 0x5d, 0x4a, 0xd5, 0x89, 0x01, 0x33, 0x3b, 0x3a, 0x9e, 0xc9, 0xf8, 0x83,
-	0xbb, 0x18, 0x67, 0xf0, 0x51, 0xca, 0x95, 0x19, 0x94, 0xdf, 0x8f, 0xa7, 0xdc, 0x07, 0xe2, 0x38,
-	0x57, 0x67, 0x73, 0xfe, 0xd5, 0x3b, 0x39, 0xf7, 0xc1, 0xc2, 0xa4, 0xb7, 0x6e, 0x23, 0xfd, 0x6b,
-	0x73, 0x90, 0xee, 0x63, 0x46, 0x59, 0x5f, 0x85, 0x65, 0x93, 0xae, 0xc9, 0x4f, 0x40, 0x8a, 0x16,
-	0x23, 0xfa, 0x1e, 0xac, 0x90, 0xb2, 0x36, 0x27, 0x8e, 0xdb, 0x07, 0x9f, 0x4c, 0xf5, 0x41, 0xcd,
-	0x55, 0xa0, 0xea, 0x2a, 0xe9, 0xaa, 0xdf, 0x92, 0x56, 0xf0, 0x7c, 0x64, 0x15, 0xd6, 0xa7, 0xd8,
-	0x46, 0xdf, 0x06, 0xf0, 0xce, 0xe1, 0x0a, 0x4a, 0xb2, 0xba, 0x75, 0x73, 0x5d, 0x4a, 0x7b, 0x91,
-	0x89, 0x9c, 0x04, 0x2f, 0x38, 0xed, 0xee, 0xae, 0xf7, 0xe4, 0x3f, 0x26, 0x20, 0x17, 0x2e, 0xf3,
-	0x05, 0xd0, 0xd0, 0xa7, 0x90, 0xa5, 0x05, 0xd7, 0x39, 0xeb, 0x0f, 0x1c, 0x63, 0x4c, 0x8b, 0x26,
-	0x8b, 0x33, 0xd4, 0x76, 0x48, 0x4d, 0xe8, 0x10, 0x3e, 0x3f, 0xd0, 0x6d, 0xa7, 0xc3, 0xf6, 0xd9,
-	0xc6, 0xab, 0x89, 0x31, 0xea, 0x1a, 0x9d, 0xd1, 0x64, 0x48, 0xeb, 0x22, 0x59, 0xcd, 0x13, 0xe9,
-	0x6b, 0xba, 0x76, 0x75, 0x32, 0xc4, 0x05, 0xb2, 0x9f, 0xa6, 0xc6, 0x59, 0xd1, 0xef, 0x05, 0xf8,
-	0x84, 0x02, 0x31, 0xae, 0x43, 0x48, 0xf6, 0x66, 0x72, 0x3b, 0xb1, 0x93, 0xd9, 0xfb, 0xfe, 0x1c,
-	0x5d, 0x5d, 0x6e, 0xe8, 0xb6, 0xc3, 0x78, 0xe4, 0xe0, 0x6d, 0x65, 0xe4, 0x8c, 0xaf, 0xaa, 0xc5,
-	0x9f, 0xbf, 0x0b, 0xe5, 0xf2, 0x8b, 0xf0, 0x2b, 0xbe, 0x37, 0x98, 0xe9, 0xbc, 0x55, 0x87, 0x2f,
-	0xc4, 0xc0, 0x22, 0x09, 0x12, 0x2f, 0x8d, 0x2b, 0x46, 0x2d, 0x26, 0x8f, 0xa8, 0x00, 0xa9, 0x0b,
-	0x7d, 0x30, 0x31, 0x28, 0x63, 0x49, 0xcc, 0x5e, 0x1e, 0x8b, 0xdf, 0x12, 0xe4, 0x75, 0xc8, 0x47,
-	0x7a, 0x82, 0xd4, 0xc0, 0x94, 0xa0, 0x2c, 0x52, 0x03, 0x05, 0x40, 0xd3, 0xcd, 0x22, 0xff, 0x4d,
-	0x84, 0x8d, 0x19, 0x32, 0xb3, 0x48, 0x79, 0x9c, 0x42, 0xae, 0x3b, 0x36, 0x74, 0x87, 0x34, 0xf0,
-	0xf8, 0xa2, 0xdf, 0x35, 0x5c, 0x55, 0xb9, 0xa5, 0x81, 0xe9, 0xd6, 0x26, 0xdb, 0xe9, 0x49, 0xdc,
-	0x5a, 0x97, 0xb7, 0xf2, 0x2a, 0xcc, 0x00, 0x13, 0x77, 0xab, 0x70, 0x08, 0xcf, 0x13, 0x04, 0x06,
-	0x47, 0x55, 0x98, 0x3e, 0xfa, 0x82, 0x90, 0x8c, 0x55, 0x61, 0xba, 0x77, 0x5a, 0x85, 0x79, 0x73,
-	0xa0, 0xc2, 0xbf, 0x13, 0xa1, 0x30, 0x4b, 0x43, 0xd0, 0x93, 0x29, 0x5e, 0x84, 0x98, 0xa8, 0x21,
-	0x5e, 0x7c, 0x15, 0x8a, 0x10, 0xa3, 0x46, 0x89, 0x11, 0xef, 0x96, 0xca, 0x30, 0x60, 0x98, 0x99,
-	0xd6, 0x34, 0x33, 0x89, 0x58, 0xa9, 0xe4, 0x29, 0xe0, 0xa5, 0x32, 0x44, 0x4d, 0x20, 0x95, 0x2d,
-	0x40, 0xd3, 0xbf, 0x37, 0xda, 0x87, 0xa4, 0x6d, 0x19, 0x5d, 0x97, 0x8e, 0xed, 0xb8, 0x50, 0x4d,
-	0xcb, 0xe8, 0x32, 0xc1, 0x7c, 0x7b, 0x5d, 0x12, 0x30, 0xf5, 0x93, 0x4f, 0x61, 0x63, 0x06, 0x5b,
-	0xac, 0x84, 0xd9, 0x61, 0xa2, 0x25, 0xcc, 0x82, 0xbb, 0x25, 0xec, 0xbe, 0x90, 0x12, 0x66, 0x8f,
-	0x3d, 0xae, 0xf7, 0xb8, 0x34, 0x17, 0xc0, 0x0b, 0x7a, 0x8f, 0x4b, 0x50, 0xfe, 0xab, 0x40, 0x7a,
-	0x6f, 0xaa, 0xb8, 0x16, 0x08, 0x84, 0xf6, 0x20, 0x1b, 0x12, 0x5b, 0x71, 0xb6, 0xd8, 0x66, 0x6c,
-	0x4e, 0x63, 0x2b, 0x90, 0x36, 0x2d, 0x83, 0xfd, 0x19, 0xc5, 0x0e, 0x4a, 0x9a, 0xb7, 0x8b, 0xa6,
-	0x89, 0x03, 0x2f, 0xf9, 0x57, 0x02, 0xa9, 0xf9, 0xe9, 0x62, 0x98, 0xca, 0x47, 0x98, 0x23, 0x9f,
-	0x2a, 0x9f, 0x8f, 0x18, 0x33, 0x45, 0xf8, 0xf9, 0xb0, 0x60, 0x7c, 0x42, 0x7f, 0x16, 0x60, 0xc3,
-	0x9f, 0x7c, 0x9f, 0x4c, 0x8c, 0xf1, 0xd5, 0xff, 0x6d, 0x2c, 0xff, 0x0e, 0xa4, 0x5e, 0x11, 0x40,
-	0x37, 0xb5, 0xd2, 0xcc, 0xd4, 0x82, 0x90, 0xee, 0xd0, 0xcc, 0x7c, 0x10, 0x82, 0xa4, 0x7d, 0x35,
-	0xea, 0x52, 0x9a, 0x57, 0x31, 0x7d, 0x96, 0x5b, 0x50, 0x08, 0xa7, 0xea, 0x72, 0xf7, 0x5d, 0x2f,
-	0x50, 0x5c, 0x5f, 0x70, 0x0e, 0xa1, 0x48, 0xe4, 0x6a, 0x02, 0xdc, 0xc1, 0x1f, 0x01, 0x1a, 0xea,
-	0x97, 0x9d, 0xb1, 0xd1, 0x35, 0xfa, 0x17, 0x46, 0xaf, 0x73, 0xcb, 0x58, 0x28, 0x0d, 0xf5, 0x4b,
-	0xec, 0xee, 0xa1, 0x16, 0xa2, 0xbd, 0xde, 0x1f, 0x01, 0x7f, 0xec, 0x07, 0x71, 0xb3, 0x53, 0x10,
-	0x97, 0x28, 0x8c, 0xcd, 0x19, 0x03, 0x99, 0x3c, 0x87, 0x0c, 0x7f, 0x58, 0x35, 0x1a, 0x46, 0x88,
-	0x51, 0x32, 0x3e, 0x4c, 0xa0, 0x64, 0xa1, 0x38, 0x81, 0xe6, 0xfc, 0x49, 0x80, 0xf5, 0xa9, 0xbc,
-	0x16, 0xf9, 0x7f, 0xa3, 0x8c, 0xb0, 0xf6, 0x9c, 0x87, 0x11, 0xba, 0x33, 0xca, 0x48, 0x60, 0x0c,
-	0x18, 0x19, 0x01, 0x9a, 0x3e, 0x18, 0x23, 0x86, 0x8f, 0x16, 0x4f, 0x4c, 0x00, 0xcc, 0x13, 0xc3,
-	0x85, 0x0b, 0x88, 0xf9, 0x35, 0x25, 0x26, 0x92, 0xde, 0x22, 0xe2, 0x53, 0x99, 0x6e, 0xdc, 0x8f,
-	0x15, 0x92, 0x67, 0x84, 0x83, 0xe8, 0x19, 0xc2, 0x8a, 0x20, 0xfc, 0x6f, 0x8a, 0xb0, 0x0f, 0xb9,
-	0x70, 0x58, 0xd2, 0x8b, 0x23, 0x7d, 0xc8, 0xfe, 0x85, 0xd3, 0x98, 0x3e, 0xa3, 0x4d, 0x58, 0xb1,
-	0xf4, 0xab, 0x81, 0xa9, 0xf7, 0xdc, 0xa9, 0xd6, 0x7b, 0x95, 0xff, 0x25, 0x42, 0x3e, 0x02, 0x8f,
-	0x0e, 0x60, 0xd9, 0x76, 0x74, 0x67, 0x62, 0x53, 0x8c, 0xdc, 0xde, 0x37, 0xe6, 0x49, 0xaa, 0xdc,
-	0xa4, 0x2e, 0xd8, 0x75, 0xbd, 0x3d, 0x24, 0x59, 0x19, 0x1a, 0xb6, 0xad, 0x9f, 0xb3, 0x81, 0x27,
-	0x8d, 0xbd, 0x57, 0xf9, 0xef, 0x02, 0x2c, 0x33, 0x18, 0x94, 0x81, 0x95, 0xb6, 0x7a, 0xac, 0x6a,
-	0x3f, 0x56, 0xa5, 0x25, 0xb4, 0x0c, 0xa2, 0x76, 0x2c, 0x09, 0x28, 0x0d, 0x29, 0x05, 0x63, 0x0d,
-	0x4b, 0x22, 0xca, 0xc2, 0xea, 0x41, 0x45, 0x3d, 0x50, 0x1a, 0x4a, 0x4d, 0x4a, 0xa0, 0x35, 0x48,
-	0xab, 0x5a, 0xab, 0x73, 0xa8, 0xb5, 0xd5, 0x9a, 0x94, 0x44, 0x08, 0x72, 0x95, 0x06, 0x56, 0x2a,
-	0xb5, 0xe7, 0x1d, 0xe5, 0x59, 0xbd, 0xd9, 0x6a, 0x4a, 0x29, 0x24, 0x41, 0xb6, 0xad, 0x56, 0xda,
-	0xad, 0x23, 0x0d, 0xd7, 0x7f, 0xa2, 0xd4, 0xa4, 0x65, 0xe2, 0x74, 0xa8, 0xe1, 0x6a, 0xbd, 0x56,
-	0x53, 0x54, 0x69, 0x85, 0x22, 0x6a, 0xea, 0x61, 0xa3, 0x7e, 0xd0, 0x92, 0x56, 0x49, 0xfc, 0xba,
-	0xfa, 0xb4, 0xd2, 0xa8, 0xd7, 0xa4, 0x34, 0xca, 0x43, 0xa6, 0xad, 0x56, 0x9e, 0x56, 0xea, 0x8d,
-	0x4a, 0xb5, 0xa1, 0x48, 0x80, 0xd6, 0x61, 0x8d, 0xc4, 0x6b, 0xb6, 0x4f, 0x4f, 0x35, 0xdc, 0x52,
-	0x6a, 0x52, 0x86, 0x38, 0xb4, 0xea, 0x27, 0x8a, 0xd6, 0x6e, 0x49, 0x59, 0x82, 0x55, 0x57, 0x5b,
-	0x0a, 0x56, 0x2b, 0x0d, 0x69, 0x4d, 0xfe, 0x8f, 0x00, 0xeb, 0xbe, 0x14, 0x36, 0x47, 0xba, 0x65,
-	0xff, 0xcc, 0x9c, 0xe3, 0x12, 0x5b, 0xe5, 0x3f, 0x3b, 0x88, 0x77, 0x7e, 0x76, 0xa0, 0xe3, 0x43,
-	0xf4, 0xd3, 0xc3, 0x0f, 0x60, 0xd5, 0xed, 0x70, 0x7b, 0x33, 0x41, 0xaf, 0x15, 0xf7, 0xe3, 0xa4,
-	0xc7, 0x4b, 0x0e, 0xfb, 0x5e, 0x0c, 0x81, 0x96, 0xae, 0x77, 0x31, 0xb9, 0x1f, 0x3b, 0xc9, 0x70,
-	0x08, 0xcc, 0x4b, 0xfe, 0x8d, 0x08, 0xf9, 0x08, 0xfe, 0x22, 0x3a, 0xc5, 0xdd, 0x41, 0xc5, 0x8f,
-	0xbf, 0x83, 0xa2, 0x1f, 0x42, 0x96, 0xde, 0xbc, 0x26, 0x56, 0x4f, 0x77, 0x0c, 0x6f, 0x10, 0x9c,
-	0x8f, 0xd8, 0x0c, 0xf1, 0x6c, 0x33, 0x47, 0x42, 0x8c, 0x3b, 0x4c, 0xc6, 0x13, 0xe3, 0x4e, 0x0e,
-	0x01, 0x31, 0x9e, 0x97, 0xfc, 0x17, 0x11, 0xf2, 0x91, 0x55, 0x74, 0x04, 0x05, 0x77, 0xbd, 0x33,
-	0x63, 0xc2, 0xb8, 0xf7, 0xe1, 0xba, 0x84, 0x3c, 0x17, 0x6e, 0xd0, 0x40, 0xdd, 0x29, 0x1b, 0x7a,
-	0x04, 0x29, 0xd2, 0x8a, 0x6c, 0x78, 0xce, 0xc5, 0x7f, 0x65, 0x23, 0x4d, 0x67, 0x60, 0xb6, 0x1f,
-	0xed, 0xbb, 0xca, 0xed, 0x52, 0x33, 0xf7, 0xed, 0x01, 0x33, 0x37, 0xf4, 0x0c, 0xf2, 0x96, 0x31,
-	0xea, 0xf5, 0x47, 0xe7, 0xee, 0xf5, 0xd6, 0xe3, 0x67, 0xfe, 0x69, 0xdb, 0xfd, 0xcf, 0xcf, 0xb9,
-	0x38, 0xcc, 0x68, 0x13, 0x7d, 0xc8, 0x47, 0xea, 0x6c, 0x11, 0x61, 0x7f, 0xec, 0x0e, 0xe8, 0xe2,
-	0x9c, 0x03, 0x3a, 0x4b, 0x8a, 0xfa, 0x10, 0x95, 0xed, 0xe9, 0x8e, 0x4e, 0x39, 0xca, 0x62, 0xfa,
-	0x8c, 0x1e, 0x72, 0xcd, 0x46, 0x4e, 0x1c, 0x5f, 0xd2, 0xfe, 0x5e, 0xf9, 0x39, 0x64, 0xb8, 0x30,
-	0x44, 0x1f, 0xf9, 0x9b, 0x54, 0x1a, 0x7b, 0xaf, 0xe8, 0x8b, 0x90, 0x26, 0x72, 0x6e, 0x5b, 0xba,
-	0x7b, 0x27, 0x4a, 0xe3, 0xc0, 0xe0, 0x0b, 0x7f, 0x22, 0x10, 0xfe, 0xaf, 0x3f, 0xf4, 0x3f, 0x65,
-	0xd2, 0x9f, 0x98, 0xa8, 0xe0, 0x81, 0x76, 0x72, 0x52, 0x51, 0x6b, 0x1d, 0xed, 0x54, 0x21, 0xda,
-	0x5a, 0x00, 0xc9, 0xb3, 0x1c, 0x68, 0x27, 0xa7, 0x0d, 0xa5, 0xa5, 0x48, 0x42, 0x75, 0xf3, 0xcd,
-	0x4d, 0x51, 0x78, 0x7b, 0x53, 0x14, 0xfe, 0x79, 0x53, 0x14, 0x5e, 0xbf, 0x2f, 0x2e, 0xbd, 0x7d,
-	0x5f, 0x5c, 0xfa, 0xc7, 0xfb, 0xe2, 0xd2, 0x8b, 0x65, 0xda, 0x21, 0xdf, 0xfc, 0x6f, 0x00, 0x00,
-	0x00, 0xff, 0xff, 0x0d, 0xa2, 0xd5, 0x05, 0xaf, 0x16, 0x00, 0x00,
+	// 1742 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x58, 0x4b, 0x6f, 0xdb, 0xca,
+	0x15, 0x36, 0x29, 0xc9, 0xb6, 0x8e, 0x64, 0x89, 0x1e, 0x2b, 0xae, 0xe3, 0xb6, 0x92, 0xc3, 0xa6,
+	0xae, 0xfb, 0x80, 0x8c, 0xa4, 0x40, 0x9f, 0x69, 0x1a, 0xc9, 0xa2, 0x1b, 0xd6, 0x0a, 0xe5, 0x8c,
+	0xa4, 0x3c, 0x8c, 0x02, 0x02, 0x23, 0xd1, 0xae, 0x10, 0x49, 0x64, 0x44, 0xca, 0xb0, 0xb7, 0x59,
+	0x16, 0x28, 0x90, 0x55, 0x51, 0xb4, 0x68, 0xf7, 0x45, 0xfb, 0x43, 0xb2, 0x4c, 0x71, 0xef, 0xe2,
+	0xae, 0x9c, 0x5c, 0xe7, 0x2f, 0xdc, 0x55, 0x56, 0x17, 0x33, 0xc3, 0xb7, 0x68, 0xda, 0x8e, 0xbd,
+	0x23, 0xcf, 0xcc, 0xf9, 0xce, 0x99, 0x8f, 0x73, 0xbe, 0x39, 0x43, 0xf8, 0xbe, 0x6a, 0xe9, 0xc3,
+	0xfe, 0xd1, 0xe6, 0x70, 0x32, 0xb0, 0xfa, 0x63, 0x75, 0xdf, 0xda, 0x3c, 0xbc, 0xb3, 0xb9, 0x6f,
+	0x0e, 0xcb, 0xc6, 0x58, 0xb7, 0x74, 0xb4, 0xc4, 0x86, 0xcb, 0xee, 0x70, 0xf9, 0xf0, 0xce, 0x6a,
+	0xf1, 0x40, 0xd7, 0x0f, 0x06, 0xda, 0x26, 0x9d, 0xf2, 0x62, 0xb2, 0xbf, 0xd9, 0x9b, 0x8c, 0x55,
+	0xab, 0xaf, 0x8f, 0x98, 0xd3, 0x6a, 0x29, 0x3c, 0x6e, 0xf5, 0x87, 0x9a, 0x69, 0xa9, 0x43, 0xc3,
+	0x9e, 0x50, 0x38, 0xd0, 0x0f, 0x74, 0xfa, 0xb8, 0x49, 0x9e, 0x98, 0x55, 0xfc, 0x17, 0x07, 0x37,
+	0x76, 0xd5, 0xb1, 0xd5, 0x27, 0x50, 0x5b, 0xfa, 0x70, 0xa8, 0x8e, 0x7a, 0xf2, 0xc8, 0x98, 0x58,
+	0xa8, 0x02, 0x59, 0xc3, 0x19, 0xe8, 0xf4, 0x7b, 0x2b, 0xdc, 0x1a, 0xb7, 0xb1, 0x50, 0x2d, 0x9e,
+	0x9e, 0x94, 0x32, 0xae, 0x83, 0x5c, 0xfb, 0x14, 0x7c, 0xc5, 0x19, 0xd7, 0x47, 0xee, 0xa1, 0x0a,
+	0xcc, 0x75, 0x19, 0xe4, 0x0a, 0xbf, 0xc6, 0x6d, 0x64, 0xee, 0xde, 0x2a, 0x47, 0x2c, 0xad, 0xec,
+	0x0f, 0x5b, 0x4d, 0xbe, 0x3d, 0x29, 0xcd, 0x60, 0xc7, 0x4f, 0xfc, 0x13, 0x2c, 0x87, 0xd3, 0x6b,
+	0x4c, 0x2c, 0x92, 0x5f, 0xd5, 0x03, 0xe7, 0x28, 0xb8, 0x18, 0x07, 0xce, 0x9c, 0xc2, 0xe8, 0x7f,
+	0x4d, 0x40, 0x36, 0xb0, 0xe8, 0xfb, 0x90, 0x76, 0x79, 0xb3, 0x61, 0x57, 0xcb, 0x8c, 0xd9, 0xb2,
+	0xc3, 0x6c, 0xb9, 0xe5, 0xcc, 0xa8, 0x26, 0xdf, 0xbc, 0x2f, 0x71, 0xd8, 0x73, 0x41, 0x7f, 0x84,
+	0xac, 0x6e, 0x68, 0xa3, 0x8e, 0xa9, 0x99, 0x66, 0x5f, 0x1f, 0xd9, 0xcb, 0xfe, 0x61, 0x64, 0x66,
+	0x0d, 0x43, 0x1b, 0x35, 0xd9, 0x3c, 0x1a, 0xfc, 0xe1, 0x0c, 0xce, 0xe8, 0x9e, 0x0d, 0xd5, 0x00,
+	0x5e, 0x6a, 0x9a, 0xd1, 0x51, 0x07, 0xfd, 0x43, 0x6d, 0x25, 0x41, 0x91, 0x7e, 0x10, 0x89, 0xb4,
+	0xa3, 0x69, 0x46, 0x85, 0xcc, 0x72, 0x70, 0xd2, 0x2f, 0x1d, 0x0b, 0x7a, 0x04, 0x0b, 0xdd, 0x81,
+	0x6e, 0x6a, 0x6e, 0x4a, 0x49, 0x0a, 0xb4, 0x1e, 0x4d, 0x16, 0x99, 0x19, 0xca, 0x29, 0xdb, 0xf5,
+	0x19, 0x51, 0x13, 0xf2, 0x36, 0x50, 0xc7, 0x61, 0x3f, 0x45, 0x01, 0x37, 0x22, 0x01, 0x6d, 0x37,
+	0x3f, 0xc7, 0x0f, 0x67, 0x70, 0xce, 0x0c, 0x98, 0xab, 0x73, 0x90, 0xea, 0x93, 0x21, 0xf1, 0x1b,
+	0x1e, 0x16, 0x82, 0x5f, 0xb9, 0x44, 0x86, 0x7a, 0xda, 0x11, 0xfd, 0x18, 0xc9, 0x6a, 0xfa, 0xd3,
+	0x49, 0x29, 0x25, 0x13, 0x03, 0x66, 0x76, 0xb4, 0x13, 0xc9, 0xf8, 0xfa, 0x79, 0x8c, 0x33, 0xf8,
+	0x30, 0xe5, 0x52, 0x04, 0xe5, 0xb7, 0xe3, 0x29, 0x77, 0x81, 0x7c, 0x9c, 0x2b, 0xd1, 0x9c, 0xff,
+	0xe8, 0x5c, 0xce, 0x5d, 0xb0, 0x20, 0xe9, 0xad, 0xb3, 0x48, 0xff, 0xf1, 0x05, 0x48, 0x77, 0x31,
+	0xc3, 0xac, 0xcf, 0xc3, 0xac, 0x4e, 0xc7, 0xc4, 0xc7, 0x20, 0x84, 0x37, 0x23, 0xfa, 0x1d, 0xcc,
+	0x91, 0x6d, 0xad, 0x4f, 0x2c, 0xbb, 0x0e, 0x6e, 0x4e, 0xd5, 0x41, 0xcd, 0x56, 0xa0, 0xea, 0x3c,
+	0xa9, 0xaa, 0xbf, 0x93, 0x52, 0x70, 0x7c, 0x44, 0x05, 0x16, 0xa7, 0xd8, 0x46, 0xbf, 0x06, 0x70,
+	0xd6, 0x61, 0x0b, 0x4a, 0xb2, 0xba, 0x7a, 0x7a, 0x52, 0x4a, 0x3b, 0x91, 0x89, 0x9c, 0x78, 0x2f,
+	0x38, 0x6d, 0xcf, 0x96, 0x7b, 0xe2, 0xbf, 0x13, 0x90, 0x0b, 0x6e, 0xf3, 0x2b, 0xa0, 0xa1, 0x5b,
+	0x90, 0xa5, 0x1b, 0xae, 0xb3, 0xdf, 0x1f, 0x58, 0xda, 0x98, 0x6e, 0x9a, 0x2c, 0xce, 0x50, 0xdb,
+	0x36, 0x35, 0xa1, 0x6d, 0xf8, 0xce, 0x40, 0x35, 0xad, 0x0e, 0x9b, 0x67, 0x6a, 0xaf, 0x26, 0xda,
+	0xa8, 0xab, 0x75, 0x46, 0x93, 0x21, 0xdd, 0x17, 0xc9, 0x6a, 0x9e, 0x48, 0x5f, 0xd3, 0xb6, 0x2b,
+	0x93, 0x21, 0x2e, 0x90, 0xf9, 0x34, 0x35, 0x9f, 0x15, 0xfd, 0x83, 0x83, 0x9b, 0x14, 0x88, 0x71,
+	0x1d, 0x40, 0x32, 0x57, 0x92, 0x6b, 0x89, 0x8d, 0xcc, 0xdd, 0xdf, 0x5f, 0xa0, 0xaa, 0xcb, 0x75,
+	0xd5, 0xb4, 0x18, 0x8f, 0x3e, 0x78, 0x53, 0x1a, 0x59, 0xe3, 0xe3, 0x6a, 0xf1, 0xf5, 0xfb, 0x40,
+	0x2e, 0x7f, 0x09, 0xbe, 0xe2, 0xe5, 0x41, 0xa4, 0xf3, 0xaa, 0x0c, 0xdf, 0x8d, 0x81, 0x45, 0x02,
+	0x24, 0x5e, 0x6a, 0xc7, 0x8c, 0x5a, 0x4c, 0x1e, 0x51, 0x01, 0x52, 0x87, 0xea, 0x60, 0xa2, 0x51,
+	0xc6, 0x92, 0x98, 0xbd, 0xfc, 0x86, 0xff, 0x15, 0x27, 0x2e, 0x42, 0x3e, 0x54, 0x13, 0x64, 0x0f,
+	0x4c, 0x09, 0xca, 0x55, 0xf6, 0x40, 0x01, 0xd0, 0x74, 0xb1, 0x88, 0x5f, 0xf3, 0xb0, 0x14, 0x21,
+	0x33, 0x57, 0xd9, 0x1e, 0x4f, 0x40, 0xe8, 0x8e, 0x35, 0xd5, 0xd2, 0x3a, 0xc6, 0xb8, 0x3f, 0xec,
+	0x5b, 0x44, 0x0c, 0xf8, 0x98, 0x82, 0xdb, 0xa2, 0x93, 0x77, 0x9d, 0xb9, 0x8e, 0xcc, 0xe5, 0xbb,
+	0x41, 0x3b, 0x11, 0x4f, 0xa6, 0x0b, 0x1e, 0x6c, 0x22, 0x46, 0x3c, 0xe9, 0x62, 0xa7, 0x50, 0x73,
+	0xdd, 0x80, 0x19, 0x3d, 0x87, 0x45, 0x17, 0xce, 0x95, 0x07, 0x26, 0x38, 0x3f, 0x89, 0x84, 0x75,
+	0x5d, 0x43, 0xaa, 0x2c, 0x18, 0xa1, 0x01, 0x4f, 0x97, 0xff, 0xcb, 0x43, 0x21, 0x4a, 0x55, 0xd0,
+	0xd3, 0x08, 0xa6, 0xb8, 0x98, 0xd8, 0x21, 0xa6, 0x5c, 0x6d, 0x9a, 0xa2, 0xaa, 0x35, 0x4d, 0x55,
+	0xec, 0x17, 0x08, 0x70, 0xe2, 0x49, 0x5e, 0x88, 0xab, 0xbd, 0x28, 0xae, 0xd8, 0x27, 0xf8, 0xe9,
+	0x85, 0xb8, 0x72, 0x91, 0xa7, 0xc9, 0xf2, 0xe4, 0xf4, 0x19, 0x14, 0xa2, 0x76, 0x04, 0x7a, 0x00,
+	0x49, 0xd3, 0xd0, 0xba, 0xb1, 0xed, 0x8a, 0xeb, 0xd2, 0x34, 0xb4, 0x2e, 0x13, 0xd6, 0x77, 0x27,
+	0x25, 0x0e, 0x53, 0x4f, 0x71, 0x0f, 0x6e, 0x44, 0x32, 0x48, 0x9b, 0x35, 0x77, 0x61, 0xee, 0x76,
+	0x67, 0xcd, 0x9a, 0x9b, 0x04, 0x6b, 0xd6, 0xbc, 0x57, 0x9c, 0x71, 0x7d, 0xe4, 0x9e, 0xf8, 0x0c,
+	0x96, 0x22, 0x36, 0xdc, 0x75, 0x20, 0x2f, 0x43, 0x21, 0xea, 0xfb, 0x88, 0xff, 0x27, 0xbd, 0x67,
+	0xd4, 0x66, 0xbc, 0x86, 0xa0, 0xe8, 0x2e, 0x64, 0x03, 0xa2, 0xcd, 0x47, 0x8b, 0x76, 0xc6, 0xf4,
+	0x69, 0x75, 0x05, 0xd2, 0xba, 0xa1, 0xb1, 0x43, 0x2d, 0xb6, 0xe1, 0x6a, 0x38, 0xb3, 0x68, 0xba,
+	0xd8, 0xf3, 0x12, 0xdf, 0x70, 0xb0, 0x1c, 0xbd, 0x69, 0xa6, 0x32, 0xe2, 0x2e, 0x90, 0x51, 0xd5,
+	0x9f, 0x11, 0x1f, 0xd3, 0x8f, 0xb8, 0x19, 0xb1, 0x60, 0xfe, 0x94, 0xfe, 0xc3, 0xc1, 0x92, 0xdb,
+	0x43, 0x3f, 0x9e, 0x68, 0xe3, 0xe3, 0x6b, 0x6b, 0xf0, 0x7f, 0x0b, 0xa9, 0x57, 0x04, 0xd0, 0x4e,
+	0xad, 0x14, 0x99, 0x9a, 0x17, 0xd2, 0x6e, 0xbf, 0x99, 0x0f, 0x42, 0x90, 0x34, 0x8f, 0x47, 0x5d,
+	0x4a, 0xf4, 0x3c, 0xa6, 0xcf, 0x62, 0x0b, 0x0a, 0xc1, 0x54, 0x6d, 0xee, 0xee, 0x39, 0x81, 0x58,
+	0xed, 0xac, 0x9d, 0x1d, 0x28, 0xd0, 0xe8, 0x33, 0x27, 0x72, 0xc9, 0x01, 0xdf, 0xc2, 0x7f, 0x09,
+	0x68, 0xa8, 0x1e, 0x75, 0xc6, 0x5a, 0x57, 0xeb, 0x1f, 0x6a, 0xbd, 0xce, 0x19, 0x0d, 0xa6, 0x30,
+	0x54, 0x8f, 0xb0, 0x3d, 0x87, 0x5a, 0x48, 0x2f, 0xed, 0x1c, 0x29, 0xfe, 0x65, 0xaf, 0xc7, 0x75,
+	0x61, 0x5e, 0x5c, 0xd2, 0xd6, 0x99, 0x3e, 0xa3, 0x27, 0xaf, 0x07, 0x90, 0xf1, 0x2f, 0x56, 0x09,
+	0x87, 0xe1, 0x62, 0xda, 0x47, 0x7f, 0x18, 0xaf, 0x7d, 0x0c, 0xc4, 0xf1, 0x94, 0xe9, 0x7f, 0x1c,
+	0x2c, 0x4e, 0xe5, 0x75, 0x95, 0x93, 0xb2, 0x09, 0x79, 0xaf, 0x50, 0xfd, 0x9c, 0x6c, 0xc4, 0xab,
+	0x5b, 0x80, 0x95, 0x9c, 0x11, 0x30, 0x7b, 0xbc, 0x58, 0x80, 0xa6, 0x97, 0x47, 0x8e, 0x86, 0x70,
+	0x4c, 0x2e, 0xe6, 0x68, 0x08, 0xc6, 0xf4, 0x8e, 0x86, 0x50, 0x50, 0x8f, 0xa4, 0x7f, 0x92, 0x7a,
+	0x99, 0x4e, 0xf4, 0x3a, 0x44, 0xa9, 0x32, 0x5d, 0xce, 0x97, 0x15, 0x98, 0x3d, 0x28, 0x44, 0xad,
+	0x28, 0xa8, 0x14, 0xdc, 0xe7, 0x29, 0xc5, 0x7d, 0xc8, 0x05, 0x03, 0x93, 0x1a, 0x1d, 0xa9, 0x43,
+	0x76, 0xa6, 0xa7, 0x31, 0x7d, 0x46, 0x2b, 0x30, 0x67, 0xa8, 0xc7, 0x03, 0x5d, 0xed, 0xd9, 0x7d,
+	0xb3, 0xf3, 0x4a, 0x5a, 0xb1, 0x7c, 0x08, 0x1e, 0x6d, 0xc1, 0xac, 0x69, 0xa9, 0xd6, 0xc4, 0xa4,
+	0x18, 0xb9, 0x33, 0xce, 0xd9, 0x90, 0x57, 0xb9, 0x49, 0x5d, 0xb0, 0xed, 0x7a, 0x76, 0x48, 0x32,
+	0x32, 0xd4, 0x4c, 0x53, 0x3d, 0x60, 0xad, 0x54, 0x1a, 0x3b, 0xaf, 0xe2, 0x97, 0x1c, 0xcc, 0x32,
+	0x18, 0x94, 0x81, 0xb9, 0xb6, 0xb2, 0xa3, 0x34, 0x9e, 0x2a, 0xc2, 0x0c, 0x9a, 0x05, 0xbe, 0xb1,
+	0x23, 0x70, 0x28, 0x0d, 0x29, 0x09, 0xe3, 0x06, 0x16, 0x78, 0x94, 0x85, 0xf9, 0xad, 0x8a, 0xb2,
+	0x25, 0xd5, 0xa5, 0x9a, 0x90, 0x40, 0x0b, 0x90, 0x56, 0x1a, 0xad, 0xce, 0x76, 0xa3, 0xad, 0xd4,
+	0x84, 0x24, 0x42, 0x90, 0xab, 0xd4, 0xb1, 0x54, 0xa9, 0x3d, 0xef, 0x48, 0xcf, 0xe4, 0x66, 0xab,
+	0x29, 0xa4, 0x90, 0x00, 0xd9, 0xb6, 0x52, 0x69, 0xb7, 0x1e, 0x36, 0xb0, 0xbc, 0x27, 0xd5, 0x84,
+	0x59, 0xe2, 0xb4, 0xdd, 0xc0, 0x55, 0xb9, 0x56, 0x93, 0x14, 0x61, 0x8e, 0x22, 0x36, 0x94, 0xed,
+	0xba, 0xbc, 0xd5, 0x12, 0xe6, 0x49, 0x7c, 0x59, 0x79, 0x52, 0xa9, 0xcb, 0x35, 0x21, 0x8d, 0xf2,
+	0x90, 0x69, 0x2b, 0x95, 0x27, 0x15, 0xb9, 0x5e, 0xa9, 0xd6, 0x25, 0x01, 0xd0, 0x22, 0x2c, 0x90,
+	0x78, 0xcd, 0xf6, 0xee, 0x6e, 0x03, 0xb7, 0xa4, 0x9a, 0x90, 0x21, 0x0e, 0x2d, 0xf9, 0x91, 0xd4,
+	0x68, 0xb7, 0x84, 0x2c, 0xc1, 0x92, 0x95, 0x96, 0x84, 0x95, 0x4a, 0x5d, 0x58, 0x10, 0x5f, 0xf3,
+	0xb0, 0xe8, 0x4a, 0x64, 0x73, 0xa4, 0x1a, 0xe6, 0x9f, 0xf5, 0x0b, 0x5c, 0x93, 0xab, 0xfe, 0x1f,
+	0x1b, 0xfc, 0xb9, 0x3f, 0x36, 0x68, 0xe3, 0x11, 0xfe, 0xb9, 0xf1, 0x00, 0xe6, 0xed, 0xca, 0x37,
+	0x57, 0x12, 0xf4, 0xe2, 0x72, 0x3b, 0x4e, 0x92, 0x9c, 0xe4, 0xb0, 0xeb, 0x85, 0xb6, 0x01, 0xdc,
+	0x72, 0x70, 0x2e, 0x3f, 0xeb, 0xe7, 0xf4, 0x41, 0x0e, 0x8a, 0xcf, 0x53, 0xfc, 0x1b, 0x0f, 0xf9,
+	0x50, 0x94, 0xab, 0xa8, 0x98, 0xef, 0xae, 0xcb, 0x5f, 0xfe, 0xae, 0x8b, 0xfe, 0x00, 0x59, 0x7a,
+	0xc3, 0x9b, 0x18, 0x3d, 0xd5, 0xd2, 0x9c, 0x86, 0xf2, 0x62, 0xf4, 0x66, 0x88, 0x67, 0x9b, 0x39,
+	0x12, 0x82, 0xed, 0xa6, 0xd4, 0x21, 0xe7, 0x76, 0xdc, 0x3f, 0x2d, 0x8f, 0x60, 0xc7, 0x4b, 0xfc,
+	0x82, 0x87, 0x7c, 0x68, 0xf4, 0xb3, 0xfa, 0x8e, 0x07, 0x90, 0x22, 0xa5, 0xc7, 0x9a, 0xee, 0xdc,
+	0x59, 0xcd, 0x7c, 0x30, 0x10, 0x2d, 0x5a, 0x0d, 0x33, 0x47, 0x82, 0x40, 0x45, 0xdc, 0x66, 0xe3,
+	0x12, 0x57, 0x11, 0xcc, 0x1c, 0xd1, 0x1e, 0xe4, 0x0d, 0x6d, 0xd4, 0xeb, 0x8f, 0x0e, 0xec, 0xbb,
+	0xb3, 0x43, 0xca, 0x65, 0x5a, 0x75, 0xbb, 0x11, 0xc8, 0xd9, 0x48, 0xcc, 0x68, 0x8a, 0x3f, 0x83,
+	0x14, 0xcd, 0x36, 0x28, 0x0d, 0xf3, 0x90, 0x6c, 0xec, 0x4a, 0x8a, 0xc0, 0xb1, 0xfa, 0x7d, 0xb4,
+	0x5b, 0x97, 0x5a, 0x92, 0xc0, 0x8b, 0x1f, 0x38, 0x58, 0x9c, 0xda, 0x90, 0xd7, 0x71, 0x1e, 0xdc,
+	0xb3, 0x6f, 0x04, 0xfc, 0x85, 0x6f, 0x04, 0x6c, 0x39, 0xd4, 0x8b, 0x88, 0x73, 0x4f, 0xb5, 0x54,
+	0xca, 0x70, 0x16, 0xd3, 0x67, 0xf4, 0x0b, 0x5f, 0x8d, 0x12, 0xb6, 0xe2, 0x6b, 0xc0, 0x9d, 0x2b,
+	0xb6, 0x61, 0x21, 0x10, 0x88, 0x80, 0x5b, 0xc7, 0x86, 0xab, 0xfc, 0xe4, 0x19, 0x7d, 0x0f, 0xd2,
+	0xe4, 0x04, 0x30, 0x0d, 0xb5, 0xcb, 0x76, 0x46, 0x1a, 0x7b, 0x06, 0xf7, 0xac, 0x48, 0x78, 0x67,
+	0x45, 0x75, 0xe5, 0xed, 0x69, 0x91, 0x7b, 0x77, 0x5a, 0xe4, 0x3e, 0x9c, 0x16, 0xb9, 0x37, 0x1f,
+	0x8b, 0x33, 0xef, 0x3e, 0x16, 0x67, 0xbe, 0xfa, 0x58, 0x9c, 0x79, 0x31, 0x4b, 0xcb, 0xe2, 0xe7,
+	0xdf, 0x06, 0x00, 0x00, 0xff, 0xff, 0x0c, 0x79, 0xb4, 0xf9, 0x0c, 0x17, 0x00, 0x00,
 }
 
 func (m *PartitionCommandInput) Marshal() (dAtA []byte, err error) {
@@ -2841,16 +2844,16 @@ func (m *SessionCommandInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SessionCommandInput_CreateService) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionCommandInput_CreatePrimitive) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionCommandInput_CreateService) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionCommandInput_CreatePrimitive) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.CreateService != nil {
+	if m.CreatePrimitive != nil {
 		{
-			size, err := m.CreateService.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.CreatePrimitive.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -2862,16 +2865,16 @@ func (m *SessionCommandInput_CreateService) MarshalToSizedBuffer(dAtA []byte) (i
 	}
 	return len(dAtA) - i, nil
 }
-func (m *SessionCommandInput_CloseService) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionCommandInput_ClosePrimitive) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionCommandInput_CloseService) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionCommandInput_ClosePrimitive) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.CloseService != nil {
+	if m.ClosePrimitive != nil {
 		{
-			size, err := m.CloseService.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.ClosePrimitive.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -2883,16 +2886,16 @@ func (m *SessionCommandInput_CloseService) MarshalToSizedBuffer(dAtA []byte) (in
 	}
 	return len(dAtA) - i, nil
 }
-func (m *SessionCommandInput_ServiceCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionCommandInput_PrimitiveCommand) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionCommandInput_ServiceCommand) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionCommandInput_PrimitiveCommand) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.ServiceCommand != nil {
+	if m.PrimitiveCommand != nil {
 		{
-			size, err := m.ServiceCommand.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.PrimitiveCommand.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -2936,16 +2939,16 @@ func (m *SessionCommandOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SessionCommandOutput_CreateService) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionCommandOutput_CreatePrimitive) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionCommandOutput_CreateService) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionCommandOutput_CreatePrimitive) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.CreateService != nil {
+	if m.CreatePrimitive != nil {
 		{
-			size, err := m.CreateService.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.CreatePrimitive.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -2957,16 +2960,16 @@ func (m *SessionCommandOutput_CreateService) MarshalToSizedBuffer(dAtA []byte) (
 	}
 	return len(dAtA) - i, nil
 }
-func (m *SessionCommandOutput_CloseService) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionCommandOutput_ClosePrimitive) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionCommandOutput_CloseService) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionCommandOutput_ClosePrimitive) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.CloseService != nil {
+	if m.ClosePrimitive != nil {
 		{
-			size, err := m.CloseService.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.ClosePrimitive.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -2978,16 +2981,16 @@ func (m *SessionCommandOutput_CloseService) MarshalToSizedBuffer(dAtA []byte) (i
 	}
 	return len(dAtA) - i, nil
 }
-func (m *SessionCommandOutput_ServiceCommand) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionCommandOutput_PrimitiveCommand) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionCommandOutput_ServiceCommand) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionCommandOutput_PrimitiveCommand) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.ServiceCommand != nil {
+	if m.PrimitiveCommand != nil {
 		{
-			size, err := m.ServiceCommand.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.PrimitiveCommand.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -2999,7 +3002,7 @@ func (m *SessionCommandOutput_ServiceCommand) MarshalToSizedBuffer(dAtA []byte) 
 	}
 	return len(dAtA) - i, nil
 }
-func (m *CreateServiceInput) Marshal() (dAtA []byte, err error) {
+func (m *CreatePrimitiveInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3009,18 +3012,18 @@ func (m *CreateServiceInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateServiceInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CreateServiceInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.ServiceSpec.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.PrimitiveSpec.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -3032,7 +3035,7 @@ func (m *CreateServiceInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *CreateServiceOutput) Marshal() (dAtA []byte, err error) {
+func (m *CreatePrimitiveOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3042,25 +3045,25 @@ func (m *CreateServiceOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateServiceOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CreateServiceOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrimitiveID))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *CloseServiceInput) Marshal() (dAtA []byte, err error) {
+func (m *ClosePrimitiveInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3070,25 +3073,25 @@ func (m *CloseServiceInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CloseServiceInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CloseServiceInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrimitiveID))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *CloseServiceOutput) Marshal() (dAtA []byte, err error) {
+func (m *ClosePrimitiveOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3098,12 +3101,12 @@ func (m *CloseServiceOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CloseServiceOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CloseServiceOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3111,7 +3114,7 @@ func (m *CloseServiceOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ServiceCommandInput) Marshal() (dAtA []byte, err error) {
+func (m *PrimitiveCommandInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3121,12 +3124,12 @@ func (m *ServiceCommandInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceCommandInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *PrimitiveCommandInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceCommandInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *PrimitiveCommandInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3148,15 +3151,15 @@ func (m *ServiceCommandInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.ServiceID != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrimitiveID))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *ServiceCommandOutput) Marshal() (dAtA []byte, err error) {
+func (m *PrimitiveCommandOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3166,12 +3169,12 @@ func (m *ServiceCommandOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceCommandOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *PrimitiveCommandOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceCommandOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *PrimitiveCommandOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3425,16 +3428,16 @@ func (m *SessionQueryInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SessionQueryInput_ServiceQuery) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionQueryInput_PrimitiveQuery) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionQueryInput_ServiceQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionQueryInput_PrimitiveQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.ServiceQuery != nil {
+	if m.PrimitiveQuery != nil {
 		{
-			size, err := m.ServiceQuery.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.PrimitiveQuery.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -3478,16 +3481,16 @@ func (m *SessionQueryOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *SessionQueryOutput_ServiceQuery) MarshalTo(dAtA []byte) (int, error) {
+func (m *SessionQueryOutput_PrimitiveQuery) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SessionQueryOutput_ServiceQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SessionQueryOutput_PrimitiveQuery) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	if m.ServiceQuery != nil {
+	if m.PrimitiveQuery != nil {
 		{
-			size, err := m.ServiceQuery.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.PrimitiveQuery.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -3499,7 +3502,7 @@ func (m *SessionQueryOutput_ServiceQuery) MarshalToSizedBuffer(dAtA []byte) (int
 	}
 	return len(dAtA) - i, nil
 }
-func (m *ServiceQueryInput) Marshal() (dAtA []byte, err error) {
+func (m *PrimitiveQueryInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3509,12 +3512,12 @@ func (m *ServiceQueryInput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceQueryInput) MarshalTo(dAtA []byte) (int, error) {
+func (m *PrimitiveQueryInput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceQueryInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *PrimitiveQueryInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3531,15 +3534,15 @@ func (m *ServiceQueryInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.ServiceID != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrimitiveID))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *ServiceQueryOutput) Marshal() (dAtA []byte, err error) {
+func (m *PrimitiveQueryOutput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3549,12 +3552,12 @@ func (m *ServiceQueryOutput) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceQueryOutput) MarshalTo(dAtA []byte) (int, error) {
+func (m *PrimitiveQueryOutput) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceQueryOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *PrimitiveQueryOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3673,10 +3676,10 @@ func (m *PartitionSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Services) > 0 {
-		for iNdEx := len(m.Services) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Primitives) > 0 {
+		for iNdEx := len(m.Primitives) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Services[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Primitives[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -3826,15 +3829,15 @@ func (m *CommandSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.CommandSequenceNum != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.CommandSequenceNum))
+	if m.SequenceNum != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.SequenceNum))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *ServiceSnapshot) Marshal() (dAtA []byte, err error) {
+func (m *PrimitiveSnapshot) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3844,12 +3847,12 @@ func (m *ServiceSnapshot) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceSnapshot) MarshalTo(dAtA []byte) (int, error) {
+func (m *PrimitiveSnapshot) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *PrimitiveSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3889,15 +3892,15 @@ func (m *ServiceSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	if m.ServiceID != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrimitiveID))
 		i--
 		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *ServiceSpec) Marshal() (dAtA []byte, err error) {
+func (m *PrimitiveSpec) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3907,12 +3910,12 @@ func (m *ServiceSpec) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceSpec) MarshalTo(dAtA []byte) (int, error) {
+func (m *PrimitiveSpec) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *PrimitiveSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3931,10 +3934,10 @@ func (m *ServiceSpec) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Service) > 0 {
-		i -= len(m.Service)
-		copy(dAtA[i:], m.Service)
-		i = encodeVarintFsm(dAtA, i, uint64(len(m.Service)))
+	if len(m.Type) > 0 {
+		i -= len(m.Type)
+		copy(dAtA[i:], m.Type)
+		i = encodeVarintFsm(dAtA, i, uint64(len(m.Type)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -4199,38 +4202,38 @@ func (m *SessionCommandInput) Size() (n int) {
 	return n
 }
 
-func (m *SessionCommandInput_CreateService) Size() (n int) {
+func (m *SessionCommandInput_CreatePrimitive) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.CreateService != nil {
-		l = m.CreateService.Size()
+	if m.CreatePrimitive != nil {
+		l = m.CreatePrimitive.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
 }
-func (m *SessionCommandInput_CloseService) Size() (n int) {
+func (m *SessionCommandInput_ClosePrimitive) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.CloseService != nil {
-		l = m.CloseService.Size()
+	if m.ClosePrimitive != nil {
+		l = m.ClosePrimitive.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
 }
-func (m *SessionCommandInput_ServiceCommand) Size() (n int) {
+func (m *SessionCommandInput_PrimitiveCommand) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceCommand != nil {
-		l = m.ServiceCommand.Size()
+	if m.PrimitiveCommand != nil {
+		l = m.PrimitiveCommand.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
@@ -4247,78 +4250,78 @@ func (m *SessionCommandOutput) Size() (n int) {
 	return n
 }
 
-func (m *SessionCommandOutput_CreateService) Size() (n int) {
+func (m *SessionCommandOutput_CreatePrimitive) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.CreateService != nil {
-		l = m.CreateService.Size()
+	if m.CreatePrimitive != nil {
+		l = m.CreatePrimitive.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
 }
-func (m *SessionCommandOutput_CloseService) Size() (n int) {
+func (m *SessionCommandOutput_ClosePrimitive) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.CloseService != nil {
-		l = m.CloseService.Size()
+	if m.ClosePrimitive != nil {
+		l = m.ClosePrimitive.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
 }
-func (m *SessionCommandOutput_ServiceCommand) Size() (n int) {
+func (m *SessionCommandOutput_PrimitiveCommand) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceCommand != nil {
-		l = m.ServiceCommand.Size()
+	if m.PrimitiveCommand != nil {
+		l = m.PrimitiveCommand.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
 }
-func (m *CreateServiceInput) Size() (n int) {
+func (m *CreatePrimitiveInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = m.ServiceSpec.Size()
+	l = m.PrimitiveSpec.Size()
 	n += 1 + l + sovFsm(uint64(l))
 	return n
 }
 
-func (m *CreateServiceOutput) Size() (n int) {
+func (m *CreatePrimitiveOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		n += 1 + sovFsm(uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		n += 1 + sovFsm(uint64(m.PrimitiveID))
 	}
 	return n
 }
 
-func (m *CloseServiceInput) Size() (n int) {
+func (m *ClosePrimitiveInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		n += 1 + sovFsm(uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		n += 1 + sovFsm(uint64(m.PrimitiveID))
 	}
 	return n
 }
 
-func (m *CloseServiceOutput) Size() (n int) {
+func (m *ClosePrimitiveOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4327,14 +4330,14 @@ func (m *CloseServiceOutput) Size() (n int) {
 	return n
 }
 
-func (m *ServiceCommandInput) Size() (n int) {
+func (m *PrimitiveCommandInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		n += 1 + sovFsm(uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		n += 1 + sovFsm(uint64(m.PrimitiveID))
 	}
 	if m.SequenceNum != 0 {
 		n += 1 + sovFsm(uint64(m.SequenceNum))
@@ -4346,7 +4349,7 @@ func (m *ServiceCommandInput) Size() (n int) {
 	return n
 }
 
-func (m *ServiceCommandOutput) Size() (n int) {
+func (m *PrimitiveCommandOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4456,14 +4459,14 @@ func (m *SessionQueryInput) Size() (n int) {
 	return n
 }
 
-func (m *SessionQueryInput_ServiceQuery) Size() (n int) {
+func (m *SessionQueryInput_PrimitiveQuery) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceQuery != nil {
-		l = m.ServiceQuery.Size()
+	if m.PrimitiveQuery != nil {
+		l = m.PrimitiveQuery.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
@@ -4480,26 +4483,26 @@ func (m *SessionQueryOutput) Size() (n int) {
 	return n
 }
 
-func (m *SessionQueryOutput_ServiceQuery) Size() (n int) {
+func (m *SessionQueryOutput_PrimitiveQuery) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceQuery != nil {
-		l = m.ServiceQuery.Size()
+	if m.PrimitiveQuery != nil {
+		l = m.PrimitiveQuery.Size()
 		n += 1 + l + sovFsm(uint64(l))
 	}
 	return n
 }
-func (m *ServiceQueryInput) Size() (n int) {
+func (m *PrimitiveQueryInput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		n += 1 + sovFsm(uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		n += 1 + sovFsm(uint64(m.PrimitiveID))
 	}
 	if m.Operation != nil {
 		l = m.Operation.Size()
@@ -4508,7 +4511,7 @@ func (m *ServiceQueryInput) Size() (n int) {
 	return n
 }
 
-func (m *ServiceQueryOutput) Size() (n int) {
+func (m *PrimitiveQueryOutput) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -4575,8 +4578,8 @@ func (m *PartitionSnapshot) Size() (n int) {
 			n += 1 + l + sovFsm(uint64(l))
 		}
 	}
-	if len(m.Services) > 0 {
-		for _, e := range m.Services {
+	if len(m.Primitives) > 0 {
+		for _, e := range m.Primitives {
 			l = e.Size()
 			n += 1 + l + sovFsm(uint64(l))
 		}
@@ -4612,8 +4615,8 @@ func (m *CommandSnapshot) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.CommandSequenceNum != 0 {
-		n += 1 + sovFsm(uint64(m.CommandSequenceNum))
+	if m.SequenceNum != 0 {
+		n += 1 + sovFsm(uint64(m.SequenceNum))
 	}
 	if m.State != 0 {
 		n += 1 + sovFsm(uint64(m.State))
@@ -4631,14 +4634,14 @@ func (m *CommandSnapshot) Size() (n int) {
 	return n
 }
 
-func (m *ServiceSnapshot) Size() (n int) {
+func (m *PrimitiveSnapshot) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ServiceID != 0 {
-		n += 1 + sovFsm(uint64(m.ServiceID))
+	if m.PrimitiveID != 0 {
+		n += 1 + sovFsm(uint64(m.PrimitiveID))
 	}
 	l = m.Spec.Size()
 	n += 1 + l + sovFsm(uint64(l))
@@ -4656,13 +4659,13 @@ func (m *ServiceSnapshot) Size() (n int) {
 	return n
 }
 
-func (m *ServiceSpec) Size() (n int) {
+func (m *PrimitiveSpec) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Service)
+	l = len(m.Type)
 	if l > 0 {
 		n += 1 + l + sovFsm(uint64(l))
 	}
@@ -5895,7 +5898,7 @@ func (m *SessionCommandInput) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateService", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatePrimitive", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5922,15 +5925,15 @@ func (m *SessionCommandInput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &CreateServiceInput{}
+			v := &CreatePrimitiveInput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Input = &SessionCommandInput_CreateService{v}
+			m.Input = &SessionCommandInput_CreatePrimitive{v}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CloseService", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ClosePrimitive", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5957,15 +5960,15 @@ func (m *SessionCommandInput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &CloseServiceInput{}
+			v := &ClosePrimitiveInput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Input = &SessionCommandInput_CloseService{v}
+			m.Input = &SessionCommandInput_ClosePrimitive{v}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceCommand", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveCommand", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5992,11 +5995,11 @@ func (m *SessionCommandInput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ServiceCommandInput{}
+			v := &PrimitiveCommandInput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Input = &SessionCommandInput_ServiceCommand{v}
+			m.Input = &SessionCommandInput_PrimitiveCommand{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6050,7 +6053,7 @@ func (m *SessionCommandOutput) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateService", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatePrimitive", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6077,15 +6080,15 @@ func (m *SessionCommandOutput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &CreateServiceOutput{}
+			v := &CreatePrimitiveOutput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Output = &SessionCommandOutput_CreateService{v}
+			m.Output = &SessionCommandOutput_CreatePrimitive{v}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CloseService", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ClosePrimitive", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6112,15 +6115,15 @@ func (m *SessionCommandOutput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &CloseServiceOutput{}
+			v := &ClosePrimitiveOutput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Output = &SessionCommandOutput_CloseService{v}
+			m.Output = &SessionCommandOutput_ClosePrimitive{v}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceCommand", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveCommand", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6147,11 +6150,11 @@ func (m *SessionCommandOutput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ServiceCommandOutput{}
+			v := &PrimitiveCommandOutput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Output = &SessionCommandOutput_ServiceCommand{v}
+			m.Output = &SessionCommandOutput_PrimitiveCommand{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -6174,7 +6177,7 @@ func (m *SessionCommandOutput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateServiceInput) Unmarshal(dAtA []byte) error {
+func (m *CreatePrimitiveInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6197,15 +6200,15 @@ func (m *CreateServiceInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateServiceInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreatePrimitiveInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateServiceInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreatePrimitiveInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceSpec", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveSpec", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -6232,7 +6235,7 @@ func (m *CreateServiceInput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ServiceSpec.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.PrimitiveSpec.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -6257,7 +6260,7 @@ func (m *CreateServiceInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateServiceOutput) Unmarshal(dAtA []byte) error {
+func (m *CreatePrimitiveOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6280,17 +6283,17 @@ func (m *CreateServiceOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateServiceOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreatePrimitiveOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateServiceOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreatePrimitiveOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveID", wireType)
 			}
-			m.ServiceID = 0
+			m.PrimitiveID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -6300,7 +6303,7 @@ func (m *CreateServiceOutput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ServiceID |= ServiceID(b&0x7F) << shift
+				m.PrimitiveID |= PrimitiveID(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6326,7 +6329,7 @@ func (m *CreateServiceOutput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CloseServiceInput) Unmarshal(dAtA []byte) error {
+func (m *ClosePrimitiveInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6349,17 +6352,17 @@ func (m *CloseServiceInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CloseServiceInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClosePrimitiveInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CloseServiceInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClosePrimitiveInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveID", wireType)
 			}
-			m.ServiceID = 0
+			m.PrimitiveID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -6369,7 +6372,7 @@ func (m *CloseServiceInput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ServiceID |= ServiceID(b&0x7F) << shift
+				m.PrimitiveID |= PrimitiveID(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6395,7 +6398,7 @@ func (m *CloseServiceInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CloseServiceOutput) Unmarshal(dAtA []byte) error {
+func (m *ClosePrimitiveOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6418,10 +6421,10 @@ func (m *CloseServiceOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CloseServiceOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClosePrimitiveOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CloseServiceOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClosePrimitiveOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -6445,7 +6448,7 @@ func (m *CloseServiceOutput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceCommandInput) Unmarshal(dAtA []byte) error {
+func (m *PrimitiveCommandInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6468,17 +6471,17 @@ func (m *ServiceCommandInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceCommandInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: PrimitiveCommandInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceCommandInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PrimitiveCommandInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveID", wireType)
 			}
-			m.ServiceID = 0
+			m.PrimitiveID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -6488,7 +6491,7 @@ func (m *ServiceCommandInput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ServiceID |= ServiceID(b&0x7F) << shift
+				m.PrimitiveID |= PrimitiveID(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6569,7 +6572,7 @@ func (m *ServiceCommandInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceCommandOutput) Unmarshal(dAtA []byte) error {
+func (m *PrimitiveCommandOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -6592,10 +6595,10 @@ func (m *ServiceCommandOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceCommandOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: PrimitiveCommandOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceCommandOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PrimitiveCommandOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -7118,7 +7121,7 @@ func (m *SessionQueryInput) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceQuery", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveQuery", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7145,11 +7148,11 @@ func (m *SessionQueryInput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ServiceQueryInput{}
+			v := &PrimitiveQueryInput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Input = &SessionQueryInput_ServiceQuery{v}
+			m.Input = &SessionQueryInput_PrimitiveQuery{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7203,7 +7206,7 @@ func (m *SessionQueryOutput) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceQuery", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveQuery", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7230,11 +7233,11 @@ func (m *SessionQueryOutput) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			v := &ServiceQueryOutput{}
+			v := &PrimitiveQueryOutput{}
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Output = &SessionQueryOutput_ServiceQuery{v}
+			m.Output = &SessionQueryOutput_PrimitiveQuery{v}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7257,7 +7260,7 @@ func (m *SessionQueryOutput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceQueryInput) Unmarshal(dAtA []byte) error {
+func (m *PrimitiveQueryInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -7280,17 +7283,17 @@ func (m *ServiceQueryInput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceQueryInput: wiretype end group for non-group")
+			return fmt.Errorf("proto: PrimitiveQueryInput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceQueryInput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PrimitiveQueryInput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveID", wireType)
 			}
-			m.ServiceID = 0
+			m.PrimitiveID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -7300,7 +7303,7 @@ func (m *ServiceQueryInput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ServiceID |= ServiceID(b&0x7F) << shift
+				m.PrimitiveID |= PrimitiveID(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -7362,7 +7365,7 @@ func (m *ServiceQueryInput) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceQueryOutput) Unmarshal(dAtA []byte) error {
+func (m *PrimitiveQueryOutput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -7385,10 +7388,10 @@ func (m *ServiceQueryOutput) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceQueryOutput: wiretype end group for non-group")
+			return fmt.Errorf("proto: PrimitiveQueryOutput: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceQueryOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PrimitiveQueryOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -7816,7 +7819,7 @@ func (m *PartitionSnapshot) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Services", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Primitives", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7843,8 +7846,8 @@ func (m *PartitionSnapshot) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Services = append(m.Services, &ServiceSnapshot{})
-			if err := m.Services[len(m.Services)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Primitives = append(m.Primitives, &PrimitiveSnapshot{})
+			if err := m.Primitives[len(m.Primitives)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -8069,9 +8072,9 @@ func (m *CommandSnapshot) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CommandSequenceNum", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SequenceNum", wireType)
 			}
-			m.CommandSequenceNum = 0
+			m.SequenceNum = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -8081,7 +8084,7 @@ func (m *CommandSnapshot) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.CommandSequenceNum |= CommandSequenceNum(b&0x7F) << shift
+				m.SequenceNum |= SequenceNum(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -8100,7 +8103,7 @@ func (m *CommandSnapshot) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.State |= CommandState(b&0x7F) << shift
+				m.State |= CommandSnapshot_State(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -8135,7 +8138,7 @@ func (m *CommandSnapshot) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Input == nil {
-				m.Input = &ServiceCommandInput{}
+				m.Input = &PrimitiveCommandInput{}
 			}
 			if err := m.Input.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -8170,7 +8173,7 @@ func (m *CommandSnapshot) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PendingOutputs = append(m.PendingOutputs, ServiceCommandOutput{})
+			m.PendingOutputs = append(m.PendingOutputs, PrimitiveCommandOutput{})
 			if err := m.PendingOutputs[len(m.PendingOutputs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -8196,7 +8199,7 @@ func (m *CommandSnapshot) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceSnapshot) Unmarshal(dAtA []byte) error {
+func (m *PrimitiveSnapshot) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -8219,17 +8222,17 @@ func (m *ServiceSnapshot) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceSnapshot: wiretype end group for non-group")
+			return fmt.Errorf("proto: PrimitiveSnapshot: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceSnapshot: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PrimitiveSnapshot: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ServiceID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimitiveID", wireType)
 			}
-			m.ServiceID = 0
+			m.PrimitiveID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -8239,7 +8242,7 @@ func (m *ServiceSnapshot) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ServiceID |= ServiceID(b&0x7F) << shift
+				m.PrimitiveID |= PrimitiveID(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -8408,7 +8411,7 @@ func (m *ServiceSnapshot) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceSpec) Unmarshal(dAtA []byte) error {
+func (m *PrimitiveSpec) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -8431,15 +8434,15 @@ func (m *ServiceSpec) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceSpec: wiretype end group for non-group")
+			return fmt.Errorf("proto: PrimitiveSpec: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceSpec: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: PrimitiveSpec: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Service", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8467,7 +8470,7 @@ func (m *ServiceSpec) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Service = string(dAtA[iNdEx:postIndex])
+			m.Type = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {

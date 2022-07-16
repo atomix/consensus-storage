@@ -41,18 +41,18 @@ message SessionResponseHeaders {
     ];
 }
 
-message ServiceRequestHeaders {
+message PrimitiveRequestHeaders {
     SessionRequestHeaders session = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    uint64 service_id = 2 [
-        (gogoproto.customname) = "ServiceID",
-        (gogoproto.casttype) = "ServiceID"
+    uint64 primitive_id = 2 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
 }
 
-message ServiceResponseHeaders {
+message PrimitiveResponseHeaders {
     SessionResponseHeaders session = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
@@ -60,7 +60,7 @@ message ServiceResponseHeaders {
 }
 
 message OperationRequestHeaders {
-    ServiceRequestHeaders session = 1 [
+    PrimitiveRequestHeaders session = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -71,7 +71,7 @@ message OperationRequestHeaders {
 }
 
 message OperationResponseHeaders {
-    ServiceResponseHeaders session = 1 [
+    PrimitiveResponseHeaders session = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];

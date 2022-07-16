@@ -13,45 +13,45 @@ import "atomix/multiraft/v1/headers.proto";
 import "atomix/multiraft/v1/fsm.proto";
 
 service Session {
-    rpc CreateService(CreateServiceRequest) returns (CreateServiceResponse);
-    rpc CloseService(CloseServiceRequest) returns (CloseServiceResponse);
+    rpc CreatePrimitive(CreatePrimitiveRequest) returns (CreatePrimitiveResponse);
+    rpc ClosePrimitive(ClosePrimitiveRequest) returns (ClosePrimitiveResponse);
 }
 
-message CreateServiceRequest {
+message CreatePrimitiveRequest {
     SessionRequestHeaders headers = 1 [
         (gogoproto.nullable) = false
     ];
-    CreateServiceInput input = 2 [
+    CreatePrimitiveInput input = 2 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
-message CreateServiceResponse {
+message CreatePrimitiveResponse {
     SessionResponseHeaders headers = 1 [
         (gogoproto.nullable) = false
     ];
-    CreateServiceOutput output = 2 [
+    CreatePrimitiveOutput output = 2 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
-message CloseServiceRequest {
+message ClosePrimitiveRequest {
     SessionRequestHeaders headers = 1 [
         (gogoproto.nullable) = false
     ];
-    CloseServiceInput input = 2 [
+    ClosePrimitiveInput input = 2 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
-message CloseServiceResponse {
+message ClosePrimitiveResponse {
     SessionResponseHeaders headers = 1 [
         (gogoproto.nullable) = false
     ];
-    CloseServiceOutput output = 2 [
+    ClosePrimitiveOutput output = 2 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];

@@ -8,7 +8,7 @@ type PartitionID uint32
 
 type SessionID uint64
 
-type ServiceID uint64
+type PrimitiveID uint64
 
 type OperationID uint8
 

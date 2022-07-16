@@ -27,23 +27,23 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type CreateServiceRequest struct {
-	Headers            SessionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CreateServiceInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
+type CreatePrimitiveRequest struct {
+	Headers              SessionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
+	CreatePrimitiveInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
 }
 
-func (m *CreateServiceRequest) Reset()         { *m = CreateServiceRequest{} }
-func (m *CreateServiceRequest) String() string { return proto.CompactTextString(m) }
-func (*CreateServiceRequest) ProtoMessage()    {}
-func (*CreateServiceRequest) Descriptor() ([]byte, []int) {
+func (m *CreatePrimitiveRequest) Reset()         { *m = CreatePrimitiveRequest{} }
+func (m *CreatePrimitiveRequest) String() string { return proto.CompactTextString(m) }
+func (*CreatePrimitiveRequest) ProtoMessage()    {}
+func (*CreatePrimitiveRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1930e3e468dbe539, []int{0}
 }
-func (m *CreateServiceRequest) XXX_Unmarshal(b []byte) error {
+func (m *CreatePrimitiveRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreatePrimitiveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateServiceRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreatePrimitiveRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -53,42 +53,42 @@ func (m *CreateServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *CreateServiceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateServiceRequest.Merge(m, src)
+func (m *CreatePrimitiveRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreatePrimitiveRequest.Merge(m, src)
 }
-func (m *CreateServiceRequest) XXX_Size() int {
+func (m *CreatePrimitiveRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateServiceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateServiceRequest.DiscardUnknown(m)
+func (m *CreatePrimitiveRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreatePrimitiveRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateServiceRequest proto.InternalMessageInfo
+var xxx_messageInfo_CreatePrimitiveRequest proto.InternalMessageInfo
 
-func (m *CreateServiceRequest) GetHeaders() SessionRequestHeaders {
+func (m *CreatePrimitiveRequest) GetHeaders() SessionRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
 	return SessionRequestHeaders{}
 }
 
-type CreateServiceResponse struct {
-	Headers             SessionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CreateServiceOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+type CreatePrimitiveResponse struct {
+	Headers               SessionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
+	CreatePrimitiveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
 }
 
-func (m *CreateServiceResponse) Reset()         { *m = CreateServiceResponse{} }
-func (m *CreateServiceResponse) String() string { return proto.CompactTextString(m) }
-func (*CreateServiceResponse) ProtoMessage()    {}
-func (*CreateServiceResponse) Descriptor() ([]byte, []int) {
+func (m *CreatePrimitiveResponse) Reset()         { *m = CreatePrimitiveResponse{} }
+func (m *CreatePrimitiveResponse) String() string { return proto.CompactTextString(m) }
+func (*CreatePrimitiveResponse) ProtoMessage()    {}
+func (*CreatePrimitiveResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1930e3e468dbe539, []int{1}
 }
-func (m *CreateServiceResponse) XXX_Unmarshal(b []byte) error {
+func (m *CreatePrimitiveResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CreateServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *CreatePrimitiveResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CreateServiceResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_CreatePrimitiveResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -98,42 +98,42 @@ func (m *CreateServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *CreateServiceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CreateServiceResponse.Merge(m, src)
+func (m *CreatePrimitiveResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CreatePrimitiveResponse.Merge(m, src)
 }
-func (m *CreateServiceResponse) XXX_Size() int {
+func (m *CreatePrimitiveResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *CreateServiceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_CreateServiceResponse.DiscardUnknown(m)
+func (m *CreatePrimitiveResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_CreatePrimitiveResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CreateServiceResponse proto.InternalMessageInfo
+var xxx_messageInfo_CreatePrimitiveResponse proto.InternalMessageInfo
 
-func (m *CreateServiceResponse) GetHeaders() SessionResponseHeaders {
+func (m *CreatePrimitiveResponse) GetHeaders() SessionResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
 	return SessionResponseHeaders{}
 }
 
-type CloseServiceRequest struct {
-	Headers           SessionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CloseServiceInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
+type ClosePrimitiveRequest struct {
+	Headers             SessionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
+	ClosePrimitiveInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
 }
 
-func (m *CloseServiceRequest) Reset()         { *m = CloseServiceRequest{} }
-func (m *CloseServiceRequest) String() string { return proto.CompactTextString(m) }
-func (*CloseServiceRequest) ProtoMessage()    {}
-func (*CloseServiceRequest) Descriptor() ([]byte, []int) {
+func (m *ClosePrimitiveRequest) Reset()         { *m = ClosePrimitiveRequest{} }
+func (m *ClosePrimitiveRequest) String() string { return proto.CompactTextString(m) }
+func (*ClosePrimitiveRequest) ProtoMessage()    {}
+func (*ClosePrimitiveRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1930e3e468dbe539, []int{2}
 }
-func (m *CloseServiceRequest) XXX_Unmarshal(b []byte) error {
+func (m *ClosePrimitiveRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CloseServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClosePrimitiveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CloseServiceRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClosePrimitiveRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -143,42 +143,42 @@ func (m *CloseServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *CloseServiceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CloseServiceRequest.Merge(m, src)
+func (m *ClosePrimitiveRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClosePrimitiveRequest.Merge(m, src)
 }
-func (m *CloseServiceRequest) XXX_Size() int {
+func (m *ClosePrimitiveRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *CloseServiceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_CloseServiceRequest.DiscardUnknown(m)
+func (m *ClosePrimitiveRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClosePrimitiveRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CloseServiceRequest proto.InternalMessageInfo
+var xxx_messageInfo_ClosePrimitiveRequest proto.InternalMessageInfo
 
-func (m *CloseServiceRequest) GetHeaders() SessionRequestHeaders {
+func (m *ClosePrimitiveRequest) GetHeaders() SessionRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
 	return SessionRequestHeaders{}
 }
 
-type CloseServiceResponse struct {
-	Headers            SessionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CloseServiceOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+type ClosePrimitiveResponse struct {
+	Headers              SessionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
+	ClosePrimitiveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
 }
 
-func (m *CloseServiceResponse) Reset()         { *m = CloseServiceResponse{} }
-func (m *CloseServiceResponse) String() string { return proto.CompactTextString(m) }
-func (*CloseServiceResponse) ProtoMessage()    {}
-func (*CloseServiceResponse) Descriptor() ([]byte, []int) {
+func (m *ClosePrimitiveResponse) Reset()         { *m = ClosePrimitiveResponse{} }
+func (m *ClosePrimitiveResponse) String() string { return proto.CompactTextString(m) }
+func (*ClosePrimitiveResponse) ProtoMessage()    {}
+func (*ClosePrimitiveResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_1930e3e468dbe539, []int{3}
 }
-func (m *CloseServiceResponse) XXX_Unmarshal(b []byte) error {
+func (m *ClosePrimitiveResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *CloseServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *ClosePrimitiveResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_CloseServiceResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_ClosePrimitiveResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -188,19 +188,19 @@ func (m *CloseServiceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *CloseServiceResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CloseServiceResponse.Merge(m, src)
+func (m *ClosePrimitiveResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ClosePrimitiveResponse.Merge(m, src)
 }
-func (m *CloseServiceResponse) XXX_Size() int {
+func (m *ClosePrimitiveResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *CloseServiceResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_CloseServiceResponse.DiscardUnknown(m)
+func (m *ClosePrimitiveResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ClosePrimitiveResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_CloseServiceResponse proto.InternalMessageInfo
+var xxx_messageInfo_ClosePrimitiveResponse proto.InternalMessageInfo
 
-func (m *CloseServiceResponse) GetHeaders() SessionResponseHeaders {
+func (m *ClosePrimitiveResponse) GetHeaders() SessionResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
@@ -208,39 +208,39 @@ func (m *CloseServiceResponse) GetHeaders() SessionResponseHeaders {
 }
 
 func init() {
-	proto.RegisterType((*CreateServiceRequest)(nil), "atomix.multiraft.v1.CreateServiceRequest")
-	proto.RegisterType((*CreateServiceResponse)(nil), "atomix.multiraft.v1.CreateServiceResponse")
-	proto.RegisterType((*CloseServiceRequest)(nil), "atomix.multiraft.v1.CloseServiceRequest")
-	proto.RegisterType((*CloseServiceResponse)(nil), "atomix.multiraft.v1.CloseServiceResponse")
+	proto.RegisterType((*CreatePrimitiveRequest)(nil), "atomix.multiraft.v1.CreatePrimitiveRequest")
+	proto.RegisterType((*CreatePrimitiveResponse)(nil), "atomix.multiraft.v1.CreatePrimitiveResponse")
+	proto.RegisterType((*ClosePrimitiveRequest)(nil), "atomix.multiraft.v1.ClosePrimitiveRequest")
+	proto.RegisterType((*ClosePrimitiveResponse)(nil), "atomix.multiraft.v1.ClosePrimitiveResponse")
 }
 
 func init() { proto.RegisterFile("atomix/multiraft/v1/session.proto", fileDescriptor_1930e3e468dbe539) }
 
 var fileDescriptor_1930e3e468dbe539 = []byte{
-	// 362 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x4c, 0x2c, 0xc9, 0xcf,
-	0xcd, 0xac, 0xd0, 0xcf, 0x2d, 0xcd, 0x29, 0xc9, 0x2c, 0x4a, 0x4c, 0x2b, 0xd1, 0x2f, 0x33, 0xd4,
-	0x2f, 0x4e, 0x2d, 0x2e, 0xce, 0xcc, 0xcf, 0xd3, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x86,
-	0x28, 0xd1, 0x83, 0x2b, 0xd1, 0x2b, 0x33, 0x94, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x07, 0xcb, 0xeb,
-	0x83, 0x58, 0x10, 0xa5, 0x52, 0x58, 0x4d, 0xcb, 0x48, 0x4d, 0x4c, 0x49, 0x2d, 0x2a, 0x86, 0x2a,
-	0x91, 0xc5, 0xa6, 0x24, 0xad, 0x38, 0x17, 0x22, 0xad, 0xb4, 0x9a, 0x91, 0x4b, 0xc4, 0xb9, 0x28,
-	0x35, 0xb1, 0x24, 0x35, 0x38, 0xb5, 0xa8, 0x2c, 0x33, 0x39, 0x35, 0x28, 0xb5, 0xb0, 0x34, 0xb5,
-	0xb8, 0x44, 0xc8, 0x8b, 0x8b, 0x1d, 0x6a, 0x90, 0x04, 0xa3, 0x02, 0xa3, 0x06, 0xb7, 0x91, 0x96,
-	0x1e, 0x16, 0x77, 0xe9, 0x05, 0x43, 0x9c, 0x0e, 0xd5, 0xe5, 0x01, 0xd1, 0xe1, 0xc4, 0x72, 0xe2,
-	0x9e, 0x3c, 0x43, 0x10, 0xcc, 0x00, 0x21, 0x77, 0x2e, 0xd6, 0xcc, 0xbc, 0x82, 0xd2, 0x12, 0x09,
-	0x26, 0xb0, 0x49, 0xea, 0x58, 0x4d, 0x42, 0x71, 0x85, 0x27, 0x48, 0xb9, 0x13, 0x07, 0xc8, 0x98,
-	0x0b, 0xf7, 0xe4, 0x19, 0x83, 0x20, 0xfa, 0x95, 0x36, 0x30, 0x72, 0x89, 0xa2, 0xb9, 0xb6, 0xb8,
-	0x20, 0x3f, 0xaf, 0x38, 0x55, 0xc8, 0x1b, 0xdd, 0xb9, 0xda, 0xf8, 0x9d, 0x0b, 0xd1, 0x86, 0xc3,
-	0xbd, 0x5e, 0x5c, 0x6c, 0xf9, 0xa5, 0x25, 0x08, 0x07, 0x6b, 0x10, 0x76, 0xb0, 0x3f, 0x58, 0x3d,
-	0x92, 0x8b, 0xa1, 0x26, 0x28, 0xad, 0x64, 0xe4, 0x12, 0x76, 0xce, 0xc9, 0x2f, 0xa6, 0x65, 0xf8,
-	0xba, 0xa1, 0x86, 0xaf, 0x1a, 0x76, 0xe7, 0x22, 0x39, 0x02, 0x47, 0xf0, 0xae, 0x03, 0x25, 0x06,
-	0x14, 0xb7, 0xd2, 0x22, 0x74, 0x3d, 0xd1, 0x42, 0x57, 0x9d, 0xa0, 0x73, 0x71, 0x05, 0xae, 0xd1,
-	0x35, 0x46, 0x2e, 0x76, 0xa8, 0xa5, 0x42, 0x69, 0x5c, 0xbc, 0x28, 0x31, 0x22, 0xa4, 0x49, 0x38,
-	0xd6, 0xa0, 0xc1, 0x2a, 0xa5, 0x45, 0x8c, 0x52, 0x68, 0x58, 0x24, 0x73, 0xf1, 0x20, 0xbb, 0x4d,
-	0x48, 0x83, 0xa0, 0xf3, 0x61, 0xb6, 0x68, 0x12, 0xa1, 0x12, 0x62, 0x89, 0x93, 0xc4, 0x89, 0x47,
-	0x72, 0x8c, 0x17, 0x1e, 0xc9, 0x31, 0x3e, 0x78, 0x24, 0xc7, 0x38, 0xe1, 0xb1, 0x1c, 0xc3, 0x85,
-	0xc7, 0x72, 0x0c, 0x37, 0x1e, 0xcb, 0x31, 0x24, 0xb1, 0x81, 0xf3, 0xad, 0x31, 0x20, 0x00, 0x00,
-	0xff, 0xff, 0x82, 0x98, 0xaf, 0x68, 0x49, 0x04, 0x00, 0x00,
+	// 364 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x93, 0x4f, 0x4a, 0xc3, 0x40,
+	0x18, 0xc5, 0x33, 0xa2, 0xad, 0x8c, 0xa0, 0x30, 0xfe, 0x2b, 0x05, 0xa7, 0xda, 0x55, 0xff, 0x48,
+	0x42, 0xeb, 0x0d, 0xda, 0x4d, 0x6b, 0x05, 0xa5, 0x9e, 0x20, 0xe2, 0xb4, 0x0e, 0x34, 0x9d, 0x9a,
+	0x99, 0x14, 0x8f, 0xe1, 0x45, 0x44, 0x10, 0x0f, 0xd1, 0x65, 0x96, 0xae, 0x8a, 0x24, 0x17, 0x91,
+	0x64, 0xa6, 0x6a, 0x62, 0x22, 0xb3, 0xe9, 0x2e, 0xf0, 0xbd, 0xf7, 0xbe, 0x5f, 0xde, 0x97, 0xc0,
+	0x33, 0x5b, 0x30, 0x87, 0x3e, 0x59, 0x8e, 0x37, 0x11, 0xd4, 0xb5, 0x47, 0xc2, 0x9a, 0xb7, 0x2c,
+	0x4e, 0x38, 0xa7, 0x6c, 0x6a, 0xce, 0x5c, 0x26, 0x18, 0xda, 0x97, 0x12, 0xf3, 0x5b, 0x62, 0xce,
+	0x5b, 0xe5, 0x83, 0x31, 0x1b, 0xb3, 0x78, 0x6e, 0x45, 0x4f, 0x52, 0x5a, 0xce, 0x4c, 0x7b, 0x20,
+	0xf6, 0x3d, 0x71, 0xb9, 0x92, 0x9c, 0x64, 0x49, 0x46, 0xdc, 0x91, 0xe3, 0xea, 0x2b, 0x80, 0x47,
+	0x5d, 0x97, 0xd8, 0x82, 0xdc, 0xb8, 0xd4, 0xa1, 0x82, 0xce, 0xc9, 0x90, 0x3c, 0x7a, 0x84, 0x0b,
+	0x74, 0x09, 0x8b, 0x2a, 0xaa, 0x04, 0x4e, 0x41, 0x6d, 0xa7, 0xdd, 0x30, 0x33, 0xc8, 0xcc, 0x5b,
+	0x09, 0xaf, 0x5c, 0x3d, 0xe9, 0xe8, 0x6c, 0x2e, 0x96, 0x15, 0x63, 0xb8, 0x0a, 0x40, 0x7d, 0xb8,
+	0x45, 0xa7, 0x33, 0x4f, 0x94, 0x36, 0xe2, 0xa4, 0x7a, 0x66, 0x52, 0x8a, 0xa3, 0x1f, 0x19, 0x3a,
+	0xdb, 0x51, 0x90, 0xbf, 0xac, 0x80, 0xa1, 0x4c, 0xa8, 0xbe, 0x03, 0x78, 0xfc, 0x87, 0x98, 0xcf,
+	0xd8, 0x94, 0x13, 0x34, 0x48, 0x23, 0x37, 0xff, 0x47, 0x96, 0xb6, 0x1c, 0xe6, 0x2b, 0x58, 0x60,
+	0x9e, 0xf8, 0x81, 0x6e, 0xe8, 0x40, 0x5f, 0xc7, 0x8e, 0x5f, 0xd4, 0x2a, 0xa3, 0xfa, 0x02, 0xe0,
+	0x61, 0x77, 0xc2, 0xf8, 0x7a, 0x7b, 0xee, 0x25, 0x7b, 0xae, 0x65, 0x23, 0x27, 0x30, 0x72, 0x6a,
+	0x7e, 0x8b, 0x3e, 0x8c, 0x14, 0xef, 0x3a, 0x5a, 0x1e, 0xa4, 0x5a, 0xae, 0x6b, 0x20, 0xe7, 0x95,
+	0xdc, 0x0e, 0x00, 0x2c, 0xaa, 0xb5, 0x68, 0x02, 0xf7, 0x52, 0xb7, 0x41, 0x4d, 0x9d, 0x0b, 0xaa,
+	0x82, 0xcb, 0xe7, 0x7a, 0x62, 0xd5, 0x09, 0x85, 0xbb, 0x49, 0x46, 0xd4, 0xd0, 0x78, 0x91, 0xd5,
+	0xae, 0xa6, 0x96, 0x56, 0xae, 0xea, 0x94, 0x16, 0x01, 0x06, 0x7e, 0x80, 0xc1, 0x67, 0x80, 0xc1,
+	0x73, 0x88, 0x0d, 0x3f, 0xc4, 0xc6, 0x47, 0x88, 0x8d, 0xbb, 0x42, 0xfc, 0x4f, 0x5f, 0x7c, 0x05,
+	0x00, 0x00, 0xff, 0xff, 0x8c, 0x83, 0x4c, 0xd2, 0x65, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -255,8 +255,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type SessionClient interface {
-	CreateService(ctx context.Context, in *CreateServiceRequest, opts ...grpc.CallOption) (*CreateServiceResponse, error)
-	CloseService(ctx context.Context, in *CloseServiceRequest, opts ...grpc.CallOption) (*CloseServiceResponse, error)
+	CreatePrimitive(ctx context.Context, in *CreatePrimitiveRequest, opts ...grpc.CallOption) (*CreatePrimitiveResponse, error)
+	ClosePrimitive(ctx context.Context, in *ClosePrimitiveRequest, opts ...grpc.CallOption) (*ClosePrimitiveResponse, error)
 }
 
 type sessionClient struct {
@@ -267,18 +267,18 @@ func NewSessionClient(cc *grpc.ClientConn) SessionClient {
 	return &sessionClient{cc}
 }
 
-func (c *sessionClient) CreateService(ctx context.Context, in *CreateServiceRequest, opts ...grpc.CallOption) (*CreateServiceResponse, error) {
-	out := new(CreateServiceResponse)
-	err := c.cc.Invoke(ctx, "/atomix.multiraft.v1.Session/CreateService", in, out, opts...)
+func (c *sessionClient) CreatePrimitive(ctx context.Context, in *CreatePrimitiveRequest, opts ...grpc.CallOption) (*CreatePrimitiveResponse, error) {
+	out := new(CreatePrimitiveResponse)
+	err := c.cc.Invoke(ctx, "/atomix.multiraft.v1.Session/CreatePrimitive", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *sessionClient) CloseService(ctx context.Context, in *CloseServiceRequest, opts ...grpc.CallOption) (*CloseServiceResponse, error) {
-	out := new(CloseServiceResponse)
-	err := c.cc.Invoke(ctx, "/atomix.multiraft.v1.Session/CloseService", in, out, opts...)
+func (c *sessionClient) ClosePrimitive(ctx context.Context, in *ClosePrimitiveRequest, opts ...grpc.CallOption) (*ClosePrimitiveResponse, error) {
+	out := new(ClosePrimitiveResponse)
+	err := c.cc.Invoke(ctx, "/atomix.multiraft.v1.Session/ClosePrimitive", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -287,57 +287,57 @@ func (c *sessionClient) CloseService(ctx context.Context, in *CloseServiceReques
 
 // SessionServer is the server API for Session service.
 type SessionServer interface {
-	CreateService(context.Context, *CreateServiceRequest) (*CreateServiceResponse, error)
-	CloseService(context.Context, *CloseServiceRequest) (*CloseServiceResponse, error)
+	CreatePrimitive(context.Context, *CreatePrimitiveRequest) (*CreatePrimitiveResponse, error)
+	ClosePrimitive(context.Context, *ClosePrimitiveRequest) (*ClosePrimitiveResponse, error)
 }
 
 // UnimplementedSessionServer can be embedded to have forward compatible implementations.
 type UnimplementedSessionServer struct {
 }
 
-func (*UnimplementedSessionServer) CreateService(ctx context.Context, req *CreateServiceRequest) (*CreateServiceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateService not implemented")
+func (*UnimplementedSessionServer) CreatePrimitive(ctx context.Context, req *CreatePrimitiveRequest) (*CreatePrimitiveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePrimitive not implemented")
 }
-func (*UnimplementedSessionServer) CloseService(ctx context.Context, req *CloseServiceRequest) (*CloseServiceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CloseService not implemented")
+func (*UnimplementedSessionServer) ClosePrimitive(ctx context.Context, req *ClosePrimitiveRequest) (*ClosePrimitiveResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ClosePrimitive not implemented")
 }
 
 func RegisterSessionServer(s *grpc.Server, srv SessionServer) {
 	s.RegisterService(&_Session_serviceDesc, srv)
 }
 
-func _Session_CreateService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateServiceRequest)
+func _Session_CreatePrimitive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePrimitiveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SessionServer).CreateService(ctx, in)
+		return srv.(SessionServer).CreatePrimitive(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/atomix.multiraft.v1.Session/CreateService",
+		FullMethod: "/atomix.multiraft.v1.Session/CreatePrimitive",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SessionServer).CreateService(ctx, req.(*CreateServiceRequest))
+		return srv.(SessionServer).CreatePrimitive(ctx, req.(*CreatePrimitiveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Session_CloseService_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CloseServiceRequest)
+func _Session_ClosePrimitive_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ClosePrimitiveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SessionServer).CloseService(ctx, in)
+		return srv.(SessionServer).ClosePrimitive(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/atomix.multiraft.v1.Session/CloseService",
+		FullMethod: "/atomix.multiraft.v1.Session/ClosePrimitive",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SessionServer).CloseService(ctx, req.(*CloseServiceRequest))
+		return srv.(SessionServer).ClosePrimitive(ctx, req.(*ClosePrimitiveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -347,19 +347,19 @@ var _Session_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*SessionServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateService",
-			Handler:    _Session_CreateService_Handler,
+			MethodName: "CreatePrimitive",
+			Handler:    _Session_CreatePrimitive_Handler,
 		},
 		{
-			MethodName: "CloseService",
-			Handler:    _Session_CloseService_Handler,
+			MethodName: "ClosePrimitive",
+			Handler:    _Session_ClosePrimitive_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "atomix/multiraft/v1/session.proto",
 }
 
-func (m *CreateServiceRequest) Marshal() (dAtA []byte, err error) {
+func (m *CreatePrimitiveRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -369,18 +369,18 @@ func (m *CreateServiceRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateServiceRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CreateServiceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.CreateServiceInput.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.CreatePrimitiveInput.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -402,7 +402,7 @@ func (m *CreateServiceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *CreateServiceResponse) Marshal() (dAtA []byte, err error) {
+func (m *CreatePrimitiveResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -412,18 +412,18 @@ func (m *CreateServiceResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CreateServiceResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CreateServiceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *CreatePrimitiveResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.CreateServiceOutput.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.CreatePrimitiveOutput.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -445,7 +445,7 @@ func (m *CreateServiceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *CloseServiceRequest) Marshal() (dAtA []byte, err error) {
+func (m *ClosePrimitiveRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -455,18 +455,18 @@ func (m *CloseServiceRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CloseServiceRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CloseServiceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.CloseServiceInput.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.ClosePrimitiveInput.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -488,7 +488,7 @@ func (m *CloseServiceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *CloseServiceResponse) Marshal() (dAtA []byte, err error) {
+func (m *ClosePrimitiveResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -498,18 +498,18 @@ func (m *CloseServiceResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *CloseServiceResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *CloseServiceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ClosePrimitiveResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
 	{
-		size, err := m.CloseServiceOutput.MarshalToSizedBuffer(dAtA[:i])
+		size, err := m.ClosePrimitiveOutput.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
 			return 0, err
 		}
@@ -542,7 +542,7 @@ func encodeVarintSession(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *CreateServiceRequest) Size() (n int) {
+func (m *CreatePrimitiveRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -550,12 +550,12 @@ func (m *CreateServiceRequest) Size() (n int) {
 	_ = l
 	l = m.Headers.Size()
 	n += 1 + l + sovSession(uint64(l))
-	l = m.CreateServiceInput.Size()
+	l = m.CreatePrimitiveInput.Size()
 	n += 1 + l + sovSession(uint64(l))
 	return n
 }
 
-func (m *CreateServiceResponse) Size() (n int) {
+func (m *CreatePrimitiveResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -563,12 +563,12 @@ func (m *CreateServiceResponse) Size() (n int) {
 	_ = l
 	l = m.Headers.Size()
 	n += 1 + l + sovSession(uint64(l))
-	l = m.CreateServiceOutput.Size()
+	l = m.CreatePrimitiveOutput.Size()
 	n += 1 + l + sovSession(uint64(l))
 	return n
 }
 
-func (m *CloseServiceRequest) Size() (n int) {
+func (m *ClosePrimitiveRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -576,12 +576,12 @@ func (m *CloseServiceRequest) Size() (n int) {
 	_ = l
 	l = m.Headers.Size()
 	n += 1 + l + sovSession(uint64(l))
-	l = m.CloseServiceInput.Size()
+	l = m.ClosePrimitiveInput.Size()
 	n += 1 + l + sovSession(uint64(l))
 	return n
 }
 
-func (m *CloseServiceResponse) Size() (n int) {
+func (m *ClosePrimitiveResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -589,7 +589,7 @@ func (m *CloseServiceResponse) Size() (n int) {
 	_ = l
 	l = m.Headers.Size()
 	n += 1 + l + sovSession(uint64(l))
-	l = m.CloseServiceOutput.Size()
+	l = m.ClosePrimitiveOutput.Size()
 	n += 1 + l + sovSession(uint64(l))
 	return n
 }
@@ -600,7 +600,7 @@ func sovSession(x uint64) (n int) {
 func sozSession(x uint64) (n int) {
 	return sovSession(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
+func (m *CreatePrimitiveRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -623,10 +623,10 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateServiceRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreatePrimitiveRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateServiceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreatePrimitiveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -664,7 +664,7 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateServiceInput", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatePrimitiveInput", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -691,7 +691,7 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CreateServiceInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.CreatePrimitiveInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -716,7 +716,7 @@ func (m *CreateServiceRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
+func (m *CreatePrimitiveResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -739,10 +739,10 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CreateServiceResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: CreatePrimitiveResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CreateServiceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: CreatePrimitiveResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -780,7 +780,7 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateServiceOutput", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatePrimitiveOutput", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -807,7 +807,7 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CreateServiceOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.CreatePrimitiveOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -832,7 +832,7 @@ func (m *CreateServiceResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CloseServiceRequest) Unmarshal(dAtA []byte) error {
+func (m *ClosePrimitiveRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -855,10 +855,10 @@ func (m *CloseServiceRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CloseServiceRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClosePrimitiveRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CloseServiceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClosePrimitiveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -896,7 +896,7 @@ func (m *CloseServiceRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CloseServiceInput", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ClosePrimitiveInput", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -923,7 +923,7 @@ func (m *CloseServiceRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CloseServiceInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ClosePrimitiveInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -948,7 +948,7 @@ func (m *CloseServiceRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *CloseServiceResponse) Unmarshal(dAtA []byte) error {
+func (m *ClosePrimitiveResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -971,10 +971,10 @@ func (m *CloseServiceResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: CloseServiceResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: ClosePrimitiveResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: CloseServiceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: ClosePrimitiveResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1012,7 +1012,7 @@ func (m *CloseServiceResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CloseServiceOutput", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ClosePrimitiveOutput", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1039,7 +1039,7 @@ func (m *CloseServiceResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CloseServiceOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ClosePrimitiveOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -10,10 +10,10 @@
     - [OperationResponseHeaders](#atomix-multiraft-v1-OperationResponseHeaders)
     - [PartitionRequestHeaders](#atomix-multiraft-v1-PartitionRequestHeaders)
     - [PartitionResponseHeaders](#atomix-multiraft-v1-PartitionResponseHeaders)
+    - [PrimitiveRequestHeaders](#atomix-multiraft-v1-PrimitiveRequestHeaders)
+    - [PrimitiveResponseHeaders](#atomix-multiraft-v1-PrimitiveResponseHeaders)
     - [QueryRequestHeaders](#atomix-multiraft-v1-QueryRequestHeaders)
     - [QueryResponseHeaders](#atomix-multiraft-v1-QueryResponseHeaders)
-    - [ServiceRequestHeaders](#atomix-multiraft-v1-ServiceRequestHeaders)
-    - [ServiceResponseHeaders](#atomix-multiraft-v1-ServiceResponseHeaders)
     - [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders)
     - [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders)
   
@@ -70,7 +70,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| session | [ServiceRequestHeaders](#atomix-multiraft-v1-ServiceRequestHeaders) |  |  |
+| session | [PrimitiveRequestHeaders](#atomix-multiraft-v1-PrimitiveRequestHeaders) |  |  |
 | operation_id | [uint32](#uint32) |  |  |
 
 
@@ -86,7 +86,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| session | [ServiceResponseHeaders](#atomix-multiraft-v1-ServiceResponseHeaders) |  |  |
+| session | [PrimitiveResponseHeaders](#atomix-multiraft-v1-PrimitiveResponseHeaders) |  |  |
 | status | [OperationResponseHeaders.Status](#atomix-multiraft-v1-OperationResponseHeaders-Status) |  |  |
 | message | [string](#string) |  |  |
 
@@ -125,6 +125,37 @@
 
 
 
+<a name="atomix-multiraft-v1-PrimitiveRequestHeaders"></a>
+
+### PrimitiveRequestHeaders
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| session | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
+| primitive_id | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveResponseHeaders"></a>
+
+### PrimitiveResponseHeaders
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| session | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-v1-QueryRequestHeaders"></a>
 
 ### QueryRequestHeaders
@@ -151,37 +182,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | operation | [OperationResponseHeaders](#atomix-multiraft-v1-OperationResponseHeaders) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceRequestHeaders"></a>
-
-### ServiceRequestHeaders
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| session | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
-| service_id | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ServiceResponseHeaders"></a>
-
-### ServiceResponseHeaders
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| session | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
 
 
 
