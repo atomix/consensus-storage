@@ -10,7 +10,7 @@ type SessionID uint64
 
 type PrimitiveID uint64
 
-type OperationID uint8
+type OperationID string
 
 type SequenceNum uint64
 

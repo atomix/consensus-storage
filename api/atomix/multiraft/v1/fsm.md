@@ -272,7 +272,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| name | [string](#string) |  |  |
+| id | [string](#string) |  |  |
 | payload | [bytes](#bytes) |  |  |
 
 
@@ -486,7 +486,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | name | [string](#string) |  |  |
-| version | [string](#string) |  |  |
+| api_version | [string](#string) |  |  |
 
 
 

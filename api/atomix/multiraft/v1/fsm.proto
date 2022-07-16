@@ -220,7 +220,10 @@ message PrimitiveQueryOutput {
 }
 
 message OperationInput {
-    string name = 1;
+    string id = 1 [
+        (gogoproto.customname) = "ID",
+        (gogoproto.casttype) = "OperationID"
+    ];
     bytes payload = 2;
 }
 
@@ -307,7 +310,7 @@ message PrimitiveSnapshot {
 
 message PrimitiveType {
     string name = 1;
-    string version = 2;
+    string api_version = 2;
 }
 
 message PrimitiveSpec {
