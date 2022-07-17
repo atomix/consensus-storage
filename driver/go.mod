@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	github.com/atomix/runtime v0.0.0-20220706102709-8e80cf86d1f5
+	github.com/atomix/runtime v0.0.0-20220717013216-1101ef77a190
 	github.com/atomix/runtime/api v0.0.0-20220716233348-d0fe1bf975aa
 )
 

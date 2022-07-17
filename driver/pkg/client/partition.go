@@ -17,28 +17,51 @@ import (
 	"sync"
 )
 
-func newPartition(client *Client, id multiraftv1.PartitionID) *Partition {
-	return &Partition{
+func newPartitionClient(client *Client, id multiraftv1.PartitionID) *PartitionClient {
+	return &PartitionClient{
 		client: client,
 		id:     id,
 	}
 }
 
-type Partition struct {
+type PartitionClient struct {
 	client    *Client
 	id        multiraftv1.PartitionID
 	state     *PartitionState
 	watchers  map[int]chan<- PartitionState
 	watcherID int
 	conn      *grpc.ClientConn
+	session   *SessionClient
 	mu        sync.RWMutex
 }
 
-func (p *Partition) ID() multiraftv1.PartitionID {
+func (p *PartitionClient) ID() multiraftv1.PartitionID {
 	return p.id
 }
 
-func (p *Partition) connect(ctx context.Context, config *multiraftv1.PartitionConfig) error {
+func (p *PartitionClient) GetSession(ctx context.Context) (*SessionClient, error) {
+	p.mu.RLock()
+	session := p.session
+	p.mu.RUnlock()
+	if session != nil {
+		return session, nil
+	}
+
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.session != nil {
+		return p.session, nil
+	}
+
+	session = newSessionClient(p)
+	if err := session.open(ctx); err != nil {
+		return nil, err
+	}
+	p.session = session
+	return session, nil
+}
+
+func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.PartitionConfig) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -96,7 +119,7 @@ func (p *Partition) connect(ctx context.Context, config *multiraftv1.PartitionCo
 	return nil
 }
 
-func (p *Partition) notify(state *PartitionState) {
+func (p *PartitionClient) notify(state *PartitionState) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.state = state
@@ -109,7 +132,7 @@ func (p *Partition) notify(state *PartitionState) {
 	}()
 }
 
-func (p *Partition) watch(ctx context.Context, ch chan<- PartitionState) error {
+func (p *PartitionClient) watch(ctx context.Context, ch chan<- PartitionState) error {
 	p.mu.Lock()
 	p.watcherID++
 	watcherID := p.watcherID

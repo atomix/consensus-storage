@@ -14,14 +14,14 @@ import (
 
 const resolverName = "rsm"
 
-func newResolver(partition *Partition) resolver.Builder {
+func newResolver(partition *PartitionClient) resolver.Builder {
 	return &ResolverBuilder{
 		partition: partition,
 	}
 }
 
 type ResolverBuilder struct {
-	partition *Partition
+	partition *PartitionClient
 }
 
 func (b *ResolverBuilder) Scheme() string {
@@ -48,7 +48,7 @@ func (b *ResolverBuilder) Build(target resolver.Target, cc resolver.ClientConn, 
 var _ resolver.Builder = (*ResolverBuilder)(nil)
 
 type Resolver struct {
-	partition     *Partition
+	partition     *PartitionClient
 	clientConn    resolver.ClientConn
 	serviceConfig *serviceconfig.ParseResult
 }
