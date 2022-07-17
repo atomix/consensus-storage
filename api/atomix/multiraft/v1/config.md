@@ -8,6 +8,7 @@
     - [MemberConfig](#atomix-multiraft-v1-MemberConfig)
     - [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig)
     - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
+    - [ReplicaConfig](#atomix-multiraft-v1-ReplicaConfig)
   
     - [MemberConfig.Role](#atomix-multiraft-v1-MemberConfig-Role)
   
@@ -30,6 +31,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| replicas | [ReplicaConfig](#atomix-multiraft-v1-ReplicaConfig) | repeated |  |
 | partitions | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) | repeated |  |
 
 
@@ -46,8 +48,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | node_id | [uint64](#uint64) |  |  |
-| host | [string](#string) |  |  |
-| port | [int32](#int32) |  |  |
 | role | [MemberConfig.Role](#atomix-multiraft-v1-MemberConfig-Role) |  |  |
 
 
@@ -82,7 +82,26 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | partition_id | [uint32](#uint32) |  |  |
+| host | [string](#string) |  |  |
+| port | [int32](#int32) |  |  |
 | members | [MemberConfig](#atomix-multiraft-v1-MemberConfig) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-ReplicaConfig"></a>
+
+### ReplicaConfig
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| node_id | [uint64](#uint64) |  |  |
+| host | [string](#string) |  |  |
+| port | [int32](#int32) |  |  |
 
 
 

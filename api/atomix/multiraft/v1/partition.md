@@ -10,6 +10,8 @@
     - [KeepAliveResponse](#atomix-multiraft-v1-KeepAliveResponse)
     - [OpenSessionRequest](#atomix-multiraft-v1-OpenSessionRequest)
     - [OpenSessionResponse](#atomix-multiraft-v1-OpenSessionResponse)
+    - [WatchPartitionRequest](#atomix-multiraft-v1-WatchPartitionRequest)
+    - [WatchPartitionResponse](#atomix-multiraft-v1-WatchPartitionResponse)
   
     - [Partition](#atomix-multiraft-v1-Partition)
   
@@ -119,6 +121,37 @@
 
 
 
+
+<a name="atomix-multiraft-v1-WatchPartitionRequest"></a>
+
+### WatchPartitionRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| partition_id | [uint32](#uint32) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-WatchPartitionResponse"></a>
+
+### WatchPartitionResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| leader_updated | [LeaderUpdatedEvent](#atomix-multiraft-v1-LeaderUpdatedEvent) |  |  |
+
+
+
+
+
  
 
  
@@ -136,6 +169,7 @@
 | OpenSession | [OpenSessionRequest](#atomix-multiraft-v1-OpenSessionRequest) | [OpenSessionResponse](#atomix-multiraft-v1-OpenSessionResponse) |  |
 | KeepAlive | [KeepAliveRequest](#atomix-multiraft-v1-KeepAliveRequest) | [KeepAliveResponse](#atomix-multiraft-v1-KeepAliveResponse) |  |
 | CloseSession | [CloseSessionRequest](#atomix-multiraft-v1-CloseSessionRequest) | [CloseSessionResponse](#atomix-multiraft-v1-CloseSessionResponse) |  |
+| Watch | [WatchPartitionRequest](#atomix-multiraft-v1-WatchPartitionRequest) | [WatchPartitionResponse](#atomix-multiraft-v1-WatchPartitionResponse) stream |  |
 
  
 

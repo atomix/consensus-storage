@@ -517,6 +517,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
 | session_query | [SessionQueryOutput](#atomix-multiraft-v1-SessionQueryOutput) |  |  |
 
 

@@ -8,7 +8,9 @@ syntax = "proto3";
 
 package atomix.multiraft.v1;
 
+import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
+import "atomix/multiraft/v1/events.proto";
 import "atomix/multiraft/v1/headers.proto";
 import "atomix/multiraft/v1/fsm.proto";
 
@@ -16,6 +18,7 @@ service Partition {
     rpc OpenSession(OpenSessionRequest) returns (OpenSessionResponse);
     rpc KeepAlive(KeepAliveRequest) returns (KeepAliveResponse);
     rpc CloseSession(CloseSessionRequest) returns (CloseSessionResponse);
+    rpc Watch(WatchPartitionRequest) returns (stream WatchPartitionResponse);
 }
 
 message OpenSessionRequest {
@@ -76,4 +79,21 @@ message CloseSessionResponse {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
+}
+
+message WatchPartitionRequest {
+    uint32 partition_id = 1 [
+        (gogoproto.customname) = "PartitionID",
+        (gogoproto.casttype) = "PartitionID"
+    ];
+}
+
+message WatchPartitionResponse {
+    google.protobuf.Timestamp timestamp = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.stdtime) = true
+    ];
+    oneof event {
+        LeaderUpdatedEvent leader_updated = 2;
+    }
 }

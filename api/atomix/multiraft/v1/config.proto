@@ -23,9 +23,21 @@ message MultiRaftConfig {
 }
 
 message ClusterConfig {
-    repeated PartitionConfig partitions = 1 [
+    repeated ReplicaConfig replicas = 1 [
         (gogoproto.nullable) = false
     ];
+    repeated PartitionConfig partitions = 2 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message ReplicaConfig {
+    uint64 node_id = 1 [
+        (gogoproto.customname) = "NodeID",
+        (gogoproto.casttype) = "NodeID"
+    ];
+    string host = 2;
+    int32 port = 3;
 }
 
 message PartitionConfig {
@@ -33,7 +45,9 @@ message PartitionConfig {
         (gogoproto.customname) = "PartitionID",
         (gogoproto.casttype) = "PartitionID"
     ];
-    repeated MemberConfig members = 2 [
+    string host = 2;
+    int32 port = 3;
+    repeated MemberConfig members = 4 [
         (gogoproto.nullable) = false
     ];
 }
@@ -43,9 +57,7 @@ message MemberConfig {
         (gogoproto.customname) = "NodeID",
         (gogoproto.casttype) = "NodeID"
     ];
-    string host = 2;
-    int32 port = 3;
-    Role role = 4;
+    Role role = 2;
 
     enum Role {
         UNKNOWN = 0;

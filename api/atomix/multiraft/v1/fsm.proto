@@ -30,7 +30,8 @@ message PartitionCommandOutput {
 
 message CommandInput {
     google.protobuf.Timestamp timestamp = 1 [
-        (gogoproto.stdtime) = true
+        (gogoproto.stdtime) = true,
+        (gogoproto.nullable) = false
     ];
     oneof input {
         OpenSessionInput open_session = 2;
@@ -186,8 +187,11 @@ message QueryInput {
 }
 
 message QueryOutput {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "Index"
+    ];
     oneof output {
-        SessionQueryOutput session_query = 1;
+        SessionQueryOutput session_query = 2;
     }
 }
 

@@ -127,6 +127,7 @@ message QueryRequestHeaders {
     uint64 last_sequence_num = 3 [
         (gogoproto.casttype) = "SequenceNum"
     ];
+    bool sync = 4;
 }
 
 message QueryResponseHeaders {

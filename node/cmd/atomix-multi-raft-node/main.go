@@ -84,7 +84,7 @@ func main() {
 				multiraft.WithAPIPort(apiPort),
 				multiraft.WithRaftHost(raftHost),
 				multiraft.WithRaftPort(raftPort),
-				multiraft.WithTypes(
+				multiraft.WithPrimitiveTypes(
 					counterv1.Type,
 					electionv1.Type,
 					indexedmapv1.Type,

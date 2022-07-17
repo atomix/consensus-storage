@@ -6,31 +6,12 @@
 - [atomix/multiraft/v1/node.proto](#atomix_multiraft_v1_node-proto)
     - [BootstrapRequest](#atomix-multiraft-v1-BootstrapRequest)
     - [BootstrapResponse](#atomix-multiraft-v1-BootstrapResponse)
-    - [ConnectionEstablishedEvent](#atomix-multiraft-v1-ConnectionEstablishedEvent)
-    - [ConnectionEvent](#atomix-multiraft-v1-ConnectionEvent)
-    - [ConnectionFailedEvent](#atomix-multiraft-v1-ConnectionFailedEvent)
     - [JoinRequest](#atomix-multiraft-v1-JoinRequest)
     - [JoinResponse](#atomix-multiraft-v1-JoinResponse)
-    - [LeaderEvent](#atomix-multiraft-v1-LeaderEvent)
-    - [LeaderUpdatedEvent](#atomix-multiraft-v1-LeaderUpdatedEvent)
     - [LeaveRequest](#atomix-multiraft-v1-LeaveRequest)
     - [LeaveResponse](#atomix-multiraft-v1-LeaveResponse)
-    - [LogCompactedEvent](#atomix-multiraft-v1-LogCompactedEvent)
-    - [LogDBCompactedEvent](#atomix-multiraft-v1-LogDBCompactedEvent)
-    - [LogEvent](#atomix-multiraft-v1-LogEvent)
-    - [MemberReadyEvent](#atomix-multiraft-v1-MemberReadyEvent)
-    - [MembershipChangedEvent](#atomix-multiraft-v1-MembershipChangedEvent)
-    - [PartitionEvent](#atomix-multiraft-v1-PartitionEvent)
-    - [RaftEvent](#atomix-multiraft-v1-RaftEvent)
-    - [SendSnapshotAbortedEvent](#atomix-multiraft-v1-SendSnapshotAbortedEvent)
-    - [SendSnapshotCompletedEvent](#atomix-multiraft-v1-SendSnapshotCompletedEvent)
-    - [SendSnapshotStartedEvent](#atomix-multiraft-v1-SendSnapshotStartedEvent)
-    - [SnapshotCompactedEvent](#atomix-multiraft-v1-SnapshotCompactedEvent)
-    - [SnapshotCreatedEvent](#atomix-multiraft-v1-SnapshotCreatedEvent)
-    - [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent)
-    - [SnapshotReceivedEvent](#atomix-multiraft-v1-SnapshotReceivedEvent)
-    - [SnapshotRecoveredEvent](#atomix-multiraft-v1-SnapshotRecoveredEvent)
-    - [WatchRequest](#atomix-multiraft-v1-WatchRequest)
+    - [WatchNodeRequest](#atomix-multiraft-v1-WatchNodeRequest)
+    - [WatchNodeResponse](#atomix-multiraft-v1-WatchNodeResponse)
   
     - [Node](#atomix-multiraft-v1-Node)
   
@@ -70,52 +51,6 @@
 
 
 
-<a name="atomix-multiraft-v1-ConnectionEstablishedEvent"></a>
-
-### ConnectionEstablishedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| connection | [ConnectionEvent](#atomix-multiraft-v1-ConnectionEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ConnectionEvent"></a>
-
-### ConnectionEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| address | [string](#string) |  |  |
-| snapshot | [bool](#bool) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-ConnectionFailedEvent"></a>
-
-### ConnectionFailedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| connection | [ConnectionEvent](#atomix-multiraft-v1-ConnectionEvent) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-v1-JoinRequest"></a>
 
 ### JoinRequest
@@ -135,38 +70,6 @@
 
 ### JoinResponse
 
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-LeaderEvent"></a>
-
-### LeaderEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition | [PartitionEvent](#atomix-multiraft-v1-PartitionEvent) |  |  |
-| term | [uint64](#uint64) |  |  |
-| leader | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-LeaderUpdatedEvent"></a>
-
-### LeaderUpdatedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| leader | [LeaderEvent](#atomix-multiraft-v1-LeaderEvent) |  |  |
 
 
 
@@ -198,100 +101,19 @@
 
 
 
-<a name="atomix-multiraft-v1-LogCompactedEvent"></a>
+<a name="atomix-multiraft-v1-WatchNodeRequest"></a>
 
-### LogCompactedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| log | [LogEvent](#atomix-multiraft-v1-LogEvent) |  |  |
+### WatchNodeRequest
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-LogDBCompactedEvent"></a>
 
-### LogDBCompactedEvent
+<a name="atomix-multiraft-v1-WatchNodeResponse"></a>
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| log | [LogEvent](#atomix-multiraft-v1-LogEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-LogEvent"></a>
-
-### LogEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition | [PartitionEvent](#atomix-multiraft-v1-PartitionEvent) |  |  |
-| index | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-MemberReadyEvent"></a>
-
-### MemberReadyEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition | [PartitionEvent](#atomix-multiraft-v1-PartitionEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-MembershipChangedEvent"></a>
-
-### MembershipChangedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition | [PartitionEvent](#atomix-multiraft-v1-PartitionEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PartitionEvent"></a>
-
-### PartitionEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition_id | [uint32](#uint32) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-RaftEvent"></a>
-
-### RaftEvent
+### WatchNodeResponse
 
 
 
@@ -317,141 +139,6 @@
 
 
 
-
-<a name="atomix-multiraft-v1-SendSnapshotAbortedEvent"></a>
-
-### SendSnapshotAbortedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| to | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SendSnapshotCompletedEvent"></a>
-
-### SendSnapshotCompletedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| to | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SendSnapshotStartedEvent"></a>
-
-### SendSnapshotStartedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| to | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SnapshotCompactedEvent"></a>
-
-### SnapshotCompactedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SnapshotCreatedEvent"></a>
-
-### SnapshotCreatedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SnapshotEvent"></a>
-
-### SnapshotEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition | [PartitionEvent](#atomix-multiraft-v1-PartitionEvent) |  |  |
-| index | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SnapshotReceivedEvent"></a>
-
-### SnapshotReceivedEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-| from | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-SnapshotRecoveredEvent"></a>
-
-### SnapshotRecoveredEvent
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| snapshot | [SnapshotEvent](#atomix-multiraft-v1-SnapshotEvent) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-WatchRequest"></a>
-
-### WatchRequest
-
-
-
-
-
-
  
 
  
@@ -469,7 +156,7 @@
 | Bootstrap | [BootstrapRequest](#atomix-multiraft-v1-BootstrapRequest) | [BootstrapResponse](#atomix-multiraft-v1-BootstrapResponse) |  |
 | Join | [JoinRequest](#atomix-multiraft-v1-JoinRequest) | [JoinResponse](#atomix-multiraft-v1-JoinResponse) |  |
 | Leave | [LeaveRequest](#atomix-multiraft-v1-LeaveRequest) | [LeaveResponse](#atomix-multiraft-v1-LeaveResponse) |  |
-| Watch | [WatchRequest](#atomix-multiraft-v1-WatchRequest) | [RaftEvent](#atomix-multiraft-v1-RaftEvent) stream |  |
+| Watch | [WatchNodeRequest](#atomix-multiraft-v1-WatchNodeRequest) | [WatchNodeResponse](#atomix-multiraft-v1-WatchNodeResponse) stream |  |
 
  
 
