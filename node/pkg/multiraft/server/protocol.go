@@ -8,85 +8,54 @@ import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/pkg/errors"
-	"github.com/atomix/runtime/pkg/stream"
-	"github.com/gogo/protobuf/proto"
 	"github.com/lni/dragonboat/v3"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
 const clientTimeout = 30 * time.Second
 
-func newNodeService(id multiraftv1.NodeID, node *dragonboat.NodeHost) *NodeService {
-	return &NodeService{
+func newProtocol(id multiraftv1.NodeID, options Options) *Protocol {
+	protocol := &Protocol{
 		id:         id,
-		host:       node,
-		partitions: make(map[multiraftv1.PartitionID]*PartitionService),
+		partitions: make(map[multiraftv1.PartitionID]*Partition),
 	}
+	protocol.node = newNode(id, protocol, options)
+	return protocol
 }
 
-type NodeService struct {
+type Protocol struct {
 	id         multiraftv1.NodeID
-	host       *dragonboat.NodeHost
-	partitions map[multiraftv1.PartitionID]*PartitionService
+	node       *Node
+	partitions map[multiraftv1.PartitionID]*Partition
 	mu         sync.RWMutex
 }
 
-func (n *NodeService) ID() multiraftv1.NodeID {
-	return n.id
-}
-
-func (n *NodeService) addPartition(partition *PartitionService) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	n.partitions[partition.id] = partition
-}
-
-func (n *NodeService) removePartition(partitionID multiraftv1.PartitionID) {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	delete(n.partitions, partitionID)
-}
-
-func (n *NodeService) getPartition(partitionID multiraftv1.PartitionID) (*PartitionService, bool) {
-	n.mu.RLock()
-	defer n.mu.RUnlock()
-	partition, ok := n.partitions[partitionID]
-	return partition, ok
-}
-
-func newPartitionService(node *NodeService, id multiraftv1.PartitionID) *PartitionService {
-	return &PartitionService{
-		node:    node,
-		id:      id,
-		streams: newStreamRegistry(),
-	}
-}
-
-type PartitionService struct {
-	node    *NodeService
-	id      multiraftv1.PartitionID
-	streams *streamRegistry
-	leader  uint64
-	term    uint64
-}
-
-func (p *PartitionService) ID() multiraftv1.PartitionID {
+func (p *Protocol) ID() multiraftv1.NodeID {
 	return p.id
 }
 
-func (p *PartitionService) setLeader(term multiraftv1.Term, leader multiraftv1.NodeID) {
-	atomic.StoreUint64(&p.term, uint64(term))
-	atomic.StoreUint64(&p.leader, uint64(leader))
+func (p *Protocol) addPartition(partition *Partition) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.partitions[partition.id] = partition
 }
 
-func (p *PartitionService) getLeader() (multiraftv1.Term, multiraftv1.NodeID) {
-	return multiraftv1.Term(atomic.LoadUint64(&p.term)), multiraftv1.NodeID(atomic.LoadUint64(&p.leader))
+func (p *Protocol) removePartition(partitionID multiraftv1.PartitionID) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	delete(p.partitions, partitionID)
 }
 
-func (n *NodeService) OpenSession(ctx context.Context, input *multiraftv1.OpenSessionInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.OpenSessionOutput, *multiraftv1.PartitionResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) getPartition(partitionID multiraftv1.PartitionID) (*Partition, bool) {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	partition, ok := p.partitions[partitionID]
+	return partition, ok
+}
+
+func (p *Protocol) OpenSession(ctx context.Context, input *multiraftv1.OpenSessionInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.OpenSessionOutput, *multiraftv1.PartitionResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -107,8 +76,8 @@ func (n *NodeService) OpenSession(ctx context.Context, input *multiraftv1.OpenSe
 	return output.GetOpenSession(), responseHeaders, nil
 }
 
-func (n *NodeService) KeepAliveSession(ctx context.Context, input *multiraftv1.KeepAliveInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.KeepAliveOutput, *multiraftv1.PartitionResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) KeepAliveSession(ctx context.Context, input *multiraftv1.KeepAliveInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.KeepAliveOutput, *multiraftv1.PartitionResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -129,8 +98,8 @@ func (n *NodeService) KeepAliveSession(ctx context.Context, input *multiraftv1.K
 	return output.GetKeepAlive(), responseHeaders, nil
 }
 
-func (n *NodeService) CloseSession(ctx context.Context, input *multiraftv1.CloseSessionInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.CloseSessionOutput, *multiraftv1.PartitionResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) CloseSession(ctx context.Context, input *multiraftv1.CloseSessionInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.CloseSessionOutput, *multiraftv1.PartitionResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -151,8 +120,8 @@ func (n *NodeService) CloseSession(ctx context.Context, input *multiraftv1.Close
 	return output.GetCloseSession(), responseHeaders, nil
 }
 
-func (n *NodeService) CreatePrimitive(ctx context.Context, primitiveSpec multiraftv1.PrimitiveSpec, requestHeaders *multiraftv1.SessionRequestHeaders) (*multiraftv1.CreatePrimitiveOutput, *multiraftv1.SessionResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) CreatePrimitive(ctx context.Context, input *multiraftv1.CreatePrimitiveInput, requestHeaders *multiraftv1.SessionRequestHeaders) (*multiraftv1.CreatePrimitiveOutput, *multiraftv1.SessionResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -163,9 +132,7 @@ func (n *NodeService) CreatePrimitive(ctx context.Context, primitiveSpec multira
 			SessionCommand: &multiraftv1.SessionCommandInput{
 				SessionID: requestHeaders.SessionID,
 				Input: &multiraftv1.SessionCommandInput_CreatePrimitive{
-					CreatePrimitive: &multiraftv1.CreatePrimitiveInput{
-						PrimitiveSpec: primitiveSpec,
-					},
+					CreatePrimitive: input,
 				},
 			},
 		},
@@ -182,8 +149,8 @@ func (n *NodeService) CreatePrimitive(ctx context.Context, primitiveSpec multira
 	return output.GetSessionCommand().GetCreatePrimitive(), responseHeaders, nil
 }
 
-func (n *NodeService) ClosePrimitive(ctx context.Context, primitiveID multiraftv1.PrimitiveID, requestHeaders *multiraftv1.SessionRequestHeaders) (*multiraftv1.ClosePrimitiveOutput, *multiraftv1.SessionResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimitiveInput, requestHeaders *multiraftv1.SessionRequestHeaders) (*multiraftv1.ClosePrimitiveOutput, *multiraftv1.SessionResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -194,9 +161,7 @@ func (n *NodeService) ClosePrimitive(ctx context.Context, primitiveID multiraftv
 			SessionCommand: &multiraftv1.SessionCommandInput{
 				SessionID: requestHeaders.SessionID,
 				Input: &multiraftv1.SessionCommandInput_ClosePrimitive{
-					ClosePrimitive: &multiraftv1.ClosePrimitiveInput{
-						PrimitiveID: primitiveID,
-					},
+					ClosePrimitive: input,
 				},
 			},
 		},
@@ -213,8 +178,8 @@ func (n *NodeService) ClosePrimitive(ctx context.Context, primitiveID multiraftv
 	return output.GetSessionCommand().GetClosePrimitive(), responseHeaders, nil
 }
 
-func (n *NodeService) ExecuteCommand(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders) ([]byte, *multiraftv1.CommandResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) ExecuteCommand(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders) ([]byte, *multiraftv1.CommandResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -259,8 +224,8 @@ func (n *NodeService) ExecuteCommand(ctx context.Context, operationID multiraftv
 	return outputBytes, responseHeaders, nil
 }
 
-func (n *NodeService) ExecuteStreamCommand(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders, responseCh chan<- StreamCommandResponse) error {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) ExecuteStreamCommand(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders, responseCh chan<- StreamCommandResponse) error {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -309,8 +274,8 @@ func (n *NodeService) ExecuteStreamCommand(ctx context.Context, operationID mult
 	return partition.executeStreamCommand(ctx, command, outputCh)
 }
 
-func (n *NodeService) ExecuteQuery(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders) ([]byte, *multiraftv1.QueryResponseHeaders, error) {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) ExecuteQuery(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders) ([]byte, *multiraftv1.QueryResponseHeaders, error) {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -353,8 +318,8 @@ func (n *NodeService) ExecuteQuery(ctx context.Context, operationID multiraftv1.
 	return outputBytes, responseHeaders, nil
 }
 
-func (n *NodeService) ExecuteStreamQuery(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders, responseCh chan<- StreamQueryResponse) error {
-	partition, ok := n.getPartition(requestHeaders.PartitionID)
+func (p *Protocol) ExecuteStreamQuery(ctx context.Context, operationID multiraftv1.OperationID, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders, responseCh chan<- StreamQueryResponse) error {
+	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
@@ -399,238 +364,6 @@ func (n *NodeService) ExecuteStreamQuery(ctx context.Context, operationID multir
 		}
 	}()
 	return partition.executeStreamQuery(ctx, query, outputCh, requestHeaders.Sync)
-}
-
-func (p *PartitionService) executeCommand(ctx context.Context, command *multiraftv1.CommandInput) (*multiraftv1.CommandOutput, error) {
-	resultCh := make(chan stream.Result, 1)
-	errCh := make(chan error, 1)
-	go func() {
-		if err := p.commitCommand(ctx, command, stream.NewChannelStream(resultCh)); err != nil {
-			errCh <- err
-		}
-	}()
-
-	select {
-	case result, ok := <-resultCh:
-		if !ok {
-			err := errors.NewCanceled("stream closed")
-			return nil, err
-		}
-
-		if result.Failed() {
-			return nil, result.Error
-		}
-
-		return result.Value.(*multiraftv1.CommandOutput), nil
-	case err := <-errCh:
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
-}
-
-func (p *PartitionService) executeStreamCommand(ctx context.Context, command *multiraftv1.CommandInput, ch chan<- multiraftv1.CommandOutput) error {
-	resultCh := make(chan stream.Result)
-	errCh := make(chan error)
-
-	stream := stream.NewBufferedStream()
-	go func() {
-		defer close(resultCh)
-		for {
-			result, ok := stream.Receive()
-			if !ok {
-				return
-			}
-			resultCh <- result
-		}
-	}()
-
-	go func() {
-		if err := p.commitCommand(ctx, command, stream); err != nil {
-			errCh <- err
-		}
-	}()
-
-	for {
-		select {
-		case result, ok := <-resultCh:
-			if !ok {
-				return nil
-			}
-
-			if result.Failed() {
-				return result.Error
-			}
-
-			ch <- *result.Value.(*multiraftv1.CommandOutput)
-		case err := <-errCh:
-			return err
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-}
-
-func (p *PartitionService) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream stream.WriteStream) error {
-	term, leader := p.getLeader()
-	if leader != p.node.id {
-		return errors.NewUnavailable("not the leader")
-	}
-
-	streamID := p.streams.register(term, stream)
-	defer p.streams.unregister(streamID)
-
-	entry := &multiraftv1.RaftLogEntry{
-		StreamID: streamID,
-		Command:  *input,
-	}
-
-	bytes, err := proto.Marshal(entry)
-	if err != nil {
-		return errors.NewInternal("failed to marshal RaftLogEntry: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, clientTimeout)
-	defer cancel()
-	if _, err := p.node.host.SyncPropose(ctx, p.node.host.GetNoOPSession(uint64(p.id)), bytes); err != nil {
-		return wrapError(err)
-	}
-	return nil
-}
-
-func (p *PartitionService) executeQuery(ctx context.Context, query *multiraftv1.QueryInput, sync bool) (*multiraftv1.QueryOutput, error) {
-	resultCh := make(chan stream.Result, 1)
-	errCh := make(chan error, 1)
-	go func() {
-		if err := p.applyQuery(ctx, query, stream.NewChannelStream(resultCh), sync); err != nil {
-			errCh <- err
-		}
-	}()
-
-	select {
-	case result, ok := <-resultCh:
-		if !ok {
-			err := errors.NewCanceled("stream closed")
-			return nil, err
-		}
-
-		if result.Failed() {
-			return nil, result.Error
-		}
-
-		return result.Value.(*multiraftv1.QueryOutput), nil
-	case err := <-errCh:
-		return nil, err
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	}
-}
-
-func (p *PartitionService) executeStreamQuery(ctx context.Context, query *multiraftv1.QueryInput, ch chan<- multiraftv1.QueryOutput, sync bool) error {
-	resultCh := make(chan stream.Result)
-	errCh := make(chan error)
-
-	stream := stream.NewBufferedStream()
-	go func() {
-		defer close(resultCh)
-		for {
-			result, ok := stream.Receive()
-			if !ok {
-				return
-			}
-			resultCh <- result
-		}
-	}()
-
-	go func() {
-		if err := p.applyQuery(ctx, query, stream, sync); err != nil {
-			errCh <- err
-		}
-	}()
-
-	for {
-		select {
-		case result, ok := <-resultCh:
-			if !ok {
-				return nil
-			}
-
-			if result.Failed() {
-				return result.Error
-			}
-
-			ch <- *result.Value.(*multiraftv1.QueryOutput)
-		case err := <-errCh:
-			return err
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-}
-
-func (p *PartitionService) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, stream stream.WriteStream, sync bool) error {
-	query := queryContext{
-		input:  input,
-		stream: stream,
-	}
-	if sync {
-		ctx, cancel := context.WithTimeout(ctx, clientTimeout)
-		defer cancel()
-		if _, err := p.node.host.SyncRead(ctx, uint64(p.id), query); err != nil {
-			return wrapError(err)
-		}
-	} else {
-		if _, err := p.node.host.StaleRead(uint64(p.id), query); err != nil {
-			return wrapError(err)
-		}
-	}
-	return nil
-}
-
-func ExecuteCommand[I proto.Message, O proto.Message](node *NodeService) func(ctx context.Context, operationID multiraftv1.OperationID, input I, headers *multiraftv1.CommandRequestHeaders) (O, *multiraftv1.CommandResponseHeaders, error) {
-	return func(ctx context.Context, operationID multiraftv1.OperationID, input I, requestHeaders *multiraftv1.CommandRequestHeaders) (O, *multiraftv1.CommandResponseHeaders, error) {
-		var output O
-		inputBytes, err := proto.Marshal(input)
-		if err != nil {
-			return output, nil, errors.NewInvalid(err.Error())
-		}
-
-		outputBytes, responseHeaders, err := node.ExecuteCommand(ctx, operationID, inputBytes, requestHeaders)
-		if err != nil {
-			return output, nil, err
-		}
-
-		err = proto.Unmarshal(outputBytes, output)
-		if err != nil {
-			return output, nil, err
-		}
-		return output, responseHeaders, nil
-	}
-}
-
-func ExecuteStreamingCommand[I proto.Message, O proto.Message](ctx context.Context, input I, headers *multiraftv1.CommandRequestHeaders) {
-
-}
-
-func ExecuteQuery[I proto.Message, O proto.Message](node *NodeService) func(ctx context.Context, operationID multiraftv1.OperationID, input I, headers *multiraftv1.QueryRequestHeaders) (O, *multiraftv1.QueryResponseHeaders, error) {
-	return func(ctx context.Context, operationID multiraftv1.OperationID, input I, requestHeaders *multiraftv1.QueryRequestHeaders) (O, *multiraftv1.QueryResponseHeaders, error) {
-		var output O
-		inputBytes, err := proto.Marshal(input)
-		if err != nil {
-			return output, nil, errors.NewInvalid(err.Error())
-		}
-
-		outputBytes, responseHeaders, err := node.ExecuteQuery(ctx, operationID, inputBytes, requestHeaders)
-		if err != nil {
-			return output, nil, err
-		}
-
-		err = proto.Unmarshal(outputBytes, output)
-		if err != nil {
-			return output, nil, err
-		}
-		return output, responseHeaders, nil
-	}
 }
 
 type StreamCommandResponse struct {
