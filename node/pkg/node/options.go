@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package server
+package node
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"

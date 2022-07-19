@@ -5,7 +5,7 @@
 package primitive
 
 import (
-	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
+	"github.com/atomix/multi-raft/node/pkg/snapshot"
 	"time"
 )
 

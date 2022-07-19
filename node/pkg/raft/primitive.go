@@ -6,8 +6,8 @@ package raft
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/node/primitive"
-	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
+	"github.com/atomix/multi-raft/node/pkg/primitive"
+	"github.com/atomix/multi-raft/node/pkg/snapshot"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/google/uuid"
 	"time"
