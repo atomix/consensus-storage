@@ -45,16 +45,43 @@ type SessionClient struct {
 	recorder     *Recorder
 }
 
-func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.PrimitiveSpec, opts ...grpc.CallOption) error {
-	
+func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.PrimitiveSpec) error {
+	s.primitivesMu.Lock()
+	defer s.primitivesMu.Unlock()
+	primitive, ok := s.primitives[spec.Name]
+	if ok {
+		return nil
+	}
+	primitive = newPrimitiveClient(spec, s)
+	if err := primitive.create(ctx); err != nil {
+		return err
+	}
+	s.primitives[primitive.spec.Name] = primitive
+	return nil
 }
 
 func (s *SessionClient) GetPrimitive(name string) (*PrimitiveClient, error) {
-
+	s.primitivesMu.RLock()
+	defer s.primitivesMu.RUnlock()
+	primitive, ok := s.primitives[name]
+	if !ok {
+		return nil, errors.NewUnavailable("primitive not found")
+	}
+	return primitive, nil
 }
 
 func (s *SessionClient) ClosePrimitive(ctx context.Context, name string, opts ...grpc.CallOption) error {
-
+	s.primitivesMu.Lock()
+	defer s.primitivesMu.Unlock()
+	primitive, ok := s.primitives[name]
+	if !ok {
+		return nil
+	}
+	if err := primitive.close(ctx); err != nil {
+		return err
+	}
+	delete(s.primitives, name)
+	return nil
 }
 
 func (s *SessionClient) nextRequestNum() multiraftv1.SequenceNum {

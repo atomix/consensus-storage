@@ -30,7 +30,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| headers | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
+| headers | [CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
 | input | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
 
 
@@ -46,7 +46,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| headers | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
+| headers | [CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
 | output | [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput) |  |  |
 
 
@@ -62,7 +62,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| headers | [SessionRequestHeaders](#atomix-multiraft-v1-SessionRequestHeaders) |  |  |
+| headers | [CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
 | input | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
 
 
@@ -78,7 +78,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| headers | [SessionResponseHeaders](#atomix-multiraft-v1-SessionResponseHeaders) |  |  |
+| headers | [CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
 | output | [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput) |  |  |
 
 

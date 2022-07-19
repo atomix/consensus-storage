@@ -5,24 +5,55 @@
 package client
 
 import (
+	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
 	"google.golang.org/grpc"
 )
 
-func newPrimitiveClient(id multiraftv1.PrimitiveID, session *SessionClient) *PrimitiveClient {
+func newPrimitiveClient(spec multiraftv1.PrimitiveSpec, session *SessionClient) *PrimitiveClient {
 	return &PrimitiveClient{
-		id:      id,
+		spec:    spec,
 		session: session,
 	}
 }
 
 type PrimitiveClient struct {
 	id      multiraftv1.PrimitiveID
+	spec    multiraftv1.PrimitiveSpec
 	session *SessionClient
 }
 
 func (p *PrimitiveClient) Conn() *grpc.ClientConn {
 	return p.session.partition.conn
+}
+
+func (p *PrimitiveClient) create(ctx context.Context) error {
+	request := &multiraftv1.CreatePrimitiveRequest{
+		Headers: multiraftv1.CommandRequestHeaders{
+			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
+				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
+					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
+						PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
+							PartitionID: p.session.partition.id,
+						},
+						SessionID: p.session.sessionID,
+					},
+					PrimitiveID: p.id,
+				},
+			},
+			SequenceNum: p.session.nextRequestNum(),
+		},
+		CreatePrimitiveInput: multiraftv1.CreatePrimitiveInput{
+			PrimitiveSpec: p.spec,
+		},
+	}
+	client := multiraftv1.NewSessionClient(p.session.partition.conn)
+	response, err := client.CreatePrimitive(ctx, request)
+	if err != nil {
+		return err
+	}
+	p.id = response.PrimitiveID
+	return nil
 }
 
 func (p *PrimitiveClient) Command(id multiraftv1.OperationID) *CommandContext {
@@ -31,6 +62,34 @@ func (p *PrimitiveClient) Command(id multiraftv1.OperationID) *CommandContext {
 
 func (p *PrimitiveClient) Query(id multiraftv1.OperationID) *QueryContext {
 	return newQueryContext(p, id)
+}
+
+func (p *PrimitiveClient) close(ctx context.Context) error {
+	request := &multiraftv1.ClosePrimitiveRequest{
+		Headers: multiraftv1.CommandRequestHeaders{
+			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
+				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
+					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
+						PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
+							PartitionID: p.session.partition.id,
+						},
+						SessionID: p.session.sessionID,
+					},
+					PrimitiveID: p.id,
+				},
+			},
+			SequenceNum: p.session.nextRequestNum(),
+		},
+		ClosePrimitiveInput: multiraftv1.ClosePrimitiveInput{
+			PrimitiveID: p.id,
+		},
+	}
+	client := multiraftv1.NewSessionClient(p.session.partition.conn)
+	_, err := client.ClosePrimitive(ctx, request)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func newCommandContext(primitive *PrimitiveClient, operationID multiraftv1.OperationID) *CommandContext {
