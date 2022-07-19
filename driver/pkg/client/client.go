@@ -7,6 +7,10 @@ package client
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	counterserver "github.com/atomix/multi-raft/driver/pkg/client/counter/v1"
+	mapserver "github.com/atomix/multi-raft/driver/pkg/client/map/v1"
+	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
+	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/pkg/logging"
 	"hash/fnv"
 	"sort"
@@ -15,11 +19,25 @@ import (
 
 var log = logging.GetLogger()
 
+func NewClient() *Client {
+	return &Client{
+		partitionIDs: make(map[multiraftv1.PartitionID]*PartitionClient),
+	}
+}
+
 type Client struct {
 	config       *multiraftv1.ClusterConfig
 	partitions   []*PartitionClient
 	partitionIDs map[multiraftv1.PartitionID]*PartitionClient
 	mu           sync.RWMutex
+}
+
+func (c *Client) GetCounter() counterv1.CounterServer {
+	return counterserver.NewServer(c)
+}
+
+func (c *Client) GetMap() mapv1.MapServer {
+	return mapserver.NewServer(c)
 }
 
 func (c *Client) Connect(ctx context.Context, config *multiraftv1.ClusterConfig) error {
@@ -53,20 +71,20 @@ func (c *Client) Configure(ctx context.Context, config *multiraftv1.ClusterConfi
 	return nil
 }
 
-func (p *Client) Partition(partitionID multiraftv1.PartitionID) *PartitionClient {
-	return p.partitionIDs[partitionID]
+func (c *Client) Partition(partitionID multiraftv1.PartitionID) *PartitionClient {
+	return c.partitionIDs[partitionID]
 }
 
-func (p *Client) PartitionBy(partitionKey []byte) *PartitionClient {
-	i, err := getPartitionIndex(partitionKey, len(p.partitions))
+func (c *Client) PartitionBy(partitionKey []byte) *PartitionClient {
+	i, err := getPartitionIndex(partitionKey, len(c.partitions))
 	if err != nil {
 		panic(err)
 	}
-	return p.partitions[i]
+	return c.partitions[i]
 }
 
-func (p *Client) Partitions() []*PartitionClient {
-	return p.partitions
+func (c *Client) Partitions() []*PartitionClient {
+	return c.partitions
 }
 
 func (c *Client) Close(ctx context.Context) error {

@@ -18,11 +18,13 @@ require (
 )
 
 require (
-	github.com/atomix/runtime v0.0.0-20220719184439-dbce098338a9
+	github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805
 	github.com/atomix/runtime/api v0.0.0-20220716233348-d0fe1bf975aa
 )
 
 require (
+	github.com/bits-and-blooms/bitset v1.2.0 // indirect
+	github.com/bits-and-blooms/bloom/v3 v3.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect

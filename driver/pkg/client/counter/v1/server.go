@@ -11,24 +11,23 @@ import (
 	"github.com/atomix/multi-raft/driver/pkg/client"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	"github.com/atomix/runtime/pkg/runtime"
-	"google.golang.org/grpc"
 )
 
 const Type = "Counter"
 const APIVersion = "v1"
 
-func NewClient(client *client.Client) counterv1.CounterClient {
-	return &Client{
+func NewServer(client *client.Client) counterv1.CounterServer {
+	return &Server{
 		Client: client,
 	}
 }
 
-type Client struct {
+type Server struct {
 	*client.Client
 }
 
-func (c *Client) Create(ctx context.Context, request *counterv1.CreateRequest, opts ...grpc.CallOption) (*counterv1.CreateResponse, error) {
-	partition := c.PartitionBy([]byte(request.ID.Name))
+func (s *Server) Create(ctx context.Context, request *counterv1.CreateRequest) (*counterv1.CreateResponse, error) {
+	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		return nil, err
@@ -41,33 +40,33 @@ func (c *Client) Create(ctx context.Context, request *counterv1.CreateRequest, o
 		Namespace: runtime.GetNamespace(),
 		Name:      request.ID.Name,
 	}
-	if err := session.CreatePrimitive(ctx, spec, opts...); err != nil {
+	if err := session.CreatePrimitive(ctx, spec); err != nil {
 		return nil, err
 	}
 	response := &counterv1.CreateResponse{}
 	return response, nil
 }
 
-func (c *Client) Close(ctx context.Context, request *counterv1.CloseRequest, opts ...grpc.CallOption) (*counterv1.CloseResponse, error) {
-	partition := c.PartitionBy([]byte(request.ID.Name))
+func (s *Server) Close(ctx context.Context, request *counterv1.CloseRequest) (*counterv1.CloseResponse, error) {
+	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if err := session.ClosePrimitive(ctx, request.ID.Name, opts...); err != nil {
+	if err := session.ClosePrimitive(ctx, request.ID.Name); err != nil {
 		return nil, err
 	}
 	response := &counterv1.CloseResponse{}
 	return response, nil
 }
 
-func (c *Client) Set(ctx context.Context, request *counterv1.SetRequest, opts ...grpc.CallOption) (*counterv1.SetResponse, error) {
-	partition := c.PartitionBy([]byte(request.ID.Name))
+func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
+	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		return nil, err
 	}
-	primitive, err := session.GetPrimitive(ctx, request.ID.Name)
+	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +79,7 @@ func (c *Client) Set(ctx context.Context, request *counterv1.SetRequest, opts ..
 			Value: request.Value,
 		},
 	}
-	output, err := client.Set(ctx, input, opts...)
+	output, err := client.Set(ctx, input)
 	if err != nil {
 		return nil, err
 	}
@@ -91,24 +90,24 @@ func (c *Client) Set(ctx context.Context, request *counterv1.SetRequest, opts ..
 	return response, nil
 }
 
-func (c *Client) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest, opts ...grpc.CallOption) (*counterv1.CompareAndSetResponse, error) {
+func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest) (*counterv1.CompareAndSetResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *Client) Get(ctx context.Context, request *counterv1.GetRequest, opts ...grpc.CallOption) (*counterv1.GetResponse, error) {
+func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *Client) Increment(ctx context.Context, request *counterv1.IncrementRequest, opts ...grpc.CallOption) (*counterv1.IncrementResponse, error) {
+func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *Client) Decrement(ctx context.Context, request *counterv1.DecrementRequest, opts ...grpc.CallOption) (*counterv1.DecrementResponse, error) {
+func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-var _ counterv1.CounterClient = (*Client)(nil)
+var _ counterv1.CounterServer = (*Server)(nil)
