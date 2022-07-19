@@ -43,6 +43,12 @@ github.com/atomix/runtime v0.0.0-20220706102709-8e80cf86d1f5 h1:ck87an7VKPQV8p+L
 github.com/atomix/runtime v0.0.0-20220706102709-8e80cf86d1f5/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
 github.com/atomix/runtime v0.0.0-20220717013216-1101ef77a190 h1:/sd/dMPHkoXFQF2ouEl8jWuW7UlfAP1Vj07S0mriumk=
 github.com/atomix/runtime v0.0.0-20220717013216-1101ef77a190/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
+github.com/atomix/runtime v0.0.0-20220719182040-690f06249787 h1:h7yTnBvm37cyH/9ZtEuPwV1DvFtcCuR4mcIvFlRkUIQ=
+github.com/atomix/runtime v0.0.0-20220719182040-690f06249787/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
+github.com/atomix/runtime v0.0.0-20220719184325-11c475cf6397 h1:Dr4m9QyjzioH4POYTc1vCxKlALCyZS0TuCp8gNuhzEM=
+github.com/atomix/runtime v0.0.0-20220719184325-11c475cf6397/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
+github.com/atomix/runtime v0.0.0-20220719184439-dbce098338a9 h1:I/444kSWV33orH5aR1bljXNPygZBZXS23nrmOu6UIW4=
+github.com/atomix/runtime v0.0.0-20220719184439-dbce098338a9/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
 github.com/atomix/runtime/api v0.0.0-20220716233348-d0fe1bf975aa h1:Bemv3SbK4C0Bo6QjGm6xwk0WgZtihLZF/lKMcwCOCOc=
 github.com/atomix/runtime/api v0.0.0-20220716233348-d0fe1bf975aa/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=

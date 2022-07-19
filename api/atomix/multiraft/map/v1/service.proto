@@ -88,7 +88,7 @@ message SizeResponse {
 }
 
 message PutRequest {
-    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -100,7 +100,7 @@ message PutRequest {
 }
 
 message PutResponse {
-    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -112,7 +112,7 @@ message PutResponse {
 }
 
 message InsertRequest {
-    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -124,7 +124,7 @@ message InsertRequest {
 }
 
 message InsertResponse {
-    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -136,7 +136,7 @@ message InsertResponse {
 }
 
 message UpdateRequest {
-    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -148,7 +148,7 @@ message UpdateRequest {
 }
 
 message UpdateResponse {
-    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -184,7 +184,7 @@ message GetResponse {
 }
 
 message RemoveRequest {
-    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -196,7 +196,7 @@ message RemoveRequest {
 }
 
 message RemoveResponse {
-    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -208,7 +208,7 @@ message RemoveResponse {
 }
 
 message ClearRequest {
-    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -220,7 +220,7 @@ message ClearRequest {
 }
 
 message ClearResponse {
-    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -256,7 +256,7 @@ message EntriesResponse {
 }
 
 message EventsRequest {
-    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];
@@ -268,7 +268,7 @@ message EventsRequest {
 }
 
 message EventsResponse {
-    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true,
         (gogoproto.nullable) = false
     ];

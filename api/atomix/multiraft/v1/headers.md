@@ -166,8 +166,6 @@
 | ----- | ---- | ----- | ----------- |
 | operation | [OperationRequestHeaders](#atomix-multiraft-v1-OperationRequestHeaders) |  |  |
 | max_received_index | [uint64](#uint64) |  |  |
-| last_sequence_num | [uint64](#uint64) |  |  |
-| sync | [bool](#bool) |  |  |
 
 
 
