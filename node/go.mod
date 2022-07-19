@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/gogo/protobuf v1.3.2
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.2 // indirect
 	google.golang.org/grpc v1.46.0
 	google.golang.org/protobuf v1.28.0 // indirect
 )
@@ -18,10 +18,11 @@ require (
 )
 
 require (
-	github.com/atomix/runtime v0.0.0-20220717013216-1101ef77a190
+	github.com/atomix/runtime v0.0.0-20220719182040-690f06249787
+	github.com/bits-and-blooms/bloom/v3 v3.2.0
+	github.com/google/uuid v1.1.2
 	github.com/lni/dragonboat/v3 v3.3.5
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.1
 )
 
 require (
@@ -29,13 +30,11 @@ require (
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/atomix/runtime/api v0.0.0-20220706095609-037e0d309067 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
-	github.com/bits-and-blooms/bloom/v3 v3.2.0 // indirect
 	github.com/cockroachdb/errors v1.7.5 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
 	github.com/cockroachdb/pebble v0.0.0-20210331181633-27fc006b8bfb // indirect
 	github.com/cockroachdb/redact v1.0.6 // indirect
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3 // indirect
 	github.com/google/btree v1.0.0 // indirect
@@ -59,7 +58,6 @@ require (
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.0-beta.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
@@ -80,4 +78,3 @@ require (
 )
 
 replace github.com/atomix/multi-raft/api => ../api
-replace github.com/atomix/runtime => ../../../runtime
