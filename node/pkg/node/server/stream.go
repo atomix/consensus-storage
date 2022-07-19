@@ -13,19 +13,19 @@ import (
 // newStreamRegistry returns a new stream registry
 func newStreamRegistry() *streamRegistry {
 	return &streamRegistry{
-		streams: make(map[multiraftv1.StreamId]stream.WriteStream),
+		streams: make(map[multiraftv1.StreamId]stream.WriteStream[*multiraftv1.CommandOutput]),
 	}
 }
 
 // streamRegistry is a registry of client streams
 type streamRegistry struct {
-	streams         map[multiraftv1.StreamId]stream.WriteStream
+	streams         map[multiraftv1.StreamId]stream.WriteStream[*multiraftv1.CommandOutput]
 	nextSequenceNum multiraftv1.SequenceNum
 	mu              sync.RWMutex
 }
 
 // register adds a new stream
-func (r *streamRegistry) register(term multiraftv1.Term, stream stream.WriteStream) multiraftv1.StreamId {
+func (r *streamRegistry) register(term multiraftv1.Term, stream stream.WriteStream[*multiraftv1.CommandOutput]) multiraftv1.StreamId {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.nextSequenceNum++
@@ -46,11 +46,11 @@ func (r *streamRegistry) unregister(streamID multiraftv1.StreamId) {
 }
 
 // lookup gets a stream by ID
-func (r *streamRegistry) lookup(streamID multiraftv1.StreamId) stream.WriteStream {
+func (r *streamRegistry) lookup(streamID multiraftv1.StreamId) stream.WriteStream[*multiraftv1.CommandOutput] {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if stream, ok := r.streams[streamID]; ok {
 		return stream
 	}
-	return stream.NewNilStream()
+	return stream.NewNilStream[*multiraftv1.CommandOutput]()
 }

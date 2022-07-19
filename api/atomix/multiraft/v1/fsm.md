@@ -20,15 +20,11 @@
     - [OpenSessionOutput](#atomix-multiraft-v1-OpenSessionOutput)
     - [OperationInput](#atomix-multiraft-v1-OperationInput)
     - [OperationOutput](#atomix-multiraft-v1-OperationOutput)
-    - [PartitionCommandInput](#atomix-multiraft-v1-PartitionCommandInput)
-    - [PartitionCommandOutput](#atomix-multiraft-v1-PartitionCommandOutput)
     - [PartitionQueryInput](#atomix-multiraft-v1-PartitionQueryInput)
     - [PartitionQueryOutput](#atomix-multiraft-v1-PartitionQueryOutput)
-    - [PartitionSnapshot](#atomix-multiraft-v1-PartitionSnapshot)
-    - [PrimitiveCommandInput](#atomix-multiraft-v1-PrimitiveCommandInput)
-    - [PrimitiveCommandOutput](#atomix-multiraft-v1-PrimitiveCommandOutput)
-    - [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput)
-    - [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput)
+    - [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput)
+    - [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput)
+    - [PrimitiveSessionSnapshot](#atomix-multiraft-v1-PrimitiveSessionSnapshot)
     - [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot)
     - [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec)
     - [PrimitiveType](#atomix-multiraft-v1-PrimitiveType)
@@ -39,6 +35,7 @@
     - [SessionQueryInput](#atomix-multiraft-v1-SessionQueryInput)
     - [SessionQueryOutput](#atomix-multiraft-v1-SessionQueryOutput)
     - [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot)
+    - [Snapshot](#atomix-multiraft-v1-Snapshot)
   
     - [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State)
     - [OperationOutput.Status](#atomix-multiraft-v1-OperationOutput-Status)
@@ -150,10 +147,10 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| sequence_num | [uint64](#uint64) |  |  |
+| index | [uint64](#uint64) |  |  |
 | state | [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State) |  |  |
-| input | [PrimitiveCommandInput](#atomix-multiraft-v1-PrimitiveCommandInput) |  |  |
-| pending_outputs | [PrimitiveCommandOutput](#atomix-multiraft-v1-PrimitiveCommandOutput) | repeated |  |
+| input | [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput) |  |  |
+| pending_outputs | [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput) | repeated |  |
 
 
 
@@ -297,37 +294,6 @@
 
 
 
-<a name="atomix-multiraft-v1-PartitionCommandInput"></a>
-
-### PartitionCommandInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition_id | [uint32](#uint32) |  |  |
-| command | [CommandInput](#atomix-multiraft-v1-CommandInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PartitionCommandOutput"></a>
-
-### PartitionCommandOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| command | [CommandOutput](#atomix-multiraft-v1-CommandOutput) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-v1-PartitionQueryInput"></a>
 
 ### PartitionQueryInput
@@ -360,82 +326,47 @@
 
 
 
-<a name="atomix-multiraft-v1-PartitionSnapshot"></a>
+<a name="atomix-multiraft-v1-PrimitiveOperationInput"></a>
 
-### PartitionSnapshot
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
-| sessions | [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot) | repeated |  |
-| primitives | [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot) | repeated |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PrimitiveCommandInput"></a>
-
-### PrimitiveCommandInput
+### PrimitiveOperationInput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | primitive_id | [uint64](#uint64) |  |  |
-| sequence_num | [uint64](#uint64) |  |  |
-| operation | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
+| input | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-PrimitiveCommandOutput"></a>
+<a name="atomix-multiraft-v1-PrimitiveOperationOutput"></a>
 
-### PrimitiveCommandOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| sequence_num | [uint64](#uint64) |  |  |
-| operation | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PrimitiveQueryInput"></a>
-
-### PrimitiveQueryInput
+### PrimitiveOperationOutput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| primitive_id | [uint64](#uint64) |  |  |
-| operation | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
+| output | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-PrimitiveQueryOutput"></a>
+<a name="atomix-multiraft-v1-PrimitiveSessionSnapshot"></a>
 
-### PrimitiveQueryOutput
+### PrimitiveSessionSnapshot
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| operation | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
+| session_id | [uint64](#uint64) |  |  |
+| commands | [uint64](#uint64) | repeated |  |
 
 
 
@@ -452,8 +383,6 @@
 | ----- | ---- | ----- | ----------- |
 | primitive_id | [uint64](#uint64) |  |  |
 | spec | [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec) |  |  |
-| data | [bytes](#bytes) |  |  |
-| sessions | [uint64](#uint64) | repeated |  |
 
 
 
@@ -534,9 +463,10 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
 | create_primitive | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
 | close_primitive | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
-| primitive_command | [PrimitiveCommandInput](#atomix-multiraft-v1-PrimitiveCommandInput) |  |  |
+| operation | [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput) |  |  |
 
 
 
@@ -551,9 +481,10 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| sequence_num | [uint64](#uint64) |  |  |
 | create_primitive | [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput) |  |  |
 | close_primitive | [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput) |  |  |
-| primitive_command | [PrimitiveCommandOutput](#atomix-multiraft-v1-PrimitiveCommandOutput) |  |  |
+| operation | [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput) |  |  |
 
 
 
@@ -569,7 +500,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
-| primitive_query | [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput) |  |  |
+| operation | [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput) |  |  |
 
 
 
@@ -584,7 +515,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| primitive_query | [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput) |  |  |
+| operation | [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput) |  |  |
 
 
 
@@ -603,6 +534,22 @@
 | timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 | last_updated | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | commands | [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-Snapshot"></a>
+
+### Snapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
@@ -644,7 +591,8 @@
 | UNAVAILABLE | 10 |  |
 | NOT_SUPPORTED | 11 |  |
 | TIMEOUT | 12 |  |
-| INTERNAL | 13 |  |
+| FAULT | 13 |  |
+| INTERNAL | 14 |  |
 
 
  

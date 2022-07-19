@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/multiraft/statemachine"
+	"github.com/atomix/multi-raft/node/pkg/node/statemachine"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/atomix/runtime/pkg/logging"
 	"github.com/atomix/runtime/pkg/stream"
@@ -268,7 +268,7 @@ func (s *stateMachine) Close() error {
 
 type queryContext struct {
 	input  *multiraftv1.QueryInput
-	stream stream.WriteStream
+	stream stream.WriteStream[*multiraftv1.QueryOutput]
 }
 
 func newNodeServer(node *Node) multiraftv1.NodeServer {

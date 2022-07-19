@@ -7,7 +7,7 @@ package v1
 import (
 	"context"
 	counterv1 "github.com/atomix/multi-raft/api/atomix/multiraft/counter/v1"
-	"github.com/atomix/multi-raft/node/pkg/multiraft/server"
+	"github.com/atomix/multi-raft/node/pkg/node/server"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/atomix/runtime/pkg/logging"
 )

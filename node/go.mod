@@ -28,6 +28,8 @@ require (
 	github.com/VictoriaMetrics/metrics v1.6.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/atomix/runtime/api v0.0.0-20220706095609-037e0d309067 // indirect
+	github.com/bits-and-blooms/bitset v1.2.0 // indirect
+	github.com/bits-and-blooms/bloom/v3 v3.2.0 // indirect
 	github.com/cockroachdb/errors v1.7.5 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
 	github.com/cockroachdb/pebble v0.0.0-20210331181633-27fc006b8bfb // indirect
@@ -78,3 +80,4 @@ require (
 )
 
 replace github.com/atomix/multi-raft/api => ../api
+replace github.com/atomix/runtime => ../../../runtime

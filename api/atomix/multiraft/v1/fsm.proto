@@ -12,22 +12,6 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
-message PartitionCommandInput {
-    uint32 partition_id = 1 [
-        (gogoproto.customname) = "PartitionID",
-        (gogoproto.casttype) = "PartitionID"
-    ];
-    CommandInput command = 2 [
-        (gogoproto.nullable) = false
-    ];
-}
-
-message PartitionCommandOutput {
-    CommandOutput command = 1 [
-        (gogoproto.nullable) = false
-    ];
-}
-
 message CommandInput {
     google.protobuf.Timestamp timestamp = 1 [
         (gogoproto.stdtime) = true,
@@ -102,18 +86,24 @@ message SessionCommandInput {
         (gogoproto.customname) = "SessionID",
         (gogoproto.casttype) = "SessionID"
     ];
+    uint64 sequence_num = 2 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
     oneof input {
-        CreatePrimitiveInput create_primitive = 2;
-        ClosePrimitiveInput close_primitive = 3;
-        PrimitiveCommandInput primitive_command = 4;
+        CreatePrimitiveInput create_primitive = 3;
+        ClosePrimitiveInput close_primitive = 4;
+        PrimitiveOperationInput operation = 5;
     }
 }
 
 message SessionCommandOutput {
+    uint64 sequence_num = 1 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
     oneof output {
-        CreatePrimitiveOutput create_primitive = 1;
-        ClosePrimitiveOutput close_primitive = 2;
-        PrimitiveCommandOutput primitive_command = 3;
+        CreatePrimitiveOutput create_primitive = 2;
+        ClosePrimitiveOutput close_primitive = 3;
+        PrimitiveOperationOutput operation = 4;
     }
 }
 
@@ -140,24 +130,6 @@ message ClosePrimitiveInput {
 
 message ClosePrimitiveOutput {
 
-}
-
-message PrimitiveCommandInput {
-    uint64 primitive_id = 1 [
-        (gogoproto.customname) = "PrimitiveID",
-        (gogoproto.casttype) = "PrimitiveID"
-    ];
-    uint64 sequence_num = 2 [
-        (gogoproto.casttype) = "SequenceNum"
-    ];
-    OperationInput operation = 3;
-}
-
-message PrimitiveCommandOutput {
-    uint64 sequence_num = 1 [
-        (gogoproto.casttype) = "SequenceNum"
-    ];
-    OperationOutput operation = 2;
 }
 
 message PartitionQueryInput {
@@ -201,26 +173,32 @@ message SessionQueryInput {
         (gogoproto.casttype) = "SessionID"
     ];
     oneof input {
-        PrimitiveQueryInput primitive_query = 2;
+        PrimitiveOperationInput operation = 2;
     }
 }
 
 message SessionQueryOutput {
     oneof output {
-        PrimitiveQueryOutput primitive_query = 1;
+        PrimitiveOperationOutput operation = 1;
     }
 }
 
-message PrimitiveQueryInput {
+message PrimitiveOperationInput {
     uint64 primitive_id = 1 [
         (gogoproto.customname) = "PrimitiveID",
         (gogoproto.casttype) = "PrimitiveID"
     ];
-    OperationInput operation = 2;
+    OperationInput input = 2 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
 }
 
-message PrimitiveQueryOutput {
-    OperationOutput operation = 1;
+message PrimitiveOperationOutput {
+    OperationOutput output = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
 }
 
 message OperationInput {
@@ -250,18 +228,50 @@ message OperationOutput {
         UNAVAILABLE = 10;
         NOT_SUPPORTED = 11;
         TIMEOUT = 12;
-        INTERNAL = 13;
+        FAULT = 13;
+        INTERNAL = 14;
     }
 }
 
-message PartitionSnapshot {
+message Snapshot {
     uint64 index = 1 [(gogoproto.casttype) = "Index"];
     google.protobuf.Timestamp timestamp = 2 [
         (gogoproto.stdtime) = true,
         (gogoproto.nullable) = false
     ];
-    repeated SessionSnapshot sessions = 3;
-    repeated PrimitiveSnapshot primitives = 4;
+}
+
+message PrimitiveSnapshot {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
+    ];
+    PrimitiveSpec spec = 2 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message PrimitiveSessionSnapshot {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    repeated uint64 commands = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+}
+
+message PrimitiveType {
+    string name = 1;
+    string api_version = 2;
+}
+
+message PrimitiveSpec {
+    PrimitiveType type = 1 [
+        (gogoproto.nullable) = false
+    ];
+    string namespace = 2;
+    string name = 3;
 }
 
 message SessionSnapshot {
@@ -281,46 +291,16 @@ message SessionSnapshot {
 }
 
 message CommandSnapshot {
-    uint64 sequence_num = 1 [
-        (gogoproto.casttype) = "SequenceNum"
+    uint64 index = 1 [
+        (gogoproto.casttype) = "Index"
     ];
     State state = 2;
-    PrimitiveCommandInput input = 3;
-    repeated PrimitiveCommandOutput pending_outputs = 4 [
-        (gogoproto.nullable) = false
-    ];
+    SessionCommandInput input = 3;
+    repeated SessionCommandOutput pending_outputs = 4;
 
     enum State {
         UNKNOWN = 0;
         OPEN = 1;
         COMPLETE = 2;
     }
-}
-
-message PrimitiveSnapshot {
-    uint64 primitive_id = 1 [
-        (gogoproto.customname) = "PrimitiveID",
-        (gogoproto.casttype) = "PrimitiveID"
-    ];
-    PrimitiveSpec spec = 2 [
-        (gogoproto.nullable) = false
-    ];
-    bytes data = 3;
-    repeated uint64 sessions = 4 [
-        (gogoproto.customname) = "SessionID",
-        (gogoproto.casttype) = "SessionID"
-    ];
-}
-
-message PrimitiveType {
-    string name = 1;
-    string api_version = 2;
-}
-
-message PrimitiveSpec {
-    PrimitiveType type = 1 [
-        (gogoproto.nullable) = false
-    ];
-    string namespace = 2;
-    string name = 3;
 }

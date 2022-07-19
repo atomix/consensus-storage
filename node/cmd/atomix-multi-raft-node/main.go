@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/multiraft"
 	"github.com/atomix/runtime/pkg/logging"
 	counterv1 "github.com/atomix/runtime/primitives/counter/v1"
 	electionv1 "github.com/atomix/runtime/primitives/election/v1"
