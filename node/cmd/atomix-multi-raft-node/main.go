@@ -8,16 +8,10 @@ import (
 	"bytes"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft/node/pkg/node"
+	counterv1 "github.com/atomix/multi-raft/node/pkg/primitive/counter/v1"
 	"github.com/atomix/runtime/pkg/logging"
-	counterv1 "github.com/atomix/runtime/primitives/counter/v1"
-	electionv1 "github.com/atomix/runtime/primitives/election/v1"
-	indexedmapv1 "github.com/atomix/runtime/primitives/indexed_map/v1"
-	listv1 "github.com/atomix/runtime/primitives/list/v1"
-	lockv1 "github.com/atomix/runtime/primitives/lock/v1"
-	mapv1 "github.com/atomix/runtime/primitives/map/v1"
-	setv1 "github.com/atomix/runtime/primitives/set/v1"
-	topicv1 "github.com/atomix/runtime/primitives/topic/v1"
-	valuev1 "github.com/atomix/runtime/primitives/value/v1"
+	"github.com/atomix/runtime/pkg/runtime"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -32,7 +26,7 @@ func main() {
 	cmd := &cobra.Command{
 		Use: "atomix-multi-raft-node",
 		Run: func(cmd *cobra.Command, args []string) {
-			nodeID, err := cmd.Flags().GetString("node")
+			nodeID, err := cmd.Flags().GetInt("node")
 			if err != nil {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
@@ -42,12 +36,12 @@ func main() {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
 			}
-			apiHost, err := cmd.Flags().GetString("api-host")
+			primitiveHost, err := cmd.Flags().GetString("primitive-host")
 			if err != nil {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
 			}
-			apiPort, err := cmd.Flags().GetInt("api-port")
+			primitivePort, err := cmd.Flags().GetInt("primitive-port")
 			if err != nil {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
@@ -75,24 +69,16 @@ func main() {
 			}
 
 			// Create the multi-raft node
-			node := multiraft.NewNode(
-				multiraft.NewNetwork(),
-				multiraft.WithNodeID(nodeID),
-				multiraft.WithConfig(config),
-				multiraft.WithAPIHost(apiHost),
-				multiraft.WithAPIPort(apiPort),
-				multiraft.WithRaftHost(raftHost),
-				multiraft.WithRaftPort(raftPort),
-				multiraft.WithPrimitiveTypes(
-					counterv1.Type,
-					electionv1.Type,
-					indexedmapv1.Type,
-					listv1.Type,
-					lockv1.Type,
-					mapv1.Type,
-					setv1.Type,
-					topicv1.Type,
-					valuev1.Type))
+			node := node.New(
+				runtime.NewNetwork(),
+				node.WithNodeID(multiraftv1.NodeID(nodeID)),
+				node.WithConfig(config),
+				node.WithPrimitiveHost(primitiveHost),
+				node.WithPrimitivePort(primitivePort),
+				node.WithRaftHost(raftHost),
+				node.WithRaftPort(raftPort),
+				node.WithPrimitiveTypes(
+					counterv1.Type))
 
 			// Start the node
 			if err := node.Start(); err != nil {
@@ -112,10 +98,10 @@ func main() {
 			}
 		},
 	}
-	cmd.Flags().StringP("node", "n", "", "the ID of this node")
+	cmd.Flags().IntP("node", "n", 0, "the ID of this node")
 	cmd.Flags().StringP("config", "c", "", "the path to the multi-raft cluster configuration")
-	cmd.Flags().String("api-host", "", "the host to which to bind the API server")
-	cmd.Flags().Int("api-port", 8080, "the port to which to bind the API server")
+	cmd.Flags().String("primitive-host", "", "the host to which to bind the API server")
+	cmd.Flags().Int("primitive-port", 8080, "the port to which to bind the API server")
 	cmd.Flags().String("raft-host", "", "the host to which to bind the Multi-Raft server")
 	cmd.Flags().Int("raft-port", 5000, "the port to which to bind the Multi-Raft server")
 

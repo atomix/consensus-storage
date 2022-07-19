@@ -6,6 +6,12 @@ package primitive
 
 import "sync"
 
+func NewRegistry() *Registry {
+	return &Registry{
+		types: make(map[registryKey]Type),
+	}
+}
+
 type Registry struct {
 	types map[registryKey]Type
 	mu    sync.RWMutex

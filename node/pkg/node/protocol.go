@@ -9,26 +9,26 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft/node/pkg/primitive"
 	"github.com/atomix/runtime/pkg/errors"
+	streams "github.com/atomix/runtime/pkg/stream"
 	"github.com/lni/dragonboat/v3"
-	"google.golang.org/grpc/metadata"
 	"sync"
 	"time"
 )
 
 const clientTimeout = 30 * time.Second
 
-func newProtocol(id multiraftv1.NodeID, registry *primitive.Registry, options Options) *Protocol {
+func newProtocol(registry *primitive.Registry, options Options) *Protocol {
 	protocol := &Protocol{
-		id:         id,
+		id:         options.NodeID,
 		partitions: make(map[multiraftv1.PartitionID]*Partition),
 	}
-	protocol.node = newNode(id, protocol, registry, options)
+	protocol.node = newManager(protocol, registry, options)
 	return protocol
 }
 
 type Protocol struct {
 	id         multiraftv1.NodeID
-	node       *Node
+	node       *Manager
 	partitions map[multiraftv1.PartitionID]*Partition
 	mu         sync.RWMutex
 }
@@ -68,7 +68,7 @@ func (p *Protocol) OpenSession(ctx context.Context, input *multiraftv1.OpenSessi
 			OpenSession: input,
 		},
 	}
-	output, err := partition.executeCommand(ctx, command)
+	output, err := partition.Command(ctx, command)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -90,7 +90,7 @@ func (p *Protocol) KeepAliveSession(ctx context.Context, input *multiraftv1.Keep
 			KeepAlive: input,
 		},
 	}
-	output, err := partition.executeCommand(ctx, command)
+	output, err := partition.Command(ctx, command)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -112,7 +112,7 @@ func (p *Protocol) CloseSession(ctx context.Context, input *multiraftv1.CloseSes
 			CloseSession: input,
 		},
 	}
-	output, err := partition.executeCommand(ctx, command)
+	output, err := partition.Command(ctx, command)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -140,7 +140,7 @@ func (p *Protocol) CreatePrimitive(ctx context.Context, input *multiraftv1.Creat
 			},
 		},
 	}
-	output, err := partition.executeCommand(ctx, command)
+	output, err := partition.Command(ctx, command)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -177,7 +177,7 @@ func (p *Protocol) ClosePrimitive(ctx context.Context, input *multiraftv1.CloseP
 			},
 		},
 	}
-	output, err := partition.executeCommand(ctx, command)
+	output, err := partition.Command(ctx, command)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -196,7 +196,7 @@ func (p *Protocol) ClosePrimitive(ctx context.Context, input *multiraftv1.CloseP
 	return output.GetSessionCommand().GetClosePrimitive(), responseHeaders, nil
 }
 
-func (p *Protocol) ExecuteCommand(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders) ([]byte, *multiraftv1.CommandResponseHeaders, error) {
+func (p *Protocol) Command(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders) ([]byte, *multiraftv1.CommandResponseHeaders, error) {
 	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
@@ -220,7 +220,7 @@ func (p *Protocol) ExecuteCommand(ctx context.Context, inputBytes []byte, reques
 			},
 		},
 	}
-	output, err := partition.executeCommand(ctx, command)
+	output, err := partition.Command(ctx, command)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -242,7 +242,7 @@ func (p *Protocol) ExecuteCommand(ctx context.Context, inputBytes []byte, reques
 	return outputBytes, responseHeaders, nil
 }
 
-func (p *Protocol) ExecuteStreamCommand(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders, responseCh chan<- StreamCommandResponse) error {
+func (p *Protocol) StreamCommand(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders, stream streams.WriteStream[*primitive.StreamResponse[*multiraftv1.CommandResponseHeaders]]) error {
 	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
@@ -266,33 +266,31 @@ func (p *Protocol) ExecuteStreamCommand(ctx context.Context, inputBytes []byte, 
 			},
 		},
 	}
-
-	outputCh := make(chan multiraftv1.CommandOutput)
-	go func() {
-		for output := range outputCh {
-			responseCh <- StreamCommandResponse{
-				Headers: multiraftv1.CommandResponseHeaders{
-					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
-						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
-							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
-								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
-									Index: output.Index,
-								},
+	return partition.StreamCommand(ctx, command, streams.NewEncodingStream[*multiraftv1.CommandOutput, *primitive.StreamResponse[*multiraftv1.CommandResponseHeaders]](stream, func(output *multiraftv1.CommandOutput, err error) (*primitive.StreamResponse[*multiraftv1.CommandResponseHeaders], error) {
+		if err != nil {
+			return nil, err
+		}
+		return &primitive.StreamResponse[*multiraftv1.CommandResponseHeaders]{
+			Headers: &multiraftv1.CommandResponseHeaders{
+				OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+					PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+						SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+							PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+								Index: output.Index,
 							},
 						},
-						Status:  getHeaderStatus(output.GetSessionCommand().GetOperation().Status),
-						Message: output.GetSessionCommand().GetOperation().Message,
 					},
-					OutputSequenceNum: output.GetSessionCommand().SequenceNum,
+					Status:  getHeaderStatus(output.GetSessionCommand().GetOperation().Status),
+					Message: output.GetSessionCommand().GetOperation().Message,
 				},
-				Payload: output.GetSessionCommand().GetOperation().Payload,
-			}
-		}
-	}()
-	return partition.executeStreamCommand(ctx, command, outputCh)
+				OutputSequenceNum: output.GetSessionCommand().SequenceNum,
+			},
+			Output: output.GetSessionCommand().GetOperation().Payload,
+		}, nil
+	}))
 }
 
-func (p *Protocol) ExecuteQuery(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders) ([]byte, *multiraftv1.QueryResponseHeaders, error) {
+func (p *Protocol) Query(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders) ([]byte, *multiraftv1.QueryResponseHeaders, error) {
 	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
@@ -315,9 +313,7 @@ func (p *Protocol) ExecuteQuery(ctx context.Context, inputBytes []byte, requestH
 			},
 		},
 	}
-	md, _ := metadata.FromIncomingContext(ctx)
-	sync := md["Sync"] != nil
-	output, err := partition.executeQuery(ctx, query, sync)
+	output, err := partition.Query(ctx, query)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -338,7 +334,7 @@ func (p *Protocol) ExecuteQuery(ctx context.Context, inputBytes []byte, requestH
 	return outputBytes, responseHeaders, nil
 }
 
-func (p *Protocol) ExecuteStreamQuery(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders, responseCh chan<- StreamQueryResponse) error {
+func (p *Protocol) StreamQuery(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders, stream streams.WriteStream[*primitive.StreamResponse[*multiraftv1.QueryResponseHeaders]]) error {
 	partition, ok := p.getPartition(requestHeaders.PartitionID)
 	if !ok {
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
@@ -361,31 +357,27 @@ func (p *Protocol) ExecuteStreamQuery(ctx context.Context, inputBytes []byte, re
 			},
 		},
 	}
-
-	outputCh := make(chan multiraftv1.QueryOutput)
-	go func() {
-		for output := range outputCh {
-			responseCh <- StreamQueryResponse{
-				Headers: multiraftv1.QueryResponseHeaders{
-					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
-						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
-							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
-								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
-									Index: output.Index,
-								},
+	return partition.StreamQuery(ctx, query, streams.NewEncodingStream[*multiraftv1.QueryOutput, *primitive.StreamResponse[*multiraftv1.QueryResponseHeaders]](stream, func(output *multiraftv1.QueryOutput, err error) (*primitive.StreamResponse[*multiraftv1.QueryResponseHeaders], error) {
+		if err != nil {
+			return nil, err
+		}
+		return &primitive.StreamResponse[*multiraftv1.QueryResponseHeaders]{
+			Headers: &multiraftv1.QueryResponseHeaders{
+				OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+					PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+						SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+							PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+								Index: output.Index,
 							},
 						},
-						Status:  getHeaderStatus(output.GetSessionQuery().GetOperation().Status),
-						Message: output.GetSessionQuery().GetOperation().Message,
 					},
+					Status:  getHeaderStatus(output.GetSessionQuery().GetOperation().Status),
+					Message: output.GetSessionQuery().GetOperation().Message,
 				},
-				Payload: output.GetSessionQuery().GetOperation().Payload,
-			}
-		}
-	}()
-	md, _ := metadata.FromIncomingContext(ctx)
-	sync := md["Sync"] != nil
-	return partition.executeStreamQuery(ctx, query, outputCh, sync)
+			},
+			Output: output.GetSessionQuery().GetOperation().Payload,
+		}, nil
+	}))
 }
 
 type StreamCommandResponse struct {

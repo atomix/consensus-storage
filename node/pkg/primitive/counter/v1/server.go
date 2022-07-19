@@ -7,7 +7,7 @@ package v1
 import (
 	"context"
 	counterv1 "github.com/atomix/multi-raft/api/atomix/multiraft/counter/v1"
-	"github.com/atomix/multi-raft/node/pkg/node"
+	"github.com/atomix/multi-raft/node/pkg/primitive"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/atomix/runtime/pkg/logging"
 	"github.com/gogo/protobuf/proto"
@@ -15,14 +15,14 @@ import (
 
 var log = logging.GetLogger()
 
-func newServer(protocol *node.Protocol) counterv1.CounterServer {
+func newServer(protocol primitive.Protocol) counterv1.CounterServer {
 	return &Server{
 		protocol: protocol,
 	}
 }
 
 type Server struct {
-	protocol *node.Protocol
+	protocol primitive.Protocol
 }
 
 func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
@@ -36,7 +36,7 @@ func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*count
 			logging.Error("Error", err))
 		return nil, err
 	}
-	outputBytes, responseHeaders, err := s.protocol.ExecuteCommand(ctx, inputBytes, &request.Headers)
+	outputBytes, responseHeaders, err := s.protocol.Command(ctx, inputBytes, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Set",
@@ -72,7 +72,7 @@ func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAn
 			logging.Error("Error", err))
 		return nil, err
 	}
-	outputBytes, responseHeaders, err := s.protocol.ExecuteCommand(ctx, inputBytes, &request.Headers)
+	outputBytes, responseHeaders, err := s.protocol.Command(ctx, inputBytes, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("CompareAndSet",
@@ -108,7 +108,7 @@ func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*count
 			logging.Error("Error", err))
 		return nil, err
 	}
-	outputBytes, responseHeaders, err := s.protocol.ExecuteQuery(ctx, inputBytes, &request.Headers)
+	outputBytes, responseHeaders, err := s.protocol.Query(ctx, inputBytes, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
@@ -144,7 +144,7 @@ func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequ
 			logging.Error("Error", err))
 		return nil, err
 	}
-	outputBytes, responseHeaders, err := s.protocol.ExecuteCommand(ctx, inputBytes, &request.Headers)
+	outputBytes, responseHeaders, err := s.protocol.Command(ctx, inputBytes, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Increment",
@@ -180,7 +180,7 @@ func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequ
 			logging.Error("Error", err))
 		return nil, err
 	}
-	outputBytes, responseHeaders, err := s.protocol.ExecuteCommand(ctx, inputBytes, &request.Headers)
+	outputBytes, responseHeaders, err := s.protocol.Command(ctx, inputBytes, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Decrement",

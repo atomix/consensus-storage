@@ -10,10 +10,10 @@ type Type interface {
 	Name() string
 	APIVersion() string
 	NewStateMachine(ctx Context) StateMachine
-	RegisterServices(server *grpc.Server)
+	RegisterServices(server *grpc.Server, protocol Protocol)
 }
 
-func NewType(name, apiVersion string, registrar func(*grpc.Server), factory func(Context) StateMachine) Type {
+func NewType(name, apiVersion string, registrar func(*grpc.Server, Protocol), factory func(Context) StateMachine) Type {
 	return &primitiveType{
 		name:       name,
 		apiVersion: apiVersion,
@@ -25,7 +25,7 @@ func NewType(name, apiVersion string, registrar func(*grpc.Server), factory func
 type primitiveType struct {
 	name       string
 	apiVersion string
-	registrar  func(*grpc.Server)
+	registrar  func(*grpc.Server, Protocol)
 	factory    func(Context) StateMachine
 }
 
@@ -41,6 +41,6 @@ func (t *primitiveType) NewStateMachine(ctx Context) StateMachine {
 	return t.factory(ctx)
 }
 
-func (t *primitiveType) RegisterServices(server *grpc.Server) {
-	t.registrar(server)
+func (t *primitiveType) RegisterServices(server *grpc.Server, protocol Protocol) {
+	t.registrar(server, protocol)
 }

@@ -6,7 +6,7 @@ package node
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"google.golang.org/grpc"
+	"github.com/atomix/multi-raft/node/pkg/primitive"
 )
 
 const (
@@ -14,14 +14,12 @@ const (
 	defaultRaftPort = 5000
 )
 
-type RegisterServiceFunc func(*grpc.Server)
-
 type Options struct {
 	NodeID           multiraftv1.NodeID
 	Config           multiraftv1.MultiRaftConfig
 	PrimitiveService PrimitiveServiceOptions
 	RaftService      RaftServiceOptions
-	Services         []RegisterServiceFunc
+	PrimitiveTypes   []primitive.Type
 }
 
 func (o *Options) apply(opts ...Option) {
@@ -65,9 +63,9 @@ func WithConfig(config multiraftv1.MultiRaftConfig) Option {
 	}
 }
 
-func WithPrimitiveTypes(services ...RegisterServiceFunc) Option {
+func WithPrimitiveTypes(primitiveTypes ...primitive.Type) Option {
 	return func(options *Options) {
-		options.Services = append(options.Services, services...)
+		options.PrimitiveTypes = append(options.PrimitiveTypes, primitiveTypes...)
 	}
 }
 

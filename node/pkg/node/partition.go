@@ -9,8 +9,9 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/atomix/runtime/pkg/logging"
-	"github.com/atomix/runtime/pkg/stream"
+	streams "github.com/atomix/runtime/pkg/stream"
 	"github.com/gogo/protobuf/proto"
+	"google.golang.org/grpc/metadata"
 	"sync/atomic"
 )
 
@@ -43,11 +44,11 @@ func (p *Partition) getLeader() (multiraftv1.Term, multiraftv1.NodeID) {
 	return multiraftv1.Term(atomic.LoadUint64(&p.term)), multiraftv1.NodeID(atomic.LoadUint64(&p.leader))
 }
 
-func (p *Partition) executeCommand(ctx context.Context, command *multiraftv1.CommandInput) (*multiraftv1.CommandOutput, error) {
-	resultCh := make(chan stream.Result[*multiraftv1.CommandOutput], 1)
+func (p *Partition) Command(ctx context.Context, command *multiraftv1.CommandInput) (*multiraftv1.CommandOutput, error) {
+	resultCh := make(chan streams.Result[*multiraftv1.CommandOutput], 1)
 	errCh := make(chan error, 1)
 	go func() {
-		if err := p.commitCommand(ctx, command, stream.NewChannelStream[*multiraftv1.CommandOutput](resultCh)); err != nil {
+		if err := p.commitCommand(ctx, command, streams.NewChannelStream[*multiraftv1.CommandOutput](resultCh)); err != nil {
 			errCh <- err
 		}
 	}()
@@ -71,49 +72,28 @@ func (p *Partition) executeCommand(ctx context.Context, command *multiraftv1.Com
 	}
 }
 
-func (p *Partition) executeStreamCommand(ctx context.Context, command *multiraftv1.CommandInput, ch chan<- multiraftv1.CommandOutput) error {
-	resultCh := make(chan stream.Result[*multiraftv1.CommandOutput])
-	errCh := make(chan error)
-
-	stream := stream.NewBufferedStream[*multiraftv1.CommandOutput]()
+func (p *Partition) StreamCommand(ctx context.Context, input *multiraftv1.CommandInput, out streams.WriteStream[*multiraftv1.CommandOutput]) error {
+	in := streams.NewBufferedStream[*multiraftv1.CommandOutput]()
 	go func() {
-		defer close(resultCh)
+		if err := p.commitCommand(ctx, input, in); err != nil {
+			in.Error(err)
+			return
+		}
+	}()
+	go func() {
 		for {
-			result, ok := stream.Receive()
+			result, ok := in.Receive()
 			if !ok {
+				out.Close()
 				return
 			}
-			resultCh <- result
+			out.Send(result)
 		}
 	}()
-
-	go func() {
-		if err := p.commitCommand(ctx, command, stream); err != nil {
-			errCh <- err
-		}
-	}()
-
-	for {
-		select {
-		case result, ok := <-resultCh:
-			if !ok {
-				return nil
-			}
-
-			if result.Failed() {
-				return result.Error
-			}
-
-			ch <- *result.Value
-		case err := <-errCh:
-			return err
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
+	return nil
 }
 
-func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream stream.WriteStream[*multiraftv1.CommandOutput]) error {
+func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput]) error {
 	term, leader := p.getLeader()
 	if leader != p.protocol.id {
 		return errors.NewUnavailable("not the leader")
@@ -140,11 +120,11 @@ func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.Comman
 	return nil
 }
 
-func (p *Partition) executeQuery(ctx context.Context, query *multiraftv1.QueryInput, sync bool) (*multiraftv1.QueryOutput, error) {
-	resultCh := make(chan stream.Result[*multiraftv1.QueryOutput], 1)
+func (p *Partition) Query(ctx context.Context, query *multiraftv1.QueryInput) (*multiraftv1.QueryOutput, error) {
+	resultCh := make(chan streams.Result[*multiraftv1.QueryOutput], 1)
 	errCh := make(chan error, 1)
 	go func() {
-		if err := p.applyQuery(ctx, query, stream.NewChannelStream[*multiraftv1.QueryOutput](resultCh), sync); err != nil {
+		if err := p.applyQuery(ctx, query, streams.NewChannelStream[*multiraftv1.QueryOutput](resultCh)); err != nil {
 			errCh <- err
 		}
 	}()
@@ -168,53 +148,34 @@ func (p *Partition) executeQuery(ctx context.Context, query *multiraftv1.QueryIn
 	}
 }
 
-func (p *Partition) executeStreamQuery(ctx context.Context, query *multiraftv1.QueryInput, ch chan<- multiraftv1.QueryOutput, sync bool) error {
-	resultCh := make(chan stream.Result[*multiraftv1.QueryOutput])
-	errCh := make(chan error)
-
-	stream := stream.NewBufferedStream[*multiraftv1.QueryOutput]()
+func (p *Partition) StreamQuery(ctx context.Context, input *multiraftv1.QueryInput, out streams.WriteStream[*multiraftv1.QueryOutput]) error {
+	in := streams.NewBufferedStream[*multiraftv1.QueryOutput]()
 	go func() {
-		defer close(resultCh)
+		if err := p.applyQuery(ctx, input, in); err != nil {
+			in.Error(err)
+			return
+		}
+	}()
+	go func() {
 		for {
-			result, ok := stream.Receive()
+			result, ok := in.Receive()
 			if !ok {
+				out.Close()
 				return
 			}
-			resultCh <- result
+			out.Send(result)
 		}
 	}()
-
-	go func() {
-		if err := p.applyQuery(ctx, query, stream, sync); err != nil {
-			errCh <- err
-		}
-	}()
-
-	for {
-		select {
-		case result, ok := <-resultCh:
-			if !ok {
-				return nil
-			}
-
-			if result.Failed() {
-				return result.Error
-			}
-
-			ch <- *result.Value
-		case err := <-errCh:
-			return err
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
+	return nil
 }
 
-func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, stream stream.WriteStream[*multiraftv1.QueryOutput], sync bool) error {
+func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, stream streams.WriteStream[*multiraftv1.QueryOutput]) error {
 	query := queryContext{
 		input:  input,
 		stream: stream,
 	}
+	md, _ := metadata.FromIncomingContext(ctx)
+	sync := md["Sync"] != nil
 	if sync {
 		ctx, cancel := context.WithTimeout(ctx, clientTimeout)
 		defer cancel()
