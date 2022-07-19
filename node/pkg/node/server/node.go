@@ -8,7 +8,9 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachine"
+	"github.com/atomix/multi-raft/node/pkg/node/primitive"
+	"github.com/atomix/multi-raft/node/pkg/node/raft"
+	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/atomix/runtime/pkg/logging"
 	"github.com/atomix/runtime/pkg/stream"
@@ -22,7 +24,7 @@ import (
 
 const dataDir = "/var/lib/atomix/data"
 
-func newNode(id multiraftv1.NodeID, protocol *Protocol, options Options) *Node {
+func newNode(id multiraftv1.NodeID, protocol *Protocol, registry *primitive.Registry, options Options) *Node {
 	var rtt uint64 = 250
 	if options.Config.HeartbeatPeriod != nil {
 		rtt = uint64(options.Config.HeartbeatPeriod.Milliseconds())
@@ -49,6 +51,7 @@ func newNode(id multiraftv1.NodeID, protocol *Protocol, options Options) *Node {
 		id:       id,
 		host:     node,
 		protocol: protocol,
+		registry: registry,
 		listener: listener,
 	}
 }
@@ -59,6 +62,7 @@ type Node struct {
 	host     *dragonboat.NodeHost
 	config   *multiraftv1.ClusterConfig
 	protocol *Protocol
+	registry *primitive.Registry
 	listener *eventListener
 	mu       sync.RWMutex
 }
@@ -192,7 +196,7 @@ func (n *Node) getInitialMembers(config multiraftv1.PartitionConfig) map[uint64]
 func (n *Node) newStateMachine(clusterID, nodeID uint64) dbstatemachine.IStateMachine {
 	partition := newPartition(n.protocol, multiraftv1.PartitionID(clusterID))
 	n.protocol.addPartition(partition)
-	return newStateMachine(statemachine.NewManager(), partition.streams)
+	return newStateMachine(raft.NewStateMachine(n.registry), partition.streams)
 }
 
 func (n *Node) waitForPartitionLeaders(eventCh chan<- multiraftv1.MultiRaftEvent, partitions ...multiraftv1.PartitionID) {
@@ -225,15 +229,15 @@ func (n *Node) Shutdown(ctx context.Context, partitionID multiraftv1.PartitionID
 	return nil
 }
 
-func newStateMachine(manager *statemachine.Manager, streams *streamRegistry) dbstatemachine.IStateMachine {
+func newStateMachine(state raft.StateMachine, streams *streamRegistry) dbstatemachine.IStateMachine {
 	return &stateMachine{
-		manager: manager,
+		state:   state,
 		streams: streams,
 	}
 }
 
 type stateMachine struct {
-	manager *statemachine.Manager
+	state   raft.StateMachine
 	streams *streamRegistry
 }
 
@@ -244,22 +248,22 @@ func (s *stateMachine) Update(bytes []byte) (dbstatemachine.Result, error) {
 	}
 
 	stream := s.streams.lookup(logEntry.StreamID)
-	s.manager.Command(&logEntry.Command, stream)
+	s.state.Command(&logEntry.Command, stream)
 	return dbstatemachine.Result{}, nil
 }
 
 func (s *stateMachine) Lookup(value interface{}) (interface{}, error) {
 	query := value.(queryContext)
-	s.manager.Query(query.input, query.stream)
+	s.state.Query(query.input, query.stream)
 	return nil, nil
 }
 
 func (s *stateMachine) SaveSnapshot(writer io.Writer, collection dbstatemachine.ISnapshotFileCollection, i <-chan struct{}) error {
-	return s.manager.Snapshot(writer)
+	return s.state.Snapshot(snapshot.NewWriter(writer))
 }
 
 func (s *stateMachine) RecoverFromSnapshot(reader io.Reader, files []dbstatemachine.SnapshotFile, i <-chan struct{}) error {
-	return s.manager.Restore(reader)
+	return s.state.Recover(snapshot.NewReader(reader))
 }
 
 func (s *stateMachine) Close() error {

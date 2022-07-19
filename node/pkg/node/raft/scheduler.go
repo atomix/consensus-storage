@@ -6,7 +6,7 @@ package raft
 
 import (
 	"container/list"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/primitive"
+	"github.com/atomix/multi-raft/node/pkg/node/primitive"
 	"time"
 )
 

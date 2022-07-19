@@ -6,23 +6,14 @@ package raft
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/primitive"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/snapshot"
+	"github.com/atomix/multi-raft/node/pkg/node/primitive"
+	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/google/uuid"
 	"time"
 )
 
-type PrimitiveManager interface {
-	Snapshot(writer *snapshot.Writer) error
-	Recover(reader *snapshot.Reader) error
-	Create(command CreatePrimitive)
-	Command(command PrimitiveCommand)
-	Query(query PrimitiveQuery)
-	Close(command ClosePrimitive)
-}
-
-func newPrimitiveManager(registry *primitive.Registry, context SessionManagerContext) PrimitiveManager {
+func newPrimitiveManager(registry *primitive.Registry, context sessionManagerContext) *primitiveManager {
 	return &primitiveManager{
 		registry:   registry,
 		context:    context,
@@ -32,7 +23,7 @@ func newPrimitiveManager(registry *primitive.Registry, context SessionManagerCon
 
 type primitiveManager struct {
 	registry   *primitive.Registry
-	context    SessionManagerContext
+	context    sessionManagerContext
 	primitives map[primitive.ID]*primitiveContext
 }
 

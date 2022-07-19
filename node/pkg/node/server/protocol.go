@@ -7,6 +7,7 @@ package server
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft/node/pkg/node/primitive"
 	"github.com/atomix/runtime/pkg/errors"
 	"github.com/lni/dragonboat/v3"
 	"sync"
@@ -15,12 +16,12 @@ import (
 
 const clientTimeout = 30 * time.Second
 
-func newProtocol(id multiraftv1.NodeID, options Options) *Protocol {
+func newProtocol(id multiraftv1.NodeID, registry *primitive.Registry, options Options) *Protocol {
 	protocol := &Protocol{
 		id:         id,
 		partitions: make(map[multiraftv1.PartitionID]*Partition),
 	}
-	protocol.node = newNode(id, protocol, options)
+	protocol.node = newNode(id, protocol, registry, options)
 	return protocol
 }
 
@@ -188,12 +189,12 @@ func (p *Protocol) ExecuteCommand(ctx context.Context, operationID multiraftv1.O
 		Timestamp: time.Now(),
 		Input: &multiraftv1.CommandInput_SessionCommand{
 			SessionCommand: &multiraftv1.SessionCommandInput{
-				SessionID: requestHeaders.SessionID,
-				Input: &multiraftv1.SessionCommandInput_PrimitiveCommand{
-					PrimitiveCommand: &multiraftv1.PrimitiveCommandInput{
+				SessionID:   requestHeaders.SessionID,
+				SequenceNum: requestHeaders.SequenceNum,
+				Input: &multiraftv1.SessionCommandInput_Operation{
+					Operation: &multiraftv1.PrimitiveOperationInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						SequenceNum: requestHeaders.SequenceNum,
-						Operation: &multiraftv1.OperationInput{
+						OperationInput: multiraftv1.OperationInput{
 							ID:      operationID,
 							Payload: inputBytes,
 						},
@@ -206,7 +207,7 @@ func (p *Protocol) ExecuteCommand(ctx context.Context, operationID multiraftv1.O
 	if err != nil {
 		return nil, nil, err
 	}
-	outputBytes := output.GetSessionCommand().GetPrimitiveCommand().GetOperation().Payload
+	outputBytes := output.GetSessionCommand().GetOperation().Payload
 	responseHeaders := &multiraftv1.CommandResponseHeaders{
 		OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
 			PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
@@ -216,10 +217,10 @@ func (p *Protocol) ExecuteCommand(ctx context.Context, operationID multiraftv1.O
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionCommand().GetPrimitiveCommand().GetOperation().Status),
-			Message: output.GetSessionCommand().GetPrimitiveCommand().GetOperation().Message,
+			Status:  getHeaderStatus(output.GetSessionCommand().GetOperation().Status),
+			Message: output.GetSessionCommand().GetOperation().Message,
 		},
-		OutputSequenceNum: output.GetSessionCommand().GetPrimitiveCommand().SequenceNum,
+		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 	}
 	return outputBytes, responseHeaders, nil
 }
@@ -234,12 +235,12 @@ func (p *Protocol) ExecuteStreamCommand(ctx context.Context, operationID multira
 		Timestamp: time.Now(),
 		Input: &multiraftv1.CommandInput_SessionCommand{
 			SessionCommand: &multiraftv1.SessionCommandInput{
-				SessionID: requestHeaders.SessionID,
-				Input: &multiraftv1.SessionCommandInput_PrimitiveCommand{
-					PrimitiveCommand: &multiraftv1.PrimitiveCommandInput{
+				SessionID:   requestHeaders.SessionID,
+				SequenceNum: requestHeaders.SequenceNum,
+				Input: &multiraftv1.SessionCommandInput_Operation{
+					Operation: &multiraftv1.PrimitiveOperationInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						SequenceNum: requestHeaders.SequenceNum,
-						Operation: &multiraftv1.OperationInput{
+						OperationInput: multiraftv1.OperationInput{
 							ID:      operationID,
 							Payload: inputBytes,
 						},
@@ -262,12 +263,12 @@ func (p *Protocol) ExecuteStreamCommand(ctx context.Context, operationID multira
 								},
 							},
 						},
-						Status:  getHeaderStatus(output.GetSessionCommand().GetPrimitiveCommand().GetOperation().Status),
-						Message: output.GetSessionCommand().GetPrimitiveCommand().GetOperation().Message,
+						Status:  getHeaderStatus(output.GetSessionCommand().GetOperation().Status),
+						Message: output.GetSessionCommand().GetOperation().Message,
 					},
-					OutputSequenceNum: output.GetSessionCommand().GetPrimitiveCommand().SequenceNum,
+					OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 				},
-				Payload: output.GetSessionCommand().GetPrimitiveCommand().GetOperation().Payload,
+				Payload: output.GetSessionCommand().GetOperation().Payload,
 			}
 		}
 	}()
@@ -285,10 +286,10 @@ func (p *Protocol) ExecuteQuery(ctx context.Context, operationID multiraftv1.Ope
 		Input: &multiraftv1.QueryInput_SessionQuery{
 			SessionQuery: &multiraftv1.SessionQueryInput{
 				SessionID: requestHeaders.SessionID,
-				Input: &multiraftv1.SessionQueryInput_PrimitiveQuery{
-					PrimitiveQuery: &multiraftv1.PrimitiveQueryInput{
+				Input: &multiraftv1.SessionQueryInput_Operation{
+					Operation: &multiraftv1.PrimitiveOperationInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						Operation: &multiraftv1.OperationInput{
+						OperationInput: multiraftv1.OperationInput{
 							ID:      operationID,
 							Payload: inputBytes,
 						},
@@ -301,7 +302,7 @@ func (p *Protocol) ExecuteQuery(ctx context.Context, operationID multiraftv1.Ope
 	if err != nil {
 		return nil, nil, err
 	}
-	outputBytes := output.GetSessionQuery().GetPrimitiveQuery().GetOperation().Payload
+	outputBytes := output.GetSessionQuery().GetOperation().Payload
 	responseHeaders := &multiraftv1.QueryResponseHeaders{
 		OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
 			PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
@@ -311,8 +312,8 @@ func (p *Protocol) ExecuteQuery(ctx context.Context, operationID multiraftv1.Ope
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionQuery().GetPrimitiveQuery().GetOperation().Status),
-			Message: output.GetSessionQuery().GetPrimitiveQuery().GetOperation().Message,
+			Status:  getHeaderStatus(output.GetSessionQuery().GetOperation().Status),
+			Message: output.GetSessionQuery().GetOperation().Message,
 		},
 	}
 	return outputBytes, responseHeaders, nil
@@ -329,10 +330,10 @@ func (p *Protocol) ExecuteStreamQuery(ctx context.Context, operationID multiraft
 		Input: &multiraftv1.QueryInput_SessionQuery{
 			SessionQuery: &multiraftv1.SessionQueryInput{
 				SessionID: requestHeaders.SessionID,
-				Input: &multiraftv1.SessionQueryInput_PrimitiveQuery{
-					PrimitiveQuery: &multiraftv1.PrimitiveQueryInput{
+				Input: &multiraftv1.SessionQueryInput_Operation{
+					Operation: &multiraftv1.PrimitiveOperationInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						Operation: &multiraftv1.OperationInput{
+						OperationInput: multiraftv1.OperationInput{
 							ID:      operationID,
 							Payload: inputBytes,
 						},
@@ -355,11 +356,11 @@ func (p *Protocol) ExecuteStreamQuery(ctx context.Context, operationID multiraft
 								},
 							},
 						},
-						Status:  getHeaderStatus(output.GetSessionQuery().GetPrimitiveQuery().GetOperation().Status),
-						Message: output.GetSessionQuery().GetPrimitiveQuery().GetOperation().Message,
+						Status:  getHeaderStatus(output.GetSessionQuery().GetOperation().Status),
+						Message: output.GetSessionQuery().GetOperation().Message,
 					},
 				},
-				Payload: output.GetSessionQuery().GetPrimitiveQuery().GetOperation().Payload,
+				Payload: output.GetSessionQuery().GetOperation().Payload,
 			}
 		}
 	}()

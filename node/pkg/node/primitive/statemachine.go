@@ -5,7 +5,7 @@
 package primitive
 
 import (
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/snapshot"
+	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
 	"time"
 )
 

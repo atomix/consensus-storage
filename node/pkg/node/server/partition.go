@@ -44,10 +44,10 @@ func (p *Partition) getLeader() (multiraftv1.Term, multiraftv1.NodeID) {
 }
 
 func (p *Partition) executeCommand(ctx context.Context, command *multiraftv1.CommandInput) (*multiraftv1.CommandOutput, error) {
-	resultCh := make(chan stream.Result, 1)
+	resultCh := make(chan stream.Result[*multiraftv1.CommandOutput], 1)
 	errCh := make(chan error, 1)
 	go func() {
-		if err := p.commitCommand(ctx, command, stream.NewChannelStream(resultCh)); err != nil {
+		if err := p.commitCommand(ctx, command, stream.NewChannelStream[*multiraftv1.CommandOutput](resultCh)); err != nil {
 			errCh <- err
 		}
 	}()
@@ -63,7 +63,7 @@ func (p *Partition) executeCommand(ctx context.Context, command *multiraftv1.Com
 			return nil, result.Error
 		}
 
-		return result.Value.(*multiraftv1.CommandOutput), nil
+		return result.Value, nil
 	case err := <-errCh:
 		return nil, err
 	case <-ctx.Done():
@@ -72,10 +72,10 @@ func (p *Partition) executeCommand(ctx context.Context, command *multiraftv1.Com
 }
 
 func (p *Partition) executeStreamCommand(ctx context.Context, command *multiraftv1.CommandInput, ch chan<- multiraftv1.CommandOutput) error {
-	resultCh := make(chan stream.Result)
+	resultCh := make(chan stream.Result[*multiraftv1.CommandOutput])
 	errCh := make(chan error)
 
-	stream := stream.NewBufferedStream()
+	stream := stream.NewBufferedStream[*multiraftv1.CommandOutput]()
 	go func() {
 		defer close(resultCh)
 		for {
@@ -104,7 +104,7 @@ func (p *Partition) executeStreamCommand(ctx context.Context, command *multiraft
 				return result.Error
 			}
 
-			ch <- *result.Value.(*multiraftv1.CommandOutput)
+			ch <- *result.Value
 		case err := <-errCh:
 			return err
 		case <-ctx.Done():
@@ -113,7 +113,7 @@ func (p *Partition) executeStreamCommand(ctx context.Context, command *multiraft
 	}
 }
 
-func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream stream.WriteStream) error {
+func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream stream.WriteStream[*multiraftv1.CommandOutput]) error {
 	term, leader := p.getLeader()
 	if leader != p.protocol.id {
 		return errors.NewUnavailable("not the leader")
@@ -141,10 +141,10 @@ func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.Comman
 }
 
 func (p *Partition) executeQuery(ctx context.Context, query *multiraftv1.QueryInput, sync bool) (*multiraftv1.QueryOutput, error) {
-	resultCh := make(chan stream.Result, 1)
+	resultCh := make(chan stream.Result[*multiraftv1.QueryOutput], 1)
 	errCh := make(chan error, 1)
 	go func() {
-		if err := p.applyQuery(ctx, query, stream.NewChannelStream(resultCh), sync); err != nil {
+		if err := p.applyQuery(ctx, query, stream.NewChannelStream[*multiraftv1.QueryOutput](resultCh), sync); err != nil {
 			errCh <- err
 		}
 	}()
@@ -160,7 +160,7 @@ func (p *Partition) executeQuery(ctx context.Context, query *multiraftv1.QueryIn
 			return nil, result.Error
 		}
 
-		return result.Value.(*multiraftv1.QueryOutput), nil
+		return result.Value, nil
 	case err := <-errCh:
 		return nil, err
 	case <-ctx.Done():
@@ -169,10 +169,10 @@ func (p *Partition) executeQuery(ctx context.Context, query *multiraftv1.QueryIn
 }
 
 func (p *Partition) executeStreamQuery(ctx context.Context, query *multiraftv1.QueryInput, ch chan<- multiraftv1.QueryOutput, sync bool) error {
-	resultCh := make(chan stream.Result)
+	resultCh := make(chan stream.Result[*multiraftv1.QueryOutput])
 	errCh := make(chan error)
 
-	stream := stream.NewBufferedStream()
+	stream := stream.NewBufferedStream[*multiraftv1.QueryOutput]()
 	go func() {
 		defer close(resultCh)
 		for {
@@ -201,7 +201,7 @@ func (p *Partition) executeStreamQuery(ctx context.Context, query *multiraftv1.Q
 				return result.Error
 			}
 
-			ch <- *result.Value.(*multiraftv1.QueryOutput)
+			ch <- *result.Value
 		case err := <-errCh:
 			return err
 		case <-ctx.Done():
@@ -210,7 +210,7 @@ func (p *Partition) executeStreamQuery(ctx context.Context, query *multiraftv1.Q
 	}
 }
 
-func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, stream stream.WriteStream, sync bool) error {
+func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, stream stream.WriteStream[*multiraftv1.QueryOutput], sync bool) error {
 	query := queryContext{
 		input:  input,
 		stream: stream,

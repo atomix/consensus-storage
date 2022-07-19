@@ -9,8 +9,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/primitive"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/snapshot"
+	"github.com/atomix/multi-raft/node/pkg/node/primitive"
+	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
 	"github.com/atomix/runtime/pkg/errors"
 	streams "github.com/atomix/runtime/pkg/stream"
 	"github.com/bits-and-blooms/bloom/v3"
@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-type SessionManagerContext interface {
+type sessionManagerContext interface {
 	// Index returns the current partition index
 	Index() multiraftv1.Index
 	// Time returns the current partition time
@@ -125,18 +125,8 @@ type Watcher interface {
 	Cancel()
 }
 
-type SessionManager interface {
-	Snapshot(writer *snapshot.Writer) error
-	Recover(reader *snapshot.Reader) error
-	OpenSession(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput])
-	KeepAlive(input *multiraftv1.KeepAliveInput, stream streams.WriteStream[*multiraftv1.KeepAliveOutput])
-	CloseSession(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput])
-	CommandSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput])
-	QuerySession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput])
-}
-
-func newSessionManager(registry *primitive.Registry, context Context) SessionManager {
-	sessionManager := &raftSessionManager{
+func newSessionManager(registry *primitive.Registry, context Context) *sessionManager {
+	sessionManager := &sessionManager{
 		context:  context,
 		sessions: newSessions(),
 	}
@@ -144,30 +134,30 @@ func newSessionManager(registry *primitive.Registry, context Context) SessionMan
 	return sessionManager
 }
 
-type raftSessionManager struct {
+type sessionManager struct {
 	context    Context
 	sessions   *raftSessions
-	primitives PrimitiveManager
+	primitives *primitiveManager
 	prevTime   time.Time
 }
 
-func (m *raftSessionManager) Index() multiraftv1.Index {
+func (m *sessionManager) Index() multiraftv1.Index {
 	return m.context.Index()
 }
 
-func (m *raftSessionManager) Time() time.Time {
+func (m *sessionManager) Time() time.Time {
 	return m.context.Time()
 }
 
-func (m *raftSessionManager) Scheduler() *Scheduler {
+func (m *sessionManager) Scheduler() *Scheduler {
 	return m.context.Scheduler()
 }
 
-func (m *raftSessionManager) Sessions() Sessions {
+func (m *sessionManager) Sessions() Sessions {
 	return m.sessions
 }
 
-func (m *raftSessionManager) Snapshot(writer *snapshot.Writer) error {
+func (m *sessionManager) Snapshot(writer *snapshot.Writer) error {
 	if err := writer.WriteVarInt(len(m.sessions.sessions)); err != nil {
 		return err
 	}
@@ -179,7 +169,7 @@ func (m *raftSessionManager) Snapshot(writer *snapshot.Writer) error {
 	return m.primitives.Snapshot(writer)
 }
 
-func (m *raftSessionManager) Recover(reader *snapshot.Reader) error {
+func (m *sessionManager) Recover(reader *snapshot.Reader) error {
 	m.sessions = newSessions()
 	n, err := reader.ReadVarInt()
 	if err != nil {
@@ -194,13 +184,13 @@ func (m *raftSessionManager) Recover(reader *snapshot.Reader) error {
 	return m.primitives.Recover(reader)
 }
 
-func (m *raftSessionManager) OpenSession(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput]) {
+func (m *sessionManager) OpenSession(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput]) {
 	session := newSession(m)
 	session.open(input, stream)
 	m.prevTime = m.Time()
 }
 
-func (m *raftSessionManager) KeepAlive(input *multiraftv1.KeepAliveInput, stream streams.WriteStream[*multiraftv1.KeepAliveOutput]) {
+func (m *sessionManager) KeepAlive(input *multiraftv1.KeepAliveInput, stream streams.WriteStream[*multiraftv1.KeepAliveOutput]) {
 	session, ok := m.sessions.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -236,7 +226,7 @@ func (m *raftSessionManager) KeepAlive(input *multiraftv1.KeepAliveInput, stream
 	m.prevTime = m.Time()
 }
 
-func (m *raftSessionManager) CloseSession(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
+func (m *sessionManager) CloseSession(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
 	session, ok := m.sessions.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -247,7 +237,7 @@ func (m *raftSessionManager) CloseSession(input *multiraftv1.CloseSessionInput, 
 	m.prevTime = m.Time()
 }
 
-func (m *raftSessionManager) CommandSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
+func (m *sessionManager) CommandSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
 	session, ok := m.sessions.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -259,7 +249,7 @@ func (m *raftSessionManager) CommandSession(input *multiraftv1.SessionCommandInp
 	m.prevTime = m.Time()
 }
 
-func (m *raftSessionManager) QuerySession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+func (m *sessionManager) QuerySession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
 	session, ok := m.sessions.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -301,7 +291,7 @@ func (s *raftSessions) List() []Session {
 	return sessions
 }
 
-func newSession(manager *raftSessionManager) *raftSession {
+func newSession(manager *sessionManager) *raftSession {
 	return &raftSession{
 		manager:  manager,
 		watchers: make(map[string]func(SessionState)),
@@ -309,7 +299,7 @@ func newSession(manager *raftSessionManager) *raftSession {
 }
 
 type raftSession struct {
-	manager     *raftSessionManager
+	manager     *sessionManager
 	commands    *raftSessionCommands
 	sessionID   multiraftv1.SessionID
 	timeout     time.Duration

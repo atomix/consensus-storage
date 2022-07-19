@@ -7,8 +7,8 @@ package raft
 import (
 	"container/list"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/primitive"
-	"github.com/atomix/multi-raft/node/pkg/node/statemachines3/snapshot"
+	"github.com/atomix/multi-raft/node/pkg/node/primitive"
+	"github.com/atomix/multi-raft/node/pkg/node/snapshot"
 	"github.com/atomix/runtime/pkg/logging"
 	streams "github.com/atomix/runtime/pkg/stream"
 	"sync"
@@ -29,7 +29,7 @@ type Context interface {
 type StateMachine interface {
 	Snapshot(writer *snapshot.Writer) error
 	Recover(reader *snapshot.Reader) error
-	Command(input multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput])
+	Command(input *multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput])
 	Query(input *multiraftv1.QueryInput, stream streams.WriteStream[*multiraftv1.QueryOutput])
 }
 
@@ -43,7 +43,7 @@ func NewStateMachine(registry *primitive.Registry) StateMachine {
 }
 
 type stateMachine struct {
-	sessions  SessionManager
+	sessions  *sessionManager
 	queries   map[multiraftv1.Index]*list.List
 	queriesMu sync.RWMutex
 	scheduler *Scheduler
@@ -84,7 +84,7 @@ func (s *stateMachine) Recover(reader *snapshot.Reader) error {
 	return s.sessions.Recover(reader)
 }
 
-func (s *stateMachine) Command(input multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput]) {
+func (s *stateMachine) Command(input *multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput]) {
 	s.index++
 	if input.Timestamp.After(s.time) {
 		s.time = input.Timestamp

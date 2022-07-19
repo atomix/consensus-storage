@@ -9,6 +9,12 @@ import (
 	"io"
 )
 
+func NewWriter(writer io.Writer) *Writer {
+	return &Writer{
+		Writer: writer,
+	}
+}
+
 type Writer struct {
 	io.Writer
 }

@@ -9,6 +9,12 @@ import (
 	"io"
 )
 
+func NewReader(reader io.Reader) *Reader {
+	return &Reader{
+		Reader: reader,
+	}
+}
+
 type Reader struct {
 	io.Reader
 }
