@@ -8,6 +8,10 @@ import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft/driver/pkg/client"
+	counterserver "github.com/atomix/multi-raft/driver/pkg/client/counter/v1"
+	mapserver "github.com/atomix/multi-raft/driver/pkg/client/map/v1"
+	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
+	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/pkg/runtime"
 )
 
@@ -21,5 +25,31 @@ var Driver = runtime.NewDriver[*multiraftv1.ClusterConfig](name, version, func(c
 	if err := client.Connect(ctx, config); err != nil {
 		return nil, err
 	}
-	return client, nil
+	return newClient(client), nil
 })
+
+func newClient(client *client.Client) runtime.Client {
+	return &driverClient{
+		client: client,
+	}
+}
+
+type driverClient struct {
+	client *client.Client
+}
+
+func (c *driverClient) GetCounter() counterv1.CounterServer {
+	return counterserver.NewServer(c.client.Protocol)
+}
+
+func (c *driverClient) GetMap() mapv1.MapServer {
+	return mapserver.NewServer(c.client.Protocol)
+}
+
+func (c *driverClient) Configure(ctx context.Context, config *multiraftv1.ClusterConfig) error {
+	return c.client.Configure(ctx, config)
+}
+
+func (c *driverClient) Close(ctx context.Context) error {
+	return c.client.Close(ctx)
+}

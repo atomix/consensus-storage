@@ -19,14 +19,14 @@ import (
 const Type = "Map"
 const APIVersion = "v1"
 
-func NewServer(client *client.Client) mapv1.MapServer {
+func NewServer(protocol *client.Protocol) mapv1.MapServer {
 	return &Server{
-		Client: client,
+		Protocol: protocol,
 	}
 }
 
 type Server struct {
-	*client.Client
+	*client.Protocol
 }
 
 func (s *Server) Create(ctx context.Context, request *mapv1.CreateRequest) (*mapv1.CreateResponse, error) {

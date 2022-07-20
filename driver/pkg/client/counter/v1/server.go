@@ -16,14 +16,14 @@ import (
 const Type = "Counter"
 const APIVersion = "v1"
 
-func NewServer(client *client.Client) counterv1.CounterServer {
+func NewServer(protocol *client.Protocol) counterv1.CounterServer {
 	return &Server{
-		Client: client,
+		Protocol: protocol,
 	}
 }
 
 type Server struct {
-	*client.Client
+	*client.Protocol
 }
 
 func (s *Server) Create(ctx context.Context, request *counterv1.CreateRequest) (*counterv1.CreateResponse, error) {
