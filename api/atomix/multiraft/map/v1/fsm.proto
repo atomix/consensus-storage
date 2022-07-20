@@ -23,7 +23,7 @@ message MapSnapshot {
 
 message MapListener {
     uint64 index = 1 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
     string key = 2;
 }
@@ -37,7 +37,7 @@ message MapEntry {
 
 message MapKey {
     uint64 index = 1 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
     string key = 2;
 }
@@ -61,7 +61,7 @@ message PutInput {
     string key = 1;
     Value value = 2;
     uint64 index = 3 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
 }
 
@@ -86,7 +86,7 @@ message UpdateInput {
     string key = 1;
     Value value = 2;
     uint64 index = 3 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
 }
 
@@ -109,7 +109,7 @@ message GetOutput {
 message RemoveInput {
     string key = 1;
     uint64 index = 2 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
 }
 
@@ -167,7 +167,7 @@ message Entry {
     string key = 1;
     Value value = 2;
     uint64 index = 3 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft/api/atomix/multiraft/v1.Index"
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
 }
 

@@ -6,9 +6,9 @@ package v1
 
 import (
 	"context"
-	api "github.com/atomix/multi-raft/api/atomix/multiraft/counter/v1"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/driver/pkg/client"
+	api "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/driver/pkg/client"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 )

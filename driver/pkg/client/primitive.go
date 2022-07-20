@@ -6,7 +6,7 @@ package client
 
 import (
 	"context"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"google.golang.org/grpc"
 )
 

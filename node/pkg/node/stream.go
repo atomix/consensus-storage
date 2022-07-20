@@ -5,7 +5,7 @@
 package node
 
 import (
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/stream"
 	"sync"
 )

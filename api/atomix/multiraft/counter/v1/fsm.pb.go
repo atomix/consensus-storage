@@ -5,7 +5,7 @@ package v1
 
 import (
 	fmt "fmt"
-	_ "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	_ "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"

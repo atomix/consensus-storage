@@ -1,4 +1,4 @@
-module github.com/atomix/multi-raft/api
+module github.com/atomix/multi-raft-storage/api
 
 go 1.18
 

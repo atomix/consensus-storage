@@ -5,8 +5,8 @@
 package v1
 
 import (
-	"github.com/atomix/multi-raft/node/pkg/primitive"
-	"github.com/atomix/multi-raft/node/pkg/snapshot"
+	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
+	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/gogo/protobuf/proto"
 )

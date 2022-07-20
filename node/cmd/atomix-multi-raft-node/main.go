@@ -7,9 +7,9 @@ package main
 import (
 	"bytes"
 	"fmt"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/node"
-	counterv1 "github.com/atomix/multi-raft/node/pkg/primitive/counter/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/node"
+	counterv1 "github.com/atomix/multi-raft-storage/node/pkg/primitive/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/gogo/protobuf/jsonpb"

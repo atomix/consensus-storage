@@ -8,7 +8,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/bits-and-blooms/bloom/v3"
 	"google.golang.org/grpc"

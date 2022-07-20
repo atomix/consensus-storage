@@ -6,10 +6,10 @@ package driver
 
 import (
 	"context"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/driver/pkg/client"
-	counterserver "github.com/atomix/multi-raft/driver/pkg/client/counter/v1"
-	mapserver "github.com/atomix/multi-raft/driver/pkg/client/map/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/driver/pkg/client"
+	counterserver "github.com/atomix/multi-raft-storage/driver/pkg/client/counter/v1"
+	mapserver "github.com/atomix/multi-raft-storage/driver/pkg/client/map/v1"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"

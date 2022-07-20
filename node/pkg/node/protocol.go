@@ -6,8 +6,8 @@ package node
 
 import (
 	"context"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/primitive"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/lni/dragonboat/v3"

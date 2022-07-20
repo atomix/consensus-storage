@@ -6,8 +6,8 @@ package node
 
 import (
 	"fmt"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/node/pkg/primitive"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"

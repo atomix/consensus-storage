@@ -1,4 +1,4 @@
-module github.com/atomix/multi-raft/node
+module github.com/atomix/multi-raft-storage/node
 
 go 1.18
 
@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1
+	github.com/atomix/multi-raft-storage/api v0.0.0-20220720010204-f1b6dd9ae9f1
 	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	golang.org/x/text v0.3.7 // indirect

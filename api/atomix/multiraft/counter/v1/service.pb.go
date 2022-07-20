@@ -6,7 +6,7 @@ package v1
 import (
 	context "context"
 	fmt "fmt"
-	v1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
+	v1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	grpc "google.golang.org/grpc"

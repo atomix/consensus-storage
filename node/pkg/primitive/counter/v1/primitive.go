@@ -5,8 +5,8 @@
 package v1
 
 import (
-	counterv1 "github.com/atomix/multi-raft/api/atomix/multiraft/counter/v1"
-	"github.com/atomix/multi-raft/node/pkg/snapshot"
+	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 )
 

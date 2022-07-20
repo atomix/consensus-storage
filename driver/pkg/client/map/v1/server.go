@@ -6,10 +6,10 @@ package v1
 
 import (
 	"context"
-	api "github.com/atomix/multi-raft/api/atomix/multiraft/map/v1"
-	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft/driver/pkg/client"
-	"github.com/atomix/multi-raft/driver/pkg/util/async"
+	api "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/driver/pkg/client"
+	"github.com/atomix/multi-raft-storage/driver/pkg/util/async"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	runtimev1 "github.com/atomix/runtime/api/atomix/runtime/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"

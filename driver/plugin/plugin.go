@@ -4,6 +4,6 @@
 
 package main
 
-import "github.com/atomix/multi-raft/driver"
+import "github.com/atomix/multi-raft-storage/driver"
 
 var Plugin = driver.Driver
