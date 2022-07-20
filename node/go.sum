@@ -57,6 +57,8 @@ github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-metrics v0.3.10 h1:FR+drcQStOe+32sYyJYyZ7FIdgoGGBnwLl+flodp8Uo=
 github.com/armon/go-metrics v0.3.10/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
+github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1 h1:7Pnt4BP/eZsEwTLV6Z+fxKB4IGfEKZz0pple+eoYJKs=
+github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1/go.mod h1:Jhlbcv25FHM6NfMu9sbXXohuJdN08+oO3aojgEIk1EY=
 github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805 h1:pMTCAVZeWdNVt29pUIipi8Z+p1HQ3XIq9l/eWS6K8LI=
 github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
