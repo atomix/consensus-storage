@@ -32,7 +32,7 @@ message NodeConfig {
     string port = 3;
     MultiRaftConfig config = 4 [
         (gogoproto.nullable) = false,
-        (gogoproto.embed) = false
+        (gogoproto.embed) = true
     ];
 }
 
