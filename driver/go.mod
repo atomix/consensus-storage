@@ -10,7 +10,7 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft/api v0.0.0-20220716101318-314049a8d6ca
+	github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1
 	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -50,5 +50,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-replace github.com/atomix/multi-raft/api => ../api
