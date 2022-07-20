@@ -199,7 +199,7 @@ func (m *Manager) newStateMachine(clusterID, nodeID uint64) dbstatemachine.IStat
 	return newStateMachine(raft.NewStateMachine(m.registry), partition.streams)
 }
 
-func (m *Manager) waitForPartitionLeaders(eventCh chan<- multiraftv1.MultiRaftEvent, partitions ...multiraftv1.PartitionID) {
+func (m *Manager) waitForPartitionLeaders(eventCh chan multiraftv1.MultiRaftEvent, partitions ...multiraftv1.PartitionID) {
 	startedCh := make(chan struct{})
 	go func() {
 		startedPartitions := make(map[multiraftv1.PartitionID]bool)
