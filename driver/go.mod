@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805
+	github.com/atomix/runtime v0.0.0-20220720010104-14e74804e877
 	github.com/atomix/runtime/api v0.0.0-20220719213559-6753a9e8e805
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/stretchr/testify v1.7.1
