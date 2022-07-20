@@ -102,7 +102,8 @@
 | ----- | ---- | ----- | ----------- |
 | node_id | [uint64](#uint64) |  |  |
 | host | [string](#string) |  |  |
-| port | [int32](#int32) |  |  |
+| api_port | [int32](#int32) |  |  |
+| raft_port | [int32](#int32) |  |  |
 
 
 

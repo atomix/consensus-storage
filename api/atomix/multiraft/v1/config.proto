@@ -38,7 +38,8 @@ message ReplicaConfig {
         (gogoproto.casttype) = "NodeID"
     ];
     string host = 2;
-    int32 port = 3;
+    int32 api_port = 3;
+    int32 raft_port = 4;
 }
 
 message PartitionConfig {
