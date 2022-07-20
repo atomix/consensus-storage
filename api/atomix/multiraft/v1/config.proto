@@ -31,7 +31,8 @@ message NodeConfig {
     string host = 2;
     string port = 3;
     MultiRaftConfig config = 4 [
-        (gogoproto.nullable) = false
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = false
     ];
 }
 
