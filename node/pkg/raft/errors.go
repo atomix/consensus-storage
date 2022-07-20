@@ -6,7 +6,7 @@ package raft
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/runtime/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/errors"
 )
 
 // getErrorFromStatus creates a typed error from a response status

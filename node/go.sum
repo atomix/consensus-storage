@@ -59,8 +59,8 @@ github.com/armon/go-metrics v0.3.10 h1:FR+drcQStOe+32sYyJYyZ7FIdgoGGBnwLl+flodp8
 github.com/armon/go-metrics v0.3.10/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
 github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1 h1:7Pnt4BP/eZsEwTLV6Z+fxKB4IGfEKZz0pple+eoYJKs=
 github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1/go.mod h1:Jhlbcv25FHM6NfMu9sbXXohuJdN08+oO3aojgEIk1EY=
-github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805 h1:pMTCAVZeWdNVt29pUIipi8Z+p1HQ3XIq9l/eWS6K8LI=
-github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
+github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1 h1:tv2wTNrt5Gua6var9Aj74baODiDGcAUuH6xO6mK//Zo=
+github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1/go.mod h1:ZBngQlzL7s220iiVf9BtnwTZ6440Ii9YqQBXpXHUvnw=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=

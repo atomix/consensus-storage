@@ -18,7 +18,7 @@ require (
 )
 
 require (
-	github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805
+	github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/google/uuid v1.1.2
 	github.com/lni/dragonboat/v3 v3.3.5

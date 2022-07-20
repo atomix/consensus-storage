@@ -7,9 +7,9 @@ package node
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/runtime/pkg/errors"
-	"github.com/atomix/runtime/pkg/logging"
-	streams "github.com/atomix/runtime/pkg/stream"
+	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/logging"
+	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc/metadata"
 	"sync/atomic"

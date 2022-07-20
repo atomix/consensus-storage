@@ -8,8 +8,8 @@ import (
 	"context"
 	counterv1 "github.com/atomix/multi-raft/api/atomix/multiraft/counter/v1"
 	"github.com/atomix/multi-raft/node/pkg/primitive"
-	"github.com/atomix/runtime/pkg/errors"
-	"github.com/atomix/runtime/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/gogo/protobuf/proto"
 )
 
