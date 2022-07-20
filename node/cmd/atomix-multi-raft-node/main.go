@@ -36,12 +36,12 @@ func main() {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
 			}
-			primitiveHost, err := cmd.Flags().GetString("primitive-host")
+			apiHost, err := cmd.Flags().GetString("api-host")
 			if err != nil {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
 			}
-			primitivePort, err := cmd.Flags().GetInt("primitive-port")
+			apiPort, err := cmd.Flags().GetInt("api-port")
 			if err != nil {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
 				os.Exit(1)
@@ -71,12 +71,14 @@ func main() {
 			// Create the multi-raft node
 			node := node.New(
 				runtime.NewNetwork(),
-				node.WithNodeID(multiraftv1.NodeID(nodeID)),
-				node.WithConfig(config),
-				node.WithPrimitiveHost(primitiveHost),
-				node.WithPrimitivePort(primitivePort),
-				node.WithRaftHost(raftHost),
-				node.WithRaftPort(raftPort),
+				node.WithHost(apiHost),
+				node.WithPort(apiPort),
+				node.WithConfig(multiraftv1.NodeConfig{
+					NodeID:          multiraftv1.NodeID(nodeID),
+					Host:            raftHost,
+					Port:            int32(raftPort),
+					MultiRaftConfig: config,
+				}),
 				node.WithPrimitiveTypes(
 					counterv1.Type))
 
@@ -100,8 +102,8 @@ func main() {
 	}
 	cmd.Flags().IntP("node", "n", 0, "the ID of this node")
 	cmd.Flags().StringP("config", "c", "", "the path to the multi-raft cluster configuration")
-	cmd.Flags().String("primitive-host", "", "the host to which to bind the API server")
-	cmd.Flags().Int("primitive-port", 8080, "the port to which to bind the API server")
+	cmd.Flags().String("api-host", "", "the host to which to bind the API server")
+	cmd.Flags().Int("api-port", 8080, "the port to which to bind the API server")
 	cmd.Flags().String("raft-host", "", "the host to which to bind the Multi-Raft server")
 	cmd.Flags().Int("raft-port", 5000, "the port to which to bind the Multi-Raft server")
 

@@ -23,9 +23,10 @@ const chanBufSize = 1000
 // The false positive rate for request/response filters
 const fpRate float64 = 0.05
 
-func newSessionClient(partition *PartitionClient) *SessionClient {
+func newSessionClient(partition *PartitionClient, conn *grpc.ClientConn) *SessionClient {
 	session := &SessionClient{
 		partition: partition,
+		conn:      conn,
 	}
 	session.recorder = &Recorder{
 		session: session,
@@ -35,6 +36,7 @@ func newSessionClient(partition *PartitionClient) *SessionClient {
 
 type SessionClient struct {
 	partition    *PartitionClient
+	conn         *grpc.ClientConn
 	Timeout      time.Duration
 	sessionID    multiraftv1.SessionID
 	lastIndex    *sessionIndex
@@ -102,7 +104,7 @@ func (s *SessionClient) open(ctx context.Context) error {
 		},
 	}
 
-	client := multiraftv1.NewPartitionClient(s.partition.conn)
+	client := multiraftv1.NewPartitionClient(s.conn)
 	response, err := client.OpenSession(ctx, request)
 	if err != nil {
 		return errors.FromProto(err)
@@ -210,7 +212,7 @@ func (s *SessionClient) keepAliveSessions(ctx context.Context, lastRequestNum mu
 		},
 	}
 
-	client := multiraftv1.NewPartitionClient(s.partition.conn)
+	client := multiraftv1.NewPartitionClient(s.conn)
 	response, err := client.KeepAlive(ctx, request)
 	if err != nil {
 		err = errors.FromProto(err)
@@ -235,7 +237,7 @@ func (s *SessionClient) close(ctx context.Context) error {
 		},
 	}
 
-	client := multiraftv1.NewPartitionClient(s.partition.conn)
+	client := multiraftv1.NewPartitionClient(s.conn)
 	_, err := client.CloseSession(ctx, request)
 	if err != nil {
 		return errors.FromProto(err)

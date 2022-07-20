@@ -23,11 +23,11 @@ func NewClient(network runtime.Network) *Client {
 
 type Client struct {
 	*Protocol
-	config  *multiraftv1.ClusterConfig
+	config  multiraftv1.ClusterConfig
 	network runtime.Network
 }
 
-func (c *Client) Connect(ctx context.Context, config *multiraftv1.ClusterConfig) error {
+func (c *Client) Connect(ctx context.Context, config multiraftv1.ClusterConfig) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -51,7 +51,7 @@ func (c *Client) Connect(ctx context.Context, config *multiraftv1.ClusterConfig)
 	return nil
 }
 
-func (c *Client) Configure(ctx context.Context, config *multiraftv1.ClusterConfig) error {
+func (c *Client) Configure(ctx context.Context, config multiraftv1.ClusterConfig) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.config = config

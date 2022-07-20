@@ -17,8 +17,8 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.0.0-20220720082116-2afbeb1343a8
-	github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1
+	github.com/atomix/multi-raft-storage/api v0.0.0-20220720212059-4668ac1c3561
+	github.com/atomix/runtime/sdk v0.0.0-20220720203722-fe3ff64774df
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/google/uuid v1.1.2
 	github.com/lni/dragonboat/v3 v3.3.5

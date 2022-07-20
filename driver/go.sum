@@ -41,6 +41,12 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/atomix/multi-raft-storage/api v0.0.0-20220720065706-f7535be5ba16 h1:ggb+Fy6AYBStdbYir4bYETkHPYTEL3JIuPZ9a8Fh5AA=
 github.com/atomix/multi-raft-storage/api v0.0.0-20220720065706-f7535be5ba16/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220720184309-4988f5f4bbf2 h1:EuoyRXYEsmE5v7t/5q3PBHbBioRO4ZkM4YXpzHq3hwQ=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220720184309-4988f5f4bbf2/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220720193403-28a74f5bce10 h1:6QjkjNqMFFFxVzx6bNebk81MnFVDnEzkwBVOFV+lm40=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220720193403-28a74f5bce10/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220720212059-4668ac1c3561 h1:Ox+OkUCdYWScSAunsNzDvpE/6gIRFmtwEJC+QLv59wU=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220720212059-4668ac1c3561/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
 github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb h1:gLkBDjrEGtbX83VeADC/O2vFjlEGuTI+5zp5nXoYIqk=
 github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
 github.com/atomix/runtime/sdk v0.0.0-20220720012556-f7cb9963f38a h1:RYaEJEPehli4VYfF+zWB1gkwM+MFSE136Xsc5qKcEyI=

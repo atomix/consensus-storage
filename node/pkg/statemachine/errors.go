@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package raft
+package statemachine
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"

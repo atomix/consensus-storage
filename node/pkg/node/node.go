@@ -7,6 +7,8 @@ package node
 import (
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/node/manager"
+	"github.com/atomix/multi-raft-storage/node/pkg/node/server"
 	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
@@ -24,32 +26,33 @@ func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 		registry.Register(primitiveType)
 	}
 	return &MultiRaftNode{
-		Options:  options,
-		network:  network,
-		protocol: newProtocol(registry, options),
-		server:   grpc.NewServer(),
+		Options: options,
+		network: network,
+		manager: manager.NewNodeManager(registry, options.Config),
+		server:  grpc.NewServer(),
 	}
 }
 
 type MultiRaftNode struct {
 	Options
-	network  runtime.Network
-	protocol *Protocol
-	server   *grpc.Server
+	network runtime.Network
+	manager *manager.NodeManager
+	server  *grpc.Server
 }
 
 func (s *MultiRaftNode) Start() error {
-	address := fmt.Sprintf("%s:%d", s.PrimitiveService.Host, s.PrimitiveService.Port)
+	address := fmt.Sprintf("%s:%d", s.Host, s.Port)
 	lis, err := s.network.Listen(address)
 	if err != nil {
 		return err
 	}
 
-	multiraftv1.RegisterPartitionServer(s.server, newPartitionServer(s.protocol))
-	multiraftv1.RegisterSessionServer(s.server, newSessionServer(s.protocol))
-	multiraftv1.RegisterNodeServer(s.server, newNodeServer(s.protocol.node))
+	multiraftv1.RegisterNodeServer(s.server, server.NewNodeServer(s.manager))
+	multiraftv1.RegisterPartitionServer(s.server, server.NewPartitionServer(s.manager))
+	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.manager.Protocol()))
+
 	for _, primitiveType := range s.PrimitiveTypes {
-		primitiveType.RegisterServices(s.server, s.protocol)
+		primitiveType.RegisterServices(s.server, s.manager.Protocol())
 	}
 	go func() {
 		if err := s.server.Serve(lis); err != nil {

@@ -21,7 +21,7 @@ const (
 )
 
 func New(network runtime.Network) runtime.Driver {
-	return runtime.NewDriver[*multiraftv1.ClusterConfig](name, version, func(ctx context.Context, config *multiraftv1.ClusterConfig) (runtime.Client, error) {
+	return runtime.NewDriver[multiraftv1.ClusterConfig](name, version, func(ctx context.Context, config multiraftv1.ClusterConfig) (runtime.Client, error) {
 		client := client.NewClient(network)
 		if err := client.Connect(ctx, config); err != nil {
 			return nil, err
@@ -40,15 +40,15 @@ type driverClient struct {
 	client *client.Client
 }
 
-func (c *driverClient) GetCounter() counterv1.CounterServer {
+func (c *driverClient) Counter() counterv1.CounterServer {
 	return counterserver.NewServer(c.client.Protocol)
 }
 
-func (c *driverClient) GetMap() mapv1.MapServer {
+func (c *driverClient) Map() mapv1.MapServer {
 	return mapserver.NewServer(c.client.Protocol)
 }
 
-func (c *driverClient) Configure(ctx context.Context, config *multiraftv1.ClusterConfig) error {
+func (c *driverClient) Configure(ctx context.Context, config multiraftv1.ClusterConfig) error {
 	return c.client.Configure(ctx, config)
 }
 

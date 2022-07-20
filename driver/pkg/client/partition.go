@@ -13,7 +13,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
-	"io"
 	"sync"
 )
 
@@ -52,8 +51,11 @@ func (p *PartitionClient) GetSession(ctx context.Context) (*SessionClient, error
 	if p.session != nil {
 		return p.session, nil
 	}
+	if p.conn == nil {
+		return nil, errors.NewUnavailable("not connected")
+	}
 
-	session = newSessionClient(p)
+	session = newSessionClient(p, p.conn)
 	if err := session.open(ctx); err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.Parti
 	address := fmt.Sprintf("%s:///%s:%d", resolverName, config.Host, config.Port)
 	conn, err := grpc.DialContext(ctx, address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"raft"}`),
+		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, resolverName)),
 		grpc.WithResolvers(newResolver(p)),
 		grpc.WithContextDialer(p.client.network.Connect),
 		grpc.WithUnaryInterceptor(retry.RetryingUnaryClientInterceptor(retry.WithRetryOn(codes.Unavailable))),
@@ -77,75 +79,6 @@ func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.Parti
 		return errors.FromProto(err)
 	}
 	p.conn = conn
-
-	client := multiraftv1.NewPartitionClient(p.conn)
-	request := &multiraftv1.WatchPartitionRequest{}
-	stream, err := client.Watch(context.Background(), request)
-	if err != nil {
-		return errors.FromProto(err)
-	}
-
-	go func() {
-		for {
-			event, err := stream.Recv()
-			if err == io.EOF {
-				return
-			}
-			if err != nil {
-				log.Error(err)
-			} else {
-				switch e := event.Event.(type) {
-				case *multiraftv1.WatchPartitionResponse_LeaderUpdated:
-					var leader string
-					var followers []string
-					p.client.mu.RLock()
-					config := p.client.config
-					p.client.mu.RUnlock()
-					for _, replica := range config.Replicas {
-						address := fmt.Sprintf("%s:%d", replica.Host, replica.Port)
-						if replica.NodeID == e.LeaderUpdated.Leader {
-							leader = address
-						} else {
-							followers = append(followers, address)
-						}
-					}
-					p.notify(&PartitionState{
-						Leader:    leader,
-						Followers: followers,
-					})
-				}
-			}
-		}
-	}()
-	return nil
-}
-
-func (p *PartitionClient) notify(state *PartitionState) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.state = state
-	go func() {
-		p.mu.RLock()
-		defer p.mu.RUnlock()
-		for _, watcher := range p.watchers {
-			watcher <- *state
-		}
-	}()
-}
-
-func (p *PartitionClient) watch(ctx context.Context, ch chan<- PartitionState) error {
-	p.mu.Lock()
-	p.watcherID++
-	watcherID := p.watcherID
-	p.watchers[watcherID] = ch
-	p.mu.Unlock()
-
-	go func() {
-		<-ctx.Done()
-		p.mu.Lock()
-		delete(p.watchers, watcherID)
-		p.mu.Unlock()
-	}()
 	return nil
 }
 

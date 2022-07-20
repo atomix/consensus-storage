@@ -10,22 +10,17 @@ import (
 )
 
 const (
-	defaultAPIPort  = 8080
-	defaultRaftPort = 5000
-	defaultDataDir  = "/var/lib/atomix/data"
+	defaultPort = 8080
 )
 
 type Options struct {
-	NodeID           multiraftv1.NodeID
-	Config           multiraftv1.MultiRaftConfig
-	PrimitiveService PrimitiveServiceOptions
-	RaftService      RaftServiceOptions
-	PrimitiveTypes   []primitive.Type
+	ServiceOptions
+	Config         multiraftv1.NodeConfig
+	PrimitiveTypes []primitive.Type
 }
 
 func (o *Options) apply(opts ...Option) {
-	o.PrimitiveService.Port = defaultAPIPort
-	o.RaftService.Port = defaultRaftPort
+	o.Port = defaultPort
 	for _, opt := range opts {
 		opt(o)
 	}
@@ -38,27 +33,25 @@ type ServiceOptions struct {
 	Port int
 }
 
-type PrimitiveServiceOptions struct {
-	ServiceOptions
-}
-
-type RaftServiceOptions struct {
-	ServiceOptions
-}
-
 func WithOptions(opts Options) Option {
 	return func(options *Options) {
 		*options = opts
 	}
 }
 
-func WithNodeID(nodeID multiraftv1.NodeID) Option {
+func WithHost(host string) Option {
 	return func(options *Options) {
-		options.NodeID = nodeID
+		options.Host = host
 	}
 }
 
-func WithConfig(config multiraftv1.MultiRaftConfig) Option {
+func WithPort(port int) Option {
+	return func(options *Options) {
+		options.Port = port
+	}
+}
+
+func WithConfig(config multiraftv1.NodeConfig) Option {
 	return func(options *Options) {
 		options.Config = config
 	}
@@ -67,29 +60,5 @@ func WithConfig(config multiraftv1.MultiRaftConfig) Option {
 func WithPrimitiveTypes(primitiveTypes ...primitive.Type) Option {
 	return func(options *Options) {
 		options.PrimitiveTypes = append(options.PrimitiveTypes, primitiveTypes...)
-	}
-}
-
-func WithPrimitiveHost(host string) Option {
-	return func(options *Options) {
-		options.PrimitiveService.Host = host
-	}
-}
-
-func WithPrimitivePort(port int) Option {
-	return func(options *Options) {
-		options.PrimitiveService.Port = port
-	}
-}
-
-func WithRaftHost(host string) Option {
-	return func(options *Options) {
-		options.RaftService.Host = host
-	}
-}
-
-func WithRaftPort(port int) Option {
-	return func(options *Options) {
-		options.RaftService.Port = port
 	}
 }
