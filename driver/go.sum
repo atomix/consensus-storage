@@ -43,8 +43,8 @@ github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1 h1:7Pnt4BP/e
 github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1/go.mod h1:Jhlbcv25FHM6NfMu9sbXXohuJdN08+oO3aojgEIk1EY=
 github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb h1:gLkBDjrEGtbX83VeADC/O2vFjlEGuTI+5zp5nXoYIqk=
 github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
-github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1 h1:tv2wTNrt5Gua6var9Aj74baODiDGcAUuH6xO6mK//Zo=
-github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1/go.mod h1:ZBngQlzL7s220iiVf9BtnwTZ6440Ii9YqQBXpXHUvnw=
+github.com/atomix/runtime/sdk v0.0.0-20220720012556-f7cb9963f38a h1:RYaEJEPehli4VYfF+zWB1gkwM+MFSE136Xsc5qKcEyI=
+github.com/atomix/runtime/sdk v0.0.0-20220720012556-f7cb9963f38a/go.mod h1:ZBngQlzL7s220iiVf9BtnwTZ6440Ii9YqQBXpXHUvnw=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=

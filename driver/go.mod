@@ -19,7 +19,7 @@ require (
 
 require (
 	github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb
-	github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1
+	github.com/atomix/runtime/sdk v0.0.0-20220720012556-f7cb9963f38a
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/stretchr/testify v1.7.1
 )
