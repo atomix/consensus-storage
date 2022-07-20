@@ -41,10 +41,10 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1 h1:7Pnt4BP/eZsEwTLV6Z+fxKB4IGfEKZz0pple+eoYJKs=
 github.com/atomix/multi-raft/api v0.0.0-20220720010204-f1b6dd9ae9f1/go.mod h1:Jhlbcv25FHM6NfMu9sbXXohuJdN08+oO3aojgEIk1EY=
-github.com/atomix/runtime v0.0.0-20220720010104-14e74804e877 h1:ARETTps8TXYBpNfXdXNi5FQgCINLAa5vxF0KD7WO57c=
-github.com/atomix/runtime v0.0.0-20220720010104-14e74804e877/go.mod h1:GJbsO/TtrCWEVoqZV3TxyxdRirYw6PE4yJ8agBau3wk=
 github.com/atomix/runtime/api v0.0.0-20220719213559-6753a9e8e805 h1:6RYZEDMlAmRLC0zSQgjk195BJ12ck4lSnNZKqvJC8ZI=
 github.com/atomix/runtime/api v0.0.0-20220719213559-6753a9e8e805/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
+github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1 h1:tv2wTNrt5Gua6var9Aj74baODiDGcAUuH6xO6mK//Zo=
+github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1/go.mod h1:ZBngQlzL7s220iiVf9BtnwTZ6440Ii9YqQBXpXHUvnw=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=

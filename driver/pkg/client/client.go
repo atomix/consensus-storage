@@ -7,7 +7,7 @@ package client
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft/api/atomix/multiraft/v1"
-	"github.com/atomix/runtime/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/logging"
 	"sort"
 )
 

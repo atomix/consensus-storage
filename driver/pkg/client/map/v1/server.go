@@ -12,7 +12,7 @@ import (
 	"github.com/atomix/multi-raft/driver/pkg/util/async"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	runtimev1 "github.com/atomix/runtime/api/atomix/runtime/v1"
-	"github.com/atomix/runtime/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"io"
 )
 

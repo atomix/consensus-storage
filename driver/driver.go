@@ -12,7 +12,7 @@ import (
 	mapserver "github.com/atomix/multi-raft/driver/pkg/client/map/v1"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
-	"github.com/atomix/runtime/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 )
 
 const (
