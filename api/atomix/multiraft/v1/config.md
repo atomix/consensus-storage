@@ -7,6 +7,7 @@
     - [ClusterConfig](#atomix-multiraft-v1-ClusterConfig)
     - [MemberConfig](#atomix-multiraft-v1-MemberConfig)
     - [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig)
+    - [NodeConfig](#atomix-multiraft-v1-NodeConfig)
     - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
     - [ReplicaConfig](#atomix-multiraft-v1-ReplicaConfig)
     - [ServiceConfig](#atomix-multiraft-v1-ServiceConfig)
@@ -69,6 +70,24 @@
 | snapshot_entry_threshold | [uint64](#uint64) |  |  |
 | compaction_retain_entries | [uint64](#uint64) |  |  |
 | data_dir | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-NodeConfig"></a>
+
+### NodeConfig
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| node_id | [uint64](#uint64) |  |  |
+| host | [string](#string) |  |  |
+| port | [string](#string) |  |  |
+| config | [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig) |  |  |
 
 
 

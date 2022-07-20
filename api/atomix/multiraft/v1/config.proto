@@ -23,6 +23,18 @@ message MultiRaftConfig {
     string data_dir = 5;
 }
 
+message NodeConfig {
+    uint64 node_id = 1 [
+        (gogoproto.customname) = "NodeID",
+        (gogoproto.casttype) = "NodeID"
+    ];
+    string host = 2;
+    string port = 3;
+    MultiRaftConfig config = 4 [
+        (gogoproto.nullable) = false
+    ];
+}
+
 message ClusterConfig {
     repeated ReplicaConfig replicas = 1 [
         (gogoproto.nullable) = false
