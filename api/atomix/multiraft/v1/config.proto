@@ -26,7 +26,8 @@ message MultiRaftConfig {
 message NodeConfig {
     uint64 node_id = 1 [
         (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "NodeID",
+        (gogoproto.jsontag) = "nodeId"
     ];
     string host = 2;
     int32 port = 3;
@@ -48,7 +49,8 @@ message ClusterConfig {
 message ReplicaConfig {
     uint64 node_id = 1 [
         (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "NodeID",
+        (gogoproto.jsontag) = "nodeId"
     ];
     string host = 2;
     int32 api_port = 3;
@@ -58,7 +60,8 @@ message ReplicaConfig {
 message PartitionConfig {
     uint32 partition_id = 1 [
         (gogoproto.customname) = "PartitionID",
-        (gogoproto.casttype) = "PartitionID"
+        (gogoproto.casttype) = "PartitionID",
+        (gogoproto.jsontag) = "partitionId"
     ];
     string host = 2;
     int32 port = 3;
@@ -70,7 +73,8 @@ message PartitionConfig {
 message MemberConfig {
     uint64 node_id = 1 [
         (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "NodeID",
+        (gogoproto.jsontag) = "nodeId"
     ];
     Role role = 2;
 
