@@ -20,5 +20,8 @@ func registerServer(server *grpc.Server, protocol primitive.Protocol) {
 }
 
 func newStateMachine(ctx primitive.Context) primitive.StateMachine {
-
+	return &primitiveAdapter{
+		Context: ctx,
+		rsm:     newPrimitiveStateMachine(newPrimitiveContext(ctx)),
+	}
 }
