@@ -10,7 +10,6 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.0.0-20220720010204-f1b6dd9ae9f1
 	golang.org/x/net v0.0.0-20220412020605-290c469a71a5 // indirect
 	golang.org/x/sys v0.0.0-20220503163025-988cb79eb6c6 // indirect
 	golang.org/x/text v0.3.7 // indirect
@@ -18,6 +17,7 @@ require (
 )
 
 require (
+	github.com/atomix/multi-raft-storage/api v0.0.0-20220720065706-f7535be5ba16
 	github.com/atomix/runtime/sdk v0.0.0-20220720015100-c35762083cc1
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/google/uuid v1.1.2
