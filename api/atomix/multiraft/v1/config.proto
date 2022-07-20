@@ -68,3 +68,8 @@ message MemberConfig {
         WITNESS = 3;
     }
 }
+
+message ServiceConfig {
+    string leader = 1;
+    repeated string followers = 2;
+}

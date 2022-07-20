@@ -11,14 +11,13 @@ package atomix.multiraft.v1;
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 import "atomix/multiraft/v1/config.proto";
-import "atomix/multiraft/v1/events.proto";
 import "atomix/multiraft/v1/headers.proto";
 
 service Node {
     rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
     rpc Join(JoinRequest) returns (JoinResponse);
     rpc Leave(LeaveRequest) returns (LeaveResponse);
-    rpc Watch(WatchNodeRequest) returns (stream WatchNodeResponse);
+    rpc Watch(WatchNodeRequest) returns (stream NodeEvent);
 }
 
 message BootstrapRequest {
@@ -56,25 +55,32 @@ message WatchNodeRequest {
 
 }
 
-message WatchNodeResponse {
+message NodeEvent {
     google.protobuf.Timestamp timestamp = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.stdtime) = true
     ];
     oneof event {
-        MemberReadyEvent member_ready = 2;
-        LeaderUpdatedEvent leader_updated = 3;
-        MembershipChangedEvent membership_changed = 4;
-        SendSnapshotStartedEvent send_snapshot_started = 5;
-        SendSnapshotCompletedEvent send_snapshot_completed = 6;
-        SendSnapshotAbortedEvent send_snapshot_aborted = 7;
-        SnapshotReceivedEvent snapshot_received = 8;
-        SnapshotRecoveredEvent snapshot_recovered = 9;
-        SnapshotCreatedEvent snapshot_created = 10;
-        SnapshotCompactedEvent snapshot_compacted = 11;
-        LogCompactedEvent log_compacted = 12;
-        LogDBCompactedEvent logdb_compacted = 13;
-        ConnectionEstablishedEvent connection_established = 14;
-        ConnectionFailedEvent connection_failed = 15;
+        ConnectionEstablishedEvent connection_established = 2;
+        ConnectionFailedEvent connection_failed = 3;
     }
+}
+
+message ConnectionInfo {
+    string address = 1;
+    bool snapshot = 2;
+}
+
+message ConnectionEstablishedEvent {
+    ConnectionInfo info = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ConnectionFailedEvent {
+    ConnectionInfo info = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
+    ];
 }

@@ -9,6 +9,7 @@
     - [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig)
     - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
     - [ReplicaConfig](#atomix-multiraft-v1-ReplicaConfig)
+    - [ServiceConfig](#atomix-multiraft-v1-ServiceConfig)
   
     - [MemberConfig.Role](#atomix-multiraft-v1-MemberConfig-Role)
   
@@ -104,6 +105,22 @@
 | host | [string](#string) |  |  |
 | api_port | [int32](#int32) |  |  |
 | raft_port | [int32](#int32) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-ServiceConfig"></a>
+
+### ServiceConfig
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| leader | [string](#string) |  |  |
+| followers | [string](#string) | repeated |  |
 
 
 

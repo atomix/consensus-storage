@@ -307,38 +307,26 @@ func (m *WatchNodeRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_WatchNodeRequest proto.InternalMessageInfo
 
-type WatchNodeResponse struct {
+type NodeEvent struct {
 	Timestamp time.Time `protobuf:"bytes,1,opt,name=timestamp,proto3,stdtime" json:"timestamp"`
 	// Types that are valid to be assigned to Event:
-	//	*WatchNodeResponse_MemberReady
-	//	*WatchNodeResponse_LeaderUpdated
-	//	*WatchNodeResponse_MembershipChanged
-	//	*WatchNodeResponse_SendSnapshotStarted
-	//	*WatchNodeResponse_SendSnapshotCompleted
-	//	*WatchNodeResponse_SendSnapshotAborted
-	//	*WatchNodeResponse_SnapshotReceived
-	//	*WatchNodeResponse_SnapshotRecovered
-	//	*WatchNodeResponse_SnapshotCreated
-	//	*WatchNodeResponse_SnapshotCompacted
-	//	*WatchNodeResponse_LogCompacted
-	//	*WatchNodeResponse_LogdbCompacted
-	//	*WatchNodeResponse_ConnectionEstablished
-	//	*WatchNodeResponse_ConnectionFailed
-	Event isWatchNodeResponse_Event `protobuf_oneof:"event"`
+	//	*NodeEvent_ConnectionEstablished
+	//	*NodeEvent_ConnectionFailed
+	Event isNodeEvent_Event `protobuf_oneof:"event"`
 }
 
-func (m *WatchNodeResponse) Reset()         { *m = WatchNodeResponse{} }
-func (m *WatchNodeResponse) String() string { return proto.CompactTextString(m) }
-func (*WatchNodeResponse) ProtoMessage()    {}
-func (*WatchNodeResponse) Descriptor() ([]byte, []int) {
+func (m *NodeEvent) Reset()         { *m = NodeEvent{} }
+func (m *NodeEvent) String() string { return proto.CompactTextString(m) }
+func (*NodeEvent) ProtoMessage()    {}
+func (*NodeEvent) Descriptor() ([]byte, []int) {
 	return fileDescriptor_65a174c3980109d8, []int{7}
 }
-func (m *WatchNodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *NodeEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *WatchNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *NodeEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_WatchNodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_NodeEvent.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -348,213 +336,195 @@ func (m *WatchNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, e
 		return b[:n], nil
 	}
 }
-func (m *WatchNodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_WatchNodeResponse.Merge(m, src)
+func (m *NodeEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NodeEvent.Merge(m, src)
 }
-func (m *WatchNodeResponse) XXX_Size() int {
+func (m *NodeEvent) XXX_Size() int {
 	return m.Size()
 }
-func (m *WatchNodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_WatchNodeResponse.DiscardUnknown(m)
+func (m *NodeEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_NodeEvent.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_WatchNodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_NodeEvent proto.InternalMessageInfo
 
-type isWatchNodeResponse_Event interface {
-	isWatchNodeResponse_Event()
+type isNodeEvent_Event interface {
+	isNodeEvent_Event()
 	MarshalTo([]byte) (int, error)
 	Size() int
 }
 
-type WatchNodeResponse_MemberReady struct {
-	MemberReady *MemberReadyEvent `protobuf:"bytes,2,opt,name=member_ready,json=memberReady,proto3,oneof" json:"member_ready,omitempty"`
+type NodeEvent_ConnectionEstablished struct {
+	ConnectionEstablished *ConnectionEstablishedEvent `protobuf:"bytes,2,opt,name=connection_established,json=connectionEstablished,proto3,oneof" json:"connection_established,omitempty"`
 }
-type WatchNodeResponse_LeaderUpdated struct {
-	LeaderUpdated *LeaderUpdatedEvent `protobuf:"bytes,3,opt,name=leader_updated,json=leaderUpdated,proto3,oneof" json:"leader_updated,omitempty"`
-}
-type WatchNodeResponse_MembershipChanged struct {
-	MembershipChanged *MembershipChangedEvent `protobuf:"bytes,4,opt,name=membership_changed,json=membershipChanged,proto3,oneof" json:"membership_changed,omitempty"`
-}
-type WatchNodeResponse_SendSnapshotStarted struct {
-	SendSnapshotStarted *SendSnapshotStartedEvent `protobuf:"bytes,5,opt,name=send_snapshot_started,json=sendSnapshotStarted,proto3,oneof" json:"send_snapshot_started,omitempty"`
-}
-type WatchNodeResponse_SendSnapshotCompleted struct {
-	SendSnapshotCompleted *SendSnapshotCompletedEvent `protobuf:"bytes,6,opt,name=send_snapshot_completed,json=sendSnapshotCompleted,proto3,oneof" json:"send_snapshot_completed,omitempty"`
-}
-type WatchNodeResponse_SendSnapshotAborted struct {
-	SendSnapshotAborted *SendSnapshotAbortedEvent `protobuf:"bytes,7,opt,name=send_snapshot_aborted,json=sendSnapshotAborted,proto3,oneof" json:"send_snapshot_aborted,omitempty"`
-}
-type WatchNodeResponse_SnapshotReceived struct {
-	SnapshotReceived *SnapshotReceivedEvent `protobuf:"bytes,8,opt,name=snapshot_received,json=snapshotReceived,proto3,oneof" json:"snapshot_received,omitempty"`
-}
-type WatchNodeResponse_SnapshotRecovered struct {
-	SnapshotRecovered *SnapshotRecoveredEvent `protobuf:"bytes,9,opt,name=snapshot_recovered,json=snapshotRecovered,proto3,oneof" json:"snapshot_recovered,omitempty"`
-}
-type WatchNodeResponse_SnapshotCreated struct {
-	SnapshotCreated *SnapshotCreatedEvent `protobuf:"bytes,10,opt,name=snapshot_created,json=snapshotCreated,proto3,oneof" json:"snapshot_created,omitempty"`
-}
-type WatchNodeResponse_SnapshotCompacted struct {
-	SnapshotCompacted *SnapshotCompactedEvent `protobuf:"bytes,11,opt,name=snapshot_compacted,json=snapshotCompacted,proto3,oneof" json:"snapshot_compacted,omitempty"`
-}
-type WatchNodeResponse_LogCompacted struct {
-	LogCompacted *LogCompactedEvent `protobuf:"bytes,12,opt,name=log_compacted,json=logCompacted,proto3,oneof" json:"log_compacted,omitempty"`
-}
-type WatchNodeResponse_LogdbCompacted struct {
-	LogdbCompacted *LogDBCompactedEvent `protobuf:"bytes,13,opt,name=logdb_compacted,json=logdbCompacted,proto3,oneof" json:"logdb_compacted,omitempty"`
-}
-type WatchNodeResponse_ConnectionEstablished struct {
-	ConnectionEstablished *ConnectionEstablishedEvent `protobuf:"bytes,14,opt,name=connection_established,json=connectionEstablished,proto3,oneof" json:"connection_established,omitempty"`
-}
-type WatchNodeResponse_ConnectionFailed struct {
-	ConnectionFailed *ConnectionFailedEvent `protobuf:"bytes,15,opt,name=connection_failed,json=connectionFailed,proto3,oneof" json:"connection_failed,omitempty"`
+type NodeEvent_ConnectionFailed struct {
+	ConnectionFailed *ConnectionFailedEvent `protobuf:"bytes,3,opt,name=connection_failed,json=connectionFailed,proto3,oneof" json:"connection_failed,omitempty"`
 }
 
-func (*WatchNodeResponse_MemberReady) isWatchNodeResponse_Event()           {}
-func (*WatchNodeResponse_LeaderUpdated) isWatchNodeResponse_Event()         {}
-func (*WatchNodeResponse_MembershipChanged) isWatchNodeResponse_Event()     {}
-func (*WatchNodeResponse_SendSnapshotStarted) isWatchNodeResponse_Event()   {}
-func (*WatchNodeResponse_SendSnapshotCompleted) isWatchNodeResponse_Event() {}
-func (*WatchNodeResponse_SendSnapshotAborted) isWatchNodeResponse_Event()   {}
-func (*WatchNodeResponse_SnapshotReceived) isWatchNodeResponse_Event()      {}
-func (*WatchNodeResponse_SnapshotRecovered) isWatchNodeResponse_Event()     {}
-func (*WatchNodeResponse_SnapshotCreated) isWatchNodeResponse_Event()       {}
-func (*WatchNodeResponse_SnapshotCompacted) isWatchNodeResponse_Event()     {}
-func (*WatchNodeResponse_LogCompacted) isWatchNodeResponse_Event()          {}
-func (*WatchNodeResponse_LogdbCompacted) isWatchNodeResponse_Event()        {}
-func (*WatchNodeResponse_ConnectionEstablished) isWatchNodeResponse_Event() {}
-func (*WatchNodeResponse_ConnectionFailed) isWatchNodeResponse_Event()      {}
+func (*NodeEvent_ConnectionEstablished) isNodeEvent_Event() {}
+func (*NodeEvent_ConnectionFailed) isNodeEvent_Event()      {}
 
-func (m *WatchNodeResponse) GetEvent() isWatchNodeResponse_Event {
+func (m *NodeEvent) GetEvent() isNodeEvent_Event {
 	if m != nil {
 		return m.Event
 	}
 	return nil
 }
 
-func (m *WatchNodeResponse) GetTimestamp() time.Time {
+func (m *NodeEvent) GetTimestamp() time.Time {
 	if m != nil {
 		return m.Timestamp
 	}
 	return time.Time{}
 }
 
-func (m *WatchNodeResponse) GetMemberReady() *MemberReadyEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_MemberReady); ok {
-		return x.MemberReady
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetLeaderUpdated() *LeaderUpdatedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_LeaderUpdated); ok {
-		return x.LeaderUpdated
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetMembershipChanged() *MembershipChangedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_MembershipChanged); ok {
-		return x.MembershipChanged
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSendSnapshotStarted() *SendSnapshotStartedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SendSnapshotStarted); ok {
-		return x.SendSnapshotStarted
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSendSnapshotCompleted() *SendSnapshotCompletedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SendSnapshotCompleted); ok {
-		return x.SendSnapshotCompleted
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSendSnapshotAborted() *SendSnapshotAbortedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SendSnapshotAborted); ok {
-		return x.SendSnapshotAborted
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSnapshotReceived() *SnapshotReceivedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SnapshotReceived); ok {
-		return x.SnapshotReceived
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSnapshotRecovered() *SnapshotRecoveredEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SnapshotRecovered); ok {
-		return x.SnapshotRecovered
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSnapshotCreated() *SnapshotCreatedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SnapshotCreated); ok {
-		return x.SnapshotCreated
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetSnapshotCompacted() *SnapshotCompactedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_SnapshotCompacted); ok {
-		return x.SnapshotCompacted
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetLogCompacted() *LogCompactedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_LogCompacted); ok {
-		return x.LogCompacted
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetLogdbCompacted() *LogDBCompactedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_LogdbCompacted); ok {
-		return x.LogdbCompacted
-	}
-	return nil
-}
-
-func (m *WatchNodeResponse) GetConnectionEstablished() *ConnectionEstablishedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_ConnectionEstablished); ok {
+func (m *NodeEvent) GetConnectionEstablished() *ConnectionEstablishedEvent {
+	if x, ok := m.GetEvent().(*NodeEvent_ConnectionEstablished); ok {
 		return x.ConnectionEstablished
 	}
 	return nil
 }
 
-func (m *WatchNodeResponse) GetConnectionFailed() *ConnectionFailedEvent {
-	if x, ok := m.GetEvent().(*WatchNodeResponse_ConnectionFailed); ok {
+func (m *NodeEvent) GetConnectionFailed() *ConnectionFailedEvent {
+	if x, ok := m.GetEvent().(*NodeEvent_ConnectionFailed); ok {
 		return x.ConnectionFailed
 	}
 	return nil
 }
 
 // XXX_OneofWrappers is for the internal use of the proto package.
-func (*WatchNodeResponse) XXX_OneofWrappers() []interface{} {
+func (*NodeEvent) XXX_OneofWrappers() []interface{} {
 	return []interface{}{
-		(*WatchNodeResponse_MemberReady)(nil),
-		(*WatchNodeResponse_LeaderUpdated)(nil),
-		(*WatchNodeResponse_MembershipChanged)(nil),
-		(*WatchNodeResponse_SendSnapshotStarted)(nil),
-		(*WatchNodeResponse_SendSnapshotCompleted)(nil),
-		(*WatchNodeResponse_SendSnapshotAborted)(nil),
-		(*WatchNodeResponse_SnapshotReceived)(nil),
-		(*WatchNodeResponse_SnapshotRecovered)(nil),
-		(*WatchNodeResponse_SnapshotCreated)(nil),
-		(*WatchNodeResponse_SnapshotCompacted)(nil),
-		(*WatchNodeResponse_LogCompacted)(nil),
-		(*WatchNodeResponse_LogdbCompacted)(nil),
-		(*WatchNodeResponse_ConnectionEstablished)(nil),
-		(*WatchNodeResponse_ConnectionFailed)(nil),
+		(*NodeEvent_ConnectionEstablished)(nil),
+		(*NodeEvent_ConnectionFailed)(nil),
 	}
 }
+
+type ConnectionInfo struct {
+	Address  string `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	Snapshot bool   `protobuf:"varint,2,opt,name=snapshot,proto3" json:"snapshot,omitempty"`
+}
+
+func (m *ConnectionInfo) Reset()         { *m = ConnectionInfo{} }
+func (m *ConnectionInfo) String() string { return proto.CompactTextString(m) }
+func (*ConnectionInfo) ProtoMessage()    {}
+func (*ConnectionInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65a174c3980109d8, []int{8}
+}
+func (m *ConnectionInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ConnectionInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ConnectionInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ConnectionInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectionInfo.Merge(m, src)
+}
+func (m *ConnectionInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *ConnectionInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConnectionInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConnectionInfo proto.InternalMessageInfo
+
+func (m *ConnectionInfo) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+func (m *ConnectionInfo) GetSnapshot() bool {
+	if m != nil {
+		return m.Snapshot
+	}
+	return false
+}
+
+type ConnectionEstablishedEvent struct {
+	ConnectionInfo `protobuf:"bytes,1,opt,name=info,proto3,embedded=info" json:"info"`
+}
+
+func (m *ConnectionEstablishedEvent) Reset()         { *m = ConnectionEstablishedEvent{} }
+func (m *ConnectionEstablishedEvent) String() string { return proto.CompactTextString(m) }
+func (*ConnectionEstablishedEvent) ProtoMessage()    {}
+func (*ConnectionEstablishedEvent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65a174c3980109d8, []int{9}
+}
+func (m *ConnectionEstablishedEvent) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ConnectionEstablishedEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ConnectionEstablishedEvent.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ConnectionEstablishedEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectionEstablishedEvent.Merge(m, src)
+}
+func (m *ConnectionEstablishedEvent) XXX_Size() int {
+	return m.Size()
+}
+func (m *ConnectionEstablishedEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConnectionEstablishedEvent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConnectionEstablishedEvent proto.InternalMessageInfo
+
+type ConnectionFailedEvent struct {
+	ConnectionInfo `protobuf:"bytes,1,opt,name=info,proto3,embedded=info" json:"info"`
+}
+
+func (m *ConnectionFailedEvent) Reset()         { *m = ConnectionFailedEvent{} }
+func (m *ConnectionFailedEvent) String() string { return proto.CompactTextString(m) }
+func (*ConnectionFailedEvent) ProtoMessage()    {}
+func (*ConnectionFailedEvent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65a174c3980109d8, []int{10}
+}
+func (m *ConnectionFailedEvent) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ConnectionFailedEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ConnectionFailedEvent.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ConnectionFailedEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ConnectionFailedEvent.Merge(m, src)
+}
+func (m *ConnectionFailedEvent) XXX_Size() int {
+	return m.Size()
+}
+func (m *ConnectionFailedEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_ConnectionFailedEvent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ConnectionFailedEvent proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*BootstrapRequest)(nil), "atomix.multiraft.v1.BootstrapRequest")
@@ -564,65 +534,53 @@ func init() {
 	proto.RegisterType((*LeaveRequest)(nil), "atomix.multiraft.v1.LeaveRequest")
 	proto.RegisterType((*LeaveResponse)(nil), "atomix.multiraft.v1.LeaveResponse")
 	proto.RegisterType((*WatchNodeRequest)(nil), "atomix.multiraft.v1.WatchNodeRequest")
-	proto.RegisterType((*WatchNodeResponse)(nil), "atomix.multiraft.v1.WatchNodeResponse")
+	proto.RegisterType((*NodeEvent)(nil), "atomix.multiraft.v1.NodeEvent")
+	proto.RegisterType((*ConnectionInfo)(nil), "atomix.multiraft.v1.ConnectionInfo")
+	proto.RegisterType((*ConnectionEstablishedEvent)(nil), "atomix.multiraft.v1.ConnectionEstablishedEvent")
+	proto.RegisterType((*ConnectionFailedEvent)(nil), "atomix.multiraft.v1.ConnectionFailedEvent")
 }
 
 func init() { proto.RegisterFile("atomix/multiraft/v1/node.proto", fileDescriptor_65a174c3980109d8) }
 
 var fileDescriptor_65a174c3980109d8 = []byte{
-	// 826 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x95, 0xcd, 0x4e, 0xeb, 0x46,
-	0x14, 0xc7, 0x13, 0x9a, 0x00, 0x99, 0x7c, 0x0f, 0xa5, 0xb5, 0xb2, 0x70, 0xc0, 0x6a, 0x29, 0x6d,
-	0x55, 0xa7, 0xd0, 0x27, 0xc0, 0x81, 0x0a, 0x28, 0x20, 0x9a, 0xb4, 0xd0, 0x56, 0x95, 0xa2, 0x89,
-	0x67, 0xe2, 0x58, 0xb2, 0x3d, 0xae, 0x67, 0x12, 0xb5, 0x6f, 0xc1, 0x63, 0xb1, 0x64, 0xd9, 0x6e,
-	0xe8, 0x55, 0x58, 0xdd, 0x57, 0xb8, 0xab, 0x2b, 0x8f, 0x3f, 0xe2, 0x24, 0x8e, 0x61, 0x67, 0xe6,
-	0xfc, 0xcf, 0xef, 0x3f, 0x87, 0x39, 0x39, 0x07, 0xc8, 0x88, 0x53, 0xdb, 0xfc, 0xbb, 0x63, 0x4f,
-	0x2c, 0x6e, 0x7a, 0x68, 0xc4, 0x3b, 0xd3, 0xa3, 0x8e, 0x43, 0x31, 0x51, 0x5d, 0x8f, 0x72, 0x0a,
-	0x77, 0x82, 0xb8, 0x1a, 0xc7, 0xd5, 0xe9, 0x51, 0xab, 0x6d, 0x50, 0x6a, 0x58, 0xa4, 0x23, 0x24,
-	0xc3, 0xc9, 0xa8, 0xc3, 0x4d, 0x9b, 0x30, 0x8e, 0x6c, 0x37, 0xc8, 0x6a, 0x7d, 0x6a, 0x50, 0x83,
-	0x8a, 0xcf, 0x8e, 0xff, 0x15, 0x9e, 0xee, 0xa5, 0x79, 0xe9, 0xd4, 0x19, 0x99, 0x46, 0x96, 0x82,
-	0x4c, 0x89, 0xc3, 0x59, 0xa8, 0xd8, 0x4f, 0x53, 0x8c, 0x09, 0xc2, 0xc4, 0x0b, 0x25, 0xca, 0x1d,
-	0x68, 0x68, 0x94, 0x72, 0xc6, 0x3d, 0xe4, 0xf6, 0xc8, 0x5f, 0x13, 0xc2, 0x38, 0xd4, 0xc0, 0x96,
-	0x6e, 0x4d, 0x18, 0x27, 0x9e, 0x94, 0xdf, 0xcb, 0x1f, 0x96, 0x8f, 0x15, 0x35, 0xa5, 0x30, 0xb5,
-	0x1b, 0x68, 0xba, 0xe2, 0x4e, 0x5a, 0xe1, 0xf1, 0xb9, 0x9d, 0xeb, 0x45, 0x89, 0xca, 0x0e, 0x68,
-	0x26, 0xb8, 0xcc, 0xa5, 0x0e, 0x23, 0xca, 0x3d, 0x28, 0x5f, 0x52, 0xd3, 0x89, 0x7c, 0xce, 0x41,
-	0xc9, 0x45, 0x1e, 0x37, 0xb9, 0x49, 0x9d, 0xd0, 0xe9, 0x8b, 0x54, 0xa7, 0xdb, 0x48, 0xb5, 0xe0,
-	0x35, 0x4f, 0x56, 0x6a, 0xa0, 0x12, 0x80, 0x43, 0xa3, 0x9f, 0x41, 0xe5, 0x8a, 0xa0, 0x29, 0x89,
-	0x9c, 0x4e, 0x40, 0x25, 0x16, 0x0f, 0x4c, 0x2c, 0xcc, 0xaa, 0x9a, 0x3c, 0x7b, 0x6e, 0x97, 0x63,
-	0xf6, 0xc5, 0xe9, 0x87, 0xc5, 0x3f, 0x7b, 0xe5, 0x38, 0xe7, 0x02, 0x2b, 0x75, 0x50, 0x0d, 0x91,
-	0xa1, 0x07, 0x04, 0x8d, 0x7b, 0xc4, 0xf5, 0xf1, 0x0d, 0xc5, 0x91, 0x8f, 0xf2, 0x1e, 0x80, 0x66,
-	0xe2, 0x30, 0x50, 0x42, 0x0d, 0x94, 0xe2, 0x37, 0x0f, 0xeb, 0x6c, 0xa9, 0x41, 0x57, 0xa8, 0x51,
-	0x57, 0xa8, 0xbf, 0x44, 0x0a, 0x6d, 0xdb, 0xaf, 0xee, 0xe1, 0xff, 0x76, 0xbe, 0x37, 0x4f, 0x83,
-	0x97, 0xa0, 0x62, 0x13, 0x7b, 0x48, 0xbc, 0x81, 0x47, 0x10, 0xfe, 0x47, 0xda, 0x10, 0x98, 0x2f,
-	0x53, 0xff, 0x5d, 0xd7, 0x42, 0xd8, 0xf3, 0x75, 0x67, 0x7e, 0x3b, 0x9c, 0xe7, 0x7a, 0x65, 0x7b,
-	0x7e, 0x06, 0x6f, 0x41, 0xcd, 0x12, 0x4d, 0x30, 0x98, 0xb8, 0x18, 0x71, 0x82, 0xa5, 0x4f, 0x04,
-	0xed, 0xab, 0x54, 0xda, 0x95, 0x90, 0xfe, 0x1a, 0x28, 0x23, 0x5e, 0xd5, 0x4a, 0x9e, 0xc2, 0x3f,
-	0x01, 0x0c, 0x0c, 0xd8, 0xd8, 0x74, 0x07, 0xfa, 0x18, 0x39, 0x06, 0xc1, 0x52, 0x41, 0x50, 0xbf,
-	0xcd, 0xb8, 0xa3, 0x2f, 0xef, 0x06, 0xea, 0x88, 0xdc, 0xb4, 0x97, 0x23, 0x50, 0x07, 0xbb, 0x8c,
-	0x38, 0x78, 0xc0, 0x1c, 0xe4, 0xb2, 0x31, 0xe5, 0x03, 0xc6, 0x91, 0xe7, 0x5f, 0xbb, 0x28, 0x0c,
-	0xbe, 0x4b, 0x35, 0xe8, 0x13, 0x07, 0xf7, 0xc3, 0x84, 0x7e, 0xa0, 0x8f, 0x2c, 0x76, 0xd8, 0x6a,
-	0x0c, 0x9a, 0xe0, 0xf3, 0x45, 0x13, 0x9d, 0xda, 0xae, 0x45, 0x7c, 0x9b, 0x4d, 0x61, 0xd3, 0x79,
-	0xd5, 0xa6, 0x1b, 0x65, 0x44, 0x46, 0xbb, 0x2c, 0x2d, 0xba, 0x5a, 0x0f, 0x1a, 0x52, 0x51, 0xcf,
-	0xd6, 0x1b, 0xeb, 0x39, 0x09, 0xf4, 0xa9, 0xf5, 0x84, 0x31, 0xf8, 0x3b, 0x68, 0xc6, 0x7c, 0x8f,
-	0xe8, 0xc4, 0x9c, 0x12, 0x2c, 0x6d, 0x0b, 0x83, 0x6f, 0xd2, 0x0d, 0x42, 0x75, 0x2f, 0x14, 0x47,
-	0xf4, 0x06, 0x5b, 0x0a, 0xf8, 0xaf, 0x9d, 0x44, 0xd3, 0x29, 0xf1, 0x08, 0x96, 0x4a, 0x19, 0xaf,
-	0x9d, 0x60, 0x07, 0xea, 0xf8, 0xb5, 0xd9, 0x72, 0x04, 0xde, 0x81, 0xc6, 0xfc, 0x0d, 0x3c, 0x22,
-	0xfa, 0x13, 0x08, 0xf6, 0xd7, 0x99, 0xec, 0x6e, 0xa0, 0x8d, 0xc8, 0x75, 0xb6, 0x78, 0xbe, 0x70,
-	0x6b, 0xff, 0x6d, 0x91, 0xee, 0x93, 0xcb, 0x6f, 0xb8, 0x75, 0x37, 0x52, 0xaf, 0xdc, 0x3a, 0x8e,
-	0xc0, 0x6b, 0x50, 0xb5, 0xa8, 0x91, 0x00, 0x57, 0x04, 0xf8, 0x20, 0xfd, 0x27, 0x45, 0x8d, 0x15,
-	0x66, 0xc5, 0x4a, 0x1c, 0xc2, 0x3e, 0xa8, 0x5b, 0xd4, 0xc0, 0xc3, 0x04, 0xb0, 0x2a, 0x80, 0x87,
-	0xeb, 0x80, 0xa7, 0xda, 0x0a, 0xb2, 0x26, 0x10, 0x73, 0xe8, 0x18, 0x7c, 0xa6, 0x53, 0xc7, 0x21,
-	0xba, 0x18, 0x83, 0xfe, 0x60, 0x19, 0x5a, 0x26, 0x1b, 0x13, 0x2c, 0xd5, 0x32, 0x3a, 0xbc, 0x1b,
-	0xa7, 0x9c, 0xcd, 0x33, 0xe2, 0x0e, 0xd7, 0xd3, 0xa2, 0x7e, 0xf3, 0x25, 0x9c, 0x46, 0xc8, 0xb4,
-	0x08, 0x96, 0xea, 0x19, 0xcd, 0x37, 0x37, 0xf9, 0x51, 0x88, 0xe3, 0xe6, 0xd3, 0x97, 0x02, 0xda,
-	0x16, 0x28, 0x8a, 0x1d, 0x77, 0xfc, 0xdf, 0x06, 0x28, 0xf8, 0x63, 0x16, 0xfe, 0x01, 0x4a, 0xf1,
-	0xaa, 0x81, 0xe9, 0x13, 0x71, 0x79, 0xc5, 0xb5, 0x0e, 0x5e, 0x93, 0x85, 0xa3, 0xfb, 0x27, 0x50,
-	0xf0, 0x17, 0x0b, 0xdc, 0x4b, 0xd5, 0x27, 0x96, 0x59, 0x6b, 0x3f, 0x43, 0x11, 0xc2, 0x6e, 0x40,
-	0x51, 0xac, 0x10, 0xb8, 0xbf, 0x6e, 0xd0, 0xc6, 0x1b, 0xab, 0xa5, 0x64, 0x49, 0x42, 0xde, 0x6f,
-	0xa0, 0x28, 0x96, 0xcd, 0x9a, 0xa2, 0x97, 0xb7, 0xd3, 0x9a, 0xa2, 0x57, 0xf6, 0xd5, 0xf7, 0x79,
-	0x4d, 0x7a, 0x9c, 0xc9, 0xf9, 0xa7, 0x99, 0x9c, 0x7f, 0x37, 0x93, 0xf3, 0x0f, 0x2f, 0x72, 0xee,
-	0xe9, 0x45, 0xce, 0xfd, 0xfb, 0x22, 0xe7, 0x86, 0x9b, 0x62, 0x61, 0xfd, 0xf0, 0x31, 0x00, 0x00,
-	0xff, 0xff, 0xf9, 0x7a, 0x01, 0xd3, 0x0b, 0x09, 0x00, 0x00,
+	// 591 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0xcb, 0x6e, 0xda, 0x4c,
+	0x14, 0xc6, 0xfc, 0xf0, 0x03, 0x07, 0x92, 0x92, 0x49, 0x53, 0x21, 0x2f, 0x0c, 0x71, 0x2f, 0xaa,
+	0xba, 0xb0, 0x9b, 0xf4, 0x09, 0xe2, 0x34, 0x51, 0x68, 0xab, 0x28, 0xb5, 0xaa, 0x46, 0xcd, 0x26,
+	0x32, 0xf6, 0x18, 0x2c, 0xc1, 0x8c, 0xeb, 0x19, 0x50, 0x1f, 0x23, 0x2f, 0xd0, 0xf7, 0xc9, 0x92,
+	0xee, 0xba, 0xa2, 0x15, 0xbc, 0x45, 0x57, 0x95, 0xc7, 0x17, 0x08, 0x9a, 0x84, 0x4d, 0x77, 0x1e,
+	0x9f, 0xef, 0x72, 0xce, 0x9c, 0xf9, 0x40, 0x73, 0x38, 0x1d, 0x05, 0xdf, 0xcc, 0xd1, 0x78, 0xc8,
+	0x83, 0xc8, 0xf1, 0xb9, 0x39, 0x39, 0x30, 0x09, 0xf5, 0xb0, 0x11, 0x46, 0x94, 0x53, 0xb4, 0x9b,
+	0xd4, 0x8d, 0xbc, 0x6e, 0x4c, 0x0e, 0xd4, 0x76, 0x9f, 0xd2, 0xfe, 0x10, 0x9b, 0x02, 0xd2, 0x1b,
+	0xfb, 0x26, 0x0f, 0x46, 0x98, 0x71, 0x67, 0x14, 0x26, 0x2c, 0xf5, 0x71, 0x9f, 0xf6, 0xa9, 0xf8,
+	0x34, 0xe3, 0xaf, 0xf4, 0x6f, 0x47, 0xe6, 0xe5, 0x52, 0xe2, 0x07, 0xfd, 0x14, 0xb1, 0x2f, 0x43,
+	0x0c, 0xb0, 0xe3, 0xe1, 0x88, 0x25, 0x10, 0xfd, 0x33, 0x34, 0x2d, 0x4a, 0x39, 0xe3, 0x91, 0x13,
+	0xda, 0xf8, 0xeb, 0x18, 0x33, 0x8e, 0x2c, 0xa8, 0xb8, 0xc3, 0x31, 0xe3, 0x38, 0x6a, 0x29, 0x1d,
+	0xe5, 0x65, 0xfd, 0x50, 0x37, 0x24, 0x6d, 0x1b, 0xc7, 0x09, 0xe6, 0x58, 0x38, 0x5a, 0xa5, 0xdb,
+	0x59, 0xbb, 0x60, 0x67, 0x44, 0x7d, 0x17, 0x76, 0x56, 0x74, 0x59, 0x48, 0x09, 0xc3, 0xfa, 0x25,
+	0xd4, 0xdf, 0xd1, 0x80, 0x64, 0x3e, 0x67, 0x50, 0x0b, 0x9d, 0x88, 0x07, 0x3c, 0xa0, 0x24, 0x75,
+	0x7a, 0x26, 0x75, 0xba, 0xc8, 0x50, 0x77, 0xbc, 0x96, 0x64, 0x7d, 0x1b, 0x1a, 0x89, 0x70, 0x6a,
+	0xf4, 0x11, 0x1a, 0x1f, 0xb0, 0x33, 0xc1, 0x99, 0xd3, 0x11, 0x34, 0x72, 0xf0, 0x75, 0xe0, 0x09,
+	0xb3, 0x2d, 0x4b, 0x9b, 0xcf, 0xda, 0xf5, 0x5c, 0xbb, 0xfb, 0xf6, 0xcf, 0xdd, 0xa3, 0x5d, 0xcf,
+	0x39, 0x5d, 0x4f, 0x7f, 0x04, 0x5b, 0xa9, 0x64, 0xea, 0x81, 0xa0, 0x79, 0xe9, 0x70, 0x77, 0x70,
+	0x4e, 0xbd, 0xcc, 0x47, 0xff, 0x5e, 0x84, 0x5a, 0x7c, 0x3e, 0x99, 0x60, 0x12, 0xdf, 0x63, 0x2d,
+	0xdf, 0x64, 0x3a, 0x9f, 0x6a, 0x24, 0xbb, 0x36, 0xb2, 0x5d, 0x1b, 0x9f, 0x32, 0x84, 0x55, 0x8d,
+	0xa7, 0xba, 0xf9, 0xd5, 0x56, 0xec, 0x25, 0x0d, 0x0d, 0xe0, 0x89, 0x4b, 0x09, 0xc1, 0xae, 0x68,
+	0x3d, 0xfe, 0xd9, 0x1b, 0x06, 0x6c, 0x80, 0xbd, 0x56, 0x51, 0x08, 0x9a, 0xf2, 0xd5, 0xe4, 0x94,
+	0x93, 0x25, 0x43, 0x34, 0x75, 0x56, 0xb0, 0xf7, 0x5c, 0x59, 0x15, 0x7d, 0x81, 0x9d, 0x15, 0x27,
+	0xdf, 0x09, 0x86, 0xd8, 0x6b, 0xfd, 0x27, 0x4c, 0x5e, 0x6d, 0x30, 0x39, 0x15, 0xe0, 0x4c, 0xbf,
+	0xe9, 0xae, 0x15, 0xac, 0x0a, 0x94, 0x71, 0x5c, 0xd4, 0x4f, 0x61, 0x7b, 0xc9, 0xea, 0x12, 0x9f,
+	0xa2, 0x16, 0x54, 0x1c, 0xcf, 0x8b, 0x30, 0x63, 0xe2, 0x86, 0x6a, 0x76, 0x76, 0x44, 0x2a, 0x54,
+	0x19, 0x71, 0x42, 0x36, 0xa0, 0x5c, 0xcc, 0x5a, 0xb5, 0xf3, 0xb3, 0x7e, 0x0d, 0xea, 0xfd, 0x23,
+	0xa2, 0x23, 0x28, 0x05, 0xc4, 0xa7, 0xe9, 0x95, 0x3f, 0xdd, 0xd0, 0x7c, 0xdc, 0x46, 0x72, 0xf7,
+	0xd3, 0x59, 0x5b, 0xb1, 0x05, 0x55, 0xbf, 0x82, 0x3d, 0xe9, 0x78, 0xff, 0x40, 0xfb, 0xf0, 0x47,
+	0x11, 0x4a, 0xf1, 0x23, 0x41, 0x57, 0x50, 0xcb, 0x33, 0x82, 0x9e, 0x4b, 0xa5, 0xd6, 0xb3, 0xa9,
+	0xbe, 0xd8, 0x04, 0x4b, 0x5e, 0x27, 0x7a, 0x0f, 0xa5, 0x38, 0x11, 0xa8, 0x23, 0xc5, 0xaf, 0xa4,
+	0x50, 0xdd, 0x7f, 0x00, 0x91, 0x8a, 0x9d, 0x43, 0x59, 0xbc, 0x7d, 0x24, 0xc7, 0xae, 0x46, 0x4d,
+	0xd5, 0x1f, 0x82, 0xa4, 0x7a, 0x17, 0x50, 0x16, 0xd1, 0xb9, 0x67, 0xe8, 0xf5, 0x58, 0xa9, 0x9a,
+	0x14, 0x96, 0x07, 0xed, 0xb5, 0x62, 0xb5, 0x6e, 0xe7, 0x9a, 0x32, 0x9d, 0x6b, 0xca, 0xef, 0xb9,
+	0xa6, 0xdc, 0x2c, 0xb4, 0xc2, 0x74, 0xa1, 0x15, 0x7e, 0x2e, 0xb4, 0x42, 0xef, 0x7f, 0x91, 0xb4,
+	0x37, 0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xcb, 0xef, 0x26, 0x72, 0x9a, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -694,7 +652,7 @@ func (c *nodeClient) Watch(ctx context.Context, in *WatchNodeRequest, opts ...gr
 }
 
 type Node_WatchClient interface {
-	Recv() (*WatchNodeResponse, error)
+	Recv() (*NodeEvent, error)
 	grpc.ClientStream
 }
 
@@ -702,8 +660,8 @@ type nodeWatchClient struct {
 	grpc.ClientStream
 }
 
-func (x *nodeWatchClient) Recv() (*WatchNodeResponse, error) {
-	m := new(WatchNodeResponse)
+func (x *nodeWatchClient) Recv() (*NodeEvent, error) {
+	m := new(NodeEvent)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -802,7 +760,7 @@ func _Node_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
 }
 
 type Node_WatchServer interface {
-	Send(*WatchNodeResponse) error
+	Send(*NodeEvent) error
 	grpc.ServerStream
 }
 
@@ -810,7 +768,7 @@ type nodeWatchServer struct {
 	grpc.ServerStream
 }
 
-func (x *nodeWatchServer) Send(m *WatchNodeResponse) error {
+func (x *nodeWatchServer) Send(m *NodeEvent) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -1027,7 +985,7 @@ func (m *WatchNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *WatchNodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *NodeEvent) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1037,12 +995,12 @@ func (m *WatchNodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *WatchNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *NodeEvent) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *WatchNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *NodeEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1067,264 +1025,12 @@ func (m *WatchNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *WatchNodeResponse_MemberReady) MarshalTo(dAtA []byte) (int, error) {
+func (m *NodeEvent_ConnectionEstablished) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *WatchNodeResponse_MemberReady) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.MemberReady != nil {
-		{
-			size, err := m.MemberReady.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_LeaderUpdated) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_LeaderUpdated) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.LeaderUpdated != nil {
-		{
-			size, err := m.LeaderUpdated.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_MembershipChanged) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_MembershipChanged) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.MembershipChanged != nil {
-		{
-			size, err := m.MembershipChanged.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x22
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SendSnapshotStarted) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SendSnapshotStarted) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SendSnapshotStarted != nil {
-		{
-			size, err := m.SendSnapshotStarted.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SendSnapshotCompleted) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SendSnapshotCompleted) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SendSnapshotCompleted != nil {
-		{
-			size, err := m.SendSnapshotCompleted.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x32
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SendSnapshotAborted) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SendSnapshotAborted) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SendSnapshotAborted != nil {
-		{
-			size, err := m.SendSnapshotAborted.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SnapshotReceived) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SnapshotReceived) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SnapshotReceived != nil {
-		{
-			size, err := m.SnapshotReceived.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x42
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SnapshotRecovered) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SnapshotRecovered) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SnapshotRecovered != nil {
-		{
-			size, err := m.SnapshotRecovered.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x4a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SnapshotCreated) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SnapshotCreated) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SnapshotCreated != nil {
-		{
-			size, err := m.SnapshotCreated.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x52
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_SnapshotCompacted) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_SnapshotCompacted) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.SnapshotCompacted != nil {
-		{
-			size, err := m.SnapshotCompacted.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x5a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_LogCompacted) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_LogCompacted) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.LogCompacted != nil {
-		{
-			size, err := m.LogCompacted.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x62
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_LogdbCompacted) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_LogdbCompacted) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	if m.LogdbCompacted != nil {
-		{
-			size, err := m.LogdbCompacted.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintNode(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x6a
-	}
-	return len(dAtA) - i, nil
-}
-func (m *WatchNodeResponse_ConnectionEstablished) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *WatchNodeResponse_ConnectionEstablished) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *NodeEvent_ConnectionEstablished) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	if m.ConnectionEstablished != nil {
 		{
@@ -1336,16 +1042,16 @@ func (m *WatchNodeResponse_ConnectionEstablished) MarshalToSizedBuffer(dAtA []by
 			i = encodeVarintNode(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x72
+		dAtA[i] = 0x12
 	}
 	return len(dAtA) - i, nil
 }
-func (m *WatchNodeResponse_ConnectionFailed) MarshalTo(dAtA []byte) (int, error) {
+func (m *NodeEvent_ConnectionFailed) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *WatchNodeResponse_ConnectionFailed) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *NodeEvent_ConnectionFailed) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	if m.ConnectionFailed != nil {
 		{
@@ -1357,10 +1063,116 @@ func (m *WatchNodeResponse_ConnectionFailed) MarshalToSizedBuffer(dAtA []byte) (
 			i = encodeVarintNode(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x7a
+		dAtA[i] = 0x1a
 	}
 	return len(dAtA) - i, nil
 }
+func (m *ConnectionInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConnectionInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ConnectionInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Snapshot {
+		i--
+		if m.Snapshot {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Address) > 0 {
+		i -= len(m.Address)
+		copy(dAtA[i:], m.Address)
+		i = encodeVarintNode(dAtA, i, uint64(len(m.Address)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ConnectionEstablishedEvent) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConnectionEstablishedEvent) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ConnectionEstablishedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ConnectionInfo.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *ConnectionFailedEvent) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ConnectionFailedEvent) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ConnectionFailedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.ConnectionInfo.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintNode(dAtA []byte, offset int, v uint64) int {
 	offset -= sovNode(v)
 	base := offset
@@ -1442,7 +1254,7 @@ func (m *WatchNodeRequest) Size() (n int) {
 	return n
 }
 
-func (m *WatchNodeResponse) Size() (n int) {
+func (m *NodeEvent) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1456,151 +1268,7 @@ func (m *WatchNodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *WatchNodeResponse_MemberReady) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.MemberReady != nil {
-		l = m.MemberReady.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_LeaderUpdated) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.LeaderUpdated != nil {
-		l = m.LeaderUpdated.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_MembershipChanged) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.MembershipChanged != nil {
-		l = m.MembershipChanged.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SendSnapshotStarted) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SendSnapshotStarted != nil {
-		l = m.SendSnapshotStarted.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SendSnapshotCompleted) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SendSnapshotCompleted != nil {
-		l = m.SendSnapshotCompleted.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SendSnapshotAborted) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SendSnapshotAborted != nil {
-		l = m.SendSnapshotAborted.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SnapshotReceived) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SnapshotReceived != nil {
-		l = m.SnapshotReceived.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SnapshotRecovered) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SnapshotRecovered != nil {
-		l = m.SnapshotRecovered.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SnapshotCreated) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SnapshotCreated != nil {
-		l = m.SnapshotCreated.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_SnapshotCompacted) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.SnapshotCompacted != nil {
-		l = m.SnapshotCompacted.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_LogCompacted) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.LogCompacted != nil {
-		l = m.LogCompacted.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_LogdbCompacted) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.LogdbCompacted != nil {
-		l = m.LogdbCompacted.Size()
-		n += 1 + l + sovNode(uint64(l))
-	}
-	return n
-}
-func (m *WatchNodeResponse_ConnectionEstablished) Size() (n int) {
+func (m *NodeEvent_ConnectionEstablished) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1612,7 +1280,7 @@ func (m *WatchNodeResponse_ConnectionEstablished) Size() (n int) {
 	}
 	return n
 }
-func (m *WatchNodeResponse_ConnectionFailed) Size() (n int) {
+func (m *NodeEvent_ConnectionFailed) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1622,6 +1290,43 @@ func (m *WatchNodeResponse_ConnectionFailed) Size() (n int) {
 		l = m.ConnectionFailed.Size()
 		n += 1 + l + sovNode(uint64(l))
 	}
+	return n
+}
+func (m *ConnectionInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Address)
+	if l > 0 {
+		n += 1 + l + sovNode(uint64(l))
+	}
+	if m.Snapshot {
+		n += 2
+	}
+	return n
+}
+
+func (m *ConnectionEstablishedEvent) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.ConnectionInfo.Size()
+	n += 1 + l + sovNode(uint64(l))
+	return n
+}
+
+func (m *ConnectionFailedEvent) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.ConnectionInfo.Size()
+	n += 1 + l + sovNode(uint64(l))
 	return n
 }
 
@@ -2066,7 +1771,7 @@ func (m *WatchNodeRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *WatchNodeResponse) Unmarshal(dAtA []byte) error {
+func (m *NodeEvent) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2089,10 +1794,10 @@ func (m *WatchNodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: WatchNodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: NodeEvent: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: WatchNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: NodeEvent: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2130,426 +1835,6 @@ func (m *WatchNodeResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MemberReady", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &MemberReadyEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_MemberReady{v}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LeaderUpdated", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &LeaderUpdatedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_LeaderUpdated{v}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MembershipChanged", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &MembershipChangedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_MembershipChanged{v}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SendSnapshotStarted", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SendSnapshotStartedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SendSnapshotStarted{v}
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SendSnapshotCompleted", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SendSnapshotCompletedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SendSnapshotCompleted{v}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SendSnapshotAborted", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SendSnapshotAbortedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SendSnapshotAborted{v}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SnapshotReceived", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SnapshotReceivedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SnapshotReceived{v}
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SnapshotRecovered", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SnapshotRecoveredEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SnapshotRecovered{v}
-			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SnapshotCreated", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SnapshotCreatedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SnapshotCreated{v}
-			iNdEx = postIndex
-		case 11:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SnapshotCompacted", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &SnapshotCompactedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_SnapshotCompacted{v}
-			iNdEx = postIndex
-		case 12:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LogCompacted", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &LogCompactedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_LogCompacted{v}
-			iNdEx = postIndex
-		case 13:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LogdbCompacted", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthNode
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthNode
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			v := &LogDBCompactedEvent{}
-			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			m.Event = &WatchNodeResponse_LogdbCompacted{v}
-			iNdEx = postIndex
-		case 14:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionEstablished", wireType)
 			}
 			var msglen int
@@ -2581,9 +1866,9 @@ func (m *WatchNodeResponse) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Event = &WatchNodeResponse_ConnectionEstablished{v}
+			m.Event = &NodeEvent_ConnectionEstablished{v}
 			iNdEx = postIndex
-		case 15:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionFailed", wireType)
 			}
@@ -2616,7 +1901,275 @@ func (m *WatchNodeResponse) Unmarshal(dAtA []byte) error {
 			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
-			m.Event = &WatchNodeResponse_ConnectionFailed{v}
+			m.Event = &NodeEvent_ConnectionFailed{v}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNode(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthNode
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ConnectionInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNode
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConnectionInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConnectionInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Address", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNode
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Address = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Snapshot", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNode
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Snapshot = bool(v != 0)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNode(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthNode
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ConnectionEstablishedEvent) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNode
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConnectionEstablishedEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConnectionEstablishedEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNode
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ConnectionInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNode(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthNode
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ConnectionFailedEvent) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNode
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ConnectionFailedEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ConnectionFailedEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNode
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ConnectionInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
