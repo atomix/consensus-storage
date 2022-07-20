@@ -20,13 +20,15 @@ const (
 	version = "v1beta1"
 )
 
-var Driver = runtime.NewDriver[*multiraftv1.ClusterConfig](name, version, func(ctx context.Context, config *multiraftv1.ClusterConfig) (runtime.Client, error) {
-	client := client.NewClient()
-	if err := client.Connect(ctx, config); err != nil {
-		return nil, err
-	}
-	return newClient(client), nil
-})
+func New(network runtime.Network) runtime.Driver {
+	return runtime.NewDriver[*multiraftv1.ClusterConfig](name, version, func(ctx context.Context, config *multiraftv1.ClusterConfig) (runtime.Client, error) {
+		client := client.NewClient(network)
+		if err := client.Connect(ctx, config); err != nil {
+			return nil, err
+		}
+		return newClient(client), nil
+	})
+}
 
 func newClient(client *client.Client) runtime.Client {
 	return &driverClient{

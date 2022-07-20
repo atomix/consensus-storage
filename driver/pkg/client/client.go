@@ -8,20 +8,23 @@ import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"sort"
 )
 
 var log = logging.GetLogger()
 
-func NewClient() *Client {
+func NewClient(network runtime.Network) *Client {
 	return &Client{
 		Protocol: NewProtocol(),
+		network:  network,
 	}
 }
 
 type Client struct {
 	*Protocol
-	config *multiraftv1.ClusterConfig
+	config  *multiraftv1.ClusterConfig
+	network runtime.Network
 }
 
 func (c *Client) Connect(ctx context.Context, config *multiraftv1.ClusterConfig) error {

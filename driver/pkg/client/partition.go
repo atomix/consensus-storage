@@ -70,6 +70,7 @@ func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.Parti
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy":"raft"}`),
 		grpc.WithResolvers(newResolver(p)),
+		grpc.WithContextDialer(p.client.network.Connect),
 		grpc.WithUnaryInterceptor(retry.RetryingUnaryClientInterceptor(retry.WithRetryOn(codes.Unavailable))),
 		grpc.WithStreamInterceptor(retry.RetryingStreamClientInterceptor(retry.WithRetryOn(codes.Unavailable))))
 	if err != nil {
