@@ -67,6 +67,7 @@
 | election_timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 | snapshot_entry_threshold | [uint64](#uint64) |  |  |
 | compaction_retain_entries | [uint64](#uint64) |  |  |
+| data_dir | [string](#string) |  |  |
 
 
 

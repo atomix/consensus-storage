@@ -20,6 +20,7 @@ message MultiRaftConfig {
     ];
     uint64 snapshot_entry_threshold = 3;
     uint64 compaction_retain_entries = 4;
+    string data_dir = 5;
 }
 
 message ClusterConfig {
