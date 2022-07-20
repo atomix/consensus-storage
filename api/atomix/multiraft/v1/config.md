@@ -86,7 +86,7 @@
 | ----- | ---- | ----- | ----------- |
 | node_id | [uint64](#uint64) |  |  |
 | host | [string](#string) |  |  |
-| port | [string](#string) |  |  |
+| port | [int32](#int32) |  |  |
 | config | [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig) |  |  |
 
 
