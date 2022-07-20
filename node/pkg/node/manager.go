@@ -22,12 +22,15 @@ import (
 	"sync"
 )
 
-const dataDir = "/var/lib/atomix/data"
-
 func newManager(protocol *Protocol, registry *primitive.Registry, options Options) *Manager {
 	var rtt uint64 = 250
 	if options.Config.HeartbeatPeriod != nil {
 		rtt = uint64(options.Config.HeartbeatPeriod.Milliseconds())
+	}
+
+	dataDir := options.Config.DataDir
+	if dataDir == "" {
+		dataDir = defaultDataDir
 	}
 
 	listener := newEventListener()

@@ -12,6 +12,7 @@ import (
 const (
 	defaultAPIPort  = 8080
 	defaultRaftPort = 5000
+	defaultDataDir  = "/var/lib/atomix/data"
 )
 
 type Options struct {
