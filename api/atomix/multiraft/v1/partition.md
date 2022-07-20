@@ -188,7 +188,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| members | [uint64](#uint64) | repeated |  |
+| node_id | [uint64](#uint64) |  |  |
 
 
 

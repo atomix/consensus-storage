@@ -122,12 +122,14 @@ message ServiceConfigChangedEvent {
 
 message MemberReadyEvent {
     uint64 node_id = 1 [
+        (gogoproto.customname) = "NodeID",
         (gogoproto.casttype) = "NodeID"
     ];
 }
 
 message MembershipChangedEvent {
-    repeated uint64 members = 1 [
+    uint64 node_id = 1 [
+        (gogoproto.customname) = "NodeID",
         (gogoproto.casttype) = "NodeID"
     ];
 }
