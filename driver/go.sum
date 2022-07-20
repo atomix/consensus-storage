@@ -41,8 +41,8 @@ github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805 h1:pMTCAVZeWdNVt29pUIipi8Z+p1HQ3XIq9l/eWS6K8LI=
 github.com/atomix/runtime v0.0.0-20220719213559-6753a9e8e805/go.mod h1:N1l4V0xCRpFH2M0GhWvKAlnfFQ2+nv1jOyhT62zPHqU=
-github.com/atomix/runtime/api v0.0.0-20220716233348-d0fe1bf975aa h1:Bemv3SbK4C0Bo6QjGm6xwk0WgZtihLZF/lKMcwCOCOc=
-github.com/atomix/runtime/api v0.0.0-20220716233348-d0fe1bf975aa/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
+github.com/atomix/runtime/api v0.0.0-20220719213559-6753a9e8e805 h1:6RYZEDMlAmRLC0zSQgjk195BJ12ck4lSnNZKqvJC8ZI=
+github.com/atomix/runtime/api v0.0.0-20220719213559-6753a9e8e805/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=
