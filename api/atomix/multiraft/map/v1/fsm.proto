@@ -49,6 +49,34 @@ message MapValue {
     ];
 }
 
+message MapInput {
+    oneof input {
+        SizeInput size = 1;
+        PutInput put = 2;
+        InsertInput insert = 3;
+        UpdateInput update = 4;
+        GetInput get = 5;
+        RemoveInput remove = 6;
+        ClearInput clear = 7;
+        EntriesInput entries = 8;
+        EventsInput events = 9;
+    }
+}
+
+message MapOutput {
+    oneof output {
+        SizeOutput size = 1;
+        PutOutput put = 2;
+        InsertOutput insert = 3;
+        UpdateOutput update = 4;
+        GetOutput get = 5;
+        RemoveOutput remove = 6;
+        ClearOutput clear = 7;
+        EntriesOutput entries = 8;
+        EventsOutput events = 9;
+    }
+}
+
 message SizeInput {
 
 }

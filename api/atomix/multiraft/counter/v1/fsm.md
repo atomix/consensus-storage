@@ -6,6 +6,8 @@
 - [atomix/multiraft/counter/v1/fsm.proto](#atomix_multiraft_counter_v1_fsm-proto)
     - [CompareAndSetInput](#atomix-multiraft-counter-v1-CompareAndSetInput)
     - [CompareAndSetOutput](#atomix-multiraft-counter-v1-CompareAndSetOutput)
+    - [CounterInput](#atomix-multiraft-counter-v1-CounterInput)
+    - [CounterOutput](#atomix-multiraft-counter-v1-CounterOutput)
     - [CounterSnapshot](#atomix-multiraft-counter-v1-CounterSnapshot)
     - [DecrementInput](#atomix-multiraft-counter-v1-DecrementInput)
     - [DecrementOutput](#atomix-multiraft-counter-v1-DecrementOutput)
@@ -52,6 +54,44 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-counter-v1-CounterInput"></a>
+
+### CounterInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| increment | [IncrementInput](#atomix-multiraft-counter-v1-IncrementInput) |  |  |
+| decrement | [DecrementInput](#atomix-multiraft-counter-v1-DecrementInput) |  |  |
+| get | [GetInput](#atomix-multiraft-counter-v1-GetInput) |  |  |
+| set | [SetInput](#atomix-multiraft-counter-v1-SetInput) |  |  |
+| compare_and_set | [CompareAndSetInput](#atomix-multiraft-counter-v1-CompareAndSetInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-counter-v1-CounterOutput"></a>
+
+### CounterOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| increment | [IncrementOutput](#atomix-multiraft-counter-v1-IncrementOutput) |  |  |
+| decrement | [DecrementOutput](#atomix-multiraft-counter-v1-DecrementOutput) |  |  |
+| get | [GetOutput](#atomix-multiraft-counter-v1-GetOutput) |  |  |
+| set | [SetOutput](#atomix-multiraft-counter-v1-SetOutput) |  |  |
+| compare_and_set | [CompareAndSetOutput](#atomix-multiraft-counter-v1-CompareAndSetOutput) |  |  |
 
 
 

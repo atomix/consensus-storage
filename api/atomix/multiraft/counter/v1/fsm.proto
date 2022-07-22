@@ -14,6 +14,26 @@ message CounterSnapshot {
     int64 value = 1;
 }
 
+message CounterInput {
+    oneof input {
+        IncrementInput increment = 1;
+        DecrementInput decrement = 2;
+        GetInput get = 3;
+        SetInput set = 4;
+        CompareAndSetInput compare_and_set = 5;
+    }
+}
+
+message CounterOutput {
+    oneof output {
+        IncrementOutput increment = 1;
+        DecrementOutput decrement = 2;
+        GetOutput get = 3;
+        SetOutput set = 4;
+        CompareAndSetOutput compare_and_set = 5;
+    }
+}
+
 message IncrementInput {
     int64 delta = 1;
 }

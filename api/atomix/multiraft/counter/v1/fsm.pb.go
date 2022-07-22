@@ -67,6 +67,254 @@ func (m *CounterSnapshot) GetValue() int64 {
 	return 0
 }
 
+type CounterInput struct {
+	// Types that are valid to be assigned to Input:
+	//	*CounterInput_Increment
+	//	*CounterInput_Decrement
+	//	*CounterInput_Get
+	//	*CounterInput_Set
+	//	*CounterInput_CompareAndSet
+	Input isCounterInput_Input `protobuf_oneof:"input"`
+}
+
+func (m *CounterInput) Reset()         { *m = CounterInput{} }
+func (m *CounterInput) String() string { return proto.CompactTextString(m) }
+func (*CounterInput) ProtoMessage()    {}
+func (*CounterInput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f70aae0cf9627c03, []int{1}
+}
+func (m *CounterInput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CounterInput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CounterInput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CounterInput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CounterInput.Merge(m, src)
+}
+func (m *CounterInput) XXX_Size() int {
+	return m.Size()
+}
+func (m *CounterInput) XXX_DiscardUnknown() {
+	xxx_messageInfo_CounterInput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CounterInput proto.InternalMessageInfo
+
+type isCounterInput_Input interface {
+	isCounterInput_Input()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type CounterInput_Increment struct {
+	Increment *IncrementInput `protobuf:"bytes,1,opt,name=increment,proto3,oneof" json:"increment,omitempty"`
+}
+type CounterInput_Decrement struct {
+	Decrement *DecrementInput `protobuf:"bytes,2,opt,name=decrement,proto3,oneof" json:"decrement,omitempty"`
+}
+type CounterInput_Get struct {
+	Get *GetInput `protobuf:"bytes,3,opt,name=get,proto3,oneof" json:"get,omitempty"`
+}
+type CounterInput_Set struct {
+	Set *SetInput `protobuf:"bytes,4,opt,name=set,proto3,oneof" json:"set,omitempty"`
+}
+type CounterInput_CompareAndSet struct {
+	CompareAndSet *CompareAndSetInput `protobuf:"bytes,5,opt,name=compare_and_set,json=compareAndSet,proto3,oneof" json:"compare_and_set,omitempty"`
+}
+
+func (*CounterInput_Increment) isCounterInput_Input()     {}
+func (*CounterInput_Decrement) isCounterInput_Input()     {}
+func (*CounterInput_Get) isCounterInput_Input()           {}
+func (*CounterInput_Set) isCounterInput_Input()           {}
+func (*CounterInput_CompareAndSet) isCounterInput_Input() {}
+
+func (m *CounterInput) GetInput() isCounterInput_Input {
+	if m != nil {
+		return m.Input
+	}
+	return nil
+}
+
+func (m *CounterInput) GetIncrement() *IncrementInput {
+	if x, ok := m.GetInput().(*CounterInput_Increment); ok {
+		return x.Increment
+	}
+	return nil
+}
+
+func (m *CounterInput) GetDecrement() *DecrementInput {
+	if x, ok := m.GetInput().(*CounterInput_Decrement); ok {
+		return x.Decrement
+	}
+	return nil
+}
+
+func (m *CounterInput) GetGet() *GetInput {
+	if x, ok := m.GetInput().(*CounterInput_Get); ok {
+		return x.Get
+	}
+	return nil
+}
+
+func (m *CounterInput) GetSet() *SetInput {
+	if x, ok := m.GetInput().(*CounterInput_Set); ok {
+		return x.Set
+	}
+	return nil
+}
+
+func (m *CounterInput) GetCompareAndSet() *CompareAndSetInput {
+	if x, ok := m.GetInput().(*CounterInput_CompareAndSet); ok {
+		return x.CompareAndSet
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*CounterInput) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*CounterInput_Increment)(nil),
+		(*CounterInput_Decrement)(nil),
+		(*CounterInput_Get)(nil),
+		(*CounterInput_Set)(nil),
+		(*CounterInput_CompareAndSet)(nil),
+	}
+}
+
+type CounterOutput struct {
+	// Types that are valid to be assigned to Output:
+	//	*CounterOutput_Increment
+	//	*CounterOutput_Decrement
+	//	*CounterOutput_Get
+	//	*CounterOutput_Set
+	//	*CounterOutput_CompareAndSet
+	Output isCounterOutput_Output `protobuf_oneof:"output"`
+}
+
+func (m *CounterOutput) Reset()         { *m = CounterOutput{} }
+func (m *CounterOutput) String() string { return proto.CompactTextString(m) }
+func (*CounterOutput) ProtoMessage()    {}
+func (*CounterOutput) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f70aae0cf9627c03, []int{2}
+}
+func (m *CounterOutput) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *CounterOutput) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_CounterOutput.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *CounterOutput) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CounterOutput.Merge(m, src)
+}
+func (m *CounterOutput) XXX_Size() int {
+	return m.Size()
+}
+func (m *CounterOutput) XXX_DiscardUnknown() {
+	xxx_messageInfo_CounterOutput.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_CounterOutput proto.InternalMessageInfo
+
+type isCounterOutput_Output interface {
+	isCounterOutput_Output()
+	MarshalTo([]byte) (int, error)
+	Size() int
+}
+
+type CounterOutput_Increment struct {
+	Increment *IncrementOutput `protobuf:"bytes,1,opt,name=increment,proto3,oneof" json:"increment,omitempty"`
+}
+type CounterOutput_Decrement struct {
+	Decrement *DecrementOutput `protobuf:"bytes,2,opt,name=decrement,proto3,oneof" json:"decrement,omitempty"`
+}
+type CounterOutput_Get struct {
+	Get *GetOutput `protobuf:"bytes,3,opt,name=get,proto3,oneof" json:"get,omitempty"`
+}
+type CounterOutput_Set struct {
+	Set *SetOutput `protobuf:"bytes,4,opt,name=set,proto3,oneof" json:"set,omitempty"`
+}
+type CounterOutput_CompareAndSet struct {
+	CompareAndSet *CompareAndSetOutput `protobuf:"bytes,5,opt,name=compare_and_set,json=compareAndSet,proto3,oneof" json:"compare_and_set,omitempty"`
+}
+
+func (*CounterOutput_Increment) isCounterOutput_Output()     {}
+func (*CounterOutput_Decrement) isCounterOutput_Output()     {}
+func (*CounterOutput_Get) isCounterOutput_Output()           {}
+func (*CounterOutput_Set) isCounterOutput_Output()           {}
+func (*CounterOutput_CompareAndSet) isCounterOutput_Output() {}
+
+func (m *CounterOutput) GetOutput() isCounterOutput_Output {
+	if m != nil {
+		return m.Output
+	}
+	return nil
+}
+
+func (m *CounterOutput) GetIncrement() *IncrementOutput {
+	if x, ok := m.GetOutput().(*CounterOutput_Increment); ok {
+		return x.Increment
+	}
+	return nil
+}
+
+func (m *CounterOutput) GetDecrement() *DecrementOutput {
+	if x, ok := m.GetOutput().(*CounterOutput_Decrement); ok {
+		return x.Decrement
+	}
+	return nil
+}
+
+func (m *CounterOutput) GetGet() *GetOutput {
+	if x, ok := m.GetOutput().(*CounterOutput_Get); ok {
+		return x.Get
+	}
+	return nil
+}
+
+func (m *CounterOutput) GetSet() *SetOutput {
+	if x, ok := m.GetOutput().(*CounterOutput_Set); ok {
+		return x.Set
+	}
+	return nil
+}
+
+func (m *CounterOutput) GetCompareAndSet() *CompareAndSetOutput {
+	if x, ok := m.GetOutput().(*CounterOutput_CompareAndSet); ok {
+		return x.CompareAndSet
+	}
+	return nil
+}
+
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*CounterOutput) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
+		(*CounterOutput_Increment)(nil),
+		(*CounterOutput_Decrement)(nil),
+		(*CounterOutput_Get)(nil),
+		(*CounterOutput_Set)(nil),
+		(*CounterOutput_CompareAndSet)(nil),
+	}
+}
+
 type IncrementInput struct {
 	Delta int64 `protobuf:"varint,1,opt,name=delta,proto3" json:"delta,omitempty"`
 }
@@ -75,7 +323,7 @@ func (m *IncrementInput) Reset()         { *m = IncrementInput{} }
 func (m *IncrementInput) String() string { return proto.CompactTextString(m) }
 func (*IncrementInput) ProtoMessage()    {}
 func (*IncrementInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{1}
+	return fileDescriptor_f70aae0cf9627c03, []int{3}
 }
 func (m *IncrementInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -119,7 +367,7 @@ func (m *IncrementOutput) Reset()         { *m = IncrementOutput{} }
 func (m *IncrementOutput) String() string { return proto.CompactTextString(m) }
 func (*IncrementOutput) ProtoMessage()    {}
 func (*IncrementOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{2}
+	return fileDescriptor_f70aae0cf9627c03, []int{4}
 }
 func (m *IncrementOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -163,7 +411,7 @@ func (m *DecrementInput) Reset()         { *m = DecrementInput{} }
 func (m *DecrementInput) String() string { return proto.CompactTextString(m) }
 func (*DecrementInput) ProtoMessage()    {}
 func (*DecrementInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{3}
+	return fileDescriptor_f70aae0cf9627c03, []int{5}
 }
 func (m *DecrementInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -207,7 +455,7 @@ func (m *DecrementOutput) Reset()         { *m = DecrementOutput{} }
 func (m *DecrementOutput) String() string { return proto.CompactTextString(m) }
 func (*DecrementOutput) ProtoMessage()    {}
 func (*DecrementOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{4}
+	return fileDescriptor_f70aae0cf9627c03, []int{6}
 }
 func (m *DecrementOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -250,7 +498,7 @@ func (m *GetInput) Reset()         { *m = GetInput{} }
 func (m *GetInput) String() string { return proto.CompactTextString(m) }
 func (*GetInput) ProtoMessage()    {}
 func (*GetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{5}
+	return fileDescriptor_f70aae0cf9627c03, []int{7}
 }
 func (m *GetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -287,7 +535,7 @@ func (m *GetOutput) Reset()         { *m = GetOutput{} }
 func (m *GetOutput) String() string { return proto.CompactTextString(m) }
 func (*GetOutput) ProtoMessage()    {}
 func (*GetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{6}
+	return fileDescriptor_f70aae0cf9627c03, []int{8}
 }
 func (m *GetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -331,7 +579,7 @@ func (m *SetInput) Reset()         { *m = SetInput{} }
 func (m *SetInput) String() string { return proto.CompactTextString(m) }
 func (*SetInput) ProtoMessage()    {}
 func (*SetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{7}
+	return fileDescriptor_f70aae0cf9627c03, []int{9}
 }
 func (m *SetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -375,7 +623,7 @@ func (m *SetOutput) Reset()         { *m = SetOutput{} }
 func (m *SetOutput) String() string { return proto.CompactTextString(m) }
 func (*SetOutput) ProtoMessage()    {}
 func (*SetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{8}
+	return fileDescriptor_f70aae0cf9627c03, []int{10}
 }
 func (m *SetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -420,7 +668,7 @@ func (m *CompareAndSetInput) Reset()         { *m = CompareAndSetInput{} }
 func (m *CompareAndSetInput) String() string { return proto.CompactTextString(m) }
 func (*CompareAndSetInput) ProtoMessage()    {}
 func (*CompareAndSetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{9}
+	return fileDescriptor_f70aae0cf9627c03, []int{11}
 }
 func (m *CompareAndSetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -471,7 +719,7 @@ func (m *CompareAndSetOutput) Reset()         { *m = CompareAndSetOutput{} }
 func (m *CompareAndSetOutput) String() string { return proto.CompactTextString(m) }
 func (*CompareAndSetOutput) ProtoMessage()    {}
 func (*CompareAndSetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_f70aae0cf9627c03, []int{10}
+	return fileDescriptor_f70aae0cf9627c03, []int{12}
 }
 func (m *CompareAndSetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -509,6 +757,8 @@ func (m *CompareAndSetOutput) GetValue() int64 {
 
 func init() {
 	proto.RegisterType((*CounterSnapshot)(nil), "atomix.multiraft.counter.v1.CounterSnapshot")
+	proto.RegisterType((*CounterInput)(nil), "atomix.multiraft.counter.v1.CounterInput")
+	proto.RegisterType((*CounterOutput)(nil), "atomix.multiraft.counter.v1.CounterOutput")
 	proto.RegisterType((*IncrementInput)(nil), "atomix.multiraft.counter.v1.IncrementInput")
 	proto.RegisterType((*IncrementOutput)(nil), "atomix.multiraft.counter.v1.IncrementOutput")
 	proto.RegisterType((*DecrementInput)(nil), "atomix.multiraft.counter.v1.DecrementInput")
@@ -526,25 +776,37 @@ func init() {
 }
 
 var fileDescriptor_f70aae0cf9627c03 = []byte{
-	// 284 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0xd1, 0x4f, 0x4a, 0xc3, 0x40,
-	0x14, 0xc7, 0xf1, 0x46, 0xb1, 0xb6, 0x6f, 0xa1, 0x10, 0x45, 0x82, 0xc2, 0xd0, 0x06, 0xff, 0x81,
-	0x90, 0x50, 0x3c, 0x81, 0x56, 0x2c, 0x5d, 0x09, 0xf6, 0x04, 0x63, 0xf2, 0x8a, 0x81, 0x64, 0x66,
-	0x98, 0xbc, 0x09, 0x1e, 0xc3, 0x63, 0xb9, 0xec, 0xd2, 0xa5, 0x24, 0x17, 0x11, 0x33, 0x69, 0x44,
-	0x2c, 0xd1, 0xe5, 0x2f, 0xf9, 0xe4, 0xfb, 0x16, 0x81, 0x33, 0x4e, 0x32, 0x4b, 0x5e, 0xc2, 0xcc,
-	0xa4, 0x94, 0x68, 0xbe, 0xa4, 0x30, 0x92, 0x46, 0x10, 0xea, 0xb0, 0x98, 0x84, 0xcb, 0x3c, 0x0b,
-	0x94, 0x96, 0x24, 0xdd, 0x13, 0xcb, 0x82, 0x96, 0x05, 0x0d, 0x0b, 0x8a, 0xc9, 0xf1, 0xe9, 0xaf,
-	0x46, 0x31, 0x09, 0x63, 0xcc, 0x23, 0x9d, 0x28, 0x92, 0xda, 0x26, 0xfc, 0x0b, 0xd8, 0x9f, 0xda,
-	0x6f, 0x16, 0x82, 0xab, 0xfc, 0x59, 0x92, 0x7b, 0x08, 0x3b, 0x05, 0x4f, 0x0d, 0x7a, 0xce, 0xc8,
-	0xb9, 0xdc, 0x7e, 0xb4, 0xc3, 0x3f, 0x87, 0xbd, 0xb9, 0x88, 0x34, 0x66, 0x28, 0x68, 0x2e, 0x94,
-	0xa9, 0x5d, 0x8c, 0x29, 0xf1, 0xb5, 0xab, 0xc7, 0x57, 0xb0, 0x75, 0x0f, 0x86, 0x1a, 0xb8, 0x39,
-	0x78, 0x87, 0xff, 0x0b, 0xb6, 0xae, 0x33, 0x08, 0x30, 0x98, 0xa1, 0x4d, 0xf9, 0x63, 0x18, 0xce,
-	0xb0, 0x9b, 0x8f, 0x60, 0xb0, 0xc0, 0xef, 0xcb, 0x1b, 0xc4, 0x18, 0x86, 0x8b, 0x3f, 0x22, 0xf7,
-	0xe0, 0x4e, 0x65, 0xa6, 0xb8, 0xc6, 0x1b, 0x11, 0xb7, 0x39, 0x0f, 0x76, 0x23, 0xfb, 0xb4, 0xd1,
-	0xeb, 0xe9, 0x1e, 0x41, 0xdf, 0xa8, 0x98, 0x13, 0x7a, 0x5b, 0xf5, 0x8b, 0x66, 0xf9, 0x57, 0x70,
-	0xf0, 0xa3, 0xd3, 0x75, 0xf4, 0xd6, 0x7b, 0x2b, 0x99, 0xb3, 0x2a, 0x99, 0xf3, 0x51, 0x32, 0xe7,
-	0xb5, 0x62, 0xbd, 0x55, 0xc5, 0x7a, 0xef, 0x15, 0xeb, 0x3d, 0xf5, 0xeb, 0x9f, 0x7a, 0xfd, 0x19,
-	0x00, 0x00, 0xff, 0xff, 0xd7, 0xea, 0x63, 0x5f, 0x40, 0x02, 0x00, 0x00,
+	// 470 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0x4f, 0x8b, 0xd3, 0x40,
+	0x18, 0xc6, 0x13, 0x63, 0xbb, 0xed, 0xab, 0xbb, 0x0b, 0xa3, 0x48, 0x50, 0x08, 0xbb, 0xc1, 0x8d,
+	0xc2, 0x2e, 0x89, 0xd5, 0x93, 0x7b, 0x73, 0x57, 0xd4, 0x62, 0x41, 0x68, 0x4f, 0x7a, 0x29, 0x63,
+	0x32, 0xd5, 0x40, 0x93, 0x09, 0xc9, 0x24, 0x78, 0xf6, 0xe6, 0xcd, 0x8f, 0xe5, 0xb1, 0x47, 0x8f,
+	0xd2, 0x7e, 0x11, 0x99, 0xc9, 0xdf, 0x26, 0x4d, 0x9b, 0xe3, 0x74, 0x9e, 0xe7, 0xd7, 0x32, 0xbf,
+	0xf7, 0x2d, 0x5c, 0x60, 0x46, 0x3d, 0xf7, 0x87, 0xe5, 0xc5, 0x4b, 0xe6, 0x86, 0x78, 0xc1, 0x2c,
+	0x9b, 0xc6, 0x3e, 0x23, 0xa1, 0x95, 0x8c, 0xac, 0x45, 0xe4, 0x99, 0x41, 0x48, 0x19, 0x45, 0x4f,
+	0xd2, 0x98, 0x59, 0xc4, 0xcc, 0x2c, 0x66, 0x26, 0xa3, 0xc7, 0x4f, 0x1b, 0x8c, 0x64, 0x64, 0x39,
+	0x24, 0xb2, 0x43, 0x37, 0x60, 0x34, 0x4c, 0x11, 0xfa, 0x33, 0x38, 0xbd, 0x4d, 0x3b, 0x33, 0x1f,
+	0x07, 0xd1, 0x77, 0xca, 0xd0, 0x43, 0xe8, 0x25, 0x78, 0x19, 0x13, 0x55, 0x3e, 0x93, 0x9f, 0x2b,
+	0xd3, 0xf4, 0xa0, 0xff, 0x54, 0xe0, 0x7e, 0x96, 0x1c, 0xfb, 0x41, 0xcc, 0xd0, 0x47, 0x18, 0xba,
+	0xbe, 0x1d, 0x12, 0x8f, 0xf8, 0x4c, 0x44, 0xef, 0xbd, 0xbc, 0x34, 0xf7, 0xfc, 0x20, 0x73, 0x9c,
+	0xa7, 0x45, 0xff, 0x83, 0x34, 0x2d, 0xfb, 0x1c, 0xe6, 0x90, 0x1c, 0x76, 0xa7, 0x03, 0xec, 0x2d,
+	0xa9, 0xc3, 0x8a, 0x3e, 0x7a, 0x0d, 0xca, 0x37, 0xc2, 0x54, 0x45, 0x60, 0x2e, 0xf6, 0x62, 0xde,
+	0x93, 0x02, 0xc0, 0x3b, 0xbc, 0x1a, 0x11, 0xa6, 0xde, 0xed, 0x50, 0x9d, 0x55, 0xaa, 0x11, 0x61,
+	0xe8, 0x33, 0x9c, 0xda, 0xd4, 0x0b, 0x70, 0x48, 0xe6, 0xd8, 0x77, 0xe6, 0x1c, 0xd3, 0x13, 0x18,
+	0x6b, 0x2f, 0xe6, 0x36, 0xed, 0xbc, 0xf1, 0x9d, 0x0a, 0xf0, 0xd8, 0xae, 0x7e, 0x7a, 0x73, 0x04,
+	0x3d, 0x97, 0xdf, 0xe8, 0xbf, 0x14, 0x38, 0xce, 0x24, 0x7c, 0x8a, 0x19, 0xb7, 0x30, 0x69, 0x5a,
+	0xb8, 0xea, 0x66, 0x21, 0x05, 0x6c, 0x6b, 0x98, 0x34, 0x35, 0x5c, 0x75, 0xd3, 0x50, 0xd2, 0x4a,
+	0x0f, 0xd7, 0x55, 0x0f, 0xc6, 0x21, 0x0f, 0x05, 0x41, 0x88, 0xb8, 0xae, 0x8a, 0x30, 0x0e, 0x89,
+	0x28, 0xbb, 0xdc, 0xc4, 0x97, 0x36, 0x13, 0x2f, 0xba, 0x9b, 0x28, 0x88, 0x35, 0x15, 0x03, 0xe8,
+	0x53, 0x71, 0xa5, 0x1b, 0x70, 0xb2, 0x3d, 0xd1, 0x7c, 0x71, 0x1c, 0xb2, 0x64, 0x38, 0x5f, 0x1c,
+	0x71, 0xe0, 0x1b, 0x56, 0x7b, 0xf3, 0x96, 0x0d, 0x33, 0xe0, 0x64, 0x7b, 0xaa, 0xdb, 0x81, 0xb5,
+	0x67, 0x6f, 0x01, 0x02, 0x0c, 0xf2, 0xf9, 0xd6, 0xcf, 0x61, 0x58, 0xbc, 0x71, 0x4b, 0xfc, 0x0c,
+	0x06, 0xf9, 0x08, 0xb6, 0x24, 0xce, 0x61, 0x38, 0x3b, 0x00, 0x79, 0x07, 0xa8, 0x39, 0xd1, 0x48,
+	0x85, 0xa3, 0xec, 0x19, 0xb3, 0x74, 0x7e, 0x44, 0x8f, 0xa0, 0x1f, 0x07, 0x0e, 0x66, 0x44, 0x8c,
+	0x9b, 0x32, 0xcd, 0x4e, 0xfa, 0x25, 0x3c, 0xd8, 0xe1, 0x63, 0xf7, 0x97, 0xde, 0xa8, 0x7f, 0xd6,
+	0x9a, 0xbc, 0x5a, 0x6b, 0xf2, 0xbf, 0xb5, 0x26, 0xff, 0xde, 0x68, 0xd2, 0x6a, 0xa3, 0x49, 0x7f,
+	0x37, 0x9a, 0xf4, 0xb5, 0x2f, 0xfe, 0xe5, 0x5e, 0xfd, 0x0f, 0x00, 0x00, 0xff, 0xff, 0xf1, 0xdb,
+	0xff, 0x23, 0x51, 0x05, 0x00, 0x00,
 }
 
 func (m *CounterSnapshot) Marshal() (dAtA []byte, err error) {
@@ -575,6 +837,280 @@ func (m *CounterSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *CounterInput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CounterInput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Input != nil {
+		{
+			size := m.Input.Size()
+			i -= size
+			if _, err := m.Input.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CounterInput_Increment) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterInput_Increment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Increment != nil {
+		{
+			size, err := m.Increment.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterInput_Decrement) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterInput_Decrement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Decrement != nil {
+		{
+			size, err := m.Decrement.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterInput_Get) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterInput_Get) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Get != nil {
+		{
+			size, err := m.Get.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterInput_Set) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterInput_Set) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Set != nil {
+		{
+			size, err := m.Set.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterInput_CompareAndSet) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterInput_CompareAndSet) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.CompareAndSet != nil {
+		{
+			size, err := m.CompareAndSet.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterOutput) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *CounterOutput) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Output != nil {
+		{
+			size := m.Output.Size()
+			i -= size
+			if _, err := m.Output.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *CounterOutput_Increment) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterOutput_Increment) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Increment != nil {
+		{
+			size, err := m.Increment.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterOutput_Decrement) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterOutput_Decrement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Decrement != nil {
+		{
+			size, err := m.Decrement.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterOutput_Get) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterOutput_Get) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Get != nil {
+		{
+			size, err := m.Get.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterOutput_Set) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterOutput_Set) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.Set != nil {
+		{
+			size, err := m.Set.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	return len(dAtA) - i, nil
+}
+func (m *CounterOutput_CompareAndSet) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *CounterOutput_CompareAndSet) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	if m.CompareAndSet != nil {
+		{
+			size, err := m.CompareAndSet.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	return len(dAtA) - i, nil
+}
 func (m *IncrementInput) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -878,6 +1414,150 @@ func (m *CounterSnapshot) Size() (n int) {
 	return n
 }
 
+func (m *CounterInput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Input != nil {
+		n += m.Input.Size()
+	}
+	return n
+}
+
+func (m *CounterInput_Increment) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Increment != nil {
+		l = m.Increment.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterInput_Decrement) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Decrement != nil {
+		l = m.Decrement.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterInput_Get) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Get != nil {
+		l = m.Get.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterInput_Set) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Set != nil {
+		l = m.Set.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterInput_CompareAndSet) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CompareAndSet != nil {
+		l = m.CompareAndSet.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterOutput) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Output != nil {
+		n += m.Output.Size()
+	}
+	return n
+}
+
+func (m *CounterOutput_Increment) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Increment != nil {
+		l = m.Increment.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterOutput_Decrement) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Decrement != nil {
+		l = m.Decrement.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterOutput_Get) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Get != nil {
+		l = m.Get.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterOutput_Set) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Set != nil {
+		l = m.Set.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
+func (m *CounterOutput_CompareAndSet) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CompareAndSet != nil {
+		l = m.CompareAndSet.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	return n
+}
 func (m *IncrementInput) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1052,6 +1732,456 @@ func (m *CounterSnapshot) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFsm(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CounterInput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFsm
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CounterInput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CounterInput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Increment", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &IncrementInput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Input = &CounterInput_Increment{v}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Decrement", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &DecrementInput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Input = &CounterInput_Decrement{v}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Get", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &GetInput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Input = &CounterInput_Get{v}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Set", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &SetInput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Input = &CounterInput_Set{v}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CompareAndSet", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &CompareAndSetInput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Input = &CounterInput_CompareAndSet{v}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFsm(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *CounterOutput) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFsm
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: CounterOutput: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: CounterOutput: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Increment", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &IncrementOutput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Output = &CounterOutput_Increment{v}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Decrement", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &DecrementOutput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Output = &CounterOutput_Decrement{v}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Get", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &GetOutput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Output = &CounterOutput_Get{v}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Set", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &SetOutput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Output = &CounterOutput_Set{v}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CompareAndSet", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			v := &CompareAndSetOutput{}
+			if err := v.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			m.Output = &CounterOutput_CompareAndSet{v}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFsm(dAtA[iNdEx:])
