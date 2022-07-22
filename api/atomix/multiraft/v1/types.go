@@ -12,8 +12,6 @@ type SessionID uint64
 
 type PrimitiveID uint64
 
-type OperationID string
-
 type SequenceNum uint64
 
 type Term uint64

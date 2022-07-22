@@ -202,11 +202,7 @@ message PrimitiveOperationOutput {
 }
 
 message OperationInput {
-    string id = 1 [
-        (gogoproto.customname) = "ID",
-        (gogoproto.casttype) = "OperationID"
-    ];
-    bytes payload = 2;
+    bytes payload = 1;
 }
 
 message OperationOutput {

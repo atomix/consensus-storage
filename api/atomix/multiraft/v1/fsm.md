@@ -269,7 +269,6 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| id | [string](#string) |  |  |
 | payload | [bytes](#bytes) |  |  |
 
 
