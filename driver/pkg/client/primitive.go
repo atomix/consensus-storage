@@ -8,64 +8,21 @@ import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"google.golang.org/grpc"
-	"sync/atomic"
 )
 
-func newPrimitiveClient(spec multiraftv1.PrimitiveSpec, session *SessionClient) *PrimitiveClient {
+func newPrimitiveClient(session *SessionClient, id multiraftv1.PrimitiveID) *PrimitiveClient {
 	return &PrimitiveClient{
-		spec:    spec,
 		session: session,
+		id:      id,
 	}
 }
 
 type PrimitiveClient struct {
-	id      uint64
-	spec    multiraftv1.PrimitiveSpec
 	session *SessionClient
-}
-
-func (p *PrimitiveClient) Conn() *grpc.ClientConn {
-	return p.session.partition.conn
-}
-
-func (p *PrimitiveClient) create(ctx context.Context) error {
-	request := &multiraftv1.CreatePrimitiveRequest{
-		Headers: multiraftv1.CommandRequestHeaders{
-			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
-				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
-					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
-						PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
-							PartitionID: p.session.partition.id,
-						},
-						SessionID: p.session.sessionID,
-					},
-				},
-			},
-			SequenceNum: p.session.nextRequestNum(),
-		},
-		CreatePrimitiveInput: multiraftv1.CreatePrimitiveInput{
-			PrimitiveSpec: p.spec,
-		},
-	}
-	client := multiraftv1.NewSessionClient(p.session.partition.conn)
-	response, err := client.CreatePrimitive(ctx, request)
-	if err != nil {
-		return err
-	}
-	atomic.StoreUint64(&p.id, uint64(response.PrimitiveID))
-	return nil
-}
-
-func (p *PrimitiveClient) Command(id multiraftv1.OperationID) *CommandContext {
-	return newCommandContext(p, id)
-}
-
-func (p *PrimitiveClient) Query(id multiraftv1.OperationID) *QueryContext {
-	return newQueryContext(p, id)
+	id      multiraftv1.PrimitiveID
 }
 
 func (p *PrimitiveClient) close(ctx context.Context) error {
-	primitiveID := atomic.LoadUint64(&p.id)
 	request := &multiraftv1.ClosePrimitiveRequest{
 		Headers: multiraftv1.CommandRequestHeaders{
 			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
@@ -76,13 +33,13 @@ func (p *PrimitiveClient) close(ctx context.Context) error {
 						},
 						SessionID: p.session.sessionID,
 					},
-					PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
+					PrimitiveID: p.id,
 				},
 			},
 			SequenceNum: p.session.nextRequestNum(),
 		},
 		ClosePrimitiveInput: multiraftv1.ClosePrimitiveInput{
-			PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
+			PrimitiveID: p.id,
 		},
 	}
 	client := multiraftv1.NewSessionClient(p.session.partition.conn)
@@ -93,8 +50,15 @@ func (p *PrimitiveClient) close(ctx context.Context) error {
 	return nil
 }
 
-func newCommandContext(primitive *PrimitiveClient, operationID multiraftv1.OperationID) *CommandContext {
-	primitiveID := atomic.LoadUint64(&primitive.id)
+type CommandResponse interface {
+	GetHeaders() multiraftv1.CommandResponseHeaders
+}
+
+type QueryResponse interface {
+	GetHeaders() multiraftv1.QueryResponseHeaders
+}
+
+func Command[T CommandResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *CommandContext[T] {
 	headers := &multiraftv1.CommandRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -104,71 +68,91 @@ func newCommandContext(primitive *PrimitiveClient, operationID multiraftv1.Opera
 					},
 					SessionID: primitive.session.sessionID,
 				},
-				PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
+				PrimitiveID: primitive.id,
 			},
 			OperationID: operationID,
 		},
 		SequenceNum: primitive.session.nextRequestNum(),
 	}
-	primitive.session.recorder.Start(headers)
-	return &CommandContext{
+	return &CommandContext[T]{
 		session: primitive.session,
 		headers: headers,
 	}
 }
 
-type CommandContext struct {
+type CommandContext[T CommandResponse] struct {
 	session *SessionClient
 	headers *multiraftv1.CommandRequestHeaders
 }
 
-func (c *CommandContext) Headers() *multiraftv1.CommandRequestHeaders {
-	return c.headers
+func (c *CommandContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (T, error)) (T, error) {
+	c.session.recorder.Start(c.headers)
+	defer c.session.recorder.End(c.headers)
+	response, err := f(c.session.conn, c.headers)
+	if err != nil {
+		return response, err
+	}
+	c.session.lastIndex.Update(response.GetHeaders().Index)
+	return response, nil
 }
 
-func (c *CommandContext) Stream() *StreamCommandContext {
-	return &StreamCommandContext{
-		CommandContext: c,
+func StreamCommand[T any, U CommandResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *StreamCommandContext[T, U] {
+	headers := &multiraftv1.CommandRequestHeaders{
+		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
+			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
+				SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
+					PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
+						PartitionID: primitive.session.partition.id,
+					},
+					SessionID: primitive.session.sessionID,
+				},
+				PrimitiveID: primitive.id,
+			},
+			OperationID: operationID,
+		},
+		SequenceNum: primitive.session.nextRequestNum(),
+	}
+	return &StreamCommandContext[T, U]{
+		session: primitive.session,
+		headers: headers,
 	}
 }
 
-func (c *CommandContext) Receive(headers *multiraftv1.CommandResponseHeaders) bool {
-	c.session.update(headers.Index)
-	return true
-}
-
-func (c *CommandContext) Done() {
-	c.session.recorder.End(c.headers)
-}
-
-type ServerStream[T any] interface {
-	Recv() (T, error)
-}
-
-type StreamCommandContext struct {
-	*CommandContext
+type StreamCommandContext[T any, U CommandResponse] struct {
+	session                 *SessionClient
+	headers                 *multiraftv1.CommandRequestHeaders
 	lastResponseSequenceNum multiraftv1.SequenceNum
 }
 
-func (c *StreamCommandContext) Open() {
-	c.session.recorder.StreamOpen(c.headers)
-}
-
-func (c *StreamCommandContext) Receive(headers *multiraftv1.CommandResponseHeaders) bool {
-	c.session.update(headers.Index)
-	if headers.OutputSequenceNum <= c.lastResponseSequenceNum {
-		return false
+func (c *StreamCommandContext[T, U]) Open(f func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (T, error)) (T, error) {
+	c.session.recorder.Start(c.headers)
+	client, err := f(c.session.conn, c.headers)
+	if err != nil {
+		c.session.recorder.End(c.headers)
+		return client, err
 	}
-	c.session.recorder.StreamReceive(headers)
-	return true
+	c.session.recorder.StreamOpen(c.headers)
+	return client, nil
 }
 
-func (c *StreamCommandContext) Close() {
-	c.session.recorder.StreamClose(c.headers)
+func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
+	for {
+		response, err := f()
+		if err != nil {
+			c.session.recorder.StreamClose(c.headers)
+			c.session.recorder.End(c.headers)
+			return response, err
+		}
+		headers := response.GetHeaders()
+		c.session.lastIndex.Update(headers.Index)
+		if headers.OutputSequenceNum == c.lastResponseSequenceNum+1 {
+			c.session.recorder.StreamReceive(&headers)
+			return response, nil
+		}
+	}
 }
 
-func newQueryContext(primitive *PrimitiveClient, operationID multiraftv1.OperationID) *QueryContext {
-	primitiveID := atomic.LoadUint64(&primitive.id)
+func Query[T QueryResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *QueryContext[T] {
 	headers := &multiraftv1.QueryRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -178,22 +162,68 @@ func newQueryContext(primitive *PrimitiveClient, operationID multiraftv1.Operati
 					},
 					SessionID: primitive.session.sessionID,
 				},
-				PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
+				PrimitiveID: primitive.id,
 			},
 			OperationID: operationID,
 		},
 		MaxReceivedIndex: primitive.session.lastIndex.Get(),
 	}
-	return &QueryContext{
+	return &QueryContext[T]{
+		session: primitive.session,
 		headers: headers,
 	}
 }
 
-type QueryContext struct {
+type QueryContext[T QueryResponse] struct {
 	session *SessionClient
 	headers *multiraftv1.QueryRequestHeaders
 }
 
-func (c *QueryContext) Headers() *multiraftv1.QueryRequestHeaders {
-	return c.headers
+func (c *QueryContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (T, error)) (T, error) {
+	response, err := f(c.session.conn, c.headers)
+	if err != nil {
+		return response, err
+	}
+	c.session.lastIndex.Update(response.GetHeaders().Index)
+	return response, nil
+}
+
+func StreamQuery[T any, U QueryResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *StreamQueryContext[T, U] {
+	headers := &multiraftv1.QueryRequestHeaders{
+		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
+			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
+				SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
+					PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
+						PartitionID: primitive.session.partition.id,
+					},
+					SessionID: primitive.session.sessionID,
+				},
+				PrimitiveID: primitive.id,
+			},
+			OperationID: operationID,
+		},
+		MaxReceivedIndex: primitive.session.lastIndex.Get(),
+	}
+	return &StreamQueryContext[T, U]{
+		session: primitive.session,
+		headers: headers,
+	}
+}
+
+type StreamQueryContext[T any, U QueryResponse] struct {
+	session *SessionClient
+	headers *multiraftv1.QueryRequestHeaders
+}
+
+func (c *StreamQueryContext[T, U]) Open(f func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (T, error)) (T, error) {
+	return f(c.session.conn, c.headers)
+}
+
+func (c *StreamQueryContext[T, U]) Recv(f func() (U, error)) (U, error) {
+	response, err := f()
+	if err != nil {
+		return response, err
+	}
+	c.session.lastIndex.Update(response.GetHeaders().Index)
+	return response, nil
 }

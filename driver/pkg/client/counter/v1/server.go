@@ -11,6 +11,7 @@ import (
 	"github.com/atomix/multi-raft-storage/driver/pkg/client"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"google.golang.org/grpc"
 )
 
 const Type = "Counter"
@@ -70,20 +71,18 @@ func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*count
 	if err != nil {
 		return nil, err
 	}
-	command := primitive.Command("Set")
-	defer command.Done()
-	client := api.NewCounterClient(primitive.Conn())
-	input := &api.SetRequest{
-		Headers: *command.Headers(),
-		SetInput: api.SetInput{
-			Value: request.Value,
-		},
-	}
-	output, err := client.Set(ctx, input)
+	command := client.Command[*api.SetResponse](primitive, "Set")
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.SetResponse, error) {
+		return api.NewCounterClient(conn).Set(ctx, &api.SetRequest{
+			Headers: *headers,
+			SetInput: api.SetInput{
+				Value: request.Value,
+			},
+		})
+	})
 	if err != nil {
 		return nil, err
 	}
-	command.Receive(&output.Headers)
 	response := &counterv1.SetResponse{
 		Value: output.Value,
 	}
@@ -100,21 +99,19 @@ func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAn
 	if err != nil {
 		return nil, err
 	}
-	command := primitive.Command("CompareAndSet")
-	defer command.Done()
-	client := api.NewCounterClient(primitive.Conn())
-	input := &api.CompareAndSetRequest{
-		Headers: *command.Headers(),
-		CompareAndSetInput: api.CompareAndSetInput{
-			Compare: request.Check,
-			Update:  request.Update,
-		},
-	}
-	output, err := client.CompareAndSet(ctx, input)
+	command := client.Command[*api.CompareAndSetResponse](primitive, "CompareAndSet")
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.CompareAndSetResponse, error) {
+		return api.NewCounterClient(conn).CompareAndSet(ctx, &api.CompareAndSetRequest{
+			Headers: *headers,
+			CompareAndSetInput: api.CompareAndSetInput{
+				Compare: request.Check,
+				Update:  request.Update,
+			},
+		})
+	})
 	if err != nil {
 		return nil, err
 	}
-	command.Receive(&output.Headers)
 	response := &counterv1.CompareAndSetResponse{
 		Value: output.Value,
 	}
@@ -131,13 +128,13 @@ func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*count
 	if err != nil {
 		return nil, err
 	}
-	query := primitive.Query("Get")
-	client := api.NewCounterClient(primitive.Conn())
-	input := &api.GetRequest{
-		Headers:  *query.Headers(),
-		GetInput: api.GetInput{},
-	}
-	output, err := client.Get(ctx, input)
+	command := client.Query[*api.GetResponse](primitive, "Get")
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
+		return api.NewCounterClient(conn).Get(ctx, &api.GetRequest{
+			Headers:  *headers,
+			GetInput: api.GetInput{},
+		})
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -157,20 +154,18 @@ func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequ
 	if err != nil {
 		return nil, err
 	}
-	command := primitive.Command("Increment")
-	defer command.Done()
-	client := api.NewCounterClient(primitive.Conn())
-	input := &api.IncrementRequest{
-		Headers: *command.Headers(),
-		IncrementInput: api.IncrementInput{
-			Delta: request.Delta,
-		},
-	}
-	output, err := client.Increment(ctx, input)
+	command := client.Command[*api.IncrementResponse](primitive, "Increment")
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.IncrementResponse, error) {
+		return api.NewCounterClient(conn).Increment(ctx, &api.IncrementRequest{
+			Headers: *headers,
+			IncrementInput: api.IncrementInput{
+				Delta: request.Delta,
+			},
+		})
+	})
 	if err != nil {
 		return nil, err
 	}
-	command.Receive(&output.Headers)
 	response := &counterv1.IncrementResponse{
 		Value: output.Value,
 	}
@@ -187,20 +182,18 @@ func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequ
 	if err != nil {
 		return nil, err
 	}
-	command := primitive.Command("Decrement")
-	defer command.Done()
-	client := api.NewCounterClient(primitive.Conn())
-	input := &api.DecrementRequest{
-		Headers: *command.Headers(),
-		DecrementInput: api.DecrementInput{
-			Delta: request.Delta,
-		},
-	}
-	output, err := client.Decrement(ctx, input)
+	command := client.Command[*api.DecrementResponse](primitive, "Decrement")
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.DecrementResponse, error) {
+		return api.NewCounterClient(conn).Decrement(ctx, &api.DecrementRequest{
+			Headers: *headers,
+			DecrementInput: api.DecrementInput{
+				Delta: request.Delta,
+			},
+		})
+	})
 	if err != nil {
 		return nil, err
 	}
-	command.Receive(&output.Headers)
 	response := &counterv1.DecrementResponse{
 		Value: output.Value,
 	}

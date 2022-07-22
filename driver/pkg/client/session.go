@@ -25,8 +25,9 @@ const fpRate float64 = 0.05
 
 const sessionTimeout = 1 * time.Minute
 
-func newSessionClient(partition *PartitionClient, conn *grpc.ClientConn) *SessionClient {
+func newSessionClient(id multiraftv1.SessionID, partition *PartitionClient, conn *grpc.ClientConn) *SessionClient {
 	session := &SessionClient{
+		sessionID:  id,
 		partition:  partition,
 		conn:       conn,
 		primitives: make(map[string]*PrimitiveClient),
@@ -34,13 +35,14 @@ func newSessionClient(partition *PartitionClient, conn *grpc.ClientConn) *Sessio
 	session.recorder = &Recorder{
 		session: session,
 	}
+	session.open()
 	return session
 }
 
 type SessionClient struct {
+	sessionID    multiraftv1.SessionID
 	partition    *PartitionClient
 	conn         *grpc.ClientConn
-	sessionID    multiraftv1.SessionID
 	lastIndex    *sessionIndex
 	requestNum   *sessionRequestNum
 	requestCh    chan sessionRequestEvent
@@ -56,11 +58,31 @@ func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.Pr
 	if ok {
 		return nil
 	}
-	primitive = newPrimitiveClient(spec, s)
-	if err := primitive.create(ctx); err != nil {
+	request := &multiraftv1.CreatePrimitiveRequest{
+		Headers: multiraftv1.CommandRequestHeaders{
+			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
+				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
+					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
+						PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
+							PartitionID: s.partition.id,
+						},
+						SessionID: s.sessionID,
+					},
+				},
+			},
+			SequenceNum: s.nextRequestNum(),
+		},
+		CreatePrimitiveInput: multiraftv1.CreatePrimitiveInput{
+			PrimitiveSpec: spec,
+		},
+	}
+	client := multiraftv1.NewSessionClient(s.partition.conn)
+	response, err := client.CreatePrimitive(ctx, request)
+	if err != nil {
 		return err
 	}
-	s.primitives[primitive.spec.Name] = primitive
+	primitive = newPrimitiveClient(s, response.PrimitiveID)
+	s.primitives[spec.Name] = primitive
 	return nil
 }
 
@@ -96,26 +118,9 @@ func (s *SessionClient) update(index multiraftv1.Index) {
 	s.lastIndex.Update(index)
 }
 
-func (s *SessionClient) open(ctx context.Context) error {
-	request := &multiraftv1.OpenSessionRequest{
-		Headers: multiraftv1.PartitionRequestHeaders{
-			PartitionID: s.partition.id,
-		},
-		OpenSessionInput: multiraftv1.OpenSessionInput{
-			Timeout: sessionTimeout,
-		},
-	}
-
-	client := multiraftv1.NewPartitionClient(s.conn)
-	response, err := client.OpenSession(ctx, request)
-	if err != nil {
-		return errors.FromProto(err)
-	}
-
-	s.sessionID = response.SessionID
-
+func (s *SessionClient) open() {
 	s.lastIndex = &sessionIndex{}
-	s.lastIndex.Update(response.Headers.Index)
+	s.lastIndex.Update(multiraftv1.Index(s.sessionID))
 
 	s.requestNum = &sessionRequestNum{}
 
@@ -193,7 +198,6 @@ func (s *SessionClient) open(ctx context.Context) error {
 			}
 		}
 	}()
-	return nil
 }
 
 func (s *SessionClient) keepAliveSessions(ctx context.Context, lastRequestNum multiraftv1.SequenceNum, openRequests *bloom.BloomFilter, completeResponses map[multiraftv1.SequenceNum]multiraftv1.SequenceNum) error {

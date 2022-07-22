@@ -55,10 +55,22 @@ func (p *PartitionClient) GetSession(ctx context.Context) (*SessionClient, error
 		return nil, errors.NewUnavailable("not connected")
 	}
 
-	session = newSessionClient(p, p.conn)
-	if err := session.open(ctx); err != nil {
-		return nil, err
+	request := &multiraftv1.OpenSessionRequest{
+		Headers: multiraftv1.PartitionRequestHeaders{
+			PartitionID: p.id,
+		},
+		OpenSessionInput: multiraftv1.OpenSessionInput{
+			Timeout: sessionTimeout,
+		},
 	}
+
+	client := multiraftv1.NewPartitionClient(p.conn)
+	response, err := client.OpenSession(ctx, request)
+	if err != nil {
+		return nil, errors.FromProto(err)
+	}
+
+	session = newSessionClient(response.SessionID, p, p.conn)
 	p.session = session
 	return session, nil
 }
