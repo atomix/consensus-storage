@@ -8,6 +8,7 @@ import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"google.golang.org/grpc"
+	"sync/atomic"
 )
 
 func newPrimitiveClient(spec multiraftv1.PrimitiveSpec, session *SessionClient) *PrimitiveClient {
@@ -18,7 +19,7 @@ func newPrimitiveClient(spec multiraftv1.PrimitiveSpec, session *SessionClient) 
 }
 
 type PrimitiveClient struct {
-	id      multiraftv1.PrimitiveID
+	id      uint64
 	spec    multiraftv1.PrimitiveSpec
 	session *SessionClient
 }
@@ -38,7 +39,6 @@ func (p *PrimitiveClient) create(ctx context.Context) error {
 						},
 						SessionID: p.session.sessionID,
 					},
-					PrimitiveID: p.id,
 				},
 			},
 			SequenceNum: p.session.nextRequestNum(),
@@ -52,7 +52,7 @@ func (p *PrimitiveClient) create(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	p.id = response.PrimitiveID
+	atomic.StoreUint64(&p.id, uint64(response.PrimitiveID))
 	return nil
 }
 
@@ -65,6 +65,7 @@ func (p *PrimitiveClient) Query(id multiraftv1.OperationID) *QueryContext {
 }
 
 func (p *PrimitiveClient) close(ctx context.Context) error {
+	primitiveID := atomic.LoadUint64(&p.id)
 	request := &multiraftv1.ClosePrimitiveRequest{
 		Headers: multiraftv1.CommandRequestHeaders{
 			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
@@ -75,13 +76,13 @@ func (p *PrimitiveClient) close(ctx context.Context) error {
 						},
 						SessionID: p.session.sessionID,
 					},
-					PrimitiveID: p.id,
+					PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
 				},
 			},
 			SequenceNum: p.session.nextRequestNum(),
 		},
 		ClosePrimitiveInput: multiraftv1.ClosePrimitiveInput{
-			PrimitiveID: p.id,
+			PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
 		},
 	}
 	client := multiraftv1.NewSessionClient(p.session.partition.conn)
@@ -93,6 +94,7 @@ func (p *PrimitiveClient) close(ctx context.Context) error {
 }
 
 func newCommandContext(primitive *PrimitiveClient, operationID multiraftv1.OperationID) *CommandContext {
+	primitiveID := atomic.LoadUint64(&primitive.id)
 	headers := &multiraftv1.CommandRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -102,7 +104,7 @@ func newCommandContext(primitive *PrimitiveClient, operationID multiraftv1.Opera
 					},
 					SessionID: primitive.session.sessionID,
 				},
-				PrimitiveID: primitive.id,
+				PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
 			},
 			OperationID: operationID,
 		},
@@ -166,6 +168,7 @@ func (c *StreamCommandContext) Close() {
 }
 
 func newQueryContext(primitive *PrimitiveClient, operationID multiraftv1.OperationID) *QueryContext {
+	primitiveID := atomic.LoadUint64(&primitive.id)
 	headers := &multiraftv1.QueryRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -175,7 +178,7 @@ func newQueryContext(primitive *PrimitiveClient, operationID multiraftv1.Operati
 					},
 					SessionID: primitive.session.sessionID,
 				},
-				PrimitiveID: primitive.id,
+				PrimitiveID: multiraftv1.PrimitiveID(primitiveID),
 			},
 			OperationID: operationID,
 		},

@@ -23,10 +23,13 @@ const chanBufSize = 1000
 // The false positive rate for request/response filters
 const fpRate float64 = 0.05
 
+const sessionTimeout = 1 * time.Minute
+
 func newSessionClient(partition *PartitionClient, conn *grpc.ClientConn) *SessionClient {
 	session := &SessionClient{
-		partition: partition,
-		conn:      conn,
+		partition:  partition,
+		conn:       conn,
+		primitives: make(map[string]*PrimitiveClient),
 	}
 	session.recorder = &Recorder{
 		session: session,
@@ -37,7 +40,6 @@ func newSessionClient(partition *PartitionClient, conn *grpc.ClientConn) *Sessio
 type SessionClient struct {
 	partition    *PartitionClient
 	conn         *grpc.ClientConn
-	Timeout      time.Duration
 	sessionID    multiraftv1.SessionID
 	lastIndex    *sessionIndex
 	requestNum   *sessionRequestNum
@@ -100,7 +102,7 @@ func (s *SessionClient) open(ctx context.Context) error {
 			PartitionID: s.partition.id,
 		},
 		OpenSessionInput: multiraftv1.OpenSessionInput{
-			Timeout: s.Timeout,
+			Timeout: sessionTimeout,
 		},
 	}
 
@@ -119,7 +121,7 @@ func (s *SessionClient) open(ctx context.Context) error {
 
 	s.requestCh = make(chan sessionRequestEvent, chanBufSize)
 	go func() {
-		ticker := time.NewTicker(s.Timeout / 4)
+		ticker := time.NewTicker(sessionTimeout / 4)
 		var requestNum multiraftv1.SequenceNum
 		requests := make(map[multiraftv1.SequenceNum]bool)
 		responseStreams := make(map[multiraftv1.SequenceNum]*sessionResponseStream)

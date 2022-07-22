@@ -133,7 +133,7 @@ func (m *NodeManager) Bootstrap(config multiraftv1.ClusterConfig) error {
 	for _, partitionConfig := range config.Partitions {
 		partitionIDs = append(partitionIDs, partitionConfig.PartitionID)
 	}
-	m.protocol = protocol.NewNodeProtocol(m.id, m.host, m.registry)
+	m.protocol = protocol.NewNodeProtocol(m.id, m.host, m.registry, partitionIDs...)
 
 	for _, partitionID := range partitionIDs {
 		partition, ok := m.protocol.Partition(partitionID)

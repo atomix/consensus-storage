@@ -180,6 +180,8 @@ func (p *primitiveContext) recover(reader *snapshot.Reader) error {
 	p.primitiveID = primitive.ID(snapshot.PrimitiveID)
 	p.spec = snapshot.Spec
 	p.primitiveType = p.manager.registry.Get(snapshot.Spec.Type.Name, snapshot.Spec.Type.ApiVersion)
+	p.stateMachine = p.primitiveType.NewStateMachine(p)
+	p.manager.primitives[p.primitiveID] = p
 
 	n, err := reader.ReadVarInt()
 	if err != nil {
@@ -195,7 +197,7 @@ func (p *primitiveContext) recover(reader *snapshot.Reader) error {
 }
 
 func (p *primitiveContext) create(command CreatePrimitive) {
-	var existing *primitiveContext
+	var context *primitiveContext
 	for _, p := range p.manager.primitives {
 		if p.Namespace() == command.Input().Namespace && p.Name() == command.Input().Name {
 			if p.Type().Name() != command.Input().Type.Name || p.Type().APIVersion() != command.Input().Type.ApiVersion {
@@ -203,25 +205,21 @@ func (p *primitiveContext) create(command CreatePrimitive) {
 				command.Close()
 				return
 			}
-			existing = p
+			context = p
 			break
 		}
 	}
 
-	if existing != nil {
-		command.Output(&multiraftv1.CreatePrimitiveOutput{
-			PrimitiveID: multiraftv1.PrimitiveID(existing.primitiveID),
-		}, nil)
-		command.Close()
-		return
+	if context == nil {
+		p.primitiveID = primitive.ID(p.manager.context.Index())
+		p.spec = command.Input().PrimitiveSpec
+		p.primitiveType = p.manager.registry.Get(command.Input().Type.Name, command.Input().Type.ApiVersion)
+		p.stateMachine = p.primitiveType.NewStateMachine(p)
+		p.manager.primitives[p.primitiveID] = p
+		context = p
 	}
 
-	p.primitiveID = primitive.ID(p.manager.context.Index())
-	p.spec = command.Input().PrimitiveSpec
-	p.primitiveType = p.manager.registry.Get(command.Input().Type.Name, command.Input().Type.ApiVersion)
-	p.stateMachine = p.primitiveType.NewStateMachine(p)
-
-	session := newPrimitiveSession(p)
+	session := newPrimitiveSession(context)
 	session.create(command)
 }
 

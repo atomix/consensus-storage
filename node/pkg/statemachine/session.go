@@ -294,6 +294,7 @@ func (s *raftSessions) List() []Session {
 func newSession(manager *sessionManager) *raftSession {
 	return &raftSession{
 		manager:  manager,
+		commands: newCommands(),
 		watchers: make(map[string]func(SessionState)),
 	}
 }
@@ -475,7 +476,8 @@ func (c *raftSessionCommands) Get(index multiraftv1.Index) (SessionCommand, bool
 
 func newSessionCommand(session *raftSession) *raftSessionCommand {
 	return &raftSessionCommand{
-		session: session,
+		session:  session,
+		watchers: make(map[string]func(CommandState)),
 	}
 }
 

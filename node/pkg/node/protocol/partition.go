@@ -34,7 +34,7 @@ func (p *PartitionProtocol) ID() multiraftv1.PartitionID {
 	return p.id
 }
 
-func (p *PartitionProtocol) setLeader(term multiraftv1.Term, leader multiraftv1.NodeID) {
+func (p *PartitionProtocol) SetLeader(term multiraftv1.Term, leader multiraftv1.NodeID) {
 	atomic.StoreUint64(&p.term, uint64(term))
 	atomic.StoreUint64(&p.leader, uint64(leader))
 }
@@ -98,9 +98,7 @@ func (p *PartitionProtocol) commitCommand(ctx context.Context, input *multiraftv
 		return errors.NewUnavailable("not the leader")
 	}
 
-	streamID := p.streams.register(term, stream)
-	defer p.streams.unregister(streamID)
-
+	streamID := p.streams.create(term, stream)
 	entry := &multiraftv1.RaftLogEntry{
 		StreamID: streamID,
 		Command:  *input,

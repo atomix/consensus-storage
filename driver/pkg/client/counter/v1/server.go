@@ -91,23 +91,120 @@ func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*count
 }
 
 func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest) (*counterv1.CompareAndSetResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	partition := s.PartitionBy([]byte(request.ID.Name))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		return nil, err
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		return nil, err
+	}
+	command := primitive.Command("CompareAndSet")
+	defer command.Done()
+	client := api.NewCounterClient(primitive.Conn())
+	input := &api.CompareAndSetRequest{
+		Headers: *command.Headers(),
+		CompareAndSetInput: api.CompareAndSetInput{
+			Compare: request.Check,
+			Update:  request.Update,
+		},
+	}
+	output, err := client.CompareAndSet(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	command.Receive(&output.Headers)
+	response := &counterv1.CompareAndSetResponse{
+		Value: output.Value,
+	}
+	return response, nil
 }
 
 func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	partition := s.PartitionBy([]byte(request.ID.Name))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		return nil, err
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		return nil, err
+	}
+	query := primitive.Query("Get")
+	client := api.NewCounterClient(primitive.Conn())
+	input := &api.GetRequest{
+		Headers:  *query.Headers(),
+		GetInput: api.GetInput{},
+	}
+	output, err := client.Get(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	response := &counterv1.GetResponse{
+		Value: output.Value,
+	}
+	return response, nil
 }
 
 func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	partition := s.PartitionBy([]byte(request.ID.Name))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		return nil, err
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		return nil, err
+	}
+	command := primitive.Command("Increment")
+	defer command.Done()
+	client := api.NewCounterClient(primitive.Conn())
+	input := &api.IncrementRequest{
+		Headers: *command.Headers(),
+		IncrementInput: api.IncrementInput{
+			Delta: request.Delta,
+		},
+	}
+	output, err := client.Increment(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	command.Receive(&output.Headers)
+	response := &counterv1.IncrementResponse{
+		Value: output.Value,
+	}
+	return response, nil
 }
 
 func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	partition := s.PartitionBy([]byte(request.ID.Name))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		return nil, err
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		return nil, err
+	}
+	command := primitive.Command("Decrement")
+	defer command.Done()
+	client := api.NewCounterClient(primitive.Conn())
+	input := &api.DecrementRequest{
+		Headers: *command.Headers(),
+		DecrementInput: api.DecrementInput{
+			Delta: request.Delta,
+		},
+	}
+	output, err := client.Decrement(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	command.Receive(&output.Headers)
+	response := &counterv1.DecrementResponse{
+		Value: output.Value,
+	}
+	return response, nil
 }
 
 var _ counterv1.CounterServer = (*Server)(nil)

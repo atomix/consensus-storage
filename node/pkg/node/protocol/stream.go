@@ -6,26 +6,26 @@ package protocol
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/runtime/sdk/pkg/stream"
+	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"sync"
 )
 
 // newStreamRegistry returns a new stream registry
 func newStreamRegistry() *streamRegistry {
 	return &streamRegistry{
-		streams: make(map[multiraftv1.StreamId]stream.WriteStream[*multiraftv1.CommandOutput]),
+		streams: make(map[multiraftv1.StreamId]streams.WriteStream[*multiraftv1.CommandOutput]),
 	}
 }
 
 // streamRegistry is a registry of client streams
 type streamRegistry struct {
-	streams         map[multiraftv1.StreamId]stream.WriteStream[*multiraftv1.CommandOutput]
+	streams         map[multiraftv1.StreamId]streams.WriteStream[*multiraftv1.CommandOutput]
 	nextSequenceNum multiraftv1.SequenceNum
 	mu              sync.RWMutex
 }
 
-// register adds a new stream
-func (r *streamRegistry) register(term multiraftv1.Term, stream stream.WriteStream[*multiraftv1.CommandOutput]) multiraftv1.StreamId {
+// create adds a new stream
+func (r *streamRegistry) create(term multiraftv1.Term, stream streams.WriteStream[*multiraftv1.CommandOutput]) multiraftv1.StreamId {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.nextSequenceNum++
@@ -34,7 +34,9 @@ func (r *streamRegistry) register(term multiraftv1.Term, stream stream.WriteStre
 		Term:        term,
 		SequenceNum: sequenceNum,
 	}
-	r.streams[streamID] = stream
+	r.streams[streamID] = streams.NewCloserStream[*multiraftv1.CommandOutput](stream, func(s streams.WriteStream[*multiraftv1.CommandOutput]) {
+		r.unregister(streamID)
+	})
 	return streamID
 }
 
@@ -46,11 +48,11 @@ func (r *streamRegistry) unregister(streamID multiraftv1.StreamId) {
 }
 
 // lookup gets a stream by ID
-func (r *streamRegistry) lookup(streamID multiraftv1.StreamId) stream.WriteStream[*multiraftv1.CommandOutput] {
+func (r *streamRegistry) lookup(streamID multiraftv1.StreamId) streams.WriteStream[*multiraftv1.CommandOutput] {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if stream, ok := r.streams[streamID]; ok {
 		return stream
 	}
-	return stream.NewNilStream[*multiraftv1.CommandOutput]()
+	return streams.NewNilStream[*multiraftv1.CommandOutput]()
 }

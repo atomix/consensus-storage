@@ -49,10 +49,10 @@ func (s *MultiRaftNode) Start() error {
 
 	multiraftv1.RegisterNodeServer(s.server, server.NewNodeServer(s.manager))
 	multiraftv1.RegisterPartitionServer(s.server, server.NewPartitionServer(s.manager))
-	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.manager.Protocol()))
+	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.manager))
 
 	for _, primitiveType := range s.PrimitiveTypes {
-		primitiveType.RegisterServices(s.server, s.manager.Protocol())
+		primitiveType.RegisterServices(s.server, newProtocol(s.manager))
 	}
 	go func() {
 		if err := s.server.Serve(lis); err != nil {
