@@ -70,7 +70,6 @@ message SizeRequest {
     ];
     SizeInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -82,7 +81,6 @@ message SizeResponse {
     ];
     SizeOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
