@@ -5,11 +5,10 @@
 package statemachine
 
 import (
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"time"
 )
-
-type PrimitiveID uint64
 
 type PrimitiveType[I, O any] interface {
 	Name() string
@@ -50,11 +49,9 @@ func (t *primitiveType[I, O]) NewPrimitive(context PrimitiveContext[I, O]) Primi
 	return t.factory(context)
 }
 
-type Index uint64
-
 type PrimitiveContext[I, O any] interface {
 	// PrimitiveID returns the service identifier
-	PrimitiveID() PrimitiveID
+	PrimitiveID() multiraftv1.PrimitiveID
 	// Type returns the service type
 	Type() PrimitiveType[I, O]
 	// Namespace returns the service namespace
@@ -62,7 +59,7 @@ type PrimitiveContext[I, O any] interface {
 	// Name returns the service name
 	Name() string
 	// Index returns the current service index
-	Index() Index
+	Index() multiraftv1.Index
 	// Time returns the current service time
 	Time() time.Time
 	// Scheduler returns the service scheduler
@@ -81,35 +78,26 @@ type Primitive[I, O any] interface {
 	Read(query Query[I, O])
 }
 
-type SessionID uint64
-
 // Session is a service session
 type Session[I, O any] interface {
 	// ID returns the session identifier
-	ID() SessionID
+	ID() multiraftv1.SessionID
 	// State returns the current session state
-	State() SessionState
+	State() multiraftv1.SessionSnapshot_State
 	// Watch watches the session state
 	Watch(f SessionWatcher) CancelFunc
 	// Commands returns the session commands
 	Commands() Commands[I, O]
 }
 
-type SessionWatcher func(SessionState)
+type SessionWatcher func(multiraftv1.SessionSnapshot_State)
 
 type CancelFunc func()
-
-type SessionState int
-
-const (
-	SessionClosed SessionState = iota
-	SessionOpen
-)
 
 // Sessions provides access to open sessions
 type Sessions[I, O any] interface {
 	// Get gets a session by ID
-	Get(SessionID) (Session[I, O], bool)
+	Get(multiraftv1.SessionID) (Session[I, O], bool)
 	// List lists all open sessions
 	List() []Session[I, O]
 }
@@ -126,35 +114,25 @@ type Operation[I, O any] interface {
 	Error(error)
 }
 
-type CommandID uint64
-
 // Command is a command operation
 type Command[I, O any] interface {
 	Operation[I, O]
-	// ID returns the command identifier
-	ID() CommandID
+	// Index returns the command index
+	Index() multiraftv1.Index
 	// State returns the current command state
-	State() CommandState
+	State() multiraftv1.CommandSnapshot_State
 	// Watch watches the command state
 	Watch(f CommandWatcher) CancelFunc
 	// Close closes the command
 	Close()
 }
 
-type CommandWatcher func(CommandState)
-
-type CommandState int
-
-const (
-	CommandPending CommandState = iota
-	CommandRunning
-	CommandComplete
-)
+type CommandWatcher func(state multiraftv1.CommandSnapshot_State)
 
 // Commands provides access to pending commands
 type Commands[I, O any] interface {
 	// Get gets a command by ID
-	Get(CommandID) (Command[I, O], bool)
+	Get(multiraftv1.Index) (Command[I, O], bool)
 	// List lists all open commands
 	List() []Command[I, O]
 }
