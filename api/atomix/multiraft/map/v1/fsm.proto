@@ -193,7 +193,9 @@ message Event {
 
 message Entry {
     string key = 1;
-    Value value = 2;
+    Value value = 2 [
+        (gogoproto.nullable) = false
+    ];
     uint64 index = 3 [
         (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
