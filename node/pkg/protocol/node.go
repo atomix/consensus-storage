@@ -28,7 +28,7 @@ const (
 const clientTimeout = 30 * time.Second
 
 func NewNode(registry *statemachine.PrimitiveTypeRegistry, config multiraftv1.NodeConfig) *Node {
-	var rtt uint64 = 10
+	var rtt uint64 = 250
 	if config.HeartbeatPeriod != nil {
 		rtt = uint64(config.HeartbeatPeriod.Milliseconds())
 	}

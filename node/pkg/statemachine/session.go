@@ -93,7 +93,7 @@ func (m *sessionManager) keepAlive(input *multiraftv1.KeepAliveInput, stream str
 			session.resetTime(m.context.time)
 		}
 		if m.context.time.After(session.expireTime()) {
-			log.Infof("Session %d expired after %s", session.sessionID, m.context.time.Sub(session.lastUpdated))
+			log.Warnf("Session %d expired after %s", session.sessionID, m.context.time.Sub(session.lastUpdated))
 			session.expire()
 		}
 	}
@@ -210,6 +210,9 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 
 	stream.Value(&multiraftv1.KeepAliveOutput{})
 	stream.Close()
+
+	s.lastUpdated = s.manager.context.time
+	s.reset = false
 }
 
 func (s *raftSession) close(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
