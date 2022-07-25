@@ -6,32 +6,38 @@ package statemachine
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/google/uuid"
 	"time"
 )
 
-func newPrimitiveManager(registry *primitive.Registry, context sessionManagerContext) *primitiveManager {
+func newPrimitiveManager(registry *PrimitiveTypeRegistry, context *sessionManager) *primitiveManager {
 	return &primitiveManager{
 		registry:   registry,
 		context:    context,
-		primitives: make(map[primitive.ID]*primitiveContext),
+		primitives: make(map[PrimitiveID]primitiveExecutor),
 	}
 }
 
 type primitiveManager struct {
-	registry   *primitive.Registry
-	context    sessionManagerContext
-	primitives map[primitive.ID]*primitiveContext
+	registry   *PrimitiveTypeRegistry
+	context    *sessionManager
+	primitives map[PrimitiveID]primitiveExecutor
 }
 
-func (m *primitiveManager) Snapshot(writer *snapshot.Writer) error {
+func (m *primitiveManager) snapshot(writer *snapshot.Writer) error {
 	if err := writer.WriteVarInt(len(m.primitives)); err != nil {
 		return err
 	}
 	for _, primitive := range m.primitives {
+		snapshot := &multiraftv1.PrimitiveSnapshot{
+			PrimitiveID: multiraftv1.PrimitiveID(primitive.info().id),
+			Spec:        primitive.info().spec,
+		}
+		if err := writer.WriteMessage(snapshot); err != nil {
+			return err
+		}
 		if err := primitive.snapshot(writer); err != nil {
 			return err
 		}
@@ -39,13 +45,27 @@ func (m *primitiveManager) Snapshot(writer *snapshot.Writer) error {
 	return nil
 }
 
-func (m *primitiveManager) Recover(reader *snapshot.Reader) error {
+func (m *primitiveManager) recover(reader *snapshot.Reader) error {
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
 	}
 	for i := 0; i < n; i++ {
-		primitive := newPrimitive(m)
+		snapshot := &multiraftv1.PrimitiveSnapshot{}
+		if err := reader.ReadMessage(snapshot); err != nil {
+			return err
+		}
+		factory, ok := m.registry.lookup(snapshot.Spec.Type.Name, snapshot.Spec.Type.ApiVersion)
+		if !ok {
+			return errors.NewFault("primitive type not found")
+		}
+
+		info := primitiveInfo{
+			id:   PrimitiveID(snapshot.PrimitiveID),
+			spec: snapshot.Spec,
+		}
+		primitive := factory(m, info)
+		m.primitives[info.id] = primitive
 		if err := primitive.recover(reader); err != nil {
 			return nil
 		}
@@ -53,13 +73,40 @@ func (m *primitiveManager) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (m *primitiveManager) Create(command CreatePrimitive) {
-	primitive := newPrimitive(m)
-	primitive.create(command)
+func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
+	var executor primitiveExecutor
+	for _, p := range m.primitives {
+		if p.info().spec.Namespace == command.Input().Namespace && p.info().spec.Name == command.Input().Name {
+			if p.info().spec.Type.Name != command.Input().Type.Name || p.info().spec.Type.ApiVersion != command.Input().Type.ApiVersion {
+				command.Output(nil, errors.NewForbidden("cannot create primitive of a different type with the same name"))
+				command.Close()
+				return
+			}
+			executor = p
+			break
+		}
+	}
+
+	if executor == nil {
+		factory, ok := m.registry.lookup(command.Input().Type.Name, command.Input().Type.ApiVersion)
+		if !ok {
+			command.Output(nil, errors.NewForbidden("unknown primitive type"))
+			command.Close()
+			return
+		}
+
+		info := primitiveInfo{
+			id:   PrimitiveID(command.index),
+			spec: command.Input().PrimitiveSpec,
+		}
+		executor = factory(m, info)
+		m.primitives[info.id] = executor
+	}
+	executor.create(command)
 }
 
-func (m *primitiveManager) Command(command PrimitiveCommand) {
-	primitive, ok := m.primitives[primitive.ID(command.Input().PrimitiveID)]
+func (m *primitiveManager) command(command *raftSessionOperationCommand) {
+	primitive, ok := m.primitives[PrimitiveID(command.Input().PrimitiveID)]
 	if !ok {
 		command.Output(&multiraftv1.PrimitiveOperationOutput{
 			OperationOutput: multiraftv1.OperationOutput{
@@ -73,8 +120,8 @@ func (m *primitiveManager) Command(command PrimitiveCommand) {
 	primitive.command(command)
 }
 
-func (m *primitiveManager) Query(query PrimitiveQuery) {
-	primitive, ok := m.primitives[primitive.ID(query.Input().PrimitiveID)]
+func (m *primitiveManager) query(query *raftSessionOperationQuery) {
+	primitive, ok := m.primitives[PrimitiveID(query.Input().PrimitiveID)]
 	if !ok {
 		query.Output(&multiraftv1.PrimitiveOperationOutput{
 			OperationOutput: multiraftv1.OperationOutput{
@@ -88,8 +135,8 @@ func (m *primitiveManager) Query(query PrimitiveQuery) {
 	primitive.query(query)
 }
 
-func (m *primitiveManager) Close(command ClosePrimitive) {
-	primitive, ok := m.primitives[primitive.ID(command.Input().PrimitiveID)]
+func (m *primitiveManager) close(command *raftSessionClosePrimitiveCommand) {
+	primitive, ok := m.primitives[PrimitiveID(command.Input().PrimitiveID)]
 	if !ok {
 		command.Output(&multiraftv1.ClosePrimitiveOutput{}, nil)
 		command.Close()
@@ -98,434 +145,477 @@ func (m *primitiveManager) Close(command ClosePrimitive) {
 	primitive.close(command)
 }
 
-func newPrimitive(manager *primitiveManager) *primitiveContext {
-	return &primitiveContext{
-		manager:  manager,
-		sessions: newPrimitiveSessions(),
-		commands: newPrimitiveCommands(),
+type primitiveExecutor interface {
+	info() primitiveInfo
+	snapshot(*snapshot.Writer) error
+	recover(*snapshot.Reader) error
+	create(*raftSessionCreatePrimitiveCommand)
+	command(*raftSessionOperationCommand)
+	query(*raftSessionOperationQuery)
+	close(*raftSessionClosePrimitiveCommand)
+}
+
+type primitiveInfo struct {
+	id   PrimitiveID
+	spec multiraftv1.PrimitiveSpec
+}
+
+func newPrimitiveContext[I, O any](manager *primitiveManager, info primitiveInfo, primitiveType PrimitiveType[I, O]) *primitiveContext[I, O] {
+	return &primitiveContext[I, O]{
+		primitiveInfo: info,
+		manager:       manager,
+		primitiveType: primitiveType,
+		sessions:      newPrimitiveSessions[I, O](),
+		commands:      newPrimitiveCommands[I, O](),
 	}
 }
 
-type primitiveContext struct {
+type primitiveContext[I, O any] struct {
+	primitiveInfo
 	manager       *primitiveManager
-	sessions      *primitiveSessions
-	primitiveID   primitive.ID
-	spec          multiraftv1.PrimitiveSpec
-	primitiveType primitive.Type
-	commands      *primitiveCommands
-	stateMachine  primitive.StateMachine
+	sessions      *primitiveSessions[I, O]
+	primitiveType PrimitiveType[I, O]
+	commands      *primitiveCommands[I, O]
 }
 
-func (p *primitiveContext) ID() primitive.ID {
-	return p.primitiveID
+func (p *primitiveContext[I, O]) info() primitiveInfo {
+	return p.primitiveInfo
 }
 
-func (p *primitiveContext) Type() primitive.Type {
-	return p.primitiveType
+func (p *primitiveContext[I, O]) PrimitiveID() PrimitiveID {
+	return p.id
 }
 
-func (p *primitiveContext) Namespace() string {
+func (p *primitiveContext[I, O]) Namespace() string {
 	return p.spec.Namespace
 }
 
-func (p *primitiveContext) Name() string {
+func (p *primitiveContext[I, O]) Name() string {
 	return p.spec.Name
 }
 
-func (p *primitiveContext) Index() primitive.Index {
-	return primitive.Index(p.manager.context.Index())
+func (p *primitiveContext[I, O]) Type() PrimitiveType[I, O] {
+	return p.primitiveType
 }
 
-func (p *primitiveContext) Time() time.Time {
-	return p.manager.context.Time()
+func (p *primitiveContext[I, O]) Index() Index {
+	return Index(p.manager.context.context.index)
 }
 
-func (p *primitiveContext) Scheduler() primitive.Scheduler {
-	return p.manager.context.Scheduler()
+func (p *primitiveContext[I, O]) Time() time.Time {
+	return p.manager.context.context.time
 }
 
-func (p *primitiveContext) Sessions() primitive.Sessions {
+func (p *primitiveContext[I, O]) Scheduler() *Scheduler {
+	return p.manager.context.context.scheduler
+}
+
+func (p *primitiveContext[I, O]) Sessions() Sessions[I, O] {
 	return p.sessions
 }
 
-func (p *primitiveContext) Commands() primitive.Commands {
+func (p *primitiveContext[I, O]) Commands() Commands[I, O] {
 	return p.commands
 }
 
-func (p *primitiveContext) snapshot(writer *snapshot.Writer) error {
-	snapshot := &multiraftv1.PrimitiveSnapshot{
-		PrimitiveID: multiraftv1.PrimitiveID(p.primitiveID),
-		Spec:        p.spec,
+func newPrimitiveStateMachineExecutor[I, O any](context *primitiveContext[I, O], stateMachine Primitive[I, O]) primitiveExecutor {
+	return &primitiveStateMachineExecutor[I, O]{
+		primitiveContext: context,
+		stateMachine:     stateMachine,
 	}
-	if err := writer.WriteMessage(snapshot); err != nil {
-		return err
-	}
+}
 
+type primitiveStateMachineExecutor[I, O any] struct {
+	*primitiveContext[I, O]
+	stateMachine Primitive[I, O]
+}
+
+func (p *primitiveStateMachineExecutor[I, O]) snapshot(writer *snapshot.Writer) error {
 	if err := writer.WriteVarInt(len(p.sessions.sessions)); err != nil {
 		return err
 	}
 	for _, session := range p.sessions.sessions {
-		if err := session.snapshot(writer); err != nil {
+		if err := writer.WriteVarUint64(uint64(session.ID())); err != nil {
 			return err
 		}
 	}
 	return p.stateMachine.Snapshot(writer)
 }
 
-func (p *primitiveContext) recover(reader *snapshot.Reader) error {
-	snapshot := &multiraftv1.PrimitiveSnapshot{}
-	if err := reader.ReadMessage(snapshot); err != nil {
-		return err
-	}
-	p.primitiveID = primitive.ID(snapshot.PrimitiveID)
-	p.spec = snapshot.Spec
-	p.primitiveType = p.manager.registry.Get(snapshot.Spec.Type.Name, snapshot.Spec.Type.ApiVersion)
-	p.stateMachine = p.primitiveType.NewStateMachine(p)
-	p.manager.primitives[p.primitiveID] = p
-
+func (p *primitiveStateMachineExecutor[I, O]) recover(reader *snapshot.Reader) error {
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
 	}
 	for i := 0; i < n; i++ {
-		session := newPrimitiveSession(p)
-		if err := session.recover(reader); err != nil {
+		sessionID, err := reader.ReadVarUint64()
+		if err != nil {
 			return err
+		}
+		parent, ok := p.manager.context.sessions[multiraftv1.SessionID(sessionID)]
+		if !ok {
+			return errors.NewFault("session %d not found", sessionID)
+		}
+		session := newPrimitiveSession(p, parent)
+		session.open()
+		for _, parentCommand := range parent.commands {
+			if parentCommand.state != multiraftv1.CommandSnapshot_RUNNING {
+				continue
+			}
+			operation := parentCommand.Operation()
+			if operation.Input().PrimitiveID == multiraftv1.PrimitiveID(p.id) {
+				command, err := newPrimitiveCommand[I, O](session, operation)
+				if err != nil {
+					return err
+				}
+				command.open()
+			}
 		}
 	}
 	return p.stateMachine.Recover(reader)
 }
 
-func (p *primitiveContext) create(command CreatePrimitive) {
-	var context *primitiveContext
-	for _, p := range p.manager.primitives {
-		if p.Namespace() == command.Input().Namespace && p.Name() == command.Input().Name {
-			if p.Type().Name() != command.Input().Type.Name || p.Type().APIVersion() != command.Input().Type.ApiVersion {
-				command.Output(nil, errors.NewForbidden("cannot create primitive of a different type with the same name"))
-				command.Close()
-				return
-			}
-			context = p
-			break
-		}
+func (p *primitiveStateMachineExecutor[I, O]) create(command *raftSessionCreatePrimitiveCommand) {
+	_, ok := p.sessions.sessions[SessionID(command.session.sessionID)]
+	if !ok {
+		session := newPrimitiveSession[I, O](p, command.session)
+		session.open()
 	}
-
-	if context == nil {
-		p.primitiveID = primitive.ID(p.manager.context.Index())
-		p.spec = command.Input().PrimitiveSpec
-		p.primitiveType = p.manager.registry.Get(command.Input().Type.Name, command.Input().Type.ApiVersion)
-		p.stateMachine = p.primitiveType.NewStateMachine(p)
-		p.manager.primitives[p.primitiveID] = p
-		context = p
-	}
-
-	session := newPrimitiveSession(context)
-	session.create(command)
+	command.Output(&multiraftv1.CreatePrimitiveOutput{
+		PrimitiveID: multiraftv1.PrimitiveID(p.id),
+	}, nil)
+	command.Close()
 }
 
-func (p *primitiveContext) command(command PrimitiveCommand) {
-	session, ok := p.sessions.sessions[primitive.SessionID(command.Session().ID())]
+func (p *primitiveStateMachineExecutor[I, O]) command(command *raftSessionOperationCommand) {
+	primitiveSession, ok := p.sessions.sessions[SessionID(command.session.sessionID)]
 	if !ok {
 		command.Output(nil, errors.NewFault("session not found"))
 		command.Close()
 		return
 	}
-	session.command(command)
+	primitiveCommand, err := newPrimitiveCommand[I, O](primitiveSession, command)
+	if err != nil {
+		command.Output(&multiraftv1.PrimitiveOperationOutput{
+			OperationOutput: multiraftv1.OperationOutput{
+				Status:  getStatus(err),
+				Message: err.Error(),
+			},
+		}, nil)
+		command.Close()
+	} else {
+		primitiveCommand.open()
+		p.stateMachine.Update(primitiveCommand)
+	}
 }
 
-func (p *primitiveContext) query(query PrimitiveQuery) {
-	session, ok := p.sessions.sessions[primitive.SessionID(query.Session().ID())]
+func (p *primitiveStateMachineExecutor[I, O]) query(query *raftSessionOperationQuery) {
+	primitiveSession, ok := p.sessions.sessions[SessionID(query.session.sessionID)]
 	if !ok {
 		query.Output(nil, errors.NewFault("session not found"))
 		query.Close()
 		return
 	}
-	session.query(query)
-}
-
-func (p *primitiveContext) close(command ClosePrimitive) {
-	session, ok := p.sessions.sessions[primitive.SessionID(command.Session().ID())]
-	if !ok {
-		command.Output(&multiraftv1.ClosePrimitiveOutput{}, nil)
-		command.Close()
-		return
-	}
-	session.close(command)
-}
-
-func newPrimitiveSessions() *primitiveSessions {
-	return &primitiveSessions{
-		sessions: make(map[primitive.SessionID]*primitiveSession),
+	primitiveQuery, err := newPrimitiveQuery[I, O](primitiveSession, query)
+	if err != nil {
+		query.Output(&multiraftv1.PrimitiveOperationOutput{
+			OperationOutput: multiraftv1.OperationOutput{
+				Status:  getStatus(err),
+				Message: err.Error(),
+			},
+		}, nil)
+		query.Close()
+	} else {
+		p.stateMachine.Read(primitiveQuery)
+		query.Close()
 	}
 }
 
-type primitiveSessions struct {
-	sessions map[primitive.SessionID]*primitiveSession
+func (p *primitiveStateMachineExecutor[I, O]) close(command *raftSessionClosePrimitiveCommand) {
+	session, ok := p.sessions.sessions[SessionID(command.session.sessionID)]
+	if ok {
+		session.close()
+	}
+	command.Output(&multiraftv1.ClosePrimitiveOutput{}, nil)
+	command.Close()
 }
 
-func (s *primitiveSessions) add(session *primitiveSession) {
+func newPrimitiveSessions[I, O any]() *primitiveSessions[I, O] {
+	return &primitiveSessions[I, O]{
+		sessions: make(map[SessionID]*primitiveSession[I, O]),
+	}
+}
+
+type primitiveSessions[I, O any] struct {
+	sessions map[SessionID]*primitiveSession[I, O]
+}
+
+func (s *primitiveSessions[I, O]) add(session *primitiveSession[I, O]) {
 	s.sessions[session.ID()] = session
 }
 
-func (s *primitiveSessions) remove(sessionID primitive.SessionID) {
+func (s *primitiveSessions[I, O]) remove(sessionID SessionID) {
 	delete(s.sessions, sessionID)
 }
 
-func (s *primitiveSessions) Get(id primitive.SessionID) (primitive.Session, bool) {
+func (s *primitiveSessions[I, O]) Get(id SessionID) (Session[I, O], bool) {
 	session, ok := s.sessions[id]
 	return session, ok
 }
 
-func (s *primitiveSessions) List() []primitive.Session {
-	sessions := make([]primitive.Session, 0, len(s.sessions))
+func (s *primitiveSessions[I, O]) List() []Session[I, O] {
+	sessions := make([]Session[I, O], 0, len(s.sessions))
 	for _, session := range s.sessions {
 		sessions = append(sessions, session)
 	}
 	return sessions
 }
 
-func newPrimitiveSession(context *primitiveContext) *primitiveSession {
-	return &primitiveSession{
+func newPrimitiveSession[I, O any](context *primitiveStateMachineExecutor[I, O], parent *raftSession) *primitiveSession[I, O] {
+	return &primitiveSession[I, O]{
 		primitive: context,
-		commands:  newPrimitiveCommands(),
-		watchers:  make(map[string]func(primitive.SessionState)),
+		session:   parent,
+		commands:  newPrimitiveCommands[I, O](),
+		state:     SessionOpen,
 	}
 }
 
-type primitiveSession struct {
-	primitive     *primitiveContext
-	session       Session
-	commands      *primitiveCommands
-	state         primitive.SessionState
-	watchers      map[string]func(primitive.SessionState)
-	parentWatcher Watcher
+type primitiveSession[I, O any] struct {
+	primitive *primitiveStateMachineExecutor[I, O]
+	session   *raftSession
+	commands  *primitiveCommands[I, O]
+	state     SessionState
+	watchers  map[string]SessionWatcher
 }
 
-func (s *primitiveSession) ID() primitive.SessionID {
-	return primitive.SessionID(s.session.ID())
+func (s *primitiveSession[I, O]) ID() SessionID {
+	return SessionID(s.session.sessionID)
 }
 
-func (s *primitiveSession) State() primitive.SessionState {
-	return primitive.SessionState(s.session.State())
+func (s *primitiveSession[I, O]) State() SessionState {
+	switch s.session.state {
+	case multiraftv1.SessionSnapshot_OPEN:
+		return SessionOpen
+	case multiraftv1.SessionSnapshot_CLOSED:
+		return SessionClosed
+	default:
+		panic("unknown session state")
+	}
 }
 
-func (s *primitiveSession) Watch(f func(primitive.SessionState)) primitive.Watcher {
+func (s *primitiveSession[I, O]) Watch(f SessionWatcher) CancelFunc {
+	if s.watchers == nil {
+		s.watchers = make(map[string]SessionWatcher)
+	}
 	id := uuid.New().String()
 	s.watchers[id] = f
-	return newSessionWatcher(func() {
+	return func() {
 		delete(s.watchers, id)
-	})
+	}
 }
 
-func (s *primitiveSession) Commands() primitive.Commands {
+func (s *primitiveSession[I, O]) Commands() Commands[I, O] {
 	return s.commands
 }
 
-func (s *primitiveSession) snapshot(writer *snapshot.Writer) error {
-	commands := make([]multiraftv1.Index, 0, len(s.commands.commands))
-	for _, command := range s.commands.commands {
-		commands = append(commands, command.command.Index())
-	}
-	snapshot := &multiraftv1.PrimitiveSessionSnapshot{
-		SessionID: s.session.ID(),
-		Commands:  commands,
-	}
-	return writer.WriteMessage(snapshot)
-}
-
-func (s *primitiveSession) recover(reader *snapshot.Reader) error {
-	snapshot := &multiraftv1.PrimitiveSessionSnapshot{}
-	if err := reader.ReadMessage(snapshot); err != nil {
-		return err
-	}
-	session, ok := s.primitive.manager.context.Sessions().Get(snapshot.SessionID)
-	if !ok {
-		return errors.NewFault("session %d not found", snapshot.SessionID)
-	}
-	s.session = session
-	s.state = primitive.SessionOpen
-	s.parentWatcher = s.session.Watch(func(state SessionState) {
-		if s.state == primitive.SessionOpen && state == SessionClosed {
-			s.primitive.sessions.remove(s.ID())
-			s.state = primitive.SessionClosed
-			for _, watcher := range s.watchers {
-				watcher(primitive.SessionClosed)
-			}
-		}
-	})
+func (s *primitiveSession[I, O]) open() {
 	s.primitive.sessions.add(s)
-	for _, index := range snapshot.Commands {
-		command, ok := session.Commands().Get(index)
-		if !ok {
-			return errors.NewFault("session %d command %d not found", snapshot.SessionID, index)
-		}
-		newPrimitiveCommand(s, command.Operation())
-	}
-	return nil
+	s.session.closers[multiraftv1.PrimitiveID(s.primitive.id)] = s.close
+	s.state = SessionOpen
 }
 
-func (s *primitiveSession) create(command CreatePrimitive) {
-	s.session = command.Session()
-	s.state = primitive.SessionOpen
-	s.parentWatcher = s.session.Watch(func(state SessionState) {
-		if s.state == primitive.SessionOpen && state == SessionClosed {
-			s.primitive.sessions.remove(s.ID())
-			s.state = primitive.SessionClosed
-			for _, watcher := range s.watchers {
-				watcher(primitive.SessionClosed)
-			}
-		}
-	})
-	s.primitive.sessions.add(s)
-	command.Output(&multiraftv1.CreatePrimitiveOutput{
-		PrimitiveID: multiraftv1.PrimitiveID(s.primitive.primitiveID),
-	}, nil)
-	command.Close()
-}
-
-func (s *primitiveSession) command(command PrimitiveCommand) {
-	s.primitive.stateMachine.Command(newPrimitiveCommand(s, command))
-}
-
-func (s *primitiveSession) query(query PrimitiveQuery) {
-	s.primitive.stateMachine.Query(newPrimitiveQuery(s, query))
-}
-
-func (s *primitiveSession) close(command ClosePrimitive) {
-	s.parentWatcher.Cancel()
+func (s *primitiveSession[I, O]) close() {
 	s.primitive.sessions.remove(s.ID())
-	s.state = primitive.SessionClosed
-	for _, watcher := range s.watchers {
-		watcher(primitive.SessionClosed)
-	}
-	command.Output(&multiraftv1.ClosePrimitiveOutput{}, nil)
-	command.Close()
-}
-
-func newPrimitiveCommands() *primitiveCommands {
-	return &primitiveCommands{
-		commands: make(map[primitive.CommandID]*primitiveCommand),
+	delete(s.session.closers, multiraftv1.PrimitiveID(s.primitive.id))
+	s.state = SessionClosed
+	if s.watchers != nil {
+		for _, watcher := range s.watchers {
+			watcher(SessionClosed)
+		}
 	}
 }
 
-type primitiveCommands struct {
-	commands map[primitive.CommandID]*primitiveCommand
+func newPrimitiveCommands[I, O any]() *primitiveCommands[I, O] {
+	return &primitiveCommands[I, O]{
+		commands: make(map[CommandID]*primitiveCommand[I, O]),
+	}
 }
 
-func (c *primitiveCommands) add(command *primitiveCommand) {
+type primitiveCommands[I, O any] struct {
+	commands map[CommandID]*primitiveCommand[I, O]
+}
+
+func (c *primitiveCommands[I, O]) add(command *primitiveCommand[I, O]) {
 	c.commands[command.ID()] = command
 }
 
-func (c *primitiveCommands) remove(commandID primitive.CommandID) {
+func (c *primitiveCommands[I, O]) remove(commandID CommandID) {
 	delete(c.commands, commandID)
 }
 
-func (c *primitiveCommands) Get(commandID primitive.CommandID) (primitive.Command, bool) {
+func (c *primitiveCommands[I, O]) Get(commandID CommandID) (Command[I, O], bool) {
 	command, ok := c.commands[commandID]
 	return command, ok
 }
 
-func (c *primitiveCommands) List(id primitive.OperationID) []primitive.Command {
-	var commands []primitive.Command
+func (c *primitiveCommands[I, O]) List() []Command[I, O] {
+	commands := make([]Command[I, O], 0, len(c.commands))
 	for _, command := range c.commands {
-		if command.OperationID() == id {
-			commands = append(commands, command)
-		}
+		commands = append(commands, command)
 	}
 	return commands
 }
 
-func newPrimitiveCommand(session *primitiveSession, command PrimitiveCommand) primitive.Command {
-	c := &primitiveCommand{
+func newPrimitiveCommand[I, O any](session *primitiveSession[I, O], command *raftSessionOperationCommand) (*primitiveCommand[I, O], error) {
+	input, err := session.primitive.primitiveType.Codec().DecodeInput(command.Input().Payload)
+	if err != nil {
+		return nil, errors.NewFault(err.Error())
+	}
+	c := &primitiveCommand[I, O]{
 		session: session,
 		command: command,
+		input:   input,
 	}
-	session.commands.add(c)
-	command.Watch(func(state CommandState) {
-		session.commands.remove(c.ID())
-	})
-	return c
+	command.closer = c.close
+	return c, nil
 }
 
-type primitiveCommand struct {
-	session *primitiveSession
-	command PrimitiveCommand
+type primitiveCommand[I, O any] struct {
+	session  *primitiveSession[I, O]
+	command  *raftSessionOperationCommand
+	input    I
+	watchers map[string]func(CommandState)
 }
 
-func (c *primitiveCommand) ID() primitive.CommandID {
-	return primitive.CommandID(c.command.Index())
+func (c *primitiveCommand[I, O]) ID() CommandID {
+	return CommandID(c.command.index)
 }
 
-func (c *primitiveCommand) State() primitive.CommandState {
-	return primitive.CommandState(c.command.State())
+func (c *primitiveCommand[I, O]) State() CommandState {
+	switch c.command.state {
+	case multiraftv1.CommandSnapshot_RUNNING:
+		return CommandRunning
+	case multiraftv1.CommandSnapshot_COMPLETE:
+		return CommandComplete
+	default:
+		panic("unknown command state")
+	}
 }
 
-func (c *primitiveCommand) Watch(f func(primitive.CommandState)) primitive.Watcher {
-	return c.command.Watch(func(state CommandState) {
-		f(primitive.CommandState(state))
-	})
+func (c *primitiveCommand[I, O]) Watch(f CommandWatcher) CancelFunc {
+	if c.watchers == nil {
+		c.watchers = make(map[string]func(CommandState))
+	}
+	id := uuid.New().String()
+	c.watchers[id] = f
+	return func() {
+		delete(c.watchers, id)
+	}
 }
 
-func (c *primitiveCommand) OperationID() primitive.OperationID {
-	return primitive.OperationID(c.command.Input().ID)
-}
-
-func (c *primitiveCommand) Session() primitive.Session {
+func (c *primitiveCommand[I, O]) Session() Session[I, O] {
 	return c.session
 }
 
-func (c *primitiveCommand) Input() []byte {
-	return c.command.Input().Payload
+func (c *primitiveCommand[I, O]) Input() I {
+	return c.input
 }
 
-func (c *primitiveCommand) Output(payload []byte, err error) {
+func (c *primitiveCommand[I, O]) Output(output O) {
+	bytes, err := c.session.primitive.primitiveType.Codec().EncodeOutput(output)
+	if err != nil {
+		c.command.Output(&multiraftv1.PrimitiveOperationOutput{
+			OperationOutput: multiraftv1.OperationOutput{
+				Status:  multiraftv1.OperationOutput_INTERNAL,
+				Message: err.Error(),
+			},
+		}, nil)
+	} else {
+		c.command.Output(&multiraftv1.PrimitiveOperationOutput{
+			OperationOutput: multiraftv1.OperationOutput{
+				Payload: bytes,
+			},
+		}, nil)
+	}
+}
+
+func (c *primitiveCommand[I, O]) Error(err error) {
 	c.command.Output(&multiraftv1.PrimitiveOperationOutput{
 		OperationOutput: multiraftv1.OperationOutput{
 			Status:  getStatus(err),
 			Message: getMessage(err),
-			Payload: payload,
 		},
 	}, nil)
 }
 
-func (c *primitiveCommand) Close() {
-	c.command.Close()
+func (c *primitiveCommand[I, O]) open() {
+	c.session.primitive.commands.add(c)
+	c.session.commands.add(c)
 }
 
-func newPrimitiveQuery(session *primitiveSession, query PrimitiveQuery) primitive.Query {
-	return &primitiveQuery{
-		session: session,
-		query:   query,
+func (c *primitiveCommand[I, O]) close() {
+	c.session.commands.remove(c.ID())
+	c.session.primitive.commands.remove(c.ID())
+	if c.watchers != nil {
+		for _, watcher := range c.watchers {
+			watcher(CommandComplete)
+		}
 	}
 }
 
-type primitiveQuery struct {
-	session *primitiveSession
-	query   PrimitiveQuery
+func (c *primitiveCommand[I, O]) Close() {
+	c.command.Close()
 }
 
-func (q *primitiveQuery) OperationID() primitive.OperationID {
-	return primitive.OperationID(q.query.Input().ID)
+func newPrimitiveQuery[I, O any](session *primitiveSession[I, O], query *raftSessionOperationQuery) (*primitiveQuery[I, O], error) {
+	input, err := session.primitive.primitiveType.Codec().DecodeInput(query.Input().Payload)
+	if err != nil {
+		return nil, errors.NewInternal(err.Error())
+	}
+	return &primitiveQuery[I, O]{
+		session: session,
+		query:   query,
+		input:   input,
+	}, nil
 }
 
-func (q *primitiveQuery) Session() primitive.Session {
+type primitiveQuery[I, O any] struct {
+	session *primitiveSession[I, O]
+	query   *raftSessionOperationQuery
+	input   I
+}
+
+func (q *primitiveQuery[I, O]) Session() Session[I, O] {
 	return q.session
 }
 
-func (q *primitiveQuery) Input() []byte {
-	return q.query.Input().Payload
+func (q *primitiveQuery[I, O]) Input() I {
+	return q.input
 }
 
-func (q *primitiveQuery) Output(payload []byte, err error) {
+func (q *primitiveQuery[I, O]) Output(output O) {
+	bytes, err := q.session.primitive.primitiveType.Codec().EncodeOutput(output)
+	if err != nil {
+		q.query.Output(&multiraftv1.PrimitiveOperationOutput{
+			OperationOutput: multiraftv1.OperationOutput{
+				Status:  multiraftv1.OperationOutput_INTERNAL,
+				Message: err.Error(),
+			},
+		}, nil)
+	} else {
+		q.query.Output(&multiraftv1.PrimitiveOperationOutput{
+			OperationOutput: multiraftv1.OperationOutput{
+				Payload: bytes,
+			},
+		}, nil)
+	}
+}
+
+func (q *primitiveQuery[I, O]) Error(err error) {
 	q.query.Output(&multiraftv1.PrimitiveOperationOutput{
 		OperationOutput: multiraftv1.OperationOutput{
 			Status:  getStatus(err),
 			Message: getMessage(err),
-			Payload: payload,
 		},
 	}, nil)
-}
-
-func (q *primitiveQuery) Close() {
-	q.query.Close()
 }

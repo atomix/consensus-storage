@@ -7,21 +7,21 @@ package server
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/node/manager"
+	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 )
 
 var log = logging.GetLogger()
 
-func NewNodeServer(node *manager.NodeManager) multiraftv1.NodeServer {
+func NewNodeServer(node *protocol.Node) multiraftv1.NodeServer {
 	return &nodeServer{
 		node: node,
 	}
 }
 
 type nodeServer struct {
-	node *manager.NodeManager
+	node *protocol.Node
 }
 
 func (s *nodeServer) Bootstrap(ctx context.Context, request *multiraftv1.BootstrapRequest) (*multiraftv1.BootstrapResponse, error) {

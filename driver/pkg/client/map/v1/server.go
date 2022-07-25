@@ -84,7 +84,7 @@ func (s *Server) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv1.S
 		if err != nil {
 			return 0, err
 		}
-		query := client.Query[*api.SizeResponse](primitive, "Size")
+		query := client.Query[*api.SizeResponse](primitive)
 		output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.SizeResponse, error) {
 			return api.NewMapClient(conn).Size(ctx, &api.SizeRequest{
 				Headers:   *headers,
@@ -119,7 +119,7 @@ func (s *Server) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.Put
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.PutResponse](primitive, "Put")
+	command := client.Command[*api.PutResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.PutResponse, error) {
 		return api.NewMapClient(conn).Put(ctx, &api.PutRequest{
 			Headers: *headers,
@@ -165,7 +165,7 @@ func (s *Server) Insert(ctx context.Context, request *mapv1.InsertRequest) (*map
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.InsertResponse](primitive, "Insert")
+	command := client.Command[*api.InsertResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.InsertResponse, error) {
 		return api.NewMapClient(conn).Insert(ctx, &api.InsertRequest{
 			Headers: *headers,
@@ -210,7 +210,7 @@ func (s *Server) Update(ctx context.Context, request *mapv1.UpdateRequest) (*map
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.UpdateResponse](primitive, "Update")
+	command := client.Command[*api.UpdateResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UpdateResponse, error) {
 		return api.NewMapClient(conn).Update(ctx, &api.UpdateRequest{
 			Headers: *headers,
@@ -256,7 +256,7 @@ func (s *Server) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.Get
 	if err != nil {
 		return nil, err
 	}
-	query := client.Query[*api.GetResponse](primitive, "Get")
+	query := client.Query[*api.GetResponse](primitive)
 	output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
 		return api.NewMapClient(conn).Get(ctx, &api.GetRequest{
 			Headers: *headers,
@@ -297,7 +297,7 @@ func (s *Server) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*map
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.RemoveResponse](primitive, "Remove")
+	command := client.Command[*api.RemoveResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveResponse, error) {
 		return api.NewMapClient(conn).Remove(ctx, &api.RemoveRequest{
 			Headers: *headers,
@@ -341,7 +341,7 @@ func (s *Server) Clear(ctx context.Context, request *mapv1.ClearRequest) (*mapv1
 		if err != nil {
 			return err
 		}
-		command := client.Command[*api.ClearResponse](primitive, "Clear")
+		command := client.Command[*api.ClearResponse](primitive)
 		_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.ClearResponse, error) {
 			return api.NewMapClient(conn).Clear(ctx, &api.ClearRequest{
 				Headers:    *headers,
@@ -372,7 +372,7 @@ func (s *Server) Events(request *mapv1.EventsRequest, server mapv1.Map_EventsSer
 		if err != nil {
 			return err
 		}
-		command := client.StreamCommand[api.Map_EventsClient, *api.EventsResponse](primitive, "Events")
+		command := client.StreamCommand[api.Map_EventsClient, *api.EventsResponse](primitive)
 		stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.Map_EventsClient, error) {
 			return api.NewMapClient(conn).Events(server.Context(), &api.EventsRequest{
 				Headers: *headers,
@@ -431,7 +431,7 @@ func (s *Server) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entries
 		if err != nil {
 			return err
 		}
-		query := client.StreamQuery[api.Map_EntriesClient, *api.EntriesResponse](primitive, "Entries")
+		query := client.StreamQuery[api.Map_EntriesClient, *api.EntriesResponse](primitive)
 		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.Map_EntriesClient, error) {
 			return api.NewMapClient(conn).Entries(server.Context(), &api.EntriesRequest{
 				Headers:      *headers,

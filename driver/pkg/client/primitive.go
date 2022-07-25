@@ -58,7 +58,7 @@ type QueryResponse interface {
 	GetHeaders() multiraftv1.QueryResponseHeaders
 }
 
-func Command[T CommandResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *CommandContext[T] {
+func Command[T CommandResponse](primitive *PrimitiveClient) *CommandContext[T] {
 	headers := &multiraftv1.CommandRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -70,7 +70,6 @@ func Command[T CommandResponse](primitive *PrimitiveClient, operationID multiraf
 				},
 				PrimitiveID: primitive.id,
 			},
-			OperationID: operationID,
 		},
 		SequenceNum: primitive.session.nextRequestNum(),
 	}
@@ -96,7 +95,7 @@ func (c *CommandContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraft
 	return response, nil
 }
 
-func StreamCommand[T any, U CommandResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *StreamCommandContext[T, U] {
+func StreamCommand[T any, U CommandResponse](primitive *PrimitiveClient) *StreamCommandContext[T, U] {
 	headers := &multiraftv1.CommandRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -108,7 +107,6 @@ func StreamCommand[T any, U CommandResponse](primitive *PrimitiveClient, operati
 				},
 				PrimitiveID: primitive.id,
 			},
-			OperationID: operationID,
 		},
 		SequenceNum: primitive.session.nextRequestNum(),
 	}
@@ -152,7 +150,7 @@ func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
 	}
 }
 
-func Query[T QueryResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *QueryContext[T] {
+func Query[T QueryResponse](primitive *PrimitiveClient) *QueryContext[T] {
 	headers := &multiraftv1.QueryRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -164,7 +162,6 @@ func Query[T QueryResponse](primitive *PrimitiveClient, operationID multiraftv1.
 				},
 				PrimitiveID: primitive.id,
 			},
-			OperationID: operationID,
 		},
 		MaxReceivedIndex: primitive.session.lastIndex.Get(),
 	}
@@ -188,7 +185,7 @@ func (c *QueryContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraftv1
 	return response, nil
 }
 
-func StreamQuery[T any, U QueryResponse](primitive *PrimitiveClient, operationID multiraftv1.OperationID) *StreamQueryContext[T, U] {
+func StreamQuery[T any, U QueryResponse](primitive *PrimitiveClient) *StreamQueryContext[T, U] {
 	headers := &multiraftv1.QueryRequestHeaders{
 		OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 			PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
@@ -200,7 +197,6 @@ func StreamQuery[T any, U QueryResponse](primitive *PrimitiveClient, operationID
 				},
 				PrimitiveID: primitive.id,
 			},
-			OperationID: operationID,
 		},
 		MaxReceivedIndex: primitive.session.lastIndex.Get(),
 	}

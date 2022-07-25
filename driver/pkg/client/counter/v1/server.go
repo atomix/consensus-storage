@@ -71,7 +71,7 @@ func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*count
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.SetResponse](primitive, "Set")
+	command := client.Command[*api.SetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.SetResponse, error) {
 		return api.NewCounterClient(conn).Set(ctx, &api.SetRequest{
 			Headers: *headers,
@@ -99,7 +99,7 @@ func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAn
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.CompareAndSetResponse](primitive, "CompareAndSet")
+	command := client.Command[*api.CompareAndSetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.CompareAndSetResponse, error) {
 		return api.NewCounterClient(conn).CompareAndSet(ctx, &api.CompareAndSetRequest{
 			Headers: *headers,
@@ -128,7 +128,7 @@ func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*count
 	if err != nil {
 		return nil, err
 	}
-	command := client.Query[*api.GetResponse](primitive, "Get")
+	command := client.Query[*api.GetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
 		return api.NewCounterClient(conn).Get(ctx, &api.GetRequest{
 			Headers:  *headers,
@@ -154,7 +154,7 @@ func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequ
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.IncrementResponse](primitive, "Increment")
+	command := client.Command[*api.IncrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.IncrementResponse, error) {
 		return api.NewCounterClient(conn).Increment(ctx, &api.IncrementRequest{
 			Headers: *headers,
@@ -182,7 +182,7 @@ func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequ
 	if err != nil {
 		return nil, err
 	}
-	command := client.Command[*api.DecrementResponse](primitive, "Decrement")
+	command := client.Command[*api.DecrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.DecrementResponse, error) {
 		return api.NewCounterClient(conn).Decrement(ctx, &api.DecrementRequest{
 			Headers: *headers,

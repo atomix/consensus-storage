@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package manager
+package protocol
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
@@ -10,14 +10,14 @@ import (
 	"time"
 )
 
-func newEventListener(node *NodeManager) *eventListener {
+func newEventListener(node *Node) *eventListener {
 	return &eventListener{
 		node: node,
 	}
 }
 
 type eventListener struct {
-	node *NodeManager
+	node *Node
 }
 
 func (e *eventListener) publishNode(event *multiraftv1.NodeEvent) {
@@ -25,7 +25,7 @@ func (e *eventListener) publishNode(event *multiraftv1.NodeEvent) {
 }
 
 func (e *eventListener) publishPartition(event *multiraftv1.PartitionEvent) {
-	if partition, err := e.node.Partition(event.PartitionID); err == nil {
+	if partition, ok := e.node.Partition(event.PartitionID); ok {
 		partition.publish(event)
 	}
 }

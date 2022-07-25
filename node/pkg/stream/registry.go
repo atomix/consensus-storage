@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package protocol
+package stream
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
@@ -10,22 +10,22 @@ import (
 	"sync"
 )
 
-// newStreamRegistry returns a new stream registry
-func newStreamRegistry() *streamRegistry {
-	return &streamRegistry{
+// NewRegistry returns a new stream registry
+func NewRegistry() *Registry {
+	return &Registry{
 		streams: make(map[multiraftv1.StreamId]streams.WriteStream[*multiraftv1.CommandOutput]),
 	}
 }
 
-// streamRegistry is a registry of client streams
-type streamRegistry struct {
+// Registry is a registry of client streams
+type Registry struct {
 	streams         map[multiraftv1.StreamId]streams.WriteStream[*multiraftv1.CommandOutput]
 	nextSequenceNum multiraftv1.SequenceNum
 	mu              sync.RWMutex
 }
 
-// create adds a new stream
-func (r *streamRegistry) create(term multiraftv1.Term, stream streams.WriteStream[*multiraftv1.CommandOutput]) multiraftv1.StreamId {
+// Register adds a new stream
+func (r *Registry) Register(term multiraftv1.Term, stream streams.WriteStream[*multiraftv1.CommandOutput]) multiraftv1.StreamId {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.nextSequenceNum++
@@ -35,24 +35,29 @@ func (r *streamRegistry) create(term multiraftv1.Term, stream streams.WriteStrea
 		SequenceNum: sequenceNum,
 	}
 	r.streams[streamID] = streams.NewCloserStream[*multiraftv1.CommandOutput](stream, func(s streams.WriteStream[*multiraftv1.CommandOutput]) {
-		r.unregister(streamID)
+		r.Unregister(streamID)
 	})
 	return streamID
 }
 
-// unregister removes a stream by ID
-func (r *streamRegistry) unregister(streamID multiraftv1.StreamId) {
+// Unregister removes a stream by ID
+func (r *Registry) Unregister(streamID multiraftv1.StreamId) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.streams, streamID)
 }
 
-// lookup gets a stream by ID
-func (r *streamRegistry) lookup(streamID multiraftv1.StreamId) streams.WriteStream[*multiraftv1.CommandOutput] {
+// Lookup gets a stream by ID
+func (r *Registry) Lookup(streamID multiraftv1.StreamId) streams.WriteStream[*multiraftv1.CommandOutput] {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	if stream, ok := r.streams[streamID]; ok {
 		return stream
 	}
 	return streams.NewNilStream[*multiraftv1.CommandOutput]()
+}
+
+type Query struct {
+	Input  *multiraftv1.QueryInput
+	Stream streams.WriteStream[*multiraftv1.QueryOutput]
 }

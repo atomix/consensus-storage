@@ -9,7 +9,6 @@ import (
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/node"
-	counterv1 "github.com/atomix/multi-raft-storage/node/pkg/primitive/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/gogo/protobuf/jsonpb"
@@ -78,9 +77,7 @@ func main() {
 					Host:            raftHost,
 					Port:            int32(raftPort),
 					MultiRaftConfig: config,
-				}),
-				node.WithPrimitiveTypes(
-					counterv1.Type))
+				}))
 
 			// Start the node
 			if err := node.Start(); err != nil {

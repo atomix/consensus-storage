@@ -6,12 +6,14 @@ package statemachine
 
 import (
 	"container/list"
-	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 	"time"
 )
 
 // Timer is a cancellable timer
-type Timer = primitive.Timer
+type Timer interface {
+	// Cancel cancels the timer, preventing it from running in the future
+	Cancel()
+}
 
 func newScheduler() *Scheduler {
 	return &Scheduler{

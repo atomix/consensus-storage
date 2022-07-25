@@ -7,9 +7,11 @@ package node
 import (
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/node/manager"
 	"github.com/atomix/multi-raft-storage/node/pkg/node/server"
-	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
+	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
+	servers "github.com/atomix/multi-raft-storage/node/pkg/protocol/primitives"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	statemachines "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitives"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
@@ -21,23 +23,21 @@ var log = logging.GetLogger()
 func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 	var options Options
 	options.apply(opts...)
-	registry := primitive.NewRegistry()
-	for _, primitiveType := range options.PrimitiveTypes {
-		registry.Register(primitiveType)
-	}
+	registry := statemachine.NewPrimitiveTypeRegistry()
+	statemachines.RegisterPrimitiveTypes(registry)
 	return &MultiRaftNode{
-		Options: options,
-		network: network,
-		manager: manager.NewNodeManager(registry, options.Config),
-		server:  grpc.NewServer(),
+		Options:  options,
+		network:  network,
+		protocol: protocol.NewNode(registry, options.Config),
+		server:   grpc.NewServer(),
 	}
 }
 
 type MultiRaftNode struct {
 	Options
-	network runtime.Network
-	manager *manager.NodeManager
-	server  *grpc.Server
+	network  runtime.Network
+	protocol *protocol.Node
+	server   *grpc.Server
 }
 
 func (s *MultiRaftNode) Start() error {
@@ -47,13 +47,10 @@ func (s *MultiRaftNode) Start() error {
 		return err
 	}
 
-	multiraftv1.RegisterNodeServer(s.server, server.NewNodeServer(s.manager))
-	multiraftv1.RegisterPartitionServer(s.server, server.NewPartitionServer(s.manager))
-	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.manager))
-
-	for _, primitiveType := range s.PrimitiveTypes {
-		primitiveType.RegisterServices(s.server, newProtocol(s.manager))
-	}
+	multiraftv1.RegisterNodeServer(s.server, server.NewNodeServer(s.protocol))
+	multiraftv1.RegisterPartitionServer(s.server, server.NewPartitionServer(s.protocol))
+	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.protocol))
+	servers.RegisterPrimitiveServers(s.server, s.protocol)
 	go func() {
 		if err := s.server.Serve(lis); err != nil {
 			fmt.Println(err)

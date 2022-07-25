@@ -6,7 +6,6 @@ package node
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 )
 
 const (
@@ -15,8 +14,7 @@ const (
 
 type Options struct {
 	ServiceOptions
-	Config         multiraftv1.NodeConfig
-	PrimitiveTypes []primitive.Type
+	Config multiraftv1.NodeConfig
 }
 
 func (o *Options) apply(opts ...Option) {
@@ -54,11 +52,5 @@ func WithPort(port int) Option {
 func WithConfig(config multiraftv1.NodeConfig) Option {
 	return func(options *Options) {
 		options.Config = config
-	}
-}
-
-func WithPrimitiveTypes(primitiveTypes ...primitive.Type) Option {
-	return func(options *Options) {
-		options.PrimitiveTypes = append(options.PrimitiveTypes, primitiveTypes...)
 	}
 }

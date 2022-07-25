@@ -9,168 +9,42 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/bits-and-blooms/bloom/v3"
-	"github.com/gogo/protobuf/proto"
-	"github.com/google/uuid"
 	"time"
 )
 
-type sessionManagerContext interface {
-	// Index returns the current partition index
-	Index() multiraftv1.Index
-	// Time returns the current partition time
-	Time() time.Time
-	// Scheduler returns the partition scheduler
-	Scheduler() *Scheduler
-	// Sessions returns the open sessions
-	Sessions() Sessions
-}
-
-// Sessions provides access to open sessions
-type Sessions interface {
-	// Get gets a session by ID
-	Get(multiraftv1.SessionID) (Session, bool)
-	// List lists all open sessions
-	List() []Session
-}
-
-// Session is a service session
-type Session interface {
-	// ID returns the session identifier
-	ID() multiraftv1.SessionID
-	// State returns the current session state
-	State() SessionState
-	// Watch watches the session state
-	Watch(f func(SessionState)) Watcher
-	// Commands returns the session commands
-	Commands() SessionCommands
-}
-
-type SessionState int
-
-const (
-	SessionClosed SessionState = iota
-	SessionOpen
-)
-
-// Operation is a command or query operation
-type Operation[I, O proto.Message] interface {
-	// Session returns the session executing the operation
-	Session() Session
-	// Input returns the operation input
-	Input() I
-	// Output returns the operation output
-	Output(O, error)
-	// Close closes the operation
-	Close()
-}
-
-// SessionCommands provides access to pending commands
-type SessionCommands interface {
-	// Get gets a command by ID
-	Get(multiraftv1.Index) (SessionCommand, bool)
-}
-
-// Command is a command operation
-type Command[I, O proto.Message] interface {
-	Operation[I, O]
-	// Index returns the command index
-	Index() multiraftv1.Index
-	// State returns the current command state
-	State() CommandState
-	// Watch watches the command state
-	Watch(f func(CommandState)) Watcher
-}
-
-type SessionCommand interface {
-	Command[*multiraftv1.SessionCommandInput, *multiraftv1.SessionCommandOutput]
-	CreatePrimitive() CreatePrimitive
-	ClosePrimitive() ClosePrimitive
-	Operation() PrimitiveCommand
-}
-
-type CreatePrimitive = Command[*multiraftv1.CreatePrimitiveInput, *multiraftv1.CreatePrimitiveOutput]
-
-type ClosePrimitive = Command[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput]
-
-type PrimitiveCommand = Command[*multiraftv1.PrimitiveOperationInput, *multiraftv1.PrimitiveOperationOutput]
-
-type CommandState int
-
-const (
-	CommandPending CommandState = iota
-	CommandRunning
-	CommandComplete
-)
-
-// Query is a query operation
-type Query[I, O proto.Message] interface {
-	Operation[I, O]
-}
-
-type SessionQuery interface {
-	Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput]
-	Operation() PrimitiveQuery
-}
-
-type PrimitiveQuery = Query[*multiraftv1.PrimitiveOperationInput, *multiraftv1.PrimitiveOperationOutput]
-
-// Watcher is a context for a Watch call
-type Watcher interface {
-	// Cancel cancels the watcher
-	Cancel()
-}
-
-func newSessionManager(registry *primitive.Registry, context Context) *sessionManager {
+func newSessionManager(registry *PrimitiveTypeRegistry, context *stateManager) *sessionManager {
 	sessionManager := &sessionManager{
 		context:  context,
-		sessions: newSessions(),
+		sessions: make(map[multiraftv1.SessionID]*raftSession),
 	}
 	sessionManager.primitives = newPrimitiveManager(registry, sessionManager)
 	return sessionManager
 }
 
 type sessionManager struct {
-	context    Context
-	sessions   *raftSessions
+	context    *stateManager
+	sessions   map[multiraftv1.SessionID]*raftSession
 	primitives *primitiveManager
 	prevTime   time.Time
 }
 
-func (m *sessionManager) Index() multiraftv1.Index {
-	return m.context.Index()
-}
-
-func (m *sessionManager) Time() time.Time {
-	return m.context.Time()
-}
-
-func (m *sessionManager) Scheduler() *Scheduler {
-	return m.context.Scheduler()
-}
-
-func (m *sessionManager) Sessions() Sessions {
-	return m.sessions
-}
-
-func (m *sessionManager) Snapshot(writer *snapshot.Writer) error {
-	if err := writer.WriteVarInt(len(m.sessions.sessions)); err != nil {
+func (m *sessionManager) snapshot(writer *snapshot.Writer) error {
+	if err := writer.WriteVarInt(len(m.sessions)); err != nil {
 		return err
 	}
-	for _, session := range m.sessions.sessions {
+	for _, session := range m.sessions {
 		if err := session.snapshot(writer); err != nil {
 			return err
 		}
 	}
-	return m.primitives.Snapshot(writer)
+	return m.primitives.snapshot(writer)
 }
 
-func (m *sessionManager) Recover(reader *snapshot.Reader) error {
-	m.sessions = newSessions()
+func (m *sessionManager) recover(reader *snapshot.Reader) error {
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
@@ -181,17 +55,17 @@ func (m *sessionManager) Recover(reader *snapshot.Reader) error {
 			return err
 		}
 	}
-	return m.primitives.Recover(reader)
+	return m.primitives.recover(reader)
 }
 
-func (m *sessionManager) OpenSession(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput]) {
+func (m *sessionManager) openSession(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput]) {
 	session := newSession(m)
 	session.open(input, stream)
-	m.prevTime = m.Time()
+	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) KeepAlive(input *multiraftv1.KeepAliveInput, stream streams.WriteStream[*multiraftv1.KeepAliveOutput]) {
-	session, ok := m.sessions.sessions[input.SessionID]
+func (m *sessionManager) keepAlive(input *multiraftv1.KeepAliveInput, stream streams.WriteStream[*multiraftv1.KeepAliveOutput]) {
+	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
 		stream.Close()
@@ -201,7 +75,7 @@ func (m *sessionManager) KeepAlive(input *multiraftv1.KeepAliveInput, stream str
 
 	// Compute the minimum session timeout
 	var minSessionTimeout time.Duration
-	for _, session := range m.sessions.sessions {
+	for _, session := range m.sessions {
 		if session.timeout > minSessionTimeout {
 			minSessionTimeout = session.timeout
 		}
@@ -214,31 +88,31 @@ func (m *sessionManager) KeepAlive(input *multiraftv1.KeepAliveInput, stream str
 	// Only expire a session if keep-alives have been received from other sessions during the
 	// session's expiration period.
 	maxExpireTime := m.prevTime.Add(minSessionTimeout)
-	for _, session := range m.sessions.sessions {
-		if m.Time().After(maxExpireTime) {
-			session.resetTime(m.Time())
+	for _, session := range m.sessions {
+		if m.context.time.After(maxExpireTime) {
+			session.resetTime(m.context.time)
 		}
-		if m.Time().After(session.expireTime()) {
-			log.Infof("Session %d expired after %s", session.sessionID, m.Time().Sub(session.lastUpdated))
+		if m.context.time.After(session.expireTime()) {
+			log.Infof("Session %d expired after %s", session.sessionID, m.context.time.Sub(session.lastUpdated))
 			session.expire()
 		}
 	}
-	m.prevTime = m.Time()
+	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) CloseSession(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
-	session, ok := m.sessions.sessions[input.SessionID]
+func (m *sessionManager) closeSession(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
+	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
 		stream.Close()
 		return
 	}
 	session.close(input, stream)
-	m.prevTime = m.Time()
+	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) CommandSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
-	session, ok := m.sessions.sessions[input.SessionID]
+func (m *sessionManager) commandSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
+	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
 		stream.Close()
@@ -246,11 +120,11 @@ func (m *sessionManager) CommandSession(input *multiraftv1.SessionCommandInput, 
 	}
 	command := newSessionCommand(session)
 	command.execute(input, stream)
-	m.prevTime = m.Time()
+	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) QuerySession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
-	session, ok := m.sessions.sessions[input.SessionID]
+func (m *sessionManager) querySession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
 		stream.Close()
@@ -260,74 +134,23 @@ func (m *sessionManager) QuerySession(input *multiraftv1.SessionQueryInput, stre
 	query.execute(input, stream)
 }
 
-func newSessions() *raftSessions {
-	return &raftSessions{
-		sessions: make(map[multiraftv1.SessionID]*raftSession),
-	}
-}
-
-type raftSessions struct {
-	sessions map[multiraftv1.SessionID]*raftSession
-}
-
-func (s *raftSessions) add(session *raftSession) {
-	s.sessions[session.sessionID] = session
-}
-
-func (s *raftSessions) remove(sessionID multiraftv1.SessionID) {
-	delete(s.sessions, sessionID)
-}
-
-func (s *raftSessions) Get(id multiraftv1.SessionID) (Session, bool) {
-	session, ok := s.sessions[id]
-	return session, ok
-}
-
-func (s *raftSessions) List() []Session {
-	sessions := make([]Session, 0, len(s.sessions))
-	for _, session := range s.sessions {
-		sessions = append(sessions, session)
-	}
-	return sessions
-}
-
 func newSession(manager *sessionManager) *raftSession {
 	return &raftSession{
 		manager:  manager,
-		commands: newCommands(),
-		watchers: make(map[string]func(SessionState)),
+		commands: make(map[multiraftv1.Index]*raftSessionCommand),
+		closers:  make(map[multiraftv1.PrimitiveID]func()),
 	}
 }
 
 type raftSession struct {
 	manager     *sessionManager
-	commands    *raftSessionCommands
+	commands    map[multiraftv1.Index]*raftSessionCommand
 	sessionID   multiraftv1.SessionID
 	timeout     time.Duration
 	reset       bool
 	lastUpdated time.Time
-	state       SessionState
-	watchers    map[string]func(SessionState)
-}
-
-func (s *raftSession) ID() multiraftv1.SessionID {
-	return s.sessionID
-}
-
-func (s *raftSession) State() SessionState {
-	return s.state
-}
-
-func (s *raftSession) Watch(f func(SessionState)) Watcher {
-	id := uuid.New().String()
-	s.watchers[id] = f
-	return newSessionWatcher(func() {
-		delete(s.watchers, id)
-	})
-}
-
-func (s *raftSession) Commands() SessionCommands {
-	return s.commands
+	state       multiraftv1.SessionSnapshot_State
+	closers     map[multiraftv1.PrimitiveID]func()
 }
 
 func (s *raftSession) resetTime(t time.Time) {
@@ -342,11 +165,11 @@ func (s *raftSession) expireTime() time.Time {
 }
 
 func (s *raftSession) open(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput]) {
-	s.sessionID = multiraftv1.SessionID(s.manager.Index())
-	s.lastUpdated = s.manager.Time()
+	s.sessionID = multiraftv1.SessionID(s.manager.context.index)
+	s.lastUpdated = s.manager.context.time
 	s.timeout = input.Timeout
-	s.state = SessionOpen
-	s.manager.sessions.add(s)
+	s.state = multiraftv1.SessionSnapshot_OPEN
+	s.manager.sessions[s.sessionID] = s
 	stream.Value(&multiraftv1.OpenSessionOutput{
 		SessionID: s.sessionID,
 	})
@@ -362,7 +185,7 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 	}
 
 	log.Debugf("Keep-alive %s", s)
-	for _, command := range s.commands.commands {
+	for _, command := range s.commands {
 		if input.LastInputSequenceNum < command.input.SequenceNum {
 			continue
 		}
@@ -370,13 +193,13 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 		binary.BigEndian.PutUint64(sequenceNumBytes, uint64(command.input.SequenceNum))
 		if !openInputs.Test(sequenceNumBytes) {
 			switch command.state {
-			case CommandRunning:
+			case multiraftv1.CommandSnapshot_RUNNING:
 				log.Debugf("Canceled %s", command)
 				command.Close()
-			case CommandComplete:
+			case multiraftv1.CommandSnapshot_COMPLETE:
 				log.Debugf("Acked %s", command)
 			}
-			s.commands.remove(command.index)
+			delete(s.commands, command.index)
 		} else {
 			if outputSequenceNum, ok := input.LastOutputSequenceNums[command.input.SequenceNum]; ok {
 				log.Debugf("Acked %s responses up to %d", command, outputSequenceNum)
@@ -390,20 +213,20 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 }
 
 func (s *raftSession) close(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
-	s.manager.sessions.remove(s.sessionID)
-	s.state = SessionClosed
-	for _, watcher := range s.watchers {
-		watcher(SessionClosed)
+	delete(s.manager.sessions, s.sessionID)
+	s.state = multiraftv1.SessionSnapshot_CLOSED
+	for _, closer := range s.closers {
+		closer()
 	}
 	stream.Value(&multiraftv1.CloseSessionOutput{})
 	stream.Close()
 }
 
 func (s *raftSession) expire() {
-	s.manager.sessions.remove(s.sessionID)
-	s.state = SessionClosed
-	for _, watcher := range s.watchers {
-		watcher(SessionClosed)
+	delete(s.manager.sessions, s.sessionID)
+	s.state = multiraftv1.SessionSnapshot_CLOSED
+	for _, closer := range s.closers {
+		closer()
 	}
 }
 
@@ -416,10 +239,10 @@ func (s *raftSession) snapshot(writer *snapshot.Writer) error {
 	if err := writer.WriteMessage(snapshot); err != nil {
 		return err
 	}
-	if err := writer.WriteVarInt(len(s.commands.commands)); err != nil {
+	if err := writer.WriteVarInt(len(s.commands)); err != nil {
 		return err
 	}
-	for _, command := range s.commands.commands {
+	for _, command := range s.commands {
 		if err := command.snapshot(writer); err != nil {
 			return err
 		}
@@ -435,7 +258,6 @@ func (s *raftSession) recover(reader *snapshot.Reader) error {
 	s.sessionID = snapshot.SessionID
 	s.timeout = snapshot.Timeout
 	s.lastUpdated = snapshot.LastUpdated
-	s.commands = newCommands()
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
@@ -446,80 +268,37 @@ func (s *raftSession) recover(reader *snapshot.Reader) error {
 			return err
 		}
 	}
-	s.state = SessionOpen
-	s.manager.sessions.add(s)
+	s.state = snapshot.State
+	s.manager.sessions[s.sessionID] = s
 	return nil
-}
-
-func newCommands() *raftSessionCommands {
-	return &raftSessionCommands{
-		commands: make(map[multiraftv1.Index]*raftSessionCommand),
-	}
-}
-
-type raftSessionCommands struct {
-	commands map[multiraftv1.Index]*raftSessionCommand
-}
-
-func (c *raftSessionCommands) add(command *raftSessionCommand) {
-	c.commands[command.index] = command
-}
-
-func (c *raftSessionCommands) remove(index multiraftv1.Index) {
-	delete(c.commands, index)
-}
-
-func (c *raftSessionCommands) Get(index multiraftv1.Index) (SessionCommand, bool) {
-	command, ok := c.commands[index]
-	return command, ok
 }
 
 func newSessionCommand(session *raftSession) *raftSessionCommand {
 	return &raftSessionCommand{
-		session:  session,
-		watchers: make(map[string]func(CommandState)),
+		session: session,
 	}
 }
 
 type raftSessionCommand struct {
-	session  *raftSession
-	index    multiraftv1.Index
-	state    CommandState
-	watchers map[string]func(CommandState)
-	input    *multiraftv1.SessionCommandInput
-	outputs  *list.List
-	stream   streams.WriteStream[*multiraftv1.SessionCommandOutput]
+	session      *raftSession
+	index        multiraftv1.Index
+	state        multiraftv1.CommandSnapshot_State
+	input        *multiraftv1.SessionCommandInput
+	outputs      *list.List
+	outputSeqNum multiraftv1.SequenceNum
+	stream       streams.WriteStream[*multiraftv1.SessionCommandOutput]
+	closer       func()
 }
 
-func (c *raftSessionCommand) Index() multiraftv1.Index {
-	return c.index
-}
-
-func (c *raftSessionCommand) Session() Session {
-	return c.session
-}
-
-func (c *raftSessionCommand) State() CommandState {
-	return c.state
-}
-
-func (c *raftSessionCommand) Watch(f func(CommandState)) Watcher {
-	id := uuid.New().String()
-	c.watchers[id] = f
-	return newSessionWatcher(func() {
-		delete(c.watchers, id)
-	})
-}
-
-func (c *raftSessionCommand) Operation() PrimitiveCommand {
+func (c *raftSessionCommand) Operation() *raftSessionOperationCommand {
 	return newSessionOperationCommand(c)
 }
 
-func (c *raftSessionCommand) CreatePrimitive() CreatePrimitive {
+func (c *raftSessionCommand) CreatePrimitive() *raftSessionCreatePrimitiveCommand {
 	return newSessionCreatePrimitiveCommand(c)
 }
 
-func (c *raftSessionCommand) ClosePrimitive() ClosePrimitive {
+func (c *raftSessionCommand) ClosePrimitive() *raftSessionClosePrimitiveCommand {
 	return newSessionClosePrimitiveCommand(c)
 }
 
@@ -530,34 +309,41 @@ func (c *raftSessionCommand) Input() *multiraftv1.SessionCommandInput {
 func (c *raftSessionCommand) execute(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
 	c.stream = stream
 	switch c.state {
-	case CommandPending:
-		c.index = c.session.manager.Index()
-		c.input = input
-		c.outputs = list.New()
-		c.session.commands.add(c)
-		c.state = CommandRunning
-		log.Debugf("Executing %s: %.250s", c, input)
+	case multiraftv1.CommandSnapshot_PENDING:
+		c.open(input)
 		switch input.Input.(type) {
 		case *multiraftv1.SessionCommandInput_Operation:
-			c.session.manager.primitives.Command(c.Operation())
+			c.session.manager.primitives.command(c.Operation())
 		case *multiraftv1.SessionCommandInput_CreatePrimitive:
-			c.session.manager.primitives.Create(c.CreatePrimitive())
+			c.session.manager.primitives.create(c.CreatePrimitive())
 		case *multiraftv1.SessionCommandInput_ClosePrimitive:
-			c.session.manager.primitives.Close(c.ClosePrimitive())
+			c.session.manager.primitives.close(c.ClosePrimitive())
 		}
-	case CommandComplete:
-		defer stream.Close()
-		fallthrough
-	case CommandRunning:
-		if c.outputs.Len() > 0 {
-			log.Debugf("Replaying %d responses for %s: %.250s", c.outputs.Len(), c, input)
-			elem := c.outputs.Front()
-			for elem != nil {
-				output := elem.Value.(*multiraftv1.SessionCommandOutput)
-				stream.Value(output)
-				elem = elem.Next()
-			}
+	default:
+		c.replay()
+	}
+}
+
+func (c *raftSessionCommand) open(input *multiraftv1.SessionCommandInput) {
+	c.index = c.session.manager.context.index
+	c.input = input
+	c.outputs = list.New()
+	c.session.commands[c.index] = c
+	c.state = multiraftv1.CommandSnapshot_RUNNING
+}
+
+func (c *raftSessionCommand) replay() {
+	if c.outputs.Len() > 0 {
+		log.Debugf("Replaying %d responses for %s: %.250s", c.outputs.Len(), c, c.input)
+		elem := c.outputs.Front()
+		for elem != nil {
+			output := elem.Value.(*multiraftv1.SessionCommandOutput)
+			c.stream.Value(output)
+			elem = elem.Next()
 		}
+	}
+	if c.state == multiraftv1.CommandSnapshot_COMPLETE {
+		c.stream.Close()
 	}
 }
 
@@ -568,18 +354,12 @@ func (c *raftSessionCommand) snapshot(writer *snapshot.Writer) error {
 		pendingOutputs = append(pendingOutputs, elem.Value.(*multiraftv1.SessionCommandOutput))
 		elem = elem.Next()
 	}
-	var state multiraftv1.CommandSnapshot_State
-	switch c.state {
-	case CommandRunning:
-		state = multiraftv1.CommandSnapshot_OPEN
-	case CommandComplete:
-		state = multiraftv1.CommandSnapshot_COMPLETE
-	}
 	snapshot := &multiraftv1.CommandSnapshot{
-		Index:          c.index,
-		State:          state,
-		Input:          c.input,
-		PendingOutputs: pendingOutputs,
+		Index:                 c.index,
+		State:                 c.state,
+		Input:                 c.input,
+		PendingOutputs:        pendingOutputs,
+		LastOutputSequenceNum: c.outputSeqNum,
 	}
 	return writer.WriteMessage(snapshot)
 }
@@ -596,19 +376,15 @@ func (c *raftSessionCommand) recover(reader *snapshot.Reader) error {
 		r := output
 		c.outputs.PushBack(&r)
 	}
+	c.outputSeqNum = snapshot.LastOutputSequenceNum
 	c.stream = streams.NewNilStream[*multiraftv1.SessionCommandOutput]()
-	switch snapshot.State {
-	case multiraftv1.CommandSnapshot_OPEN:
-		c.state = CommandRunning
-		c.session.commands.add(c)
-	case multiraftv1.CommandSnapshot_COMPLETE:
-		c.state = CommandComplete
-	}
+	c.state = snapshot.State
+	c.session.commands[c.index] = c
 	return nil
 }
 
 func (c *raftSessionCommand) Output(output *multiraftv1.SessionCommandOutput, err error) {
-	if c.state == CommandComplete {
+	if c.state == multiraftv1.CommandSnapshot_COMPLETE {
 		return
 	}
 	c.outputs.PushBack(output)
@@ -625,10 +401,9 @@ func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
 }
 
 func (c *raftSessionCommand) Close() {
-	c.session.commands.remove(c.index)
-	c.state = CommandComplete
-	for _, watcher := range c.watchers {
-		watcher(CommandComplete)
+	delete(c.session.commands, c.index)
+	if c.closer != nil {
+		c.closer()
 	}
 	c.stream.Close()
 }
@@ -641,7 +416,6 @@ func newSessionOperationCommand(parent *raftSessionCommand) *raftSessionOperatio
 
 type raftSessionOperationCommand struct {
 	*raftSessionCommand
-	outputSeqNum multiraftv1.SequenceNum
 }
 
 func (c *raftSessionOperationCommand) Input() *multiraftv1.PrimitiveOperationInput {
@@ -670,7 +444,6 @@ func newSessionCreatePrimitiveCommand(parent *raftSessionCommand) *raftSessionCr
 
 type raftSessionCreatePrimitiveCommand struct {
 	*raftSessionCommand
-	outputSeqNum multiraftv1.SequenceNum
 }
 
 func (c *raftSessionCreatePrimitiveCommand) Input() *multiraftv1.CreatePrimitiveInput {
@@ -699,7 +472,6 @@ func newSessionClosePrimitiveCommand(parent *raftSessionCommand) *raftSessionClo
 
 type raftSessionClosePrimitiveCommand struct {
 	*raftSessionCommand
-	outputSeqNum multiraftv1.SequenceNum
 }
 
 func (c *raftSessionClosePrimitiveCommand) Input() *multiraftv1.ClosePrimitiveInput {
@@ -732,11 +504,7 @@ type raftSessionQuery struct {
 	stream  streams.WriteStream[*multiraftv1.SessionQueryOutput]
 }
 
-func (q *raftSessionQuery) Session() Session {
-	return q.session
-}
-
-func (q *raftSessionQuery) Operation() PrimitiveQuery {
+func (q *raftSessionQuery) Operation() *raftSessionOperationQuery {
 	return newSessionOperationQuery(q)
 }
 
@@ -751,7 +519,7 @@ func (q *raftSessionQuery) Output(output *multiraftv1.SessionQueryOutput, err er
 func (q *raftSessionQuery) execute(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
 	q.input = input
 	q.stream = stream
-	q.session.manager.primitives.Query(q.Operation())
+	q.session.manager.primitives.query(q.Operation())
 }
 
 func (q *raftSessionQuery) Close() {
@@ -783,17 +551,3 @@ func (q *raftSessionOperationQuery) Output(output *multiraftv1.PrimitiveOperatio
 		q.raftSessionQuery.Output(nil, err)
 	}
 }
-
-func newSessionWatcher(f func()) Watcher {
-	return &raftSessionWatcher{f}
-}
-
-type raftSessionWatcher struct {
-	f func()
-}
-
-func (w *raftSessionWatcher) Cancel() {
-	w.f()
-}
-
-var _ Watcher = (*raftSessionWatcher)(nil)

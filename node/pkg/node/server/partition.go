@@ -7,25 +7,25 @@ package server
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/node/manager"
+	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 )
 
-func NewPartitionServer(node *manager.NodeManager) multiraftv1.PartitionServer {
+func NewPartitionServer(node *protocol.Node) multiraftv1.PartitionServer {
 	return &PartitionServer{
 		node: node,
 	}
 }
 
 type PartitionServer struct {
-	node *manager.NodeManager
+	node *protocol.Node
 }
 
 func (s *PartitionServer) OpenSession(ctx context.Context, request *multiraftv1.OpenSessionRequest) (*multiraftv1.OpenSessionResponse, error) {
 	log.Debugw("OpenSession",
 		logging.Stringer("OpenSessionRequest", request))
-	output, headers, err := s.node.Protocol().OpenSession(ctx, &request.OpenSessionInput, &request.Headers)
+	output, headers, err := s.node.OpenSession(ctx, &request.OpenSessionInput, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("OpenSession",
@@ -46,7 +46,7 @@ func (s *PartitionServer) OpenSession(ctx context.Context, request *multiraftv1.
 func (s *PartitionServer) KeepAlive(ctx context.Context, request *multiraftv1.KeepAliveRequest) (*multiraftv1.KeepAliveResponse, error) {
 	log.Debugw("KeepAlive",
 		logging.Stringer("KeepAliveRequest", request))
-	output, headers, err := s.node.Protocol().KeepAliveSession(ctx, &request.KeepAliveInput, &request.Headers)
+	output, headers, err := s.node.KeepAliveSession(ctx, &request.KeepAliveInput, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("KeepAlive",
@@ -67,7 +67,7 @@ func (s *PartitionServer) KeepAlive(ctx context.Context, request *multiraftv1.Ke
 func (s *PartitionServer) CloseSession(ctx context.Context, request *multiraftv1.CloseSessionRequest) (*multiraftv1.CloseSessionResponse, error) {
 	log.Debugw("CloseSession",
 		logging.Stringer("CloseSessionRequest", request))
-	output, headers, err := s.node.Protocol().CloseSession(ctx, &request.CloseSessionInput, &request.Headers)
+	output, headers, err := s.node.CloseSession(ctx, &request.CloseSessionInput, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("CloseSession",
@@ -89,8 +89,9 @@ func (s *PartitionServer) Watch(request *multiraftv1.WatchPartitionRequest, serv
 	log.Debugw("Watch",
 		logging.Stringer("WatchPartitionRequest", request))
 	ch := make(chan multiraftv1.PartitionEvent)
-	partition, err := s.node.Partition(request.PartitionID)
-	if err != nil {
+	partition, ok := s.node.Partition(request.PartitionID)
+	if !ok {
+		err := errors.NewUnavailable("partition %d not found", request.PartitionID)
 		err = errors.ToProto(err)
 		log.Warnw("Watch",
 			logging.Stringer("WatchPartitionRequest", request),
