@@ -4,7 +4,7 @@
 
 package primitives
 
-import statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+import "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 
 func RegisterPrimitiveTypes(registry *statemachine.PrimitiveTypeRegistry) {
 	RegisterCounterType(registry)

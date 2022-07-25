@@ -111,7 +111,7 @@ func (m *sessionManager) closeSession(input *multiraftv1.CloseSessionInput, stre
 	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) commandSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
+func (m *sessionManager) updateSession(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
 	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -123,7 +123,7 @@ func (m *sessionManager) commandSession(input *multiraftv1.SessionCommandInput, 
 	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) querySession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+func (m *sessionManager) readSession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
 	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -313,7 +313,7 @@ func (c *raftSessionCommand) execute(input *multiraftv1.SessionCommandInput, str
 		c.open(input)
 		switch input.Input.(type) {
 		case *multiraftv1.SessionCommandInput_Operation:
-			c.session.manager.primitives.command(c.Operation())
+			c.session.manager.primitives.update(c.Operation())
 		case *multiraftv1.SessionCommandInput_CreatePrimitive:
 			c.session.manager.primitives.create(c.CreatePrimitive())
 		case *multiraftv1.SessionCommandInput_ClosePrimitive:
@@ -519,7 +519,7 @@ func (q *raftSessionQuery) Output(output *multiraftv1.SessionQueryOutput, err er
 func (q *raftSessionQuery) execute(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
 	q.input = input
 	q.stream = stream
-	q.session.manager.primitives.query(q.Operation())
+	q.session.manager.primitives.read(q.Operation())
 }
 
 func (q *raftSessionQuery) Close() {

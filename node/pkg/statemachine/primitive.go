@@ -105,22 +105,22 @@ func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
 	executor.create(command)
 }
 
-func (m *primitiveManager) command(command *raftSessionOperationCommand) {
-	primitive, ok := m.primitives[command.Input().PrimitiveID]
+func (m *primitiveManager) update(proposal *raftSessionOperationCommand) {
+	primitive, ok := m.primitives[proposal.Input().PrimitiveID]
 	if !ok {
-		command.Output(&multiraftv1.PrimitiveOperationOutput{
+		proposal.Output(&multiraftv1.PrimitiveOperationOutput{
 			OperationOutput: multiraftv1.OperationOutput{
 				Status:  multiraftv1.OperationOutput_FAULT,
 				Message: "primitive not found",
 			},
 		}, nil)
-		command.Close()
+		proposal.Close()
 		return
 	}
-	primitive.command(command)
+	primitive.update(proposal)
 }
 
-func (m *primitiveManager) query(query *raftSessionOperationQuery) {
+func (m *primitiveManager) read(query *raftSessionOperationQuery) {
 	primitive, ok := m.primitives[query.Input().PrimitiveID]
 	if !ok {
 		query.Output(&multiraftv1.PrimitiveOperationOutput{
@@ -132,7 +132,7 @@ func (m *primitiveManager) query(query *raftSessionOperationQuery) {
 		query.Close()
 		return
 	}
-	primitive.query(query)
+	primitive.read(query)
 }
 
 func (m *primitiveManager) close(command *raftSessionClosePrimitiveCommand) {
@@ -150,8 +150,8 @@ type primitiveExecutor interface {
 	snapshot(*snapshot.Writer) error
 	recover(*snapshot.Reader) error
 	create(*raftSessionCreatePrimitiveCommand)
-	command(*raftSessionOperationCommand)
-	query(*raftSessionOperationQuery)
+	update(*raftSessionOperationCommand)
+	read(*raftSessionOperationQuery)
 	close(*raftSessionClosePrimitiveCommand)
 }
 
@@ -166,7 +166,7 @@ func newPrimitiveContext[I, O any](manager *primitiveManager, info primitiveInfo
 		manager:       manager,
 		primitiveType: primitiveType,
 		sessions:      newPrimitiveSessions[I, O](),
-		commands:      newPrimitiveCommands[I, O](),
+		proposals:     newPrimitiveProposals[I, O](),
 	}
 }
 
@@ -175,15 +175,15 @@ type primitiveContext[I, O any] struct {
 	manager       *primitiveManager
 	sessions      *primitiveSessions[I, O]
 	primitiveType PrimitiveType[I, O]
-	commands      *primitiveCommands[I, O]
+	proposals     *primitiveProposals[I, O]
 }
 
 func (p *primitiveContext[I, O]) info() primitiveInfo {
 	return p.primitiveInfo
 }
 
-func (p *primitiveContext[I, O]) PrimitiveID() multiraftv1.PrimitiveID {
-	return p.id
+func (p *primitiveContext[I, O]) PrimitiveID() PrimitiveID {
+	return PrimitiveID(p.id)
 }
 
 func (p *primitiveContext[I, O]) Namespace() string {
@@ -198,8 +198,8 @@ func (p *primitiveContext[I, O]) Type() PrimitiveType[I, O] {
 	return p.primitiveType
 }
 
-func (p *primitiveContext[I, O]) Index() multiraftv1.Index {
-	return p.manager.context.context.index
+func (p *primitiveContext[I, O]) Index() Index {
+	return Index(p.manager.context.context.index)
 }
 
 func (p *primitiveContext[I, O]) Time() time.Time {
@@ -214,8 +214,8 @@ func (p *primitiveContext[I, O]) Sessions() Sessions[I, O] {
 	return p.sessions
 }
 
-func (p *primitiveContext[I, O]) Commands() Commands[I, O] {
-	return p.commands
+func (p *primitiveContext[I, O]) Proposals() Proposals[I, O] {
+	return p.proposals
 }
 
 func newPrimitiveStateMachineExecutor[I, O any](context *primitiveContext[I, O], stateMachine Primitive[I, O]) primitiveExecutor {
@@ -264,7 +264,7 @@ func (p *primitiveStateMachineExecutor[I, O]) recover(reader *snapshot.Reader) e
 			}
 			operation := parentCommand.Operation()
 			if operation.Input().PrimitiveID == multiraftv1.PrimitiveID(p.id) {
-				command, err := newPrimitiveCommand[I, O](session, operation)
+				command, err := newPrimitiveProposal[I, O](session, operation)
 				if err != nil {
 					return err
 				}
@@ -287,14 +287,14 @@ func (p *primitiveStateMachineExecutor[I, O]) create(command *raftSessionCreateP
 	command.Close()
 }
 
-func (p *primitiveStateMachineExecutor[I, O]) command(command *raftSessionOperationCommand) {
+func (p *primitiveStateMachineExecutor[I, O]) update(command *raftSessionOperationCommand) {
 	primitiveSession, ok := p.sessions.sessions[command.session.sessionID]
 	if !ok {
 		command.Output(nil, errors.NewFault("session not found"))
 		command.Close()
 		return
 	}
-	primitiveCommand, err := newPrimitiveCommand[I, O](primitiveSession, command)
+	primitiveCommand, err := newPrimitiveProposal[I, O](primitiveSession, command)
 	if err != nil {
 		command.Output(&multiraftv1.PrimitiveOperationOutput{
 			OperationOutput: multiraftv1.OperationOutput{
@@ -309,7 +309,7 @@ func (p *primitiveStateMachineExecutor[I, O]) command(command *raftSessionOperat
 	}
 }
 
-func (p *primitiveStateMachineExecutor[I, O]) query(query *raftSessionOperationQuery) {
+func (p *primitiveStateMachineExecutor[I, O]) read(query *raftSessionOperationQuery) {
 	primitiveSession, ok := p.sessions.sessions[query.session.sessionID]
 	if !ok {
 		query.Output(nil, errors.NewFault("session not found"))
@@ -351,7 +351,7 @@ type primitiveSessions[I, O any] struct {
 }
 
 func (s *primitiveSessions[I, O]) add(session *primitiveSession[I, O]) {
-	s.sessions[session.ID()] = session
+	s.sessions[session.session.sessionID] = session
 }
 
 func (s *primitiveSessions[I, O]) remove(sessionID multiraftv1.SessionID) {
@@ -375,7 +375,7 @@ func newPrimitiveSession[I, O any](context *primitiveStateMachineExecutor[I, O],
 	return &primitiveSession[I, O]{
 		primitive: context,
 		session:   parent,
-		commands:  newPrimitiveCommands[I, O](),
+		proposals: newPrimitiveProposals[I, O](),
 		state:     multiraftv1.SessionSnapshot_OPEN,
 	}
 }
@@ -383,17 +383,24 @@ func newPrimitiveSession[I, O any](context *primitiveStateMachineExecutor[I, O],
 type primitiveSession[I, O any] struct {
 	primitive *primitiveStateMachineExecutor[I, O]
 	session   *raftSession
-	commands  *primitiveCommands[I, O]
+	proposals *primitiveProposals[I, O]
 	state     multiraftv1.SessionSnapshot_State
 	watchers  map[string]SessionWatcher
 }
 
-func (s *primitiveSession[I, O]) ID() multiraftv1.SessionID {
-	return s.session.sessionID
+func (s *primitiveSession[I, O]) ID() SessionID {
+	return SessionID(s.session.sessionID)
 }
 
-func (s *primitiveSession[I, O]) State() multiraftv1.SessionSnapshot_State {
-	return s.session.state
+func (s *primitiveSession[I, O]) State() SessionState {
+	switch s.session.state {
+	case multiraftv1.SessionSnapshot_OPEN:
+		return SessionOpen
+	case multiraftv1.SessionSnapshot_CLOSED:
+		return SessionClosed
+	default:
+		panic("unknown session state")
+	}
 }
 
 func (s *primitiveSession[I, O]) Watch(f SessionWatcher) CancelFunc {
@@ -407,8 +414,8 @@ func (s *primitiveSession[I, O]) Watch(f SessionWatcher) CancelFunc {
 	}
 }
 
-func (s *primitiveSession[I, O]) Commands() Commands[I, O] {
-	return s.commands
+func (s *primitiveSession[I, O]) Proposals() Proposals[I, O] {
+	return s.proposals
 }
 
 func (s *primitiveSession[I, O]) open() {
@@ -418,79 +425,88 @@ func (s *primitiveSession[I, O]) open() {
 }
 
 func (s *primitiveSession[I, O]) close() {
-	s.primitive.sessions.remove(s.ID())
+	s.primitive.sessions.remove(s.session.sessionID)
 	delete(s.session.closers, s.primitive.id)
 	s.state = multiraftv1.SessionSnapshot_CLOSED
 	if s.watchers != nil {
 		for _, watcher := range s.watchers {
-			watcher(multiraftv1.SessionSnapshot_CLOSED)
+			watcher(SessionClosed)
 		}
 	}
 }
 
-func newPrimitiveCommands[I, O any]() *primitiveCommands[I, O] {
-	return &primitiveCommands[I, O]{
-		commands: make(map[multiraftv1.Index]*primitiveCommand[I, O]),
+func newPrimitiveProposals[I, O any]() *primitiveProposals[I, O] {
+	return &primitiveProposals[I, O]{
+		proposals: make(map[multiraftv1.Index]*primitiveProposal[I, O]),
 	}
 }
 
-type primitiveCommands[I, O any] struct {
-	commands map[multiraftv1.Index]*primitiveCommand[I, O]
+type primitiveProposals[I, O any] struct {
+	proposals map[multiraftv1.Index]*primitiveProposal[I, O]
 }
 
-func (c *primitiveCommands[I, O]) add(command *primitiveCommand[I, O]) {
-	c.commands[command.Index()] = command
+func (c *primitiveProposals[I, O]) add(proposal *primitiveProposal[I, O]) {
+	c.proposals[proposal.command.index] = proposal
 }
 
-func (c *primitiveCommands[I, O]) remove(index multiraftv1.Index) {
-	delete(c.commands, index)
+func (c *primitiveProposals[I, O]) remove(index multiraftv1.Index) {
+	delete(c.proposals, index)
 }
 
-func (c *primitiveCommands[I, O]) Get(index multiraftv1.Index) (Command[I, O], bool) {
-	command, ok := c.commands[index]
-	return command, ok
+func (c *primitiveProposals[I, O]) Get(id ProposalID) (Proposal[I, O], bool) {
+	proposal, ok := c.proposals[multiraftv1.Index(id)]
+	return proposal, ok
 }
 
-func (c *primitiveCommands[I, O]) List() []Command[I, O] {
-	commands := make([]Command[I, O], 0, len(c.commands))
-	for _, command := range c.commands {
+func (c *primitiveProposals[I, O]) List() []Proposal[I, O] {
+	commands := make([]Proposal[I, O], 0, len(c.proposals))
+	for _, command := range c.proposals {
 		commands = append(commands, command)
 	}
 	return commands
 }
 
-func newPrimitiveCommand[I, O any](session *primitiveSession[I, O], command *raftSessionOperationCommand) (*primitiveCommand[I, O], error) {
+func newPrimitiveProposal[I, O any](session *primitiveSession[I, O], command *raftSessionOperationCommand) (*primitiveProposal[I, O], error) {
 	input, err := session.primitive.primitiveType.Codec().DecodeInput(command.Input().Payload)
 	if err != nil {
 		return nil, errors.NewFault(err.Error())
 	}
-	c := &primitiveCommand[I, O]{
+	proposal := &primitiveProposal[I, O]{
 		session: session,
 		command: command,
 		input:   input,
 	}
-	command.closer = c.close
-	return c, nil
+	command.closer = proposal.close
+	return proposal, nil
 }
 
-type primitiveCommand[I, O any] struct {
+type primitiveProposal[I, O any] struct {
 	session  *primitiveSession[I, O]
 	command  *raftSessionOperationCommand
 	input    I
-	watchers map[string]func(state multiraftv1.CommandSnapshot_State)
+	watchers map[string]ProposalWatcher
 }
 
-func (c *primitiveCommand[I, O]) Index() multiraftv1.Index {
-	return c.command.index
+func (c *primitiveProposal[I, O]) ID() ProposalID {
+	return ProposalID(c.command.index)
 }
 
-func (c *primitiveCommand[I, O]) State() multiraftv1.CommandSnapshot_State {
-	return c.command.state
+func (c *primitiveProposal[I, O]) State() ProposalState {
+	switch c.command.state {
+	case multiraftv1.CommandSnapshot_PENDING:
+		return ProposalPending
+	case multiraftv1.CommandSnapshot_RUNNING:
+		return ProposalRunning
+	case multiraftv1.CommandSnapshot_COMPLETE:
+		return ProposalComplete
+	default:
+		panic("unknown proposal state")
+	}
 }
 
-func (c *primitiveCommand[I, O]) Watch(f CommandWatcher) CancelFunc {
+func (c *primitiveProposal[I, O]) Watch(f ProposalWatcher) CancelFunc {
 	if c.watchers == nil {
-		c.watchers = make(map[string]func(state multiraftv1.CommandSnapshot_State))
+		c.watchers = make(map[string]ProposalWatcher)
 	}
 	id := uuid.New().String()
 	c.watchers[id] = f
@@ -499,15 +515,15 @@ func (c *primitiveCommand[I, O]) Watch(f CommandWatcher) CancelFunc {
 	}
 }
 
-func (c *primitiveCommand[I, O]) Session() Session[I, O] {
+func (c *primitiveProposal[I, O]) Session() Session[I, O] {
 	return c.session
 }
 
-func (c *primitiveCommand[I, O]) Input() I {
+func (c *primitiveProposal[I, O]) Input() I {
 	return c.input
 }
 
-func (c *primitiveCommand[I, O]) Output(output O) {
+func (c *primitiveProposal[I, O]) Output(output O) {
 	bytes, err := c.session.primitive.primitiveType.Codec().EncodeOutput(output)
 	if err != nil {
 		c.command.Output(&multiraftv1.PrimitiveOperationOutput{
@@ -525,7 +541,7 @@ func (c *primitiveCommand[I, O]) Output(output O) {
 	}
 }
 
-func (c *primitiveCommand[I, O]) Error(err error) {
+func (c *primitiveProposal[I, O]) Error(err error) {
 	c.command.Output(&multiraftv1.PrimitiveOperationOutput{
 		OperationOutput: multiraftv1.OperationOutput{
 			Status:  getStatus(err),
@@ -534,22 +550,22 @@ func (c *primitiveCommand[I, O]) Error(err error) {
 	}, nil)
 }
 
-func (c *primitiveCommand[I, O]) open() {
-	c.session.primitive.commands.add(c)
-	c.session.commands.add(c)
+func (c *primitiveProposal[I, O]) open() {
+	c.session.primitive.proposals.add(c)
+	c.session.proposals.add(c)
 }
 
-func (c *primitiveCommand[I, O]) close() {
-	c.session.commands.remove(c.Index())
-	c.session.primitive.commands.remove(c.Index())
+func (c *primitiveProposal[I, O]) close() {
+	c.session.proposals.remove(c.command.index)
+	c.session.primitive.proposals.remove(c.command.index)
 	if c.watchers != nil {
 		for _, watcher := range c.watchers {
-			watcher(multiraftv1.CommandSnapshot_COMPLETE)
+			watcher(ProposalComplete)
 		}
 	}
 }
 
-func (c *primitiveCommand[I, O]) Close() {
+func (c *primitiveProposal[I, O]) Close() {
 	c.command.Close()
 }
 

@@ -54,7 +54,7 @@ func (s *CounterStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *CounterStateMachine) Update(command statemachine.Command[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) Update(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	switch command.Input().Input.(type) {
 	case *counterv1.CounterInput_Set:
 		s.set(command)
@@ -69,7 +69,7 @@ func (s *CounterStateMachine) Update(command statemachine.Command[*counterv1.Cou
 	}
 }
 
-func (s *CounterStateMachine) set(command statemachine.Command[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) set(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	defer command.Close()
 	s.value = command.Input().GetSet().Value
 	command.Output(&counterv1.CounterOutput{
@@ -81,7 +81,7 @@ func (s *CounterStateMachine) set(command statemachine.Command[*counterv1.Counte
 	})
 }
 
-func (s *CounterStateMachine) compareAndSet(command statemachine.Command[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) compareAndSet(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	defer command.Close()
 	if s.value != command.Input().GetCompareAndSet().Compare {
 		command.Error(errors.NewConflict("optimistic lock failure"))
@@ -97,7 +97,7 @@ func (s *CounterStateMachine) compareAndSet(command statemachine.Command[*counte
 	}
 }
 
-func (s *CounterStateMachine) increment(command statemachine.Command[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) increment(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	defer command.Close()
 	s.value += command.Input().GetIncrement().Delta
 	command.Output(&counterv1.CounterOutput{
@@ -109,7 +109,7 @@ func (s *CounterStateMachine) increment(command statemachine.Command[*counterv1.
 	})
 }
 
-func (s *CounterStateMachine) decrement(command statemachine.Command[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) decrement(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	defer command.Close()
 	s.value -= command.Input().GetDecrement().Delta
 	command.Output(&counterv1.CounterOutput{

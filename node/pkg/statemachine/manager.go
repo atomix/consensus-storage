@@ -64,7 +64,7 @@ func (s *stateManager) Command(input *multiraftv1.CommandInput, stream streams.W
 
 	switch i := input.Input.(type) {
 	case *multiraftv1.CommandInput_SessionCommand:
-		s.sessions.commandSession(i.SessionCommand, streams.NewEncodingStream[*multiraftv1.SessionCommandOutput, *multiraftv1.CommandOutput](stream, func(value *multiraftv1.SessionCommandOutput, err error) (*multiraftv1.CommandOutput, error) {
+		s.sessions.updateSession(i.SessionCommand, streams.NewEncodingStream[*multiraftv1.SessionCommandOutput, *multiraftv1.CommandOutput](stream, func(value *multiraftv1.SessionCommandOutput, err error) (*multiraftv1.CommandOutput, error) {
 			if err != nil {
 				return nil, err
 			}
@@ -149,7 +149,7 @@ func (s *stateManager) Query(input *multiraftv1.QueryInput, stream streams.Write
 	} else {
 		switch i := input.Input.(type) {
 		case *multiraftv1.QueryInput_SessionQuery:
-			s.sessions.querySession(i.SessionQuery, streams.NewEncodingStream[*multiraftv1.SessionQueryOutput, *multiraftv1.QueryOutput](stream, func(value *multiraftv1.SessionQueryOutput, err error) (*multiraftv1.QueryOutput, error) {
+			s.sessions.readSession(i.SessionQuery, streams.NewEncodingStream[*multiraftv1.SessionQueryOutput, *multiraftv1.QueryOutput](stream, func(value *multiraftv1.SessionQueryOutput, err error) (*multiraftv1.QueryOutput, error) {
 				if err != nil {
 					return nil, err
 				}

@@ -49,9 +49,13 @@ func (t *primitiveType[I, O]) NewPrimitive(context PrimitiveContext[I, O]) Primi
 	return t.factory(context)
 }
 
+type PrimitiveID uint64
+
+type Index uint64
+
 type PrimitiveContext[I, O any] interface {
 	// PrimitiveID returns the service identifier
-	PrimitiveID() multiraftv1.PrimitiveID
+	PrimitiveID() PrimitiveID
 	// Type returns the service type
 	Type() PrimitiveType[I, O]
 	// Namespace returns the service namespace
@@ -59,38 +63,47 @@ type PrimitiveContext[I, O any] interface {
 	// Name returns the service name
 	Name() string
 	// Index returns the current service index
-	Index() multiraftv1.Index
+	Index() Index
 	// Time returns the current service time
 	Time() time.Time
 	// Scheduler returns the service scheduler
 	Scheduler() *Scheduler
 	// Sessions returns the open sessions
 	Sessions() Sessions[I, O]
-	// Commands returns the pending commands
-	Commands() Commands[I, O]
+	// Proposals returns the pending proposals
+	Proposals() Proposals[I, O]
 }
 
 // Primitive is a primitive state machine
 type Primitive[I, O any] interface {
 	Snapshot(writer *snapshot.Writer) error
 	Recover(reader *snapshot.Reader) error
-	Update(command Command[I, O])
+	Update(proposal Proposal[I, O])
 	Read(query Query[I, O])
 }
+
+type SessionID uint64
+
+type SessionState int
+
+const (
+	SessionOpen SessionState = iota
+	SessionClosed
+)
 
 // Session is a service session
 type Session[I, O any] interface {
 	// ID returns the session identifier
-	ID() multiraftv1.SessionID
+	ID() SessionID
 	// State returns the current session state
-	State() multiraftv1.SessionSnapshot_State
+	State() SessionState
 	// Watch watches the session state
 	Watch(f SessionWatcher) CancelFunc
-	// Commands returns the session commands
-	Commands() Commands[I, O]
+	// Proposals returns the session proposals
+	Proposals() Proposals[I, O]
 }
 
-type SessionWatcher func(multiraftv1.SessionSnapshot_State)
+type SessionWatcher func(SessionState)
 
 type CancelFunc func()
 
@@ -102,7 +115,7 @@ type Sessions[I, O any] interface {
 	List() []Session[I, O]
 }
 
-// Operation is a command or query operation
+// Operation is a proposal or read operation
 type Operation[I, O any] interface {
 	// Session returns the session executing the operation
 	Session() Session[I, O]
@@ -114,30 +127,40 @@ type Operation[I, O any] interface {
 	Error(error)
 }
 
-// Command is a command operation
-type Command[I, O any] interface {
+type ProposalID uint64
+
+type ProposalState int
+
+const (
+	ProposalPending ProposalState = iota
+	ProposalRunning
+	ProposalComplete
+)
+
+// Proposal is a proposal operation
+type Proposal[I, O any] interface {
 	Operation[I, O]
-	// Index returns the command index
-	Index() multiraftv1.Index
-	// State returns the current command state
-	State() multiraftv1.CommandSnapshot_State
-	// Watch watches the command state
-	Watch(f CommandWatcher) CancelFunc
-	// Close closes the command
+	// ID returns the proposal ID
+	ID() ProposalID
+	// State returns the current proposal state
+	State() ProposalState
+	// Watch watches the proposal state
+	Watch(f ProposalWatcher) CancelFunc
+	// Close closes the proposal
 	Close()
 }
 
-type CommandWatcher func(state multiraftv1.CommandSnapshot_State)
+type ProposalWatcher func(ProposalState)
 
-// Commands provides access to pending commands
-type Commands[I, O any] interface {
-	// Get gets a command by ID
-	Get(multiraftv1.Index) (Command[I, O], bool)
-	// List lists all open commands
-	List() []Command[I, O]
+// Proposals provides access to pending proposals
+type Proposals[I, O any] interface {
+	// Get gets a proposal by ID
+	Get(ProposalID) (Proposal[I, O], bool)
+	// List lists all open proposals
+	List() []Proposal[I, O]
 }
 
-// Query is a query operation
+// Query is a read operation
 type Query[I, O any] interface {
 	Operation[I, O]
 }
