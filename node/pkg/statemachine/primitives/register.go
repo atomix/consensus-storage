@@ -8,4 +8,5 @@ import "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 
 func RegisterPrimitiveTypes(registry *statemachine.PrimitiveTypeRegistry) {
 	RegisterCounterType(registry)
+	RegisterMapType(registry)
 }

@@ -7,7 +7,7 @@ package primitives
 import (
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/gogo/protobuf/proto"
 )
@@ -16,7 +16,7 @@ func RegisterCounterType(registry *statemachine.PrimitiveTypeRegistry) {
 	statemachine.RegisterPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(CounterType)
 }
 
-var CounterType = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput]("Counter", "v1", counterCodec, newStateMachine)
+var CounterType = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput]("Counter", "v1", counterCodec, newCounterStateMachine)
 
 var counterCodec = statemachine.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
 	func(bytes []byte) (*counterv1.CounterInput, error) {
@@ -30,7 +30,7 @@ var counterCodec = statemachine.NewCodec[*counterv1.CounterInput, *counterv1.Cou
 		return proto.Marshal(output)
 	})
 
-func newStateMachine(ctx statemachine.PrimitiveContext[*counterv1.CounterInput, *counterv1.CounterOutput]) statemachine.Primitive[*counterv1.CounterInput, *counterv1.CounterOutput] {
+func newCounterStateMachine(ctx statemachine.PrimitiveContext[*counterv1.CounterInput, *counterv1.CounterOutput]) statemachine.Primitive[*counterv1.CounterInput, *counterv1.CounterOutput] {
 	return &CounterStateMachine{
 		PrimitiveContext: ctx,
 	}
@@ -54,25 +54,25 @@ func (s *CounterStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *CounterStateMachine) Update(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	switch command.Input().Input.(type) {
+func (s *CounterStateMachine) Update(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+	switch proposal.Input().Input.(type) {
 	case *counterv1.CounterInput_Set:
-		s.set(command)
+		s.set(proposal)
 	case *counterv1.CounterInput_CompareAndSet:
-		s.compareAndSet(command)
+		s.compareAndSet(proposal)
 	case *counterv1.CounterInput_Increment:
-		s.increment(command)
+		s.increment(proposal)
 	case *counterv1.CounterInput_Decrement:
-		s.decrement(command)
+		s.decrement(proposal)
 	default:
-		command.Error(errors.NewNotSupported("command not supported"))
+		proposal.Error(errors.NewNotSupported("proposal not supported"))
 	}
 }
 
-func (s *CounterStateMachine) set(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	defer command.Close()
-	s.value = command.Input().GetSet().Value
-	command.Output(&counterv1.CounterOutput{
+func (s *CounterStateMachine) set(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+	defer proposal.Close()
+	s.value = proposal.Input().GetSet().Value
+	proposal.Output(&counterv1.CounterOutput{
 		Output: &counterv1.CounterOutput_Set{
 			Set: &counterv1.SetOutput{
 				Value: s.value,
@@ -81,13 +81,13 @@ func (s *CounterStateMachine) set(command statemachine.Proposal[*counterv1.Count
 	})
 }
 
-func (s *CounterStateMachine) compareAndSet(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	defer command.Close()
-	if s.value != command.Input().GetCompareAndSet().Compare {
-		command.Error(errors.NewConflict("optimistic lock failure"))
+func (s *CounterStateMachine) compareAndSet(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+	defer proposal.Close()
+	if s.value != proposal.Input().GetCompareAndSet().Compare {
+		proposal.Error(errors.NewConflict("optimistic lock failure"))
 	} else {
-		s.value = command.Input().GetCompareAndSet().Update
-		command.Output(&counterv1.CounterOutput{
+		s.value = proposal.Input().GetCompareAndSet().Update
+		proposal.Output(&counterv1.CounterOutput{
 			Output: &counterv1.CounterOutput_CompareAndSet{
 				CompareAndSet: &counterv1.CompareAndSetOutput{
 					Value: s.value,
@@ -97,10 +97,10 @@ func (s *CounterStateMachine) compareAndSet(command statemachine.Proposal[*count
 	}
 }
 
-func (s *CounterStateMachine) increment(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	defer command.Close()
-	s.value += command.Input().GetIncrement().Delta
-	command.Output(&counterv1.CounterOutput{
+func (s *CounterStateMachine) increment(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+	defer proposal.Close()
+	s.value += proposal.Input().GetIncrement().Delta
+	proposal.Output(&counterv1.CounterOutput{
 		Output: &counterv1.CounterOutput_Increment{
 			Increment: &counterv1.IncrementOutput{
 				Value: s.value,
@@ -109,10 +109,10 @@ func (s *CounterStateMachine) increment(command statemachine.Proposal[*counterv1
 	})
 }
 
-func (s *CounterStateMachine) decrement(command statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	defer command.Close()
-	s.value -= command.Input().GetDecrement().Delta
-	command.Output(&counterv1.CounterOutput{
+func (s *CounterStateMachine) decrement(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+	defer proposal.Close()
+	s.value -= proposal.Input().GetDecrement().Delta
+	proposal.Output(&counterv1.CounterOutput{
 		Output: &counterv1.CounterOutput_Decrement{
 			Decrement: &counterv1.DecrementOutput{
 				Value: s.value,
