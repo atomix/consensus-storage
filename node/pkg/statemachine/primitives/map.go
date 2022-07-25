@@ -82,11 +82,20 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 		if err != nil {
 			return err
 		}
+		proposal, ok := s.Proposals().Get(statemachine.ProposalID(proposalID))
+		if !ok {
+			return errors.NewFault("cannot find proposal %d", proposalID)
+		}
 		listener := &mapv1.MapListener{}
 		if err := reader.ReadMessage(listener); err != nil {
 			return err
 		}
-		s.listeners[statemachine.ProposalID(proposalID)] = listener
+		s.listeners[proposal.ID()] = listener
+		proposal.Watch(func(state statemachine.ProposalState) {
+			if state == statemachine.ProposalComplete {
+				delete(s.listeners, proposal.ID())
+			}
+		})
 	}
 
 	n, err = reader.ReadVarInt()
@@ -337,7 +346,39 @@ func (s *MapStateMachine) proposeClear(proposal statemachine.Proposal[*mapv1.Map
 }
 
 func (s *MapStateMachine) proposeEvents(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
-	defer proposal.Close()
+	// Output an empty event to ack the request
+	proposal.Output(&mapv1.MapOutput{
+		Output: &mapv1.MapOutput_Events{
+			Events: &mapv1.EventsOutput{},
+		},
+	})
+
+	listener := &mapv1.MapListener{
+		Key: proposal.Input().GetEvents().Key,
+	}
+	s.listeners[proposal.ID()] = listener
+	proposal.Watch(func(state statemachine.ProposalState) {
+		if state == statemachine.ProposalComplete {
+			delete(s.listeners, proposal.ID())
+		}
+	})
+
+	if proposal.Input().GetEvents().Replay {
+		for _, entry := range s.entries {
+			if listener.Key == "" || listener.Key == entry.Key.Key {
+				proposal.Output(&mapv1.MapOutput{
+					Output: &mapv1.MapOutput_Events{
+						Events: &mapv1.EventsOutput{
+							Event: mapv1.Event{
+								Type:  mapv1.Event_REPLAY,
+								Entry: *s.newEntry(entry),
+							},
+						},
+					},
+				})
+			}
+		}
+	}
 }
 
 func (s *MapStateMachine) Read(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
@@ -435,7 +476,7 @@ func (s *MapStateMachine) newEntry(state *mapv1.MapEntry) *mapv1.Entry {
 		Index: state.Key.Index,
 	}
 	if state.Value != nil {
-		entry.Value = &mapv1.Value{
+		entry.Value = mapv1.Value{
 			Value: state.Value.Value,
 		}
 		if state.Value.Expire != nil {

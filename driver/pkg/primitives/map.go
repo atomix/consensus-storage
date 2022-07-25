@@ -13,6 +13,7 @@ import (
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	runtimev1 "github.com/atomix/runtime/api/atomix/runtime/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
 	"io"
@@ -32,6 +33,8 @@ type MapServer struct {
 }
 
 func (s *MapServer) Create(ctx context.Context, request *mapv1.CreateRequest) (*mapv1.CreateResponse, error) {
+	log.Debugw("Create",
+		logging.Stringer("CreateRequest", request))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -50,13 +53,21 @@ func (s *MapServer) Create(ctx context.Context, request *mapv1.CreateRequest) (*
 		return session.CreatePrimitive(ctx, spec)
 	})
 	if err != nil {
+		log.Warnw("Create",
+			logging.Stringer("CreateRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.CreateResponse{}
+	log.Debugw("Create",
+		logging.Stringer("CreateRequest", request),
+		logging.Stringer("CreateResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Close(ctx context.Context, request *mapv1.CloseRequest) (*mapv1.CloseResponse, error) {
+	log.Debugw("Close",
+		logging.Stringer("CloseRequest", request))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -67,22 +78,36 @@ func (s *MapServer) Close(ctx context.Context, request *mapv1.CloseRequest) (*ma
 		return session.ClosePrimitive(ctx, request.ID.Name)
 	})
 	if err != nil {
+		log.Warnw("Close",
+			logging.Stringer("CloseRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.CloseResponse{}
+	log.Debugw("Close",
+		logging.Stringer("CloseRequest", request),
+		logging.Stringer("CloseResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv1.SizeResponse, error) {
+	log.Debugw("Size",
+		logging.Stringer("SizeRequest", request))
 	partitions := s.Partitions()
 	sizes, err := async.ExecuteAsync[int](len(partitions), func(i int) (int, error) {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
+			log.Warnw("Size",
+				logging.Stringer("SizeRequest", request),
+				logging.Error("Error", err))
 			return 0, err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
+			log.Warnw("Size",
+				logging.Stringer("SizeRequest", request),
+				logging.Error("Error", err))
 			return 0, err
 		}
 		query := client.Query[*api.SizeResponse](primitive)
@@ -93,6 +118,9 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 			})
 		})
 		if err != nil {
+			log.Warnw("Size",
+				logging.Stringer("SizeRequest", request),
+				logging.Error("Error", err))
 			return 0, err
 		}
 		return int(output.Size_), nil
@@ -107,17 +135,28 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	response := &mapv1.SizeResponse{
 		Size_: uint32(size),
 	}
+	log.Debugw("Size",
+		logging.Stringer("SizeRequest", request),
+		logging.Stringer("SizeResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.PutResponse, error) {
+	log.Debugw("Put",
+		logging.Stringer("PutRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
+		log.Warnw("Put",
+			logging.Stringer("PutRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
+		log.Warnw("Put",
+			logging.Stringer("PutRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.PutResponse](primitive)
@@ -138,6 +177,9 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		return api.NewMapClient(conn).Put(ctx, input)
 	})
 	if err != nil {
+		log.Warnw("Put",
+			logging.Stringer("PutRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.PutResponse{
@@ -156,17 +198,28 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 			},
 		},
 	}
+	log.Debugw("Put",
+		logging.Stringer("PutRequest", request),
+		logging.Stringer("PutResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*mapv1.InsertResponse, error) {
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.InsertResponse](primitive)
@@ -183,6 +236,9 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 		})
 	})
 	if err != nil {
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.InsertResponse{
@@ -201,17 +257,28 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 			},
 		},
 	}
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request),
+		logging.Stringer("InsertResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*mapv1.UpdateResponse, error) {
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.UpdateResponse](primitive)
@@ -232,6 +299,9 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 		return api.NewMapClient(conn).Update(ctx, input)
 	})
 	if err != nil {
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.UpdateResponse{
@@ -250,17 +320,28 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 			},
 		},
 	}
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request),
+		logging.Stringer("UpdateResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.GetResponse, error) {
+	log.Debugw("Get",
+		logging.Stringer("GetRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
+		log.Warnw("Get",
+			logging.Stringer("GetRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
+		log.Warnw("Get",
+			logging.Stringer("GetRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	query := client.Query[*api.GetResponse](primitive)
@@ -273,6 +354,9 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 		})
 	})
 	if err != nil {
+		log.Warnw("Get",
+			logging.Stringer("GetRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.GetResponse{
@@ -291,17 +375,28 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 			},
 		},
 	}
+	log.Debugw("Get",
+		logging.Stringer("GetRequest", request),
+		logging.Stringer("GetResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*mapv1.RemoveResponse, error) {
+	log.Debugw("Remove",
+		logging.Stringer("RemoveRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
+		log.Warnw("Remove",
+			logging.Stringer("RemoveRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
+		log.Warnw("Remove",
+			logging.Stringer("RemoveRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.RemoveResponse](primitive)
@@ -318,6 +413,9 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		return api.NewMapClient(conn).Remove(ctx, input)
 	})
 	if err != nil {
+		log.Warnw("Remove",
+			logging.Stringer("RemoveRequest", request),
+			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.RemoveResponse{
@@ -336,19 +434,30 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 			},
 		},
 	}
+	log.Debugw("Remove",
+		logging.Stringer("RemoveRequest", request),
+		logging.Stringer("RemoveResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*mapv1.ClearResponse, error) {
+	log.Debugw("Clear",
+		logging.Stringer("ClearRequest", request))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
+			log.Warnw("Clear",
+				logging.Stringer("ClearRequest", request),
+				logging.Error("Error", err))
 			return err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
+			log.Warnw("Clear",
+				logging.Stringer("ClearRequest", request),
+				logging.Error("Error", err))
 			return err
 		}
 		command := client.Command[*api.ClearResponse](primitive)
@@ -359,6 +468,9 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 			})
 		})
 		if err != nil {
+			log.Warnw("Clear",
+				logging.Stringer("ClearRequest", request),
+				logging.Error("Error", err))
 			return err
 		}
 		return nil
@@ -367,20 +479,33 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.ClearResponse{}
+	log.Debugw("Clear",
+		logging.Stringer("ClearRequest", request),
+		logging.Stringer("ClearResponse", response))
 	return response, nil
 }
 
 func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_EventsServer) error {
+	log.Debugw("Events",
+		logging.Stringer("EventsRequest", request))
 	partitions := s.Partitions()
 	return async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(server.Context())
 		if err != nil {
-			return errors.ToProto(err)
+			err = errors.ToProto(err)
+			log.Warnw("Events",
+				logging.Stringer("EventsRequest", request),
+				logging.Error("Error", err))
+			return err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
-			return errors.ToProto(err)
+			err = errors.ToProto(err)
+			log.Warnw("Events",
+				logging.Stringer("EventsRequest", request),
+				logging.Error("Error", err))
+			return err
 		}
 		command := client.StreamCommand[api.Map_EventsClient, *api.EventsResponse](primitive)
 		stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.Map_EventsClient, error) {
@@ -393,14 +518,24 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 			})
 		})
 		if err != nil {
-			return errors.ToProto(err)
+			err = errors.ToProto(err)
+			log.Warnw("Events",
+				logging.Stringer("EventsRequest", request),
+				logging.Error("Error", err))
+			return err
 		}
 		for {
 			output, err := command.Recv(stream.Recv)
 			if err == io.EOF {
+				log.Debugw("Events",
+					logging.Stringer("EventsRequest", request),
+					logging.String("State", "Done"))
 				return nil
 			}
 			if err != nil {
+				log.Warnw("Events",
+					logging.Stringer("EventsRequest", request),
+					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
 			response := &mapv1.EventsResponse{
@@ -422,7 +557,14 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 					},
 				},
 			}
+			log.Debugw("Events",
+				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsResponse", response))
 			if err := server.Send(response); err != nil {
+				log.Warnw("Events",
+					logging.Stringer("EventsRequest", request),
+					logging.Stringer("EventsResponse", response),
+					logging.Error("Error", err))
 				return err
 			}
 		}
@@ -430,15 +572,23 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 }
 
 func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_EntriesServer) error {
+	log.Debugw("Entries",
+		logging.Stringer("EntriesRequest", request))
 	partitions := s.Partitions()
 	return async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(server.Context())
 		if err != nil {
+			log.Warnw("Entries",
+				logging.Stringer("EntriesRequest", request),
+				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
+			log.Warnw("Entries",
+				logging.Stringer("EntriesRequest", request),
+				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
 		query := client.StreamQuery[api.Map_EntriesClient, *api.EntriesResponse](primitive)
@@ -449,6 +599,9 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 			})
 		})
 		if err != nil {
+			log.Warnw("Entries",
+				logging.Stringer("EntriesRequest", request),
+				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
 		for {
@@ -457,6 +610,9 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 				return nil
 			}
 			if err != nil {
+				log.Warnw("Entries",
+					logging.Stringer("EntriesRequest", request),
+					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
 			response := &mapv1.EntriesResponse{
@@ -475,7 +631,14 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 					},
 				},
 			}
+			log.Debugw("Entries",
+				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesResponse", response))
 			if err := server.Send(response); err != nil {
+				log.Warnw("Entries",
+					logging.Stringer("EntriesRequest", request),
+					logging.Stringer("EntriesResponse", response),
+					logging.Error("Error", err))
 				return err
 			}
 		}

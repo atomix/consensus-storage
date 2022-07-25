@@ -51,6 +51,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	}
 	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Size",
 			logging.Stringer("SizeRequest", request),
 			logging.Error("Error", err))
@@ -61,6 +62,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 		SizeOutput: output.GetSize_(),
 	}
 	log.Debugw("Size",
+		logging.Stringer("SizeRequest", request),
 		logging.Stringer("SizeResponse", response))
 	return response, nil
 }
@@ -75,6 +77,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Put",
 			logging.Stringer("PutRequest", request),
 			logging.Error("Error", err))
@@ -85,6 +88,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		PutOutput: output.GetPut(),
 	}
 	log.Debugw("Put",
+		logging.Stringer("PutRequest", request),
 		logging.Stringer("PutResponse", response))
 	return response, nil
 }
@@ -99,6 +103,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Insert",
 			logging.Stringer("InsertRequest", request),
 			logging.Error("Error", err))
@@ -109,6 +114,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 		InsertOutput: output.GetInsert(),
 	}
 	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request),
 		logging.Stringer("InsertResponse", response))
 	return response, nil
 }
@@ -123,6 +129,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Update",
 			logging.Stringer("UpdateRequest", request),
 			logging.Error("Error", err))
@@ -133,6 +140,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 		UpdateOutput: output.GetUpdate(),
 	}
 	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request),
 		logging.Stringer("UpdateResponse", response))
 	return response, nil
 }
@@ -147,6 +155,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 	}
 	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Get",
 			logging.Stringer("GetRequest", request),
 			logging.Error("Error", err))
@@ -157,6 +166,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
+		logging.Stringer("GetRequest", request),
 		logging.Stringer("GetResponse", response))
 	return response, nil
 }
@@ -171,6 +181,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Remove",
 			logging.Stringer("RemoveRequest", request),
 			logging.Error("Error", err))
@@ -181,6 +192,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		RemoveOutput: output.GetRemove(),
 	}
 	log.Debugw("Remove",
+		logging.Stringer("RemoveRequest", request),
 		logging.Stringer("RemoveResponse", response))
 	return response, nil
 }
@@ -195,6 +207,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Clear",
 			logging.Stringer("ClearRequest", request),
 			logging.Error("Error", err))
@@ -205,6 +218,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 		ClearOutput: output.GetClear(),
 	}
 	log.Debugw("Clear",
+		logging.Stringer("ClearRequest", request),
 		logging.Stringer("ClearResponse", response))
 	return response, nil
 }
@@ -222,10 +236,12 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, &request.Headers, stream)
 		if err != nil {
+			err = errors.ToProto(err)
 			log.Warnw("Events",
 				logging.Stringer("EventsRequest", request),
 				logging.Error("Error", err))
 			stream.Error(err)
+			stream.Close()
 		}
 	}()
 
@@ -247,6 +263,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 			EventsOutput: result.Value.Output.GetEvents(),
 		}
 		log.Debugw("Events",
+			logging.Stringer("EventsRequest", request),
 			logging.Stringer("EventsResponse", response))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Events",
@@ -270,10 +287,12 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, &request.Headers, stream)
 		if err != nil {
+			err = errors.ToProto(err)
 			log.Warnw("Entries",
 				logging.Stringer("EntriesRequest", request),
 				logging.Error("Error", err))
 			stream.Error(err)
+			stream.Close()
 		}
 	}()
 
@@ -295,6 +314,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 			EntriesOutput: result.Value.Output.GetEntries(),
 		}
 		log.Debugw("Entries",
+			logging.Stringer("EntriesRequest", request),
 			logging.Stringer("EntriesResponse", response))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Entries",

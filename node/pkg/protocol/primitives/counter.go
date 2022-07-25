@@ -8,6 +8,7 @@ import (
 	"context"
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
+	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/gogo/protobuf/proto"
 	"google.golang.org/grpc"
@@ -49,6 +50,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Set",
 			logging.Stringer("SetRequest", request),
 			logging.Error("Error", err))
@@ -59,6 +61,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 		SetOutput: output.GetSet(),
 	}
 	log.Debugw("Set",
+		logging.Stringer("SetRequest", request),
 		logging.Stringer("SetResponse", response))
 	return response, nil
 }
@@ -73,6 +76,7 @@ func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.Co
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("CompareAndSet",
 			logging.Stringer("CompareAndSetRequest", request),
 			logging.Error("Error", err))
@@ -83,6 +87,7 @@ func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.Co
 		CompareAndSetOutput: output.GetCompareAndSet(),
 	}
 	log.Debugw("CompareAndSet",
+		logging.Stringer("CompareAndSetRequest", request),
 		logging.Stringer("CompareAndSetResponse", response))
 	return response, nil
 }
@@ -97,6 +102,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	}
 	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Get",
 			logging.Stringer("GetRequest", request),
 			logging.Error("Error", err))
@@ -107,6 +113,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
+		logging.Stringer("GetRequest", request),
 		logging.Stringer("GetResponse", response))
 	return response, nil
 }
@@ -121,6 +128,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Increment",
 			logging.Stringer("IncrementRequest", request),
 			logging.Error("Error", err))
@@ -131,6 +139,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 		IncrementOutput: output.GetIncrement(),
 	}
 	log.Debugw("Increment",
+		logging.Stringer("IncrementRequest", request),
 		logging.Stringer("IncrementResponse", response))
 	return response, nil
 }
@@ -145,6 +154,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
+		err = errors.ToProto(err)
 		log.Warnw("Decrement",
 			logging.Stringer("DecrementRequest", request),
 			logging.Error("Error", err))
@@ -155,6 +165,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 		DecrementOutput: output.GetDecrement(),
 	}
 	log.Debugw("Decrement",
+		logging.Stringer("DecrementRequest", request),
 		logging.Stringer("DecrementResponse", response))
 	return response, nil
 }
