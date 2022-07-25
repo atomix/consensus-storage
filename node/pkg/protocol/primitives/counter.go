@@ -13,8 +13,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-var log = logging.GetLogger()
-
 func RegisterCounterServer(server *grpc.Server, node *protocol.Node) {
 	counterv1.RegisterCounterServer(server, newCounterServer(node))
 }
@@ -32,16 +30,16 @@ var counterCodec = protocol.NewCodec[*counterv1.CounterInput, *counterv1.Counter
 	})
 
 func newCounterServer(node *protocol.Node) counterv1.CounterServer {
-	return &Server{
+	return &CounterServer{
 		protocol: protocol.NewProtocol[*counterv1.CounterInput, *counterv1.CounterOutput](node, counterCodec),
 	}
 }
 
-type Server struct {
+type CounterServer struct {
 	protocol protocol.Protocol[*counterv1.CounterInput, *counterv1.CounterOutput]
 }
 
-func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
+func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
 	log.Debugw("Set",
 		logging.Stringer("SetRequest", request))
 	input := &counterv1.CounterInput{
@@ -65,7 +63,7 @@ func (s *Server) Set(ctx context.Context, request *counterv1.SetRequest) (*count
 	return response, nil
 }
 
-func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest) (*counterv1.CompareAndSetResponse, error) {
+func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest) (*counterv1.CompareAndSetResponse, error) {
 	log.Debugw("CompareAndSet",
 		logging.Stringer("CompareAndSetRequest", request))
 	input := &counterv1.CounterInput{
@@ -89,7 +87,7 @@ func (s *Server) CompareAndSet(ctx context.Context, request *counterv1.CompareAn
 	return response, nil
 }
 
-func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
+func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
 	input := &counterv1.CounterInput{
@@ -113,7 +111,7 @@ func (s *Server) Get(ctx context.Context, request *counterv1.GetRequest) (*count
 	return response, nil
 }
 
-func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
+func (s *CounterServer) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
 	log.Debugw("Increment",
 		logging.Stringer("IncrementRequest", request))
 	input := &counterv1.CounterInput{
@@ -137,7 +135,7 @@ func (s *Server) Increment(ctx context.Context, request *counterv1.IncrementRequ
 	return response, nil
 }
 
-func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
+func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
 	log.Debugw("Decrement",
 		logging.Stringer("DecrementRequest", request))
 	input := &counterv1.CounterInput{
@@ -161,4 +159,4 @@ func (s *Server) Decrement(ctx context.Context, request *counterv1.DecrementRequ
 	return response, nil
 }
 
-var _ counterv1.CounterServer = (*Server)(nil)
+var _ counterv1.CounterServer = (*CounterServer)(nil)
