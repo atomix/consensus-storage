@@ -566,8 +566,8 @@
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| UNKNOWN | 0 |  |
-| OPEN | 1 |  |
+| PENDING | 0 |  |
+| RUNNING | 1 |  |
 | COMPLETE | 2 |  |
 
 
