@@ -275,15 +275,21 @@ message SessionSnapshot {
         (gogoproto.customname) = "SessionID",
         (gogoproto.casttype) = "SessionID"
     ];
-    google.protobuf.Duration timeout = 2 [
+    State state = 2;
+    google.protobuf.Duration timeout = 3 [
         (gogoproto.stdduration) = true,
         (gogoproto.nullable) = false
     ];
-    google.protobuf.Timestamp last_updated = 3 [
+    google.protobuf.Timestamp last_updated = 4 [
         (gogoproto.stdtime) = true,
         (gogoproto.nullable) = false
     ];
-    repeated CommandSnapshot commands = 4;
+    repeated CommandSnapshot commands = 5;
+    enum State {
+        UNKNOWN = 0;
+        OPEN = 1;
+        CLOSED = 2;
+    }
 }
 
 message CommandSnapshot {

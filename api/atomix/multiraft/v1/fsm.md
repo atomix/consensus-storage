@@ -39,6 +39,7 @@
   
     - [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State)
     - [OperationOutput.Status](#atomix-multiraft-v1-OperationOutput-Status)
+    - [SessionSnapshot.State](#atomix-multiraft-v1-SessionSnapshot-State)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -530,6 +531,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
+| state | [SessionSnapshot.State](#atomix-multiraft-v1-SessionSnapshot-State) |  |  |
 | timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 | last_updated | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | commands | [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot) | repeated |  |
@@ -592,6 +594,19 @@
 | TIMEOUT | 12 |  |
 | FAULT | 13 |  |
 | INTERNAL | 14 |  |
+
+
+
+<a name="atomix-multiraft-v1-SessionSnapshot-State"></a>
+
+### SessionSnapshot.State
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| UNKNOWN | 0 |  |
+| OPEN | 1 |  |
+| CLOSED | 2 |  |
 
 
  
