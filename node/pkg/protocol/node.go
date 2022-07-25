@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/runtime/sdk/pkg/async"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
@@ -28,7 +28,7 @@ const (
 const clientTimeout = 30 * time.Second
 
 func NewNode(registry *statemachine.PrimitiveTypeRegistry, config multiraftv1.NodeConfig) *Node {
-	var rtt uint64 = 250
+	var rtt uint64 = 10
 	if config.HeartbeatPeriod != nil {
 		rtt = uint64(config.HeartbeatPeriod.Milliseconds())
 	}

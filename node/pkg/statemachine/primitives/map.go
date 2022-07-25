@@ -129,6 +129,7 @@ func (s *MapStateMachine) Update(proposal statemachine.Proposal[*mapv1.MapInput,
 		s.proposeEvents(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
+		proposal.Close()
 	}
 }
 

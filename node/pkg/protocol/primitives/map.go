@@ -232,7 +232,8 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 		},
 	}
 
-	stream := streams.NewBufferedStream[*protocol.StreamCommandResponse[*mapv1.MapOutput]]()
+	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*mapv1.MapOutput]])
+	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*mapv1.MapOutput]](ch)
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, &request.Headers, stream)
 		if err != nil {
@@ -245,11 +246,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 		}
 	}()
 
-	for {
-		result, ok := stream.Receive()
-		if !ok {
-			return nil
-		}
+	for result := range ch {
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
@@ -272,6 +269,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 			return err
 		}
 	}
+	return nil
 }
 
 func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_EntriesServer) error {
@@ -283,7 +281,8 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 		},
 	}
 
-	stream := streams.NewBufferedStream[*protocol.StreamQueryResponse[*mapv1.MapOutput]]()
+	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*mapv1.MapOutput]])
+	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*mapv1.MapOutput]](ch)
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, &request.Headers, stream)
 		if err != nil {
@@ -296,11 +295,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 		}
 	}()
 
-	for {
-		result, ok := stream.Receive()
-		if !ok {
-			return nil
-		}
+	for result := range ch {
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Entries",
@@ -323,6 +318,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 			return err
 		}
 	}
+	return nil
 }
 
 var _ mapv1.MapServer = (*MapServer)(nil)
