@@ -94,7 +94,6 @@ message PutRequest {
     ];
     PutInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -106,7 +105,6 @@ message PutResponse {
     ];
     PutOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -118,7 +116,6 @@ message InsertRequest {
     ];
     InsertInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -130,7 +127,6 @@ message InsertResponse {
     ];
     InsertOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -142,7 +138,6 @@ message UpdateRequest {
     ];
     UpdateInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -154,7 +149,6 @@ message UpdateResponse {
     ];
     UpdateOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -166,7 +160,6 @@ message GetRequest {
     ];
     GetInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -178,7 +171,6 @@ message GetResponse {
     ];
     GetOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -190,7 +182,6 @@ message RemoveRequest {
     ];
     RemoveInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -202,7 +193,6 @@ message RemoveResponse {
     ];
     RemoveOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -214,7 +204,6 @@ message ClearRequest {
     ];
     ClearInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -226,7 +215,6 @@ message ClearResponse {
     ];
     ClearOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -238,7 +226,6 @@ message EntriesRequest {
     ];
     EntriesInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -250,7 +237,6 @@ message EntriesResponse {
     ];
     EntriesOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -262,7 +248,6 @@ message EventsRequest {
     ];
     EventsInput input = 2 [
         (atomix.multiraft.v1.input) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
@@ -274,7 +259,6 @@ message EventsResponse {
     ];
     EventsOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
