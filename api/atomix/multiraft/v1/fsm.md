@@ -152,6 +152,7 @@
 | state | [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State) |  |  |
 | input | [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput) |  |  |
 | pending_outputs | [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput) | repeated |  |
+| last_output_sequence_num | [uint64](#uint64) |  |  |
 
 
 

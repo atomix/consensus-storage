@@ -299,6 +299,9 @@ message CommandSnapshot {
     State state = 2;
     SessionCommandInput input = 3;
     repeated SessionCommandOutput pending_outputs = 4;
+    uint64 last_output_sequence_num = 5 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
 
     enum State {
         PENDING = 0;
