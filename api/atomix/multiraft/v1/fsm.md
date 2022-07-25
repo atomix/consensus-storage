@@ -563,9 +563,9 @@
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| UNKNOWN | 0 |  |
-| OK | 1 |  |
-| ERROR | 2 |  |
+| OK | 0 |  |
+| ERROR | 1 |  |
+| UNKNOWN | 2 |  |
 | CANCELED | 3 |  |
 | NOT_FOUND | 4 |  |
 | ALREADY_EXISTS | 5 |  |
