@@ -8,8 +8,7 @@ import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/driver/pkg/client"
-	counterserver "github.com/atomix/multi-raft-storage/driver/pkg/client/counter/v1"
-	mapserver "github.com/atomix/multi-raft-storage/driver/pkg/client/map/v1"
+	"github.com/atomix/multi-raft-storage/driver/pkg/primitives"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
@@ -41,11 +40,11 @@ type driverClient struct {
 }
 
 func (c *driverClient) Counter() counterv1.CounterServer {
-	return counterserver.NewServer(c.client.Protocol)
+	return primitives.NewCounterServer(c.client.Protocol)
 }
 
 func (c *driverClient) Map() mapv1.MapServer {
-	return mapserver.NewServer(c.client.Protocol)
+	return primitives.NewMapServer(c.client.Protocol)
 }
 
 func (c *driverClient) Configure(ctx context.Context, config multiraftv1.ClusterConfig) error {

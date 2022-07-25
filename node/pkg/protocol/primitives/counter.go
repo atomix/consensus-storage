@@ -44,7 +44,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 		logging.Stringer("SetRequest", request))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Set{
-			Set: &request.SetInput,
+			Set: request.SetInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -56,7 +56,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	}
 	response := &counterv1.SetResponse{
 		Headers:   *headers,
-		SetOutput: *output.GetSet(),
+		SetOutput: output.GetSet(),
 	}
 	log.Debugw("Set",
 		logging.Stringer("SetResponse", response))
@@ -68,7 +68,7 @@ func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.Co
 		logging.Stringer("CompareAndSetRequest", request))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_CompareAndSet{
-			CompareAndSet: &request.CompareAndSetInput,
+			CompareAndSet: request.CompareAndSetInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -80,7 +80,7 @@ func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.Co
 	}
 	response := &counterv1.CompareAndSetResponse{
 		Headers:             *headers,
-		CompareAndSetOutput: *output.GetCompareAndSet(),
+		CompareAndSetOutput: output.GetCompareAndSet(),
 	}
 	log.Debugw("CompareAndSet",
 		logging.Stringer("CompareAndSetResponse", response))
@@ -92,7 +92,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 		logging.Stringer("GetRequest", request))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Get{
-			Get: &request.GetInput,
+			Get: request.GetInput,
 		},
 	}
 	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
@@ -104,7 +104,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	}
 	response := &counterv1.GetResponse{
 		Headers:   *headers,
-		GetOutput: *output.GetGet(),
+		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
 		logging.Stringer("GetResponse", response))
@@ -116,7 +116,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 		logging.Stringer("IncrementRequest", request))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Increment{
-			Increment: &request.IncrementInput,
+			Increment: request.IncrementInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -128,7 +128,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	}
 	response := &counterv1.IncrementResponse{
 		Headers:         *headers,
-		IncrementOutput: *output.GetIncrement(),
+		IncrementOutput: output.GetIncrement(),
 	}
 	log.Debugw("Increment",
 		logging.Stringer("IncrementResponse", response))
@@ -140,7 +140,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 		logging.Stringer("DecrementRequest", request))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Decrement{
-			Decrement: &request.DecrementInput,
+			Decrement: request.DecrementInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -152,7 +152,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	}
 	response := &counterv1.DecrementResponse{
 		Headers:         *headers,
-		DecrementOutput: *output.GetDecrement(),
+		DecrementOutput: output.GetDecrement(),
 	}
 	log.Debugw("Decrement",
 		logging.Stringer("DecrementResponse", response))

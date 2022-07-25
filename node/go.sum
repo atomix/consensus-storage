@@ -59,6 +59,14 @@ github.com/armon/go-metrics v0.3.10 h1:FR+drcQStOe+32sYyJYyZ7FIdgoGGBnwLl+flodp8
 github.com/armon/go-metrics v0.3.10/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
 github.com/atomix/multi-raft-storage/api v0.0.0-20220725162855-b8fedaad4a8f h1:qJ8/JnXw4euyMFED39Wws7BZFwYASTX7Q+xs9/W1fwQ=
 github.com/atomix/multi-raft-storage/api v0.0.0-20220725162855-b8fedaad4a8f/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193305-e3784a97cebf h1:cEZKqSx+Ft8/Ip6GrKLY6NR8k2gOb08Z0v+Z66NG9gA=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193305-e3784a97cebf/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193604-e6429b839044 h1:rTNJDV3tbPC45SAAbxgPgstVkrTDzrSdT+SbwyMKNhY=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193604-e6429b839044/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725195402-75c07eba1507 h1:Bi0QzfEnsykVgydtIT9pcJ2UJpMmewCQ8gb5iKNv6yM=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725195402-75c07eba1507/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725201503-3f8d95f499c0 h1:n17Y5qcxxqw8Flh38W4j3o7L27lKf8Nm/XWWoMR77NA=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725201503-3f8d95f499c0/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
 github.com/atomix/runtime/sdk v0.0.0-20220720203722-fe3ff64774df h1:R3QPgjHurg4ZL/maxRJUvR2MooYq8b80mEWN3fn+81U=
 github.com/atomix/runtime/sdk v0.0.0-20220720203722-fe3ff64774df/go.mod h1:ZBngQlzL7s220iiVf9BtnwTZ6440Ii9YqQBXpXHUvnw=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=

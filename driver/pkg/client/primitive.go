@@ -91,7 +91,11 @@ func (c *CommandContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraft
 	if err != nil {
 		return response, err
 	}
-	c.session.lastIndex.Update(response.GetHeaders().Index)
+	headers := response.GetHeaders()
+	c.session.lastIndex.Update(headers.Index)
+	if headers.Status != multiraftv1.OperationResponseHeaders_OK {
+		return response, getErrorFromStatus(headers.Status, headers.Message)
+	}
 	return response, nil
 }
 
@@ -145,6 +149,9 @@ func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
 		c.session.lastIndex.Update(headers.Index)
 		if headers.OutputSequenceNum == c.lastResponseSequenceNum+1 {
 			c.session.recorder.StreamReceive(&headers)
+			if headers.Status != multiraftv1.OperationResponseHeaders_OK {
+				return response, getErrorFromStatus(headers.Status, headers.Message)
+			}
 			return response, nil
 		}
 	}
@@ -181,7 +188,11 @@ func (c *QueryContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraftv1
 	if err != nil {
 		return response, err
 	}
-	c.session.lastIndex.Update(response.GetHeaders().Index)
+	headers := response.GetHeaders()
+	c.session.lastIndex.Update(headers.Index)
+	if headers.Status != multiraftv1.OperationResponseHeaders_OK {
+		return response, getErrorFromStatus(headers.Status, headers.Message)
+	}
 	return response, nil
 }
 
@@ -220,6 +231,10 @@ func (c *StreamQueryContext[T, U]) Recv(f func() (U, error)) (U, error) {
 	if err != nil {
 		return response, err
 	}
-	c.session.lastIndex.Update(response.GetHeaders().Index)
+	headers := response.GetHeaders()
+	c.session.lastIndex.Update(headers.Index)
+	if headers.Status != multiraftv1.OperationResponseHeaders_OK {
+		return response, getErrorFromStatus(headers.Status, headers.Message)
+	}
 	return response, nil
 }

@@ -46,7 +46,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 		logging.Stringer("SizeRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Size_{
-			Size_: &request.SizeInput,
+			Size_: request.SizeInput,
 		},
 	}
 	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
@@ -58,7 +58,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	}
 	response := &mapv1.SizeResponse{
 		Headers:    *headers,
-		SizeOutput: *output.GetSize_(),
+		SizeOutput: output.GetSize_(),
 	}
 	log.Debugw("Size",
 		logging.Stringer("SizeResponse", response))
@@ -70,7 +70,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		logging.Stringer("PutRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Put{
-			Put: &request.PutInput,
+			Put: request.PutInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -82,7 +82,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 	}
 	response := &mapv1.PutResponse{
 		Headers:   *headers,
-		PutOutput: *output.GetPut(),
+		PutOutput: output.GetPut(),
 	}
 	log.Debugw("Put",
 		logging.Stringer("PutResponse", response))
@@ -94,7 +94,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 		logging.Stringer("InsertRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Insert{
-			Insert: &request.InsertInput,
+			Insert: request.InsertInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -106,7 +106,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 	}
 	response := &mapv1.InsertResponse{
 		Headers:      *headers,
-		InsertOutput: *output.GetInsert(),
+		InsertOutput: output.GetInsert(),
 	}
 	log.Debugw("Insert",
 		logging.Stringer("InsertResponse", response))
@@ -118,7 +118,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 		logging.Stringer("UpdateRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Update{
-			Update: &request.UpdateInput,
+			Update: request.UpdateInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -130,7 +130,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 	}
 	response := &mapv1.UpdateResponse{
 		Headers:      *headers,
-		UpdateOutput: *output.GetUpdate(),
+		UpdateOutput: output.GetUpdate(),
 	}
 	log.Debugw("Update",
 		logging.Stringer("UpdateResponse", response))
@@ -142,7 +142,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 		logging.Stringer("GetRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Get{
-			Get: &request.GetInput,
+			Get: request.GetInput,
 		},
 	}
 	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
@@ -154,7 +154,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 	}
 	response := &mapv1.GetResponse{
 		Headers:   *headers,
-		GetOutput: *output.GetGet(),
+		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
 		logging.Stringer("GetResponse", response))
@@ -166,7 +166,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		logging.Stringer("RemoveRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Remove{
-			Remove: &request.RemoveInput,
+			Remove: request.RemoveInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -178,7 +178,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 	}
 	response := &mapv1.RemoveResponse{
 		Headers:      *headers,
-		RemoveOutput: *output.GetRemove(),
+		RemoveOutput: output.GetRemove(),
 	}
 	log.Debugw("Remove",
 		logging.Stringer("RemoveResponse", response))
@@ -190,7 +190,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 		logging.Stringer("ClearRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Clear{
-			Clear: &request.ClearInput,
+			Clear: request.ClearInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
@@ -202,7 +202,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 	}
 	response := &mapv1.ClearResponse{
 		Headers:     *headers,
-		ClearOutput: *output.GetClear(),
+		ClearOutput: output.GetClear(),
 	}
 	log.Debugw("Clear",
 		logging.Stringer("ClearResponse", response))
@@ -214,7 +214,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 		logging.Stringer("EventsRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Events{
-			Events: &request.EventsInput,
+			Events: request.EventsInput,
 		},
 	}
 
@@ -244,7 +244,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 
 		response := &mapv1.EventsResponse{
 			Headers:      *result.Value.Headers,
-			EventsOutput: *result.Value.Output.GetEvents(),
+			EventsOutput: result.Value.Output.GetEvents(),
 		}
 		log.Debugw("Events",
 			logging.Stringer("EventsResponse", response))
@@ -262,7 +262,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 		logging.Stringer("EntriesRequest", request))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Entries{
-			Entries: &request.EntriesInput,
+			Entries: request.EntriesInput,
 		},
 	}
 
@@ -292,7 +292,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 
 		response := &mapv1.EntriesResponse{
 			Headers:       *result.Value.Headers,
-			EntriesOutput: *result.Value.Output.GetEntries(),
+			EntriesOutput: result.Value.Output.GetEntries(),
 		}
 		log.Debugw("Entries",
 			logging.Stringer("EntriesResponse", response))

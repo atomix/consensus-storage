@@ -523,6 +523,8 @@ func getHeaderStatus(status multiraftv1.OperationOutput_Status) multiraftv1.Oper
 		return multiraftv1.OperationResponseHeaders_TIMEOUT
 	case multiraftv1.OperationOutput_INTERNAL:
 		return multiraftv1.OperationResponseHeaders_INTERNAL
+	case multiraftv1.OperationOutput_FAULT:
+		return multiraftv1.OperationResponseHeaders_FAULT
 	default:
 		return multiraftv1.OperationResponseHeaders_UNKNOWN
 	}

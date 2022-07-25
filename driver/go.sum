@@ -51,6 +51,14 @@ github.com/atomix/multi-raft-storage/api v0.0.0-20220720221054-77e2e6557faa h1:t
 github.com/atomix/multi-raft-storage/api v0.0.0-20220720221054-77e2e6557faa/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
 github.com/atomix/multi-raft-storage/api v0.0.0-20220722234318-1e61c0f14419 h1:vOBnT2F1S0+BoqKUtyME7ThjIOVGVc076P76m5OSA6I=
 github.com/atomix/multi-raft-storage/api v0.0.0-20220722234318-1e61c0f14419/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193305-e3784a97cebf h1:cEZKqSx+Ft8/Ip6GrKLY6NR8k2gOb08Z0v+Z66NG9gA=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193305-e3784a97cebf/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193604-e6429b839044 h1:rTNJDV3tbPC45SAAbxgPgstVkrTDzrSdT+SbwyMKNhY=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725193604-e6429b839044/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725195402-75c07eba1507 h1:Bi0QzfEnsykVgydtIT9pcJ2UJpMmewCQ8gb5iKNv6yM=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725195402-75c07eba1507/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725201503-3f8d95f499c0 h1:n17Y5qcxxqw8Flh38W4j3o7L27lKf8Nm/XWWoMR77NA=
+github.com/atomix/multi-raft-storage/api v0.0.0-20220725201503-3f8d95f499c0/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
 github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb h1:gLkBDjrEGtbX83VeADC/O2vFjlEGuTI+5zp5nXoYIqk=
 github.com/atomix/runtime/api v0.0.0-20220720013020-6146e7ecb7cb/go.mod h1:X16epZsQDGX+SI+atLVMMXW/qn8F9IPXQ49Hp2qTkZE=
 github.com/atomix/runtime/sdk v0.0.0-20220720012556-f7cb9963f38a h1:RYaEJEPehli4VYfF+zWB1gkwM+MFSE136Xsc5qKcEyI=
