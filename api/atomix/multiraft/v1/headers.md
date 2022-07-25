@@ -240,6 +240,7 @@
 | NOT_SUPPORTED | 11 |  |
 | TIMEOUT | 12 |  |
 | INTERNAL | 13 |  |
+| FAULT | 14 |  |
 
 
  
