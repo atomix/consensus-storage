@@ -247,16 +247,6 @@ message PrimitiveSnapshot {
     ];
 }
 
-message PrimitiveSessionSnapshot {
-    uint64 session_id = 1 [
-        (gogoproto.customname) = "SessionID",
-        (gogoproto.casttype) = "SessionID"
-    ];
-    repeated uint64 commands = 2 [
-        (gogoproto.casttype) = "Index"
-    ];
-}
-
 message PrimitiveType {
     string name = 1;
     string api_version = 2;

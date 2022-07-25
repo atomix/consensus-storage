@@ -24,7 +24,6 @@
     - [PartitionQueryOutput](#atomix-multiraft-v1-PartitionQueryOutput)
     - [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput)
     - [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput)
-    - [PrimitiveSessionSnapshot](#atomix-multiraft-v1-PrimitiveSessionSnapshot)
     - [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot)
     - [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec)
     - [PrimitiveType](#atomix-multiraft-v1-PrimitiveType)
@@ -352,22 +351,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | output | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PrimitiveSessionSnapshot"></a>
-
-### PrimitiveSessionSnapshot
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| session_id | [uint64](#uint64) |  |  |
-| commands | [uint64](#uint64) | repeated |  |
 
 
 
