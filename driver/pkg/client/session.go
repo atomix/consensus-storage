@@ -255,31 +255,40 @@ type Recorder struct {
 	session *SessionClient
 }
 
-func (r *Recorder) record(eventType sessionRequestEventType, sequenceNum multiraftv1.SequenceNum) {
+func (r *Recorder) Start(headers *multiraftv1.CommandRequestHeaders) {
 	r.session.requestCh <- sessionRequestEvent{
-		eventType:  eventType,
-		requestNum: sequenceNum,
+		eventType:  sessionRequestEventStart,
+		requestNum: headers.SequenceNum,
 	}
 }
 
-func (r *Recorder) Start(headers *multiraftv1.CommandRequestHeaders) {
-	r.record(sessionRequestEventStart, headers.SequenceNum)
-}
-
 func (r *Recorder) StreamOpen(headers *multiraftv1.CommandRequestHeaders) {
-	r.record(sessionStreamEventOpen, headers.SequenceNum)
+	r.session.requestCh <- sessionRequestEvent{
+		eventType:  sessionStreamEventOpen,
+		requestNum: headers.SequenceNum,
+	}
 }
 
-func (r *Recorder) StreamReceive(headers *multiraftv1.CommandResponseHeaders) {
-	r.record(sessionStreamEventReceive, headers.OutputSequenceNum)
+func (r *Recorder) StreamReceive(request *multiraftv1.CommandRequestHeaders, response *multiraftv1.CommandResponseHeaders) {
+	r.session.requestCh <- sessionRequestEvent{
+		eventType:   sessionStreamEventReceive,
+		requestNum:  request.SequenceNum,
+		responseNum: response.OutputSequenceNum,
+	}
 }
 
 func (r *Recorder) StreamClose(headers *multiraftv1.CommandRequestHeaders) {
-	r.record(sessionStreamEventClose, headers.SequenceNum)
+	r.session.requestCh <- sessionRequestEvent{
+		eventType:  sessionStreamEventClose,
+		requestNum: headers.SequenceNum,
+	}
 }
 
 func (r *Recorder) End(headers *multiraftv1.CommandRequestHeaders) {
-	r.record(sessionRequestEventEnd, headers.SequenceNum)
+	r.session.requestCh <- sessionRequestEvent{
+		eventType:  sessionRequestEventEnd,
+		requestNum: headers.SequenceNum,
+	}
 }
 
 type sessionIndex struct {

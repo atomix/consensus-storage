@@ -401,7 +401,7 @@ func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
 }
 
 func (c *raftSessionCommand) Close() {
-	delete(c.session.commands, c.index)
+	c.state = multiraftv1.CommandSnapshot_COMPLETE
 	if c.closer != nil {
 		c.closer()
 	}

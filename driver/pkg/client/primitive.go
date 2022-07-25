@@ -149,7 +149,7 @@ func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
 		c.session.lastIndex.Update(headers.Index)
 		if headers.OutputSequenceNum == c.lastResponseSequenceNum+1 {
 			c.lastResponseSequenceNum++
-			c.session.recorder.StreamReceive(&headers)
+			c.session.recorder.StreamReceive(c.headers, &headers)
 			if headers.Status != multiraftv1.OperationResponseHeaders_OK {
 				return response, getErrorFromStatus(headers.Status, headers.Message)
 			}
