@@ -100,10 +100,11 @@ message SessionCommandOutput {
     uint64 sequence_num = 1 [
         (gogoproto.casttype) = "SequenceNum"
     ];
+    Failure failure = 2;
     oneof output {
-        CreatePrimitiveOutput create_primitive = 2;
-        ClosePrimitiveOutput close_primitive = 3;
-        PrimitiveOperationOutput operation = 4;
+        CreatePrimitiveOutput create_primitive = 3;
+        ClosePrimitiveOutput close_primitive = 4;
+        PrimitiveOperationOutput operation = 5;
     }
 }
 
@@ -178,8 +179,9 @@ message SessionQueryInput {
 }
 
 message SessionQueryOutput {
+    Failure failure = 1;
     oneof output {
-        PrimitiveOperationOutput operation = 1;
+        PrimitiveOperationOutput operation = 2;
     }
 }
 
@@ -194,6 +196,10 @@ message PrimitiveOperationInput {
     ];
 }
 
+message OperationInput {
+    bytes payload = 1;
+}
+
 message PrimitiveOperationOutput {
     OperationOutput output = 1 [
         (gogoproto.nullable) = false,
@@ -201,31 +207,29 @@ message PrimitiveOperationOutput {
     ];
 }
 
-message OperationInput {
+message OperationOutput {
     bytes payload = 1;
 }
 
-message OperationOutput {
+message Failure {
     Status status = 1;
-    bytes payload = 2;
-    string message = 3;
+    string message = 2;
 
     enum Status {
-        OK = 0;
+        UNKNOWN = 0;
         ERROR = 1;
-        UNKNOWN = 2;
-        CANCELED = 3;
-        NOT_FOUND = 4;
-        ALREADY_EXISTS = 5;
-        UNAUTHORIZED = 6;
-        FORBIDDEN = 7;
-        CONFLICT = 8;
-        INVALID = 9;
-        UNAVAILABLE = 10;
-        NOT_SUPPORTED = 11;
-        TIMEOUT = 12;
-        FAULT = 13;
-        INTERNAL = 14;
+        CANCELED = 2;
+        NOT_FOUND = 3;
+        ALREADY_EXISTS = 4;
+        UNAUTHORIZED = 5;
+        FORBIDDEN = 6;
+        CONFLICT = 7;
+        INVALID = 8;
+        UNAVAILABLE = 9;
+        NOT_SUPPORTED = 10;
+        TIMEOUT = 11;
+        FAULT = 12;
+        INTERNAL = 13;
     }
 }
 

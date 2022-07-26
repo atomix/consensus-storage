@@ -13,6 +13,7 @@
     - [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot)
     - [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput)
     - [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput)
+    - [Failure](#atomix-multiraft-v1-Failure)
     - [KeepAliveInput](#atomix-multiraft-v1-KeepAliveInput)
     - [KeepAliveInput.LastOutputSequenceNumsEntry](#atomix-multiraft-v1-KeepAliveInput-LastOutputSequenceNumsEntry)
     - [KeepAliveOutput](#atomix-multiraft-v1-KeepAliveOutput)
@@ -37,7 +38,7 @@
     - [Snapshot](#atomix-multiraft-v1-Snapshot)
   
     - [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State)
-    - [OperationOutput.Status](#atomix-multiraft-v1-OperationOutput-Status)
+    - [Failure.Status](#atomix-multiraft-v1-Failure-Status)
     - [SessionSnapshot.State](#atomix-multiraft-v1-SessionSnapshot-State)
   
 - [Scalar Value Types](#scalar-value-types)
@@ -188,6 +189,22 @@
 
 
 
+<a name="atomix-multiraft-v1-Failure"></a>
+
+### Failure
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| status | [Failure.Status](#atomix-multiraft-v1-Failure-Status) |  |  |
+| message | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-v1-KeepAliveInput"></a>
 
 ### KeepAliveInput
@@ -285,9 +302,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| status | [OperationOutput.Status](#atomix-multiraft-v1-OperationOutput-Status) |  |  |
 | payload | [bytes](#bytes) |  |  |
-| message | [string](#string) |  |  |
 
 
 
@@ -466,6 +481,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | sequence_num | [uint64](#uint64) |  |  |
+| failure | [Failure](#atomix-multiraft-v1-Failure) |  |  |
 | create_primitive | [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput) |  |  |
 | close_primitive | [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput) |  |  |
 | operation | [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput) |  |  |
@@ -499,6 +515,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| failure | [Failure](#atomix-multiraft-v1-Failure) |  |  |
 | operation | [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput) |  |  |
 
 
@@ -556,28 +573,27 @@
 
 
 
-<a name="atomix-multiraft-v1-OperationOutput-Status"></a>
+<a name="atomix-multiraft-v1-Failure-Status"></a>
 
-### OperationOutput.Status
+### Failure.Status
 
 
 | Name | Number | Description |
 | ---- | ------ | ----------- |
-| OK | 0 |  |
+| UNKNOWN | 0 |  |
 | ERROR | 1 |  |
-| UNKNOWN | 2 |  |
-| CANCELED | 3 |  |
-| NOT_FOUND | 4 |  |
-| ALREADY_EXISTS | 5 |  |
-| UNAUTHORIZED | 6 |  |
-| FORBIDDEN | 7 |  |
-| CONFLICT | 8 |  |
-| INVALID | 9 |  |
-| UNAVAILABLE | 10 |  |
-| NOT_SUPPORTED | 11 |  |
-| TIMEOUT | 12 |  |
-| FAULT | 13 |  |
-| INTERNAL | 14 |  |
+| CANCELED | 2 |  |
+| NOT_FOUND | 3 |  |
+| ALREADY_EXISTS | 4 |  |
+| UNAUTHORIZED | 5 |  |
+| FORBIDDEN | 6 |  |
+| CONFLICT | 7 |  |
+| INVALID | 8 |  |
+| UNAVAILABLE | 9 |  |
+| NOT_SUPPORTED | 10 |  |
+| TIMEOUT | 11 |  |
+| FAULT | 12 |  |
+| INTERNAL | 13 |  |
 
 
 
