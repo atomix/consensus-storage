@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/stream"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
@@ -21,6 +21,11 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+)
+
+const (
+	defaultSnapshotEntryThreshold  = 10000
+	defaultCompactionRetainEntries = 1000
 )
 
 func newPartition(id multiraftv1.PartitionID, node *Node) *Partition {
@@ -232,6 +237,15 @@ func (p *Partition) getRaftConfig(config multiraftv1.PartitionConfig) (raftconfi
 	electionRTT := uint64(10)
 	if p.node.config.ElectionTimeout != nil {
 		electionRTT = uint64(p.node.config.ElectionTimeout.Milliseconds()) / rtt
+	}
+
+	snapshotEntryThreshold := p.node.config.SnapshotEntryThreshold
+	if snapshotEntryThreshold == 0 {
+		snapshotEntryThreshold = defaultSnapshotEntryThreshold
+	}
+	compactionRetainEntries := p.node.config.CompactionRetainEntries
+	if compactionRetainEntries == 0 {
+		compactionRetainEntries = defaultCompactionRetainEntries
 	}
 
 	return raftconfig.Config{

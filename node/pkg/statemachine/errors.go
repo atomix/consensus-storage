@@ -9,84 +9,91 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 )
 
-// getErrorFromStatus creates a typed error from a response status
-func getErrorFromStatus(status multiraftv1.OperationOutput_Status, message string) error {
-	switch status {
-	case multiraftv1.OperationOutput_OK:
+// getError creates a typed error from a response status
+func getError(failure *multiraftv1.Failure) error {
+	if failure == nil {
 		return nil
-	case multiraftv1.OperationOutput_ERROR:
-		return errors.NewUnknown(message)
-	case multiraftv1.OperationOutput_UNKNOWN:
-		return errors.NewUnknown(message)
-	case multiraftv1.OperationOutput_CANCELED:
-		return errors.NewCanceled(message)
-	case multiraftv1.OperationOutput_NOT_FOUND:
-		return errors.NewNotFound(message)
-	case multiraftv1.OperationOutput_ALREADY_EXISTS:
-		return errors.NewAlreadyExists(message)
-	case multiraftv1.OperationOutput_UNAUTHORIZED:
-		return errors.NewUnauthorized(message)
-	case multiraftv1.OperationOutput_FORBIDDEN:
-		return errors.NewForbidden(message)
-	case multiraftv1.OperationOutput_CONFLICT:
-		return errors.NewConflict(message)
-	case multiraftv1.OperationOutput_INVALID:
-		return errors.NewInvalid(message)
-	case multiraftv1.OperationOutput_UNAVAILABLE:
-		return errors.NewUnavailable(message)
-	case multiraftv1.OperationOutput_NOT_SUPPORTED:
-		return errors.NewNotSupported(message)
-	case multiraftv1.OperationOutput_TIMEOUT:
-		return errors.NewTimeout(message)
-	case multiraftv1.OperationOutput_FAULT:
-		return errors.NewFault(message)
-	case multiraftv1.OperationOutput_INTERNAL:
-		return errors.NewInternal(message)
+	}
+	switch failure.Status {
+	case multiraftv1.Failure_ERROR:
+		return errors.NewUnknown(failure.Message)
+	case multiraftv1.Failure_UNKNOWN:
+		return errors.NewUnknown(failure.Message)
+	case multiraftv1.Failure_CANCELED:
+		return errors.NewCanceled(failure.Message)
+	case multiraftv1.Failure_NOT_FOUND:
+		return errors.NewNotFound(failure.Message)
+	case multiraftv1.Failure_ALREADY_EXISTS:
+		return errors.NewAlreadyExists(failure.Message)
+	case multiraftv1.Failure_UNAUTHORIZED:
+		return errors.NewUnauthorized(failure.Message)
+	case multiraftv1.Failure_FORBIDDEN:
+		return errors.NewForbidden(failure.Message)
+	case multiraftv1.Failure_CONFLICT:
+		return errors.NewConflict(failure.Message)
+	case multiraftv1.Failure_INVALID:
+		return errors.NewInvalid(failure.Message)
+	case multiraftv1.Failure_UNAVAILABLE:
+		return errors.NewUnavailable(failure.Message)
+	case multiraftv1.Failure_NOT_SUPPORTED:
+		return errors.NewNotSupported(failure.Message)
+	case multiraftv1.Failure_TIMEOUT:
+		return errors.NewTimeout(failure.Message)
+	case multiraftv1.Failure_FAULT:
+		return errors.NewFault(failure.Message)
+	case multiraftv1.Failure_INTERNAL:
+		return errors.NewInternal(failure.Message)
 	default:
-		return errors.NewUnknown(message)
+		return errors.NewUnknown(failure.Message)
 	}
 }
 
-// getStatus gets the proto status for the given error
-func getStatus(err error) multiraftv1.OperationOutput_Status {
+// getFailure gets the proto status for the given error
+func getFailure(err error) *multiraftv1.Failure {
 	if err == nil {
-		return multiraftv1.OperationOutput_OK
+		return nil
 	}
+	return &multiraftv1.Failure{
+		Status:  getStatus(err),
+		Message: getMessage(err),
+	}
+}
 
+func getStatus(err error) multiraftv1.Failure_Status {
 	typed, ok := err.(*errors.TypedError)
 	if !ok {
-		return multiraftv1.OperationOutput_ERROR
+		return multiraftv1.Failure_ERROR
 	}
 
 	switch typed.Type {
 	case errors.Unknown:
-		return multiraftv1.OperationOutput_UNKNOWN
+		return multiraftv1.Failure_UNKNOWN
 	case errors.Canceled:
-		return multiraftv1.OperationOutput_CANCELED
+		return multiraftv1.Failure_CANCELED
 	case errors.NotFound:
-		return multiraftv1.OperationOutput_NOT_FOUND
+		return multiraftv1.Failure_NOT_FOUND
 	case errors.AlreadyExists:
-		return multiraftv1.OperationOutput_ALREADY_EXISTS
+		return multiraftv1.Failure_ALREADY_EXISTS
 	case errors.Unauthorized:
-		return multiraftv1.OperationOutput_UNAUTHORIZED
+		return multiraftv1.Failure_UNAUTHORIZED
 	case errors.Forbidden:
-		return multiraftv1.OperationOutput_FORBIDDEN
+		return multiraftv1.Failure_FORBIDDEN
 	case errors.Conflict:
-		return multiraftv1.OperationOutput_CONFLICT
+		return multiraftv1.Failure_CONFLICT
 	case errors.Invalid:
-		return multiraftv1.OperationOutput_INVALID
+		return multiraftv1.Failure_INVALID
 	case errors.Unavailable:
-		return multiraftv1.OperationOutput_UNAVAILABLE
+		return multiraftv1.Failure_UNAVAILABLE
 	case errors.NotSupported:
-		return multiraftv1.OperationOutput_NOT_SUPPORTED
+		return multiraftv1.Failure_NOT_SUPPORTED
 	case errors.Timeout:
-		return multiraftv1.OperationOutput_TIMEOUT
+		return multiraftv1.Failure_TIMEOUT
 	case errors.Fault:
-		return multiraftv1.OperationOutput_FAULT
+		return multiraftv1.Failure_FAULT
 	case errors.Internal:
-		return multiraftv1.OperationOutput_INTERNAL
+		return multiraftv1.Failure_INTERNAL
 	default:
-		return multiraftv1.OperationOutput_ERROR
+		return multiraftv1.Failure_ERROR
 	}
 }
 

@@ -62,5 +62,5 @@ func (s *MultiRaftNode) Start() error {
 
 func (s *MultiRaftNode) Stop() error {
 	s.server.Stop()
-	return nil
+	return s.protocol.Shutdown()
 }

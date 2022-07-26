@@ -78,7 +78,7 @@ func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
 	for _, p := range m.primitives {
 		if p.info().spec.Namespace == command.Input().Namespace && p.info().spec.Name == command.Input().Name {
 			if p.info().spec.Type.Name != command.Input().Type.Name || p.info().spec.Type.ApiVersion != command.Input().Type.ApiVersion {
-				command.Output(nil, errors.NewForbidden("cannot create primitive of a different type with the same name"))
+				command.Error(errors.NewForbidden("cannot create primitive of a different type with the same name"))
 				command.Close()
 				return
 			}
@@ -90,7 +90,7 @@ func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
 	if executor == nil {
 		factory, ok := m.registry.lookup(command.Input().Type.Name, command.Input().Type.ApiVersion)
 		if !ok {
-			command.Output(nil, errors.NewForbidden("unknown primitive type"))
+			command.Error(errors.NewForbidden("unknown primitive type"))
 			command.Close()
 			return
 		}
@@ -108,12 +108,7 @@ func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
 func (m *primitiveManager) update(proposal *raftSessionOperationCommand) {
 	primitive, ok := m.primitives[proposal.Input().PrimitiveID]
 	if !ok {
-		proposal.Output(&multiraftv1.PrimitiveOperationOutput{
-			OperationOutput: multiraftv1.OperationOutput{
-				Status:  multiraftv1.OperationOutput_FAULT,
-				Message: "primitive not found",
-			},
-		}, nil)
+		proposal.Error(errors.NewFault("primitive not found"))
 		proposal.Close()
 		return
 	}
@@ -123,12 +118,7 @@ func (m *primitiveManager) update(proposal *raftSessionOperationCommand) {
 func (m *primitiveManager) read(query *raftSessionOperationQuery) {
 	primitive, ok := m.primitives[query.Input().PrimitiveID]
 	if !ok {
-		query.Output(&multiraftv1.PrimitiveOperationOutput{
-			OperationOutput: multiraftv1.OperationOutput{
-				Status:  multiraftv1.OperationOutput_FAULT,
-				Message: "primitive not found",
-			},
-		}, nil)
+		query.Error(errors.NewFault("primitive not found"))
 		query.Close()
 		return
 	}
@@ -138,7 +128,7 @@ func (m *primitiveManager) read(query *raftSessionOperationQuery) {
 func (m *primitiveManager) close(command *raftSessionClosePrimitiveCommand) {
 	primitive, ok := m.primitives[command.Input().PrimitiveID]
 	if !ok {
-		command.Output(&multiraftv1.ClosePrimitiveOutput{}, nil)
+		command.Output(&multiraftv1.ClosePrimitiveOutput{})
 		command.Close()
 		return
 	}
@@ -282,26 +272,21 @@ func (p *primitiveStateMachineExecutor[I, O]) create(command *raftSessionCreateP
 		session.open()
 	}
 	command.Output(&multiraftv1.CreatePrimitiveOutput{
-		PrimitiveID: multiraftv1.PrimitiveID(p.id),
-	}, nil)
+		PrimitiveID: p.id,
+	})
 	command.Close()
 }
 
 func (p *primitiveStateMachineExecutor[I, O]) update(command *raftSessionOperationCommand) {
 	primitiveSession, ok := p.sessions.sessions[command.session.sessionID]
 	if !ok {
-		command.Output(nil, errors.NewFault("session not found"))
+		command.Error(errors.NewFault("session not found"))
 		command.Close()
 		return
 	}
 	primitiveCommand, err := newPrimitiveProposal[I, O](primitiveSession, command)
 	if err != nil {
-		command.Output(&multiraftv1.PrimitiveOperationOutput{
-			OperationOutput: multiraftv1.OperationOutput{
-				Status:  getStatus(err),
-				Message: err.Error(),
-			},
-		}, nil)
+		command.Error(err)
 		command.Close()
 	} else {
 		primitiveCommand.open()
@@ -312,18 +297,13 @@ func (p *primitiveStateMachineExecutor[I, O]) update(command *raftSessionOperati
 func (p *primitiveStateMachineExecutor[I, O]) read(query *raftSessionOperationQuery) {
 	primitiveSession, ok := p.sessions.sessions[query.session.sessionID]
 	if !ok {
-		query.Output(nil, errors.NewFault("session not found"))
+		query.Error(errors.NewFault("session not found"))
 		query.Close()
 		return
 	}
 	primitiveQuery, err := newPrimitiveQuery[I, O](primitiveSession, query)
 	if err != nil {
-		query.Output(&multiraftv1.PrimitiveOperationOutput{
-			OperationOutput: multiraftv1.OperationOutput{
-				Status:  getStatus(err),
-				Message: err.Error(),
-			},
-		}, nil)
+		query.Error(err)
 		query.Close()
 	} else {
 		p.stateMachine.Read(primitiveQuery)
@@ -336,7 +316,7 @@ func (p *primitiveStateMachineExecutor[I, O]) close(command *raftSessionClosePri
 	if ok {
 		session.close()
 	}
-	command.Output(&multiraftv1.ClosePrimitiveOutput{}, nil)
+	command.Output(&multiraftv1.ClosePrimitiveOutput{})
 	command.Close()
 }
 
@@ -526,28 +506,18 @@ func (c *primitiveProposal[I, O]) Input() I {
 func (c *primitiveProposal[I, O]) Output(output O) {
 	bytes, err := c.session.primitive.primitiveType.Codec().EncodeOutput(output)
 	if err != nil {
-		c.command.Output(&multiraftv1.PrimitiveOperationOutput{
-			OperationOutput: multiraftv1.OperationOutput{
-				Status:  multiraftv1.OperationOutput_INTERNAL,
-				Message: err.Error(),
-			},
-		}, nil)
+		c.command.Error(errors.NewInternal(err.Error()))
 	} else {
 		c.command.Output(&multiraftv1.PrimitiveOperationOutput{
 			OperationOutput: multiraftv1.OperationOutput{
 				Payload: bytes,
 			},
-		}, nil)
+		})
 	}
 }
 
 func (c *primitiveProposal[I, O]) Error(err error) {
-	c.command.Output(&multiraftv1.PrimitiveOperationOutput{
-		OperationOutput: multiraftv1.OperationOutput{
-			Status:  getStatus(err),
-			Message: getMessage(err),
-		},
-	}, nil)
+	c.command.Error(err)
 }
 
 func (c *primitiveProposal[I, O]) open() {
@@ -598,26 +568,16 @@ func (q *primitiveQuery[I, O]) Input() I {
 func (q *primitiveQuery[I, O]) Output(output O) {
 	bytes, err := q.session.primitive.primitiveType.Codec().EncodeOutput(output)
 	if err != nil {
-		q.query.Output(&multiraftv1.PrimitiveOperationOutput{
-			OperationOutput: multiraftv1.OperationOutput{
-				Status:  multiraftv1.OperationOutput_INTERNAL,
-				Message: err.Error(),
-			},
-		}, nil)
+		q.query.Error(errors.NewInternal(err.Error()))
 	} else {
 		q.query.Output(&multiraftv1.PrimitiveOperationOutput{
 			OperationOutput: multiraftv1.OperationOutput{
 				Payload: bytes,
 			},
-		}, nil)
+		})
 	}
 }
 
 func (q *primitiveQuery[I, O]) Error(err error) {
-	q.query.Output(&multiraftv1.PrimitiveOperationOutput{
-		OperationOutput: multiraftv1.OperationOutput{
-			Status:  getStatus(err),
-			Message: getMessage(err),
-		},
-	}, nil)
+	q.query.Error(err)
 }

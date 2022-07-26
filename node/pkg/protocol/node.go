@@ -164,12 +164,8 @@ func (n *Node) Leave(partitionID multiraftv1.PartitionID) error {
 	return partition.leave()
 }
 
-func (n *Node) Shutdown(partitionID multiraftv1.PartitionID) error {
-	n.mu.Lock()
-	defer n.mu.Unlock()
-	if err := n.host.StopNode(uint64(partitionID), uint64(n.id)); err != nil {
-		return err
-	}
+func (n *Node) Shutdown() error {
+	n.host.Stop()
 	return nil
 }
 
@@ -340,7 +336,6 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 	if err != nil {
 		return nil, nil, err
 	}
-	outputBytes := output.GetSessionCommand().GetOperation().Payload
 	responseHeaders := &multiraftv1.CommandResponseHeaders{
 		OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
 			PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
@@ -350,12 +345,15 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionCommand().GetOperation().Status),
-			Message: output.GetSessionCommand().GetOperation().Message,
+			Status:  getHeaderStatus(output.GetSessionCommand().Failure),
+			Message: getHeaderMessage(output.GetSessionCommand().Failure),
 		},
 		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 	}
-	return outputBytes, responseHeaders, nil
+	if responseHeaders.Status != multiraftv1.OperationResponseHeaders_OK {
+		return nil, responseHeaders, nil
+	}
+	return output.GetSessionCommand().GetOperation().Payload, responseHeaders, nil
 }
 
 func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders, stream streams.WriteStream[*StreamCommandResponse[[]byte]]) error {
@@ -385,22 +383,27 @@ func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHead
 		if err != nil {
 			return nil, err
 		}
-		return &StreamCommandResponse[[]byte]{
-			Headers: &multiraftv1.CommandResponseHeaders{
-				OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
-					PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
-						SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
-							PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
-								Index: output.Index,
-							},
+		headers := &multiraftv1.CommandResponseHeaders{
+			OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+				PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+					SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+						PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+							Index: output.Index,
 						},
 					},
-					Status:  getHeaderStatus(output.GetSessionCommand().GetOperation().Status),
-					Message: output.GetSessionCommand().GetOperation().Message,
 				},
-				OutputSequenceNum: output.GetSessionCommand().SequenceNum,
+				Status:  getHeaderStatus(output.GetSessionCommand().Failure),
+				Message: getHeaderMessage(output.GetSessionCommand().Failure),
 			},
-			Output: output.GetSessionCommand().GetOperation().Payload,
+			OutputSequenceNum: output.GetSessionCommand().SequenceNum,
+		}
+		var payload []byte
+		if headers.Status == multiraftv1.OperationResponseHeaders_OK {
+			payload = output.GetSessionCommand().GetOperation().Payload
+		}
+		return &StreamCommandResponse[[]byte]{
+			Headers: headers,
+			Output:  payload,
 		}, nil
 	}))
 }
@@ -431,7 +434,6 @@ func (n *Node) Query(ctx context.Context, inputBytes []byte, requestHeaders *mul
 	if err != nil {
 		return nil, nil, err
 	}
-	outputBytes := output.GetSessionQuery().GetOperation().Payload
 	responseHeaders := &multiraftv1.QueryResponseHeaders{
 		OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
 			PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
@@ -441,11 +443,14 @@ func (n *Node) Query(ctx context.Context, inputBytes []byte, requestHeaders *mul
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionQuery().GetOperation().Status),
-			Message: output.GetSessionQuery().GetOperation().Message,
+			Status:  getHeaderStatus(output.GetSessionQuery().Failure),
+			Message: getHeaderMessage(output.GetSessionQuery().Failure),
 		},
 	}
-	return outputBytes, responseHeaders, nil
+	if responseHeaders.Status != multiraftv1.OperationResponseHeaders_OK {
+		return nil, responseHeaders, nil
+	}
+	return output.GetSessionQuery().GetOperation().Payload, responseHeaders, nil
 }
 
 func (n *Node) StreamQuery(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders, stream streams.WriteStream[*StreamQueryResponse[[]byte]]) error {
@@ -474,60 +479,73 @@ func (n *Node) StreamQuery(ctx context.Context, inputBytes []byte, requestHeader
 		if err != nil {
 			return nil, err
 		}
-		return &StreamQueryResponse[[]byte]{
-			Headers: &multiraftv1.QueryResponseHeaders{
-				OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
-					PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
-						SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
-							PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
-								Index: output.Index,
-							},
+		headers := &multiraftv1.QueryResponseHeaders{
+			OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+				PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+					SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+						PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+							Index: output.Index,
 						},
 					},
-					Status:  getHeaderStatus(output.GetSessionQuery().GetOperation().Status),
-					Message: output.GetSessionQuery().GetOperation().Message,
 				},
+				Status:  getHeaderStatus(output.GetSessionQuery().Failure),
+				Message: getHeaderMessage(output.GetSessionQuery().Failure),
 			},
-			Output: output.GetSessionQuery().GetOperation().Payload,
+		}
+		var payload []byte
+		if headers.Status == multiraftv1.OperationResponseHeaders_OK {
+			payload = output.GetSessionQuery().GetOperation().Payload
+		}
+		return &StreamQueryResponse[[]byte]{
+			Headers: headers,
+			Output:  payload,
 		}, nil
 	}))
 }
 
-func getHeaderStatus(status multiraftv1.OperationOutput_Status) multiraftv1.OperationResponseHeaders_Status {
-	switch status {
-	case multiraftv1.OperationOutput_UNKNOWN:
-		return multiraftv1.OperationResponseHeaders_UNKNOWN
-	case multiraftv1.OperationOutput_OK:
+func getHeaderStatus(failure *multiraftv1.Failure) multiraftv1.OperationResponseHeaders_Status {
+	if failure == nil {
 		return multiraftv1.OperationResponseHeaders_OK
-	case multiraftv1.OperationOutput_ERROR:
+	}
+	switch failure.Status {
+	case multiraftv1.Failure_UNKNOWN:
+		return multiraftv1.OperationResponseHeaders_UNKNOWN
+	case multiraftv1.Failure_ERROR:
 		return multiraftv1.OperationResponseHeaders_ERROR
-	case multiraftv1.OperationOutput_CANCELED:
+	case multiraftv1.Failure_CANCELED:
 		return multiraftv1.OperationResponseHeaders_CANCELED
-	case multiraftv1.OperationOutput_NOT_FOUND:
+	case multiraftv1.Failure_NOT_FOUND:
 		return multiraftv1.OperationResponseHeaders_NOT_FOUND
-	case multiraftv1.OperationOutput_ALREADY_EXISTS:
+	case multiraftv1.Failure_ALREADY_EXISTS:
 		return multiraftv1.OperationResponseHeaders_ALREADY_EXISTS
-	case multiraftv1.OperationOutput_UNAUTHORIZED:
+	case multiraftv1.Failure_UNAUTHORIZED:
 		return multiraftv1.OperationResponseHeaders_UNAUTHORIZED
-	case multiraftv1.OperationOutput_FORBIDDEN:
+	case multiraftv1.Failure_FORBIDDEN:
 		return multiraftv1.OperationResponseHeaders_FORBIDDEN
-	case multiraftv1.OperationOutput_CONFLICT:
+	case multiraftv1.Failure_CONFLICT:
 		return multiraftv1.OperationResponseHeaders_CONFLICT
-	case multiraftv1.OperationOutput_INVALID:
+	case multiraftv1.Failure_INVALID:
 		return multiraftv1.OperationResponseHeaders_INVALID
-	case multiraftv1.OperationOutput_UNAVAILABLE:
+	case multiraftv1.Failure_UNAVAILABLE:
 		return multiraftv1.OperationResponseHeaders_UNAVAILABLE
-	case multiraftv1.OperationOutput_NOT_SUPPORTED:
+	case multiraftv1.Failure_NOT_SUPPORTED:
 		return multiraftv1.OperationResponseHeaders_NOT_SUPPORTED
-	case multiraftv1.OperationOutput_TIMEOUT:
+	case multiraftv1.Failure_TIMEOUT:
 		return multiraftv1.OperationResponseHeaders_TIMEOUT
-	case multiraftv1.OperationOutput_INTERNAL:
+	case multiraftv1.Failure_INTERNAL:
 		return multiraftv1.OperationResponseHeaders_INTERNAL
-	case multiraftv1.OperationOutput_FAULT:
+	case multiraftv1.Failure_FAULT:
 		return multiraftv1.OperationResponseHeaders_FAULT
 	default:
 		return multiraftv1.OperationResponseHeaders_UNKNOWN
 	}
+}
+
+func getHeaderMessage(failure *multiraftv1.Failure) string {
+	if failure != nil {
+		return failure.Message
+	}
+	return ""
 }
 
 func wrapError(err error) error {

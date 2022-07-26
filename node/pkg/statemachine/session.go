@@ -377,7 +377,7 @@ func (c *raftSessionCommand) recover(reader *snapshot.Reader) error {
 	c.outputs = list.New()
 	for _, output := range snapshot.PendingOutputs {
 		r := output
-		c.outputs.PushBack(&r)
+		c.outputs.PushBack(r)
 	}
 	c.outputSeqNum = snapshot.LastOutputSequenceNum
 	c.stream = streams.NewNilStream[*multiraftv1.SessionCommandOutput]()
@@ -386,12 +386,27 @@ func (c *raftSessionCommand) recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (c *raftSessionCommand) Output(output *multiraftv1.SessionCommandOutput, err error) {
+func (c *raftSessionCommand) nextSequenceNum() multiraftv1.SequenceNum {
+	c.outputSeqNum++
+	return c.outputSeqNum
+}
+
+func (c *raftSessionCommand) Output(output *multiraftv1.SessionCommandOutput) {
 	if c.state == multiraftv1.CommandSnapshot_COMPLETE {
 		return
 	}
 	c.outputs.PushBack(output)
 	c.stream.Value(output)
+}
+
+func (c *raftSessionCommand) Error(err error) {
+	if c.state == multiraftv1.CommandSnapshot_COMPLETE {
+		return
+	}
+	c.Output(&multiraftv1.SessionCommandOutput{
+		SequenceNum: c.nextSequenceNum(),
+		Failure:     getFailure(err),
+	})
 }
 
 func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
@@ -425,18 +440,13 @@ func (c *raftSessionOperationCommand) Input() *multiraftv1.PrimitiveOperationInp
 	return c.raftSessionCommand.Input().GetOperation()
 }
 
-func (c *raftSessionOperationCommand) Output(output *multiraftv1.PrimitiveOperationOutput, err error) {
-	if err == nil {
-		c.outputSeqNum++
-		c.raftSessionCommand.Output(&multiraftv1.SessionCommandOutput{
-			SequenceNum: c.outputSeqNum,
-			Output: &multiraftv1.SessionCommandOutput_Operation{
-				Operation: output,
-			},
-		}, err)
-	} else {
-		c.raftSessionCommand.Output(nil, err)
-	}
+func (c *raftSessionOperationCommand) Output(output *multiraftv1.PrimitiveOperationOutput) {
+	c.raftSessionCommand.Output(&multiraftv1.SessionCommandOutput{
+		SequenceNum: c.nextSequenceNum(),
+		Output: &multiraftv1.SessionCommandOutput_Operation{
+			Operation: output,
+		},
+	})
 }
 
 func newSessionCreatePrimitiveCommand(parent *raftSessionCommand) *raftSessionCreatePrimitiveCommand {
@@ -453,18 +463,13 @@ func (c *raftSessionCreatePrimitiveCommand) Input() *multiraftv1.CreatePrimitive
 	return c.raftSessionCommand.Input().GetCreatePrimitive()
 }
 
-func (c *raftSessionCreatePrimitiveCommand) Output(output *multiraftv1.CreatePrimitiveOutput, err error) {
-	if err == nil {
-		c.outputSeqNum++
-		c.raftSessionCommand.Output(&multiraftv1.SessionCommandOutput{
-			SequenceNum: c.outputSeqNum,
-			Output: &multiraftv1.SessionCommandOutput_CreatePrimitive{
-				CreatePrimitive: output,
-			},
-		}, err)
-	} else {
-		c.raftSessionCommand.Output(nil, err)
-	}
+func (c *raftSessionCreatePrimitiveCommand) Output(output *multiraftv1.CreatePrimitiveOutput) {
+	c.raftSessionCommand.Output(&multiraftv1.SessionCommandOutput{
+		SequenceNum: c.nextSequenceNum(),
+		Output: &multiraftv1.SessionCommandOutput_CreatePrimitive{
+			CreatePrimitive: output,
+		},
+	})
 }
 
 func newSessionClosePrimitiveCommand(parent *raftSessionCommand) *raftSessionClosePrimitiveCommand {
@@ -481,18 +486,13 @@ func (c *raftSessionClosePrimitiveCommand) Input() *multiraftv1.ClosePrimitiveIn
 	return c.raftSessionCommand.Input().GetClosePrimitive()
 }
 
-func (c *raftSessionClosePrimitiveCommand) Output(output *multiraftv1.ClosePrimitiveOutput, err error) {
-	if err == nil {
-		c.outputSeqNum++
-		c.raftSessionCommand.Output(&multiraftv1.SessionCommandOutput{
-			SequenceNum: c.outputSeqNum,
-			Output: &multiraftv1.SessionCommandOutput_ClosePrimitive{
-				ClosePrimitive: output,
-			},
-		}, err)
-	} else {
-		c.raftSessionCommand.Output(nil, err)
-	}
+func (c *raftSessionClosePrimitiveCommand) Output(output *multiraftv1.ClosePrimitiveOutput) {
+	c.raftSessionCommand.Output(&multiraftv1.SessionCommandOutput{
+		SequenceNum: c.nextSequenceNum(),
+		Output: &multiraftv1.SessionCommandOutput_ClosePrimitive{
+			ClosePrimitive: output,
+		},
+	})
 }
 
 func newSessionQuery(session *raftSession) *raftSessionQuery {
@@ -515,8 +515,14 @@ func (q *raftSessionQuery) Input() *multiraftv1.SessionQueryInput {
 	return q.input
 }
 
-func (q *raftSessionQuery) Output(output *multiraftv1.SessionQueryOutput, err error) {
-	q.stream.Result(output, err)
+func (q *raftSessionQuery) Output(output *multiraftv1.SessionQueryOutput) {
+	q.stream.Value(output)
+}
+
+func (q *raftSessionQuery) Error(err error) {
+	q.Output(&multiraftv1.SessionQueryOutput{
+		Failure: getFailure(err),
+	})
 }
 
 func (q *raftSessionQuery) execute(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
@@ -543,14 +549,10 @@ func (q *raftSessionOperationQuery) Input() *multiraftv1.PrimitiveOperationInput
 	return q.raftSessionQuery.Input().GetOperation()
 }
 
-func (q *raftSessionOperationQuery) Output(output *multiraftv1.PrimitiveOperationOutput, err error) {
-	if err == nil {
-		q.raftSessionQuery.Output(&multiraftv1.SessionQueryOutput{
-			Output: &multiraftv1.SessionQueryOutput_Operation{
-				Operation: output,
-			},
-		}, err)
-	} else {
-		q.raftSessionQuery.Output(nil, err)
-	}
+func (q *raftSessionOperationQuery) Output(output *multiraftv1.PrimitiveOperationOutput) {
+	q.raftSessionQuery.Output(&multiraftv1.SessionQueryOutput{
+		Output: &multiraftv1.SessionQueryOutput_Operation{
+			Operation: output,
+		},
+	})
 }
