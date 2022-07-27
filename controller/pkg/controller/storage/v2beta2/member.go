@@ -123,20 +123,71 @@ func (r *RaftMemberReconciler) reconcileStatus(ctx context.Context, member *stor
 		return false, err
 	}
 
-	var state storagev2beta2.RaftMemberState
 	switch pod.Status.Phase {
 	case corev1.PodPending, corev1.PodSucceeded, corev1.PodFailed:
-		state = storagev2beta2.RaftMemberStopped
-	case corev1.PodRunning:
-		state = storagev2beta2.RaftMemberRunning
-	}
-
-	if member.Status.State != storagev2beta2.RaftMemberReady && member.Status.State != state {
-		member.Status.State = state
-		if err := r.client.Status().Update(ctx, member); err != nil {
-			return false, err
+		if member.Status.State != storagev2beta2.RaftMemberStopped {
+			member.Status.State = storagev2beta2.RaftMemberStopped
+			if err := r.client.Status().Update(ctx, member); err != nil {
+				return false, err
+			}
+			return true, nil
 		}
-		return true, nil
+	case corev1.PodRunning:
+		if member.Status.State == storagev2beta2.RaftMemberStopped {
+			groupName := types.NamespacedName{
+				Namespace: member.Namespace,
+				Name:      fmt.Sprintf("%s-%d", member.Spec.Cluster, member.Spec.GroupID),
+			}
+			group := &storagev2beta2.RaftGroup{}
+			if err := r.client.Get(ctx, groupName, group); err != nil {
+				if !k8serrors.IsNotFound(err) {
+					return false, err
+				}
+				return false, nil
+			}
+
+			address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
+			conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				return false, err
+			}
+			defer conn.Close()
+
+			client := multiraftv1.NewNodeClient(conn)
+			members := make([]multiraftv1.MemberConfig, len(group.Spec.Members))
+			for i, memberConfig := range group.Spec.Members {
+				var role multiraftv1.MemberConfig_Role
+				switch memberConfig.Type {
+				case storagev2beta2.RaftVotingMember:
+					role = multiraftv1.MemberConfig_MEMBER
+				case storagev2beta2.RaftObserver:
+					role = multiraftv1.MemberConfig_OBSERVER
+				case storagev2beta2.RaftWitness:
+					role = multiraftv1.MemberConfig_WITNESS
+				}
+				members[i] = multiraftv1.MemberConfig{
+					NodeID: multiraftv1.NodeID(memberConfig.NodeID),
+					Host:   getPodDNSName(group.Namespace, group.Spec.Cluster, int(memberConfig.NodeID-1)),
+					Port:   protocolPort,
+					Role:   role,
+				}
+			}
+			request := &multiraftv1.BootstrapRequest{
+				Group: multiraftv1.GroupConfig{
+					GroupID: multiraftv1.GroupID(member.Spec.GroupID),
+					Members: members,
+				},
+			}
+			if _, err := client.Bootstrap(ctx, request); err != nil {
+				return false, err
+			}
+
+			member.Status.State = storagev2beta2.RaftMemberRunning
+			if err := r.client.Status().Update(ctx, member); err != nil {
+				return false, err
+			}
+			return true, nil
+		}
 	}
 
 	err := r.startMonitoringPod(ctx, member)
@@ -297,9 +348,9 @@ func (r *RaftMemberReconciler) recordLeaderUpdated(ctx context.Context, memberNa
 		role = storagev2beta2.RaftLeader
 	}
 	term := uint64(event.Term)
-	var leader *uint32
+	var leader *int32
 	if event.Leader != 0 {
-		l := uint32(event.Leader)
+		l := int32(event.Leader)
 		leader = &l
 	}
 	err := r.updateMemberStatus(ctx, memberName, storagev2beta2.RaftMemberStatus{

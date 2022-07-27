@@ -291,11 +291,11 @@ func (r *MultiRaftStoreReconciler) getDriverConfig(ctx context.Context, store *s
 		group := &storagev2beta2.RaftGroup{}
 		if err := r.client.Get(ctx, groupName, group); err == nil {
 			if group.Status.Leader != nil {
-				partition.Leader = fmt.Sprintf(getPodDNSName(store, int(*group.Status.Leader)-1), apiPort)
+				partition.Leader = fmt.Sprintf(getPodDNSName(store.Namespace, store.Name, int(*group.Status.Leader)-1), apiPort)
 			}
 			for _, member := range group.Spec.Members {
 				if group.Status.Leader == nil || member.NodeID != *group.Status.Leader {
-					partition.Followers = append(partition.Followers, fmt.Sprintf(getPodDNSName(store, int(member.NodeID-1)), apiPort))
+					partition.Followers = append(partition.Followers, fmt.Sprintf(getPodDNSName(store.Namespace, store.Name, int(member.NodeID-1)), apiPort))
 				}
 			}
 		} else if !k8serrors.IsNotFound(err) {
@@ -308,28 +308,28 @@ func (r *MultiRaftStoreReconciler) getDriverConfig(ctx context.Context, store *s
 	}, nil
 }
 
-// newRaftConfigString creates a protocol configuration string for the given cluster and protocol
-func newRaftConfigString(cluster *storagev2beta2.MultiRaftStore) (string, error) {
+// newRaftConfigString creates a protocol configuration string for the given store and protocol
+func newRaftConfigString(store *storagev2beta2.MultiRaftStore) (string, error) {
 	config := multiraftv1.MultiRaftConfig{}
 
-	electionTimeout := cluster.Spec.RaftConfig.ElectionTimeout
+	electionTimeout := store.Spec.RaftConfig.ElectionTimeout
 	if electionTimeout != nil {
 		config.ElectionTimeout = &electionTimeout.Duration
 	}
 
-	heartbeatPeriod := cluster.Spec.RaftConfig.HeartbeatPeriod
+	heartbeatPeriod := store.Spec.RaftConfig.HeartbeatPeriod
 	if heartbeatPeriod != nil {
 		config.HeartbeatPeriod = &heartbeatPeriod.Duration
 	}
 
-	entryThreshold := cluster.Spec.RaftConfig.SnapshotEntryThreshold
+	entryThreshold := store.Spec.RaftConfig.SnapshotEntryThreshold
 	if entryThreshold != nil {
 		config.SnapshotEntryThreshold = uint64(*entryThreshold)
 	} else {
 		config.SnapshotEntryThreshold = 10000
 	}
 
-	retainEntries := cluster.Spec.RaftConfig.CompactionRetainEntries
+	retainEntries := store.Spec.RaftConfig.CompactionRetainEntries
 	if retainEntries != nil {
 		config.CompactionRetainEntries = uint64(*retainEntries)
 	} else {
@@ -343,25 +343,25 @@ func newRaftConfigString(cluster *storagev2beta2.MultiRaftStore) (string, error)
 	return string(bytes), nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, cluster *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol stateful set")
 	statefulSet := &appsv1.StatefulSet{}
 	name := types.NamespacedName{
-		Namespace: cluster.Namespace,
-		Name:      cluster.Name,
+		Namespace: store.Namespace,
+		Name:      store.Name,
 	}
 	err := r.client.Get(ctx, name, statefulSet)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addStatefulSet(ctx, cluster)
+		err = r.addStatefulSet(ctx, store)
 	}
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, cluster *storagev2beta2.MultiRaftStore) error {
-	log.Info("Creating raft replicas", "Name", cluster.Name, "Namespace", cluster.Namespace)
+func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+	log.Info("Creating raft replicas", "Name", store.Name, "Namespace", store.Namespace)
 
-	image := getImage(cluster)
-	pullPolicy := cluster.Spec.ImagePullPolicy
+	image := getImage(store)
+	pullPolicy := store.Spec.ImagePullPolicy
 	if pullPolicy == "" {
 		pullPolicy = corev1.PullIfNotPresent
 	}
@@ -372,7 +372,7 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, cluster *
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: cluster.Name,
+						Name: store.Name,
 					},
 				},
 			},
@@ -382,8 +382,8 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, cluster *
 	var volumeClaimTemplates []corev1.PersistentVolumeClaim
 
 	dataVolumeName := dataVolume
-	if cluster.Spec.VolumeClaimTemplate != nil {
-		pvc := cluster.Spec.VolumeClaimTemplate
+	if store.Spec.VolumeClaimTemplate != nil {
+		pvc := store.Spec.VolumeClaimTemplate
 		if pvc.Name == "" {
 			pvc.Name = dataVolume
 		} else {
@@ -401,15 +401,15 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, cluster *
 
 	set := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cluster.Name,
-			Namespace: cluster.Namespace,
-			Labels:    newStoreLabels(cluster),
+			Name:      store.Name,
+			Namespace: store.Namespace,
+			Labels:    newStoreLabels(store),
 		},
 		Spec: appsv1.StatefulSetSpec{
-			ServiceName: getStoreHeadlessServiceName(cluster),
-			Replicas:    pointer.Int32Ptr(int32(getNumReplicas(cluster))),
+			ServiceName: getStoreHeadlessServiceName(store.Name),
+			Replicas:    pointer.Int32Ptr(int32(getNumReplicas(store))),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: newStoreLabels(cluster),
+				MatchLabels: newStoreLabels(store),
 			},
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.RollingUpdateStatefulSetStrategyType,
@@ -417,7 +417,7 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, cluster *
 			PodManagementPolicy: appsv1.ParallelPodManagement,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: newStoreLabels(cluster),
+					Labels: newStoreLabels(store),
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
@@ -466,7 +466,7 @@ atomix-multi-raft-node $ordinal`,
 								InitialDelaySeconds: 60,
 								TimeoutSeconds:      10,
 							},
-							SecurityContext: cluster.Spec.SecurityContext,
+							SecurityContext: store.Spec.SecurityContext,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      dataVolumeName,
@@ -486,16 +486,16 @@ atomix-multi-raft-node $ordinal`,
 									Weight: 1,
 									PodAffinityTerm: corev1.PodAffinityTerm{
 										LabelSelector: &metav1.LabelSelector{
-											MatchLabels: newStoreLabels(cluster),
+											MatchLabels: newStoreLabels(store),
 										},
-										Namespaces:  []string{cluster.Namespace},
+										Namespaces:  []string{store.Namespace},
 										TopologyKey: "kubernetes.io/hostname",
 									},
 								},
 							},
 						},
 					},
-					ImagePullSecrets: cluster.Spec.ImagePullSecrets,
+					ImagePullSecrets: store.Spec.ImagePullSecrets,
 					Volumes:          volumes,
 				},
 			},
@@ -503,34 +503,34 @@ atomix-multi-raft-node $ordinal`,
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(cluster, set, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(store, set, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, set)
 }
 
-func (r *MultiRaftStoreReconciler) reconcileService(ctx context.Context, cluster *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol service")
 	service := &corev1.Service{}
 	name := types.NamespacedName{
-		Namespace: cluster.Namespace,
-		Name:      cluster.Name,
+		Namespace: store.Namespace,
+		Name:      store.Name,
 	}
 	err := r.client.Get(ctx, name, service)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addService(ctx, cluster)
+		err = r.addService(ctx, store)
 	}
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addService(ctx context.Context, cluster *storagev2beta2.MultiRaftStore) error {
-	log.Info("Creating raft service", "Name", cluster.Name, "Namespace", cluster.Namespace)
+func (r *MultiRaftStoreReconciler) addService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+	log.Info("Creating raft service", "Name", store.Name, "Namespace", store.Namespace)
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      cluster.Name,
-			Namespace: cluster.Namespace,
-			Labels:    newStoreLabels(cluster),
+			Name:      store.Name,
+			Namespace: store.Namespace,
+			Labels:    newStoreLabels(store),
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -543,38 +543,38 @@ func (r *MultiRaftStoreReconciler) addService(ctx context.Context, cluster *stor
 					Port: protocolPort,
 				},
 			},
-			Selector: newStoreLabels(cluster),
+			Selector: newStoreLabels(store),
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(store, service, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, service)
 }
 
-func (r *MultiRaftStoreReconciler) reconcileHeadlessService(ctx context.Context, cluster *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileHeadlessService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol headless service")
 	service := &corev1.Service{}
 	name := types.NamespacedName{
-		Namespace: cluster.Namespace,
-		Name:      getStoreHeadlessServiceName(cluster),
+		Namespace: store.Namespace,
+		Name:      getStoreHeadlessServiceName(store.Name),
 	}
 	err := r.client.Get(ctx, name, service)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addHeadlessService(ctx, cluster)
+		err = r.addHeadlessService(ctx, store)
 	}
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addHeadlessService(ctx context.Context, cluster *storagev2beta2.MultiRaftStore) error {
-	log.Info("Creating headless raft service", "Name", cluster.Name, "Namespace", cluster.Namespace)
+func (r *MultiRaftStoreReconciler) addHeadlessService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+	log.Info("Creating headless raft service", "Name", store.Name, "Namespace", store.Namespace)
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      getStoreHeadlessServiceName(cluster),
-			Namespace: cluster.Namespace,
-			Labels:    newStoreLabels(cluster),
+			Name:      getStoreHeadlessServiceName(store.Name),
+			Namespace: store.Namespace,
+			Labels:    newStoreLabels(store),
 			Annotations: map[string]string{
 				"service.alpha.kubernetes.io/tolerate-unready-endpoints": "true",
 			},
@@ -592,11 +592,11 @@ func (r *MultiRaftStoreReconciler) addHeadlessService(ctx context.Context, clust
 			},
 			PublishNotReadyAddresses: true,
 			ClusterIP:                "None",
-			Selector:                 newStoreLabels(cluster),
+			Selector:                 newStoreLabels(store),
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(store, service, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, service)
@@ -732,13 +732,13 @@ func getNumROMembers(store *storagev2beta2.MultiRaftStore) int {
 }
 
 // getStoreResourceName returns the given resource name for the given store
-func getStoreResourceName(store *storagev2beta2.MultiRaftStore, resource string) string {
-	return fmt.Sprintf("%s-%s", store.Name, resource)
+func getStoreResourceName(name string, resource string) string {
+	return fmt.Sprintf("%s-%s", name, resource)
 }
 
 // getStoreHeadlessServiceName returns the headless service name for the given store
-func getStoreHeadlessServiceName(store *storagev2beta2.MultiRaftStore) string {
-	return getStoreResourceName(store, headlessServiceSuffix)
+func getStoreHeadlessServiceName(cluster string) string {
+	return getStoreResourceName(cluster, headlessServiceSuffix)
 }
 
 // getClusterDomain returns Kubernetes cluster domain, default to "cluster.local"
@@ -756,8 +756,8 @@ func getClusterDomain() string {
 }
 
 // getPodDNSName returns the fully qualified DNS name for the given pod ID
-func getPodDNSName(store *storagev2beta2.MultiRaftStore, podID int) string {
-	return fmt.Sprintf("%s-%d.%s.%s.svc.%s", store.Name, podID, getStoreHeadlessServiceName(store), store.Namespace, getClusterDomain())
+func getPodDNSName(namespace string, cluster string, podID int) string {
+	return fmt.Sprintf("%s-%d.%s.%s.svc.%s", cluster, podID, getStoreHeadlessServiceName(cluster), namespace, getClusterDomain())
 }
 
 // newStoreLabels returns the labels for the given cluster
