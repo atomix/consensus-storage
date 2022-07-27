@@ -65,8 +65,6 @@ const (
 	driverVersion = "v1beta1"
 )
 
-const monitoringPort = 5000
-
 const clusterDomainEnv = "CLUSTER_DOMAIN"
 
 func addMultiRaftStoreController(mgr manager.Manager) error {
@@ -291,11 +289,11 @@ func (r *MultiRaftStoreReconciler) getDriverConfig(ctx context.Context, store *s
 		group := &storagev2beta2.RaftGroup{}
 		if err := r.client.Get(ctx, groupName, group); err == nil {
 			if group.Status.Leader != nil {
-				partition.Leader = fmt.Sprintf(getPodDNSName(store.Namespace, store.Name, int(*group.Status.Leader)-1), apiPort)
+				partition.Leader = fmt.Sprintf("%s:%d", getPodDNSName(store.Namespace, store.Name, int(*group.Status.Leader)-1), apiPort)
 			}
 			for _, member := range group.Spec.Members {
 				if group.Status.Leader == nil || member.NodeID != *group.Status.Leader {
-					partition.Followers = append(partition.Followers, fmt.Sprintf(getPodDNSName(store.Namespace, store.Name, int(member.NodeID-1)), apiPort))
+					partition.Followers = append(partition.Followers, fmt.Sprintf("%s:%d", getPodDNSName(store.Namespace, store.Name, int(member.NodeID-1)), apiPort))
 				}
 			}
 		} else if !k8serrors.IsNotFound(err) {
@@ -441,8 +439,8 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *st
 								fmt.Sprintf(`set -ex
 [[ `+"`hostname`"+` =~ -([0-9]+)$ ]] || exit 1
 ordinal=${BASH_REMATCH[1]}
-atomix-multi-raft-node --node $(($ordinal+1)) --config %s/%s --api-port %d --raft-host %s-$ordinal --raft-port %d`,
-									configPath, raftConfigFile, apiPort, store.Name, protocolPort),
+atomix-multi-raft-node --node $(($ordinal+1)) --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%s.svc.%s --raft-port %d`,
+									configPath, raftConfigFile, apiPort, store.Name, getStoreHeadlessServiceName(store.Name), store.Namespace, getClusterDomain(), protocolPort),
 							},
 							ReadinessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{

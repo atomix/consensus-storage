@@ -217,7 +217,7 @@ func (r *RaftMemberReconciler) startMonitoringPod(ctx context.Context, member *s
 	}
 
 	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", pod.Status.PodIP, monitoringPort),
+		fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
@@ -472,7 +472,7 @@ func (r *RaftMemberReconciler) tryUpdateMemberStatus(ctx context.Context, member
 		})
 		updated = true
 	}
-	if member.Status.State != status.State {
+	if status.State != "" && member.Status.State != status.State {
 		member.Status.State = status.State
 		recorders = append(recorders, func() {
 			r.events.Eventf(member, "Normal", "StateChanged", "State changed to %s", status.State)

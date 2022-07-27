@@ -177,7 +177,7 @@ func (r *MultiRaftNodeReconciler) startMonitoringPod(ctx context.Context, node *
 	}
 
 	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", pod.Status.PodIP, monitoringPort),
+		fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
