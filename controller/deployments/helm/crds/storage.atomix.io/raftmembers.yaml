@@ -47,11 +47,19 @@ spec:
               properties:
                 state:
                   type: string
-                  default: NotReady
+                  default: Stopped
+                  enum:
+                    - Stopped
+                    - Running
+                    - Ready
                 role:
                   type: string
+                  enum:
+                    - Follower
+                    - Candidate
+                    - Leader
                 leader:
-                  type: string
+                  type: integer
                 term:
                   type: integer
                 index:

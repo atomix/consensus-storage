@@ -69,6 +69,9 @@ spec:
               state:
                 type: string
                 default: NotReady
+                enum:
+                  - NotReady
+                  - Ready
     additionalPrinterColumns:
     - name: Status
       type: string

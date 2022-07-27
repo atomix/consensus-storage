@@ -53,6 +53,30 @@ func addRaftMemberController(mgr manager.Manager) error {
 	if err != nil {
 		return err
 	}
+
+	err = controller.Watch(&source.Kind{Type: &corev1.Pod{}}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
+		members := &storagev2beta2.RaftMemberList{}
+		if err := mgr.GetClient().List(context.TODO(), members, &client.ListOptions{Namespace: object.GetNamespace()}); err != nil {
+			return nil
+		}
+
+		var requests []reconcile.Request
+		for _, member := range members.Items {
+			podName := fmt.Sprintf("%s-%d", member.Spec.Cluster, member.Spec.NodeID-1)
+			if object.GetName() == podName {
+				requests = append(requests, reconcile.Request{
+					NamespacedName: types.NamespacedName{
+						Namespace: member.Namespace,
+						Name:      member.Name,
+					},
+				})
+			}
+		}
+		return requests
+	}))
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -90,7 +114,32 @@ func (r *RaftMemberReconciler) Reconcile(ctx context.Context, request reconcile.
 }
 
 func (r *RaftMemberReconciler) reconcileStatus(ctx context.Context, member *storagev2beta2.RaftMember) (bool, error) {
-	err := r.startMonitoringPod(ctx, member)
+	pod := &corev1.Pod{}
+	podName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      fmt.Sprintf("%s-%d", member.Spec.Cluster, member.Spec.NodeID),
+	}
+	if err := r.client.Get(ctx, podName, pod); err != nil {
+		return false, err
+	}
+
+	var state storagev2beta2.RaftMemberState
+	switch pod.Status.Phase {
+	case corev1.PodPending, corev1.PodSucceeded, corev1.PodFailed:
+		state = storagev2beta2.RaftMemberStopped
+	case corev1.PodRunning:
+		state = storagev2beta2.RaftMemberRunning
+	}
+
+	if member.Status.State != storagev2beta2.RaftMemberReady && member.Status.State != state {
+		member.Status.State = state
+		if err := r.client.Status().Update(ctx, member); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	err := r.startMonitoringPod(ctx, member, pod)
 	if err != nil {
 		return false, err
 	}
@@ -98,22 +147,13 @@ func (r *RaftMemberReconciler) reconcileStatus(ctx context.Context, member *stor
 }
 
 // nolint:gocyclo
-func (r *RaftMemberReconciler) startMonitoringPod(ctx context.Context, member *storagev2beta2.RaftMember) error {
+func (r *RaftMemberReconciler) startMonitoringPod(ctx context.Context, member *storagev2beta2.RaftMember, pod *corev1.Pod) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	_, ok := r.streams[member.Name]
 	if ok {
 		return nil
-	}
-
-	pod := &corev1.Pod{}
-	podName := types.NamespacedName{
-		Namespace: member.Namespace,
-		Name:      fmt.Sprintf("%s-%d", member.Spec.Cluster, member.Spec.NodeID),
-	}
-	if err := r.client.Get(ctx, podName, pod); err != nil {
-		return err
 	}
 
 	conn, err := grpc.Dial(
@@ -141,7 +181,7 @@ func (r *RaftMemberReconciler) startMonitoringPod(ctx context.Context, member *s
 			delete(r.streams, member.Name)
 			r.mu.Unlock()
 			go func() {
-				err := r.startMonitoringPod(ctx, member)
+				err := r.startMonitoringPod(ctx, member, pod)
 				if err != nil {
 					log.Error(err)
 				}

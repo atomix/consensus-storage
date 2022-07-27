@@ -82,3 +82,6 @@ spec:
                 state:
                   type: string
                   default: NotReady
+                  enum:
+                    - NotReady
+                    - Ready

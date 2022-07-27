@@ -54,8 +54,11 @@ spec:
                 state:
                   type: string
                   default: NotReady
+                  enum:
+                    - NotReady
+                    - Ready
                 leader:
-                  type: string
+                  type: integer
                 term:
                   type: integer
       additionalPrinterColumns:

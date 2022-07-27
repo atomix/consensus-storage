@@ -38,6 +38,9 @@ spec:
                 state:
                   type: string
                   default: NotReady
+                  enum:
+                    - NotReady
+                    - Ready
       additionalPrinterColumns:
         - name: Cluster
           type: string

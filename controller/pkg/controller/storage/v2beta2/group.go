@@ -143,7 +143,7 @@ func (r *RaftGroupReconciler) reconcileMember(ctx context.Context, group *storag
 func (r *RaftGroupReconciler) reconcileStatus(ctx context.Context, group *storagev2beta2.RaftGroup) (bool, error) {
 	changed := false
 	var recorders []func()
-	memberState := storagev2beta2.RaftMemberReady
+	groupState := storagev2beta2.RaftGroupReady
 	for _, memberConfig := range group.Spec.Members {
 		member := &storagev2beta2.RaftMember{}
 		memberName := types.NamespacedName{
@@ -171,12 +171,12 @@ func (r *RaftGroupReconciler) reconcileStatus(ctx context.Context, group *storag
 			changed = true
 		}
 
-		if member.Status.State == storagev2beta2.RaftMemberNotReady {
-			memberState = storagev2beta2.RaftMemberNotReady
+		if member.Status.State != storagev2beta2.RaftMemberReady {
+			groupState = storagev2beta2.RaftGroupNotReady
 		}
 	}
 
-	if memberState == storagev2beta2.RaftMemberReady && group.Status.State != storagev2beta2.RaftGroupReady {
+	if groupState == storagev2beta2.RaftGroupReady && group.Status.State != storagev2beta2.RaftGroupReady {
 		group.Status.State = storagev2beta2.RaftGroupReady
 		recorders = append(recorders, func() {
 			r.events.Eventf(group, "Normal", "Ready", "RaftGroup is ready")
@@ -184,7 +184,7 @@ func (r *RaftGroupReconciler) reconcileStatus(ctx context.Context, group *storag
 		changed = true
 	}
 
-	if memberState == storagev2beta2.RaftMemberNotReady && group.Status.State != storagev2beta2.RaftGroupNotReady {
+	if groupState == storagev2beta2.RaftGroupNotReady && group.Status.State != storagev2beta2.RaftGroupNotReady {
 		group.Status.State = storagev2beta2.RaftGroupNotReady
 		recorders = append(recorders, func() {
 			r.events.Eventf(group, "Normal", "NotReady", "RaftGroup is not ready")

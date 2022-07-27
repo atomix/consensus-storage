@@ -10,8 +10,10 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 type RaftMemberState string
 
 const (
-	// RaftMemberNotReady indicates a RaftMember is not yet ready
-	RaftMemberNotReady RaftMemberState = "NotReady"
+	// RaftMemberStopped indicates a RaftMember is stopped
+	RaftMemberStopped RaftMemberState = "Stopped"
+	// RaftMemberRunning indicates a RaftMember is running
+	RaftMemberRunning RaftMemberState = "Running"
 	// RaftMemberReady indicates a RaftMember is ready
 	RaftMemberReady RaftMemberState = "Ready"
 )
