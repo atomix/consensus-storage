@@ -17,11 +17,11 @@ service Node {
     rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
     rpc Join(JoinRequest) returns (JoinResponse);
     rpc Leave(LeaveRequest) returns (LeaveResponse);
-    rpc Watch(WatchNodeRequest) returns (stream NodeEvent);
+    rpc Watch(WatchRequest) returns (stream Event);
 }
 
 message BootstrapRequest {
-    ClusterConfig cluster = 1 [
+    GroupConfig group = 1 [
         (gogoproto.nullable) = false
     ];
 }
@@ -31,7 +31,7 @@ message BootstrapResponse {
 }
 
 message JoinRequest {
-    PartitionConfig partition = 1 [
+    GroupConfig group = 1 [
         (gogoproto.nullable) = false
     ];
 }
@@ -41,9 +41,9 @@ message JoinResponse {
 }
 
 message LeaveRequest {
-    uint32 partition_id = 1 [
-        (gogoproto.customname) = "PartitionID",
-        (gogoproto.casttype) = "PartitionID"
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
     ];
 }
 
@@ -51,24 +51,184 @@ message LeaveResponse {
 
 }
 
-message WatchNodeRequest {
+message WatchRequest {
 
 }
 
-message NodeEvent {
+message Event {
     google.protobuf.Timestamp timestamp = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.stdtime) = true
     ];
     oneof event {
-        ConnectionEstablishedEvent connection_established = 2;
-        ConnectionFailedEvent connection_failed = 3;
+        MemberReadyEvent member_ready = 2;
+        LeaderUpdatedEvent leader_updated = 3;
+        MembershipChangedEvent membership_changed = 4;
+        SendSnapshotStartedEvent send_snapshot_started = 5;
+        SendSnapshotCompletedEvent send_snapshot_completed = 6;
+        SendSnapshotAbortedEvent send_snapshot_aborted = 7;
+        SnapshotReceivedEvent snapshot_received = 8;
+        SnapshotRecoveredEvent snapshot_recovered = 9;
+        SnapshotCreatedEvent snapshot_created = 10;
+        SnapshotCompactedEvent snapshot_compacted = 11;
+        LogCompactedEvent log_compacted = 12;
+        LogDBCompactedEvent logdb_compacted = 13;
+        ConnectionEstablishedEvent connection_established = 14;
+        ConnectionFailedEvent connection_failed = 15;
     }
 }
 
 message ConnectionInfo {
     string address = 1;
     bool snapshot = 2;
+}
+
+message MemberReadyEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 node_id = 2 [
+        (gogoproto.customname) = "NodeID",
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+message MembershipChangedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 node_id = 2 [
+        (gogoproto.customname) = "NodeID",
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+message LeaderUpdatedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 term = 2 [
+        (gogoproto.casttype) = "Term"
+    ];
+    uint64 leader = 3 [
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+
+message SendSnapshotStartedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+    uint64 to = 3 [
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+message SendSnapshotCompletedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+    uint64 to = 3 [
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+message SendSnapshotAbortedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+    uint64 to = 3 [
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+message SnapshotReceivedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+    uint64 from = 3 [
+        (gogoproto.casttype) = "NodeID"
+    ];
+}
+
+message SnapshotRecoveredEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+}
+
+message SnapshotCreatedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+}
+
+message SnapshotCompactedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+}
+
+message LogEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+}
+
+message LogCompactedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
+}
+
+message LogDBCompactedEvent {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint64 index = 2 [
+        (gogoproto.casttype) = "Index"
+    ];
 }
 
 message ConnectionEstablishedEvent {

@@ -4,9 +4,11 @@
 
 package v1
 
+type PartitionID uint32
+
 type NodeID uint8
 
-type PartitionID uint32
+type GroupID uint32
 
 type SessionID uint64
 

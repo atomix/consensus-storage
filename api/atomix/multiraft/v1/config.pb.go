@@ -55,7 +55,7 @@ func (x MemberConfig_Role) String() string {
 }
 
 func (MemberConfig_Role) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_74a583683aac86e1, []int{5, 0}
+	return fileDescriptor_74a583683aac86e1, []int{3, 0}
 }
 
 type MultiRaftConfig struct {
@@ -195,23 +195,23 @@ func (m *NodeConfig) GetPort() int32 {
 	return 0
 }
 
-type ClusterConfig struct {
-	Replicas   []ReplicaConfig   `protobuf:"bytes,1,rep,name=replicas,proto3" json:"replicas"`
-	Partitions []PartitionConfig `protobuf:"bytes,2,rep,name=partitions,proto3" json:"partitions"`
+type GroupConfig struct {
+	GroupID GroupID        `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
+	Members []MemberConfig `protobuf:"bytes,2,rep,name=members,proto3" json:"members"`
 }
 
-func (m *ClusterConfig) Reset()         { *m = ClusterConfig{} }
-func (m *ClusterConfig) String() string { return proto.CompactTextString(m) }
-func (*ClusterConfig) ProtoMessage()    {}
-func (*ClusterConfig) Descriptor() ([]byte, []int) {
+func (m *GroupConfig) Reset()         { *m = GroupConfig{} }
+func (m *GroupConfig) String() string { return proto.CompactTextString(m) }
+func (*GroupConfig) ProtoMessage()    {}
+func (*GroupConfig) Descriptor() ([]byte, []int) {
 	return fileDescriptor_74a583683aac86e1, []int{2}
 }
-func (m *ClusterConfig) XXX_Unmarshal(b []byte) error {
+func (m *GroupConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ClusterConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GroupConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ClusterConfig.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GroupConfig.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -221,162 +221,26 @@ func (m *ClusterConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (m *ClusterConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ClusterConfig.Merge(m, src)
+func (m *GroupConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupConfig.Merge(m, src)
 }
-func (m *ClusterConfig) XXX_Size() int {
+func (m *GroupConfig) XXX_Size() int {
 	return m.Size()
 }
-func (m *ClusterConfig) XXX_DiscardUnknown() {
-	xxx_messageInfo_ClusterConfig.DiscardUnknown(m)
+func (m *GroupConfig) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupConfig.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ClusterConfig proto.InternalMessageInfo
+var xxx_messageInfo_GroupConfig proto.InternalMessageInfo
 
-func (m *ClusterConfig) GetReplicas() []ReplicaConfig {
+func (m *GroupConfig) GetGroupID() GroupID {
 	if m != nil {
-		return m.Replicas
-	}
-	return nil
-}
-
-func (m *ClusterConfig) GetPartitions() []PartitionConfig {
-	if m != nil {
-		return m.Partitions
-	}
-	return nil
-}
-
-type ReplicaConfig struct {
-	NodeID   NodeID `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3,casttype=NodeID" json:"nodeId"`
-	Host     string `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
-	ApiPort  int32  `protobuf:"varint,3,opt,name=api_port,json=apiPort,proto3" json:"api_port,omitempty"`
-	RaftPort int32  `protobuf:"varint,4,opt,name=raft_port,json=raftPort,proto3" json:"raft_port,omitempty"`
-}
-
-func (m *ReplicaConfig) Reset()         { *m = ReplicaConfig{} }
-func (m *ReplicaConfig) String() string { return proto.CompactTextString(m) }
-func (*ReplicaConfig) ProtoMessage()    {}
-func (*ReplicaConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_74a583683aac86e1, []int{3}
-}
-func (m *ReplicaConfig) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ReplicaConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ReplicaConfig.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ReplicaConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ReplicaConfig.Merge(m, src)
-}
-func (m *ReplicaConfig) XXX_Size() int {
-	return m.Size()
-}
-func (m *ReplicaConfig) XXX_DiscardUnknown() {
-	xxx_messageInfo_ReplicaConfig.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ReplicaConfig proto.InternalMessageInfo
-
-func (m *ReplicaConfig) GetNodeID() NodeID {
-	if m != nil {
-		return m.NodeID
+		return m.GroupID
 	}
 	return 0
 }
 
-func (m *ReplicaConfig) GetHost() string {
-	if m != nil {
-		return m.Host
-	}
-	return ""
-}
-
-func (m *ReplicaConfig) GetApiPort() int32 {
-	if m != nil {
-		return m.ApiPort
-	}
-	return 0
-}
-
-func (m *ReplicaConfig) GetRaftPort() int32 {
-	if m != nil {
-		return m.RaftPort
-	}
-	return 0
-}
-
-type PartitionConfig struct {
-	PartitionID PartitionID    `protobuf:"varint,1,opt,name=partition_id,json=partitionId,proto3,casttype=PartitionID" json:"partitionId"`
-	Host        string         `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
-	Port        int32          `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
-	Members     []MemberConfig `protobuf:"bytes,4,rep,name=members,proto3" json:"members"`
-}
-
-func (m *PartitionConfig) Reset()         { *m = PartitionConfig{} }
-func (m *PartitionConfig) String() string { return proto.CompactTextString(m) }
-func (*PartitionConfig) ProtoMessage()    {}
-func (*PartitionConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_74a583683aac86e1, []int{4}
-}
-func (m *PartitionConfig) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PartitionConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PartitionConfig.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PartitionConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PartitionConfig.Merge(m, src)
-}
-func (m *PartitionConfig) XXX_Size() int {
-	return m.Size()
-}
-func (m *PartitionConfig) XXX_DiscardUnknown() {
-	xxx_messageInfo_PartitionConfig.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PartitionConfig proto.InternalMessageInfo
-
-func (m *PartitionConfig) GetPartitionID() PartitionID {
-	if m != nil {
-		return m.PartitionID
-	}
-	return 0
-}
-
-func (m *PartitionConfig) GetHost() string {
-	if m != nil {
-		return m.Host
-	}
-	return ""
-}
-
-func (m *PartitionConfig) GetPort() int32 {
-	if m != nil {
-		return m.Port
-	}
-	return 0
-}
-
-func (m *PartitionConfig) GetMembers() []MemberConfig {
+func (m *GroupConfig) GetMembers() []MemberConfig {
 	if m != nil {
 		return m.Members
 	}
@@ -385,14 +249,16 @@ func (m *PartitionConfig) GetMembers() []MemberConfig {
 
 type MemberConfig struct {
 	NodeID NodeID            `protobuf:"varint,1,opt,name=node_id,json=nodeId,proto3,casttype=NodeID" json:"nodeId"`
-	Role   MemberConfig_Role `protobuf:"varint,2,opt,name=role,proto3,enum=atomix.multiraft.v1.MemberConfig_Role" json:"role,omitempty"`
+	Host   string            `protobuf:"bytes,2,opt,name=host,proto3" json:"host,omitempty"`
+	Port   int32             `protobuf:"varint,3,opt,name=port,proto3" json:"port,omitempty"`
+	Role   MemberConfig_Role `protobuf:"varint,4,opt,name=role,proto3,enum=atomix.multiraft.v1.MemberConfig_Role" json:"role,omitempty"`
 }
 
 func (m *MemberConfig) Reset()         { *m = MemberConfig{} }
 func (m *MemberConfig) String() string { return proto.CompactTextString(m) }
 func (*MemberConfig) ProtoMessage()    {}
 func (*MemberConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_74a583683aac86e1, []int{5}
+	return fileDescriptor_74a583683aac86e1, []int{3}
 }
 func (m *MemberConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -428,6 +294,20 @@ func (m *MemberConfig) GetNodeID() NodeID {
 	return 0
 }
 
+func (m *MemberConfig) GetHost() string {
+	if m != nil {
+		return m.Host
+	}
+	return ""
+}
+
+func (m *MemberConfig) GetPort() int32 {
+	if m != nil {
+		return m.Port
+	}
+	return 0
+}
+
 func (m *MemberConfig) GetRole() MemberConfig_Role {
 	if m != nil {
 		return m.Role
@@ -435,23 +315,22 @@ func (m *MemberConfig) GetRole() MemberConfig_Role {
 	return MemberConfig_UNKNOWN
 }
 
-type ServiceConfig struct {
-	Leader    string   `protobuf:"bytes,1,opt,name=leader,proto3" json:"leader,omitempty"`
-	Followers []string `protobuf:"bytes,2,rep,name=followers,proto3" json:"followers,omitempty"`
+type DriverConfig struct {
+	Partitions []PartitionConfig `protobuf:"bytes,1,rep,name=partitions,proto3" json:"partitions"`
 }
 
-func (m *ServiceConfig) Reset()         { *m = ServiceConfig{} }
-func (m *ServiceConfig) String() string { return proto.CompactTextString(m) }
-func (*ServiceConfig) ProtoMessage()    {}
-func (*ServiceConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_74a583683aac86e1, []int{6}
+func (m *DriverConfig) Reset()         { *m = DriverConfig{} }
+func (m *DriverConfig) String() string { return proto.CompactTextString(m) }
+func (*DriverConfig) ProtoMessage()    {}
+func (*DriverConfig) Descriptor() ([]byte, []int) {
+	return fileDescriptor_74a583683aac86e1, []int{4}
 }
-func (m *ServiceConfig) XXX_Unmarshal(b []byte) error {
+func (m *DriverConfig) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ServiceConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *DriverConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ServiceConfig.Marshal(b, m, deterministic)
+		return xxx_messageInfo_DriverConfig.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -461,26 +340,79 @@ func (m *ServiceConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (m *ServiceConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceConfig.Merge(m, src)
+func (m *DriverConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DriverConfig.Merge(m, src)
 }
-func (m *ServiceConfig) XXX_Size() int {
+func (m *DriverConfig) XXX_Size() int {
 	return m.Size()
 }
-func (m *ServiceConfig) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceConfig.DiscardUnknown(m)
+func (m *DriverConfig) XXX_DiscardUnknown() {
+	xxx_messageInfo_DriverConfig.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceConfig proto.InternalMessageInfo
+var xxx_messageInfo_DriverConfig proto.InternalMessageInfo
 
-func (m *ServiceConfig) GetLeader() string {
+func (m *DriverConfig) GetPartitions() []PartitionConfig {
+	if m != nil {
+		return m.Partitions
+	}
+	return nil
+}
+
+type PartitionConfig struct {
+	PartitionID PartitionID `protobuf:"varint,1,opt,name=partition_id,json=partitionId,proto3,casttype=PartitionID" json:"partitionId"`
+	Leader      string      `protobuf:"bytes,2,opt,name=leader,proto3" json:"leader,omitempty"`
+	Followers   []string    `protobuf:"bytes,3,rep,name=followers,proto3" json:"followers,omitempty"`
+}
+
+func (m *PartitionConfig) Reset()         { *m = PartitionConfig{} }
+func (m *PartitionConfig) String() string { return proto.CompactTextString(m) }
+func (*PartitionConfig) ProtoMessage()    {}
+func (*PartitionConfig) Descriptor() ([]byte, []int) {
+	return fileDescriptor_74a583683aac86e1, []int{5}
+}
+func (m *PartitionConfig) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PartitionConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PartitionConfig.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PartitionConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PartitionConfig.Merge(m, src)
+}
+func (m *PartitionConfig) XXX_Size() int {
+	return m.Size()
+}
+func (m *PartitionConfig) XXX_DiscardUnknown() {
+	xxx_messageInfo_PartitionConfig.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PartitionConfig proto.InternalMessageInfo
+
+func (m *PartitionConfig) GetPartitionID() PartitionID {
+	if m != nil {
+		return m.PartitionID
+	}
+	return 0
+}
+
+func (m *PartitionConfig) GetLeader() string {
 	if m != nil {
 		return m.Leader
 	}
 	return ""
 }
 
-func (m *ServiceConfig) GetFollowers() []string {
+func (m *PartitionConfig) GetFollowers() []string {
 	if m != nil {
 		return m.Followers
 	}
@@ -491,61 +423,58 @@ func init() {
 	proto.RegisterEnum("atomix.multiraft.v1.MemberConfig_Role", MemberConfig_Role_name, MemberConfig_Role_value)
 	proto.RegisterType((*MultiRaftConfig)(nil), "atomix.multiraft.v1.MultiRaftConfig")
 	proto.RegisterType((*NodeConfig)(nil), "atomix.multiraft.v1.NodeConfig")
-	proto.RegisterType((*ClusterConfig)(nil), "atomix.multiraft.v1.ClusterConfig")
-	proto.RegisterType((*ReplicaConfig)(nil), "atomix.multiraft.v1.ReplicaConfig")
-	proto.RegisterType((*PartitionConfig)(nil), "atomix.multiraft.v1.PartitionConfig")
+	proto.RegisterType((*GroupConfig)(nil), "atomix.multiraft.v1.GroupConfig")
 	proto.RegisterType((*MemberConfig)(nil), "atomix.multiraft.v1.MemberConfig")
-	proto.RegisterType((*ServiceConfig)(nil), "atomix.multiraft.v1.ServiceConfig")
+	proto.RegisterType((*DriverConfig)(nil), "atomix.multiraft.v1.DriverConfig")
+	proto.RegisterType((*PartitionConfig)(nil), "atomix.multiraft.v1.PartitionConfig")
 }
 
 func init() { proto.RegisterFile("atomix/multiraft/v1/config.proto", fileDescriptor_74a583683aac86e1) }
 
 var fileDescriptor_74a583683aac86e1 = []byte{
-	// 702 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xbf, 0x6f, 0x1a, 0x49,
-	0x14, 0x66, 0xf0, 0x9a, 0x1f, 0x0f, 0x73, 0x46, 0x7b, 0x27, 0xdf, 0xe2, 0x3b, 0x2d, 0xdc, 0xea,
-	0x74, 0xa2, 0xb9, 0x45, 0xe6, 0x8a, 0x3b, 0xb9, 0x3b, 0xcc, 0x9e, 0x64, 0x9f, 0x8c, 0xd1, 0xe0,
-	0xc4, 0x25, 0x1a, 0xd8, 0x01, 0x46, 0x5a, 0x98, 0xd5, 0xec, 0xe0, 0x24, 0xff, 0x45, 0x8a, 0x14,
-	0x69, 0xf3, 0x47, 0xa4, 0x49, 0x93, 0xd6, 0x55, 0xe4, 0x32, 0x15, 0x89, 0x70, 0x97, 0x3f, 0x21,
-	0x55, 0x34, 0xb3, 0x2c, 0xc6, 0x16, 0x52, 0xac, 0x28, 0xdd, 0xcc, 0xfb, 0xbe, 0xef, 0xbd, 0x6f,
-	0x3e, 0x1e, 0x0b, 0x55, 0x22, 0xf9, 0x84, 0x3d, 0xad, 0x4f, 0x66, 0x81, 0x64, 0x82, 0x0c, 0x65,
-	0xfd, 0xf2, 0xa0, 0x3e, 0xe0, 0xd3, 0x21, 0x1b, 0xb9, 0xa1, 0xe0, 0x92, 0x9b, 0x3f, 0xc6, 0x0c,
-	0x77, 0xc5, 0x70, 0x2f, 0x0f, 0xf6, 0xed, 0x11, 0xe7, 0xa3, 0x80, 0xd6, 0x35, 0xa5, 0x3f, 0x1b,
-	0xd6, 0xfd, 0x99, 0x20, 0x92, 0xf1, 0x69, 0x2c, 0xda, 0xff, 0x69, 0xc4, 0x47, 0x5c, 0x1f, 0xeb,
-	0xea, 0x14, 0x57, 0x9d, 0x37, 0x69, 0xd8, 0x3d, 0x55, 0x6d, 0x30, 0x19, 0xca, 0x23, 0x3d, 0xc4,
-	0x3c, 0x81, 0xd2, 0x98, 0x12, 0x21, 0xfb, 0x94, 0xc8, 0x5e, 0x48, 0x05, 0xe3, 0xbe, 0x85, 0xaa,
-	0xa8, 0x56, 0x68, 0x94, 0xdd, 0x78, 0x88, 0x9b, 0x0c, 0x71, 0x5b, 0xcb, 0x21, 0x4d, 0xe3, 0xe5,
-	0x87, 0x0a, 0xc2, 0xbb, 0x2b, 0x61, 0x47, 0xeb, 0x54, 0x2f, 0x1a, 0xd0, 0x81, 0xa2, 0xf4, 0x24,
-	0x9b, 0x50, 0x3e, 0x93, 0x56, 0xfa, 0x81, 0xbd, 0x12, 0xe1, 0x79, 0xac, 0x33, 0xff, 0x01, 0x2b,
-	0x9a, 0x92, 0x30, 0x1a, 0x73, 0xd9, 0xa3, 0x53, 0x29, 0x9e, 0xf5, 0xe4, 0x58, 0xd0, 0x68, 0xcc,
-	0x03, 0xdf, 0xda, 0xaa, 0xa2, 0x9a, 0x81, 0xf7, 0x12, 0xdc, 0x53, 0xf0, 0x79, 0x82, 0x9a, 0x87,
-	0x50, 0x1e, 0xf0, 0x49, 0x48, 0x62, 0x1f, 0x82, 0x4a, 0xc2, 0xa6, 0xba, 0x05, 0xa3, 0x91, 0x65,
-	0x68, 0xe9, 0xcf, 0xb7, 0x04, 0xac, 0x71, 0x2f, 0x86, 0xcd, 0x32, 0xe4, 0x7c, 0x22, 0x49, 0xcf,
-	0x67, 0xc2, 0xda, 0xae, 0xa2, 0x5a, 0x1e, 0x67, 0xd5, 0xbd, 0xc5, 0x84, 0xf3, 0x1a, 0x01, 0xb4,
-	0xb9, 0x4f, 0x97, 0xb9, 0xfd, 0x0d, 0xd9, 0x29, 0xf7, 0x69, 0x8f, 0xc5, 0x71, 0x19, 0x4d, 0x7b,
-	0x31, 0xaf, 0x64, 0x14, 0xe1, 0xb8, 0xf5, 0x69, 0x5e, 0xc9, 0x28, 0xf0, 0xd8, 0xff, 0xbc, 0xaa,
-	0xe1, 0x65, 0xc5, 0x34, 0xc1, 0x18, 0xf3, 0x28, 0x0e, 0x26, 0x8f, 0xf5, 0x59, 0xd5, 0x42, 0x2e,
-	0xa4, 0x7e, 0xd8, 0x36, 0xd6, 0x67, 0xf3, 0x3f, 0xc8, 0xc4, 0x7b, 0xa0, 0x3d, 0x17, 0x1a, 0xbf,
-	0xbb, 0x1b, 0x16, 0xc1, 0xbd, 0xf7, 0x73, 0x36, 0x73, 0x57, 0xf3, 0x4a, 0xea, 0x7a, 0x5e, 0x41,
-	0x78, 0xa9, 0x76, 0x5e, 0x21, 0x28, 0x1e, 0x05, 0xb3, 0x48, 0x52, 0xb1, 0xb4, 0xde, 0x82, 0x9c,
-	0xa0, 0x61, 0xc0, 0x06, 0x24, 0xb2, 0x50, 0x75, 0xab, 0x56, 0x68, 0x38, 0x1b, 0x7b, 0xe3, 0x98,
-	0xb4, 0xec, 0x6c, 0xa8, 0xce, 0x78, 0xa5, 0x34, 0x4f, 0x00, 0x42, 0x22, 0x24, 0x53, 0x21, 0x46,
-	0x56, 0x5a, 0xf7, 0xd9, 0xec, 0xb1, 0x93, 0xd0, 0xee, 0x74, 0x5a, 0x53, 0x3b, 0x2f, 0x10, 0x14,
-	0xef, 0x4c, 0xfb, 0xbe, 0xf1, 0x96, 0x21, 0x47, 0x42, 0xd6, 0x5b, 0x8b, 0x38, 0x4b, 0x42, 0xd6,
-	0x51, 0x29, 0xff, 0x02, 0x79, 0x65, 0x33, 0xc6, 0x0c, 0x8d, 0xe5, 0x54, 0x41, 0x81, 0xce, 0x3b,
-	0x04, 0xbb, 0xf7, 0xcc, 0x9b, 0x1d, 0xd8, 0x59, 0x19, 0x4f, 0xdc, 0x15, 0x9b, 0x7f, 0x2e, 0xe6,
-	0x95, 0xc2, 0x8a, 0xaa, 0x2d, 0x16, 0x56, 0x34, 0xed, 0x73, 0x1d, 0xc5, 0xeb, 0xd8, 0x83, 0x17,
-	0xe2, 0x5f, 0xc8, 0x4e, 0xe8, 0xa4, 0x4f, 0x85, 0xda, 0x62, 0x95, 0xf6, 0x6f, 0x9b, 0x37, 0x42,
-	0x73, 0xee, 0x44, 0x9d, 0xe8, 0x9c, 0xb7, 0x08, 0x76, 0xd6, 0xf1, 0x6f, 0x8f, 0xf9, 0x10, 0x0c,
-	0xc1, 0x03, 0xaa, 0x4d, 0xff, 0xd0, 0xf8, 0xe3, 0xab, 0x4e, 0x5c, 0xcc, 0x03, 0x8a, 0xb5, 0xc6,
-	0x39, 0x04, 0x43, 0xdd, 0xcc, 0x02, 0x64, 0x1f, 0xb5, 0xff, 0x6f, 0x9f, 0x5d, 0xb4, 0x4b, 0x29,
-	0x13, 0x20, 0x73, 0xea, 0x9d, 0x36, 0x3d, 0x5c, 0x42, 0xe6, 0x0e, 0xe4, 0xce, 0x9a, 0x5d, 0x0f,
-	0x3f, 0xf6, 0x70, 0x29, 0xad, 0x68, 0x17, 0xc7, 0xe7, 0x6d, 0xaf, 0xdb, 0x2d, 0x6d, 0x39, 0x1e,
-	0x14, 0xbb, 0x54, 0x5c, 0xb2, 0x41, 0xf2, 0x3f, 0xdc, 0x83, 0x4c, 0x40, 0x89, 0x4f, 0x85, 0x7e,
-	0x40, 0x1e, 0x2f, 0x6f, 0xe6, 0xaf, 0x90, 0x1f, 0xf2, 0x20, 0xe0, 0x4f, 0x54, 0x5e, 0x6a, 0x3b,
-	0xf3, 0xf8, 0xb6, 0xd0, 0xb4, 0xae, 0x16, 0x36, 0xba, 0x5e, 0xd8, 0xe8, 0xe3, 0xc2, 0x46, 0xcf,
-	0x6f, 0xec, 0xd4, 0xf5, 0x8d, 0x9d, 0x7a, 0x7f, 0x63, 0xa7, 0xfa, 0x19, 0xfd, 0x85, 0xfa, 0xeb,
-	0x4b, 0x00, 0x00, 0x00, 0xff, 0xff, 0xef, 0xd4, 0xfe, 0x4e, 0x99, 0x05, 0x00, 0x00,
+	// 657 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x53, 0x4d, 0x6f, 0xd3, 0x40,
+	0x10, 0xcd, 0x26, 0x69, 0x3e, 0xc6, 0x81, 0x46, 0x0b, 0x2a, 0x6e, 0x85, 0xec, 0x60, 0x21, 0x94,
+	0x0b, 0x8e, 0x1a, 0x0e, 0xa0, 0xde, 0x08, 0x31, 0x28, 0x45, 0x4d, 0xab, 0x6d, 0xa1, 0x12, 0x97,
+	0xc8, 0xa9, 0x37, 0x89, 0x25, 0x27, 0x6b, 0xad, 0x37, 0x05, 0xce, 0xfc, 0x01, 0x8e, 0xf0, 0x43,
+	0xb8, 0xf0, 0x0b, 0x7a, 0xec, 0x91, 0x53, 0x40, 0xe9, 0x01, 0x89, 0x9f, 0xd0, 0x13, 0xda, 0xb5,
+	0xe3, 0x84, 0xaa, 0x12, 0x5c, 0xb8, 0xcd, 0xce, 0x7b, 0x6f, 0xe7, 0xf9, 0xed, 0x18, 0x6a, 0xae,
+	0x60, 0x63, 0xff, 0x5d, 0x63, 0x3c, 0x0d, 0x84, 0xcf, 0xdd, 0x81, 0x68, 0x9c, 0x6e, 0x37, 0x4e,
+	0xd8, 0x64, 0xe0, 0x0f, 0xed, 0x90, 0x33, 0xc1, 0xf0, 0xad, 0x98, 0x61, 0xa7, 0x0c, 0xfb, 0x74,
+	0x7b, 0xcb, 0x18, 0x32, 0x36, 0x0c, 0x68, 0x43, 0x51, 0xfa, 0xd3, 0x41, 0xc3, 0x9b, 0x72, 0x57,
+	0xf8, 0x6c, 0x12, 0x8b, 0xb6, 0x6e, 0x0f, 0xd9, 0x90, 0xa9, 0xb2, 0x21, 0xab, 0xb8, 0x6b, 0x7d,
+	0xcd, 0xc2, 0xfa, 0x9e, 0xbc, 0x86, 0xb8, 0x03, 0xf1, 0x4c, 0x0d, 0xc1, 0xbb, 0x50, 0x1d, 0x51,
+	0x97, 0x8b, 0x3e, 0x75, 0x45, 0x2f, 0xa4, 0xdc, 0x67, 0x9e, 0x8e, 0x6a, 0xa8, 0xae, 0x35, 0x37,
+	0xed, 0x78, 0x88, 0xbd, 0x18, 0x62, 0xb7, 0x93, 0x21, 0xad, 0xfc, 0xa7, 0xef, 0x26, 0x22, 0xeb,
+	0xa9, 0xf0, 0x40, 0xe9, 0xe4, 0x5d, 0x34, 0xa0, 0x27, 0x92, 0xd2, 0x13, 0xfe, 0x98, 0xb2, 0xa9,
+	0xd0, 0xb3, 0xff, 0x78, 0xd7, 0x42, 0x78, 0x14, 0xeb, 0xf0, 0x13, 0xd0, 0xa3, 0x89, 0x1b, 0x46,
+	0x23, 0x26, 0x7a, 0x74, 0x22, 0xf8, 0xfb, 0x9e, 0x18, 0x71, 0x1a, 0x8d, 0x58, 0xe0, 0xe9, 0xb9,
+	0x1a, 0xaa, 0xe7, 0xc9, 0xc6, 0x02, 0x77, 0x24, 0x7c, 0xb4, 0x40, 0xf1, 0x0e, 0x6c, 0x9e, 0xb0,
+	0x71, 0xe8, 0xc6, 0x3e, 0x38, 0x15, 0xae, 0x3f, 0x51, 0x57, 0xf8, 0x34, 0xd2, 0xf3, 0x4a, 0x7a,
+	0x67, 0x49, 0x20, 0x0a, 0x77, 0x62, 0x18, 0x6f, 0x42, 0xc9, 0x73, 0x85, 0xdb, 0xf3, 0x7c, 0xae,
+	0xaf, 0xd5, 0x50, 0xbd, 0x4c, 0x8a, 0xf2, 0xdc, 0xf6, 0xb9, 0xf5, 0x05, 0x01, 0x74, 0x99, 0x47,
+	0x93, 0xdc, 0x1e, 0x43, 0x71, 0xc2, 0x3c, 0xda, 0xf3, 0xe3, 0xb8, 0x6e, 0xb4, 0x8c, 0xf9, 0xcc,
+	0x2c, 0x48, 0x42, 0xa7, 0xfd, 0x6b, 0x66, 0x16, 0x24, 0xd8, 0xf1, 0x2e, 0xd3, 0x1e, 0x49, 0x3a,
+	0x18, 0x43, 0x7e, 0xc4, 0xa2, 0x38, 0x98, 0x32, 0x51, 0xb5, 0xec, 0x85, 0x8c, 0x0b, 0xf5, 0x61,
+	0x6b, 0x44, 0xd5, 0xf8, 0x39, 0x14, 0xe2, 0x3d, 0x50, 0x9e, 0xb5, 0xe6, 0x7d, 0xfb, 0x9a, 0x45,
+	0xb0, 0xaf, 0x3c, 0x67, 0xab, 0x74, 0x36, 0x33, 0x33, 0xe7, 0x33, 0x13, 0x91, 0x44, 0x6d, 0x7d,
+	0x40, 0xa0, 0xbd, 0xe0, 0x6c, 0x1a, 0x26, 0xc6, 0xb7, 0xa1, 0x34, 0x94, 0xc7, 0xa5, 0xf3, 0x8d,
+	0xf9, 0xcc, 0x2c, 0x2a, 0x4a, 0xa7, 0x7d, 0xb9, 0x2c, 0x49, 0x51, 0xf1, 0x3a, 0x1e, 0x7e, 0x0a,
+	0xc5, 0x31, 0x1d, 0xf7, 0x29, 0x8f, 0xf4, 0x6c, 0x2d, 0x57, 0xd7, 0x9a, 0xf7, 0xae, 0xf7, 0xa2,
+	0x38, 0x89, 0x91, 0xbc, 0x34, 0x42, 0x16, 0x3a, 0xeb, 0x27, 0x82, 0xca, 0x2a, 0xfe, 0xff, 0xf3,
+	0xdb, 0x81, 0x3c, 0x67, 0x01, 0x55, 0xe9, 0xdd, 0x6c, 0x3e, 0xf8, 0xab, 0x63, 0x9b, 0xb0, 0x80,
+	0x12, 0xa5, 0xb1, 0x76, 0x20, 0x2f, 0x4f, 0x58, 0x83, 0xe2, 0xab, 0xee, 0xcb, 0xee, 0xfe, 0x71,
+	0xb7, 0x9a, 0xc1, 0x00, 0x85, 0x3d, 0x67, 0xaf, 0xe5, 0x90, 0x2a, 0xc2, 0x15, 0x28, 0xed, 0xb7,
+	0x0e, 0x1d, 0xf2, 0xda, 0x21, 0xd5, 0xac, 0xa4, 0x1d, 0x77, 0x8e, 0xba, 0xce, 0xe1, 0x61, 0x35,
+	0x67, 0xbd, 0x81, 0x4a, 0x9b, 0xfb, 0xa7, 0xe9, 0x87, 0xee, 0x02, 0x84, 0x2e, 0x17, 0xbe, 0x5c,
+	0xb6, 0x48, 0x47, 0x2a, 0xbf, 0xeb, 0xdf, 0xf2, 0x60, 0x41, 0xfb, 0x23, 0xc2, 0x15, 0xb5, 0xf5,
+	0x19, 0xc1, 0xfa, 0x15, 0x16, 0x3e, 0x80, 0x4a, 0xca, 0x58, 0xa6, 0xf9, 0x70, 0x3e, 0x33, 0xb5,
+	0x94, 0xaa, 0x22, 0xd5, 0x52, 0x9a, 0xca, 0x75, 0x15, 0x25, 0xab, 0x18, 0xde, 0x80, 0x42, 0x40,
+	0x5d, 0x8f, 0xf2, 0x24, 0xe3, 0xe4, 0x84, 0xef, 0x42, 0x79, 0xc0, 0x82, 0x80, 0xbd, 0x95, 0x8b,
+	0x90, 0xab, 0xe5, 0xea, 0x65, 0xb2, 0x6c, 0xb4, 0xf4, 0xb3, 0xb9, 0x81, 0xce, 0xe7, 0x06, 0xfa,
+	0x31, 0x37, 0xd0, 0xc7, 0x0b, 0x23, 0x73, 0x7e, 0x61, 0x64, 0xbe, 0x5d, 0x18, 0x99, 0x7e, 0x41,
+	0xfd, 0xf4, 0x8f, 0x7e, 0x07, 0x00, 0x00, 0xff, 0xff, 0xd1, 0x3f, 0x8d, 0xcd, 0xec, 0x04, 0x00,
+	0x00,
 }
 
 func (m *MultiRaftConfig) Marshal() (dAtA []byte, err error) {
@@ -658,7 +587,7 @@ func (m *NodeConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ClusterConfig) Marshal() (dAtA []byte, err error) {
+func (m *GroupConfig) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -668,108 +597,12 @@ func (m *ClusterConfig) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ClusterConfig) MarshalTo(dAtA []byte) (int, error) {
+func (m *GroupConfig) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ClusterConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Partitions) > 0 {
-		for iNdEx := len(m.Partitions) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Partitions[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintConfig(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.Replicas) > 0 {
-		for iNdEx := len(m.Replicas) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Replicas[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintConfig(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ReplicaConfig) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ReplicaConfig) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ReplicaConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.RaftPort != 0 {
-		i = encodeVarintConfig(dAtA, i, uint64(m.RaftPort))
-		i--
-		dAtA[i] = 0x20
-	}
-	if m.ApiPort != 0 {
-		i = encodeVarintConfig(dAtA, i, uint64(m.ApiPort))
-		i--
-		dAtA[i] = 0x18
-	}
-	if len(m.Host) > 0 {
-		i -= len(m.Host)
-		copy(dAtA[i:], m.Host)
-		i = encodeVarintConfig(dAtA, i, uint64(len(m.Host)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.NodeID != 0 {
-		i = encodeVarintConfig(dAtA, i, uint64(m.NodeID))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *PartitionConfig) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PartitionConfig) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PartitionConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GroupConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -785,23 +618,11 @@ func (m *PartitionConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintConfig(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x22
+			dAtA[i] = 0x12
 		}
 	}
-	if m.Port != 0 {
-		i = encodeVarintConfig(dAtA, i, uint64(m.Port))
-		i--
-		dAtA[i] = 0x18
-	}
-	if len(m.Host) > 0 {
-		i -= len(m.Host)
-		copy(dAtA[i:], m.Host)
-		i = encodeVarintConfig(dAtA, i, uint64(len(m.Host)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.PartitionID != 0 {
-		i = encodeVarintConfig(dAtA, i, uint64(m.PartitionID))
+	if m.GroupID != 0 {
+		i = encodeVarintConfig(dAtA, i, uint64(m.GroupID))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -831,7 +652,19 @@ func (m *MemberConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Role != 0 {
 		i = encodeVarintConfig(dAtA, i, uint64(m.Role))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x20
+	}
+	if m.Port != 0 {
+		i = encodeVarintConfig(dAtA, i, uint64(m.Port))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Host) > 0 {
+		i -= len(m.Host)
+		copy(dAtA[i:], m.Host)
+		i = encodeVarintConfig(dAtA, i, uint64(len(m.Host)))
+		i--
+		dAtA[i] = 0x12
 	}
 	if m.NodeID != 0 {
 		i = encodeVarintConfig(dAtA, i, uint64(m.NodeID))
@@ -841,7 +674,7 @@ func (m *MemberConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *ServiceConfig) Marshal() (dAtA []byte, err error) {
+func (m *DriverConfig) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -851,12 +684,49 @@ func (m *ServiceConfig) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ServiceConfig) MarshalTo(dAtA []byte) (int, error) {
+func (m *DriverConfig) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ServiceConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *DriverConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Partitions) > 0 {
+		for iNdEx := len(m.Partitions) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Partitions[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintConfig(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PartitionConfig) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PartitionConfig) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PartitionConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -867,7 +737,7 @@ func (m *ServiceConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.Followers[iNdEx])
 			i = encodeVarintConfig(dAtA, i, uint64(len(m.Followers[iNdEx])))
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0x1a
 		}
 	}
 	if len(m.Leader) > 0 {
@@ -875,7 +745,12 @@ func (m *ServiceConfig) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Leader)
 		i = encodeVarintConfig(dAtA, i, uint64(len(m.Leader)))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
+	}
+	if m.PartitionID != 0 {
+		i = encodeVarintConfig(dAtA, i, uint64(m.PartitionID))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -939,64 +814,14 @@ func (m *NodeConfig) Size() (n int) {
 	return n
 }
 
-func (m *ClusterConfig) Size() (n int) {
+func (m *GroupConfig) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.Replicas) > 0 {
-		for _, e := range m.Replicas {
-			l = e.Size()
-			n += 1 + l + sovConfig(uint64(l))
-		}
-	}
-	if len(m.Partitions) > 0 {
-		for _, e := range m.Partitions {
-			l = e.Size()
-			n += 1 + l + sovConfig(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *ReplicaConfig) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.NodeID != 0 {
-		n += 1 + sovConfig(uint64(m.NodeID))
-	}
-	l = len(m.Host)
-	if l > 0 {
-		n += 1 + l + sovConfig(uint64(l))
-	}
-	if m.ApiPort != 0 {
-		n += 1 + sovConfig(uint64(m.ApiPort))
-	}
-	if m.RaftPort != 0 {
-		n += 1 + sovConfig(uint64(m.RaftPort))
-	}
-	return n
-}
-
-func (m *PartitionConfig) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.PartitionID != 0 {
-		n += 1 + sovConfig(uint64(m.PartitionID))
-	}
-	l = len(m.Host)
-	if l > 0 {
-		n += 1 + l + sovConfig(uint64(l))
-	}
-	if m.Port != 0 {
-		n += 1 + sovConfig(uint64(m.Port))
+	if m.GroupID != 0 {
+		n += 1 + sovConfig(uint64(m.GroupID))
 	}
 	if len(m.Members) > 0 {
 		for _, e := range m.Members {
@@ -1016,18 +841,43 @@ func (m *MemberConfig) Size() (n int) {
 	if m.NodeID != 0 {
 		n += 1 + sovConfig(uint64(m.NodeID))
 	}
+	l = len(m.Host)
+	if l > 0 {
+		n += 1 + l + sovConfig(uint64(l))
+	}
+	if m.Port != 0 {
+		n += 1 + sovConfig(uint64(m.Port))
+	}
 	if m.Role != 0 {
 		n += 1 + sovConfig(uint64(m.Role))
 	}
 	return n
 }
 
-func (m *ServiceConfig) Size() (n int) {
+func (m *DriverConfig) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	if len(m.Partitions) > 0 {
+		for _, e := range m.Partitions {
+			l = e.Size()
+			n += 1 + l + sovConfig(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *PartitionConfig) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.PartitionID != 0 {
+		n += 1 + sovConfig(uint64(m.PartitionID))
+	}
 	l = len(m.Leader)
 	if l > 0 {
 		n += 1 + l + sovConfig(uint64(l))
@@ -1392,7 +1242,7 @@ func (m *NodeConfig) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ClusterConfig) Unmarshal(dAtA []byte) error {
+func (m *GroupConfig) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1415,135 +1265,17 @@ func (m *ClusterConfig) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ClusterConfig: wiretype end group for non-group")
+			return fmt.Errorf("proto: GroupConfig: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ClusterConfig: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Replicas", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthConfig
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthConfig
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Replicas = append(m.Replicas, ReplicaConfig{})
-			if err := m.Replicas[len(m.Replicas)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Partitions", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthConfig
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthConfig
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Partitions = append(m.Partitions, PartitionConfig{})
-			if err := m.Partitions[len(m.Partitions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipConfig(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthConfig
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ReplicaConfig) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowConfig
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ReplicaConfig: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ReplicaConfig: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GroupConfig: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NodeID", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
 			}
-			m.NodeID = 0
+			m.GroupID = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowConfig
@@ -1553,202 +1285,12 @@ func (m *ReplicaConfig) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.NodeID |= NodeID(b&0x7F) << shift
+				m.GroupID |= GroupID(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Host", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthConfig
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthConfig
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Host = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ApiPort", wireType)
-			}
-			m.ApiPort = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ApiPort |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RaftPort", wireType)
-			}
-			m.RaftPort = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.RaftPort |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipConfig(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthConfig
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *PartitionConfig) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowConfig
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PartitionConfig: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PartitionConfig: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartitionID", wireType)
-			}
-			m.PartitionID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.PartitionID |= PartitionID(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Host", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthConfig
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthConfig
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Host = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Port", wireType)
-			}
-			m.Port = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowConfig
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Port |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Members", wireType)
 			}
@@ -1852,6 +1394,57 @@ func (m *MemberConfig) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Host", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowConfig
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthConfig
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthConfig
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Host = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Port", wireType)
+			}
+			m.Port = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowConfig
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Port |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Role", wireType)
 			}
@@ -1891,7 +1484,7 @@ func (m *MemberConfig) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ServiceConfig) Unmarshal(dAtA []byte) error {
+func (m *DriverConfig) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1914,13 +1507,116 @@ func (m *ServiceConfig) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ServiceConfig: wiretype end group for non-group")
+			return fmt.Errorf("proto: DriverConfig: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ServiceConfig: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: DriverConfig: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Partitions", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowConfig
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthConfig
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthConfig
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Partitions = append(m.Partitions, PartitionConfig{})
+			if err := m.Partitions[len(m.Partitions)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipConfig(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthConfig
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PartitionConfig) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowConfig
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PartitionConfig: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PartitionConfig: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PartitionID", wireType)
+			}
+			m.PartitionID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowConfig
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PartitionID |= PartitionID(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Leader", wireType)
 			}
@@ -1952,7 +1648,7 @@ func (m *ServiceConfig) Unmarshal(dAtA []byte) error {
 			}
 			m.Leader = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Followers", wireType)
 			}

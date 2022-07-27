@@ -9,12 +9,25 @@
     - [ConnectionEstablishedEvent](#atomix-multiraft-v1-ConnectionEstablishedEvent)
     - [ConnectionFailedEvent](#atomix-multiraft-v1-ConnectionFailedEvent)
     - [ConnectionInfo](#atomix-multiraft-v1-ConnectionInfo)
+    - [Event](#atomix-multiraft-v1-Event)
     - [JoinRequest](#atomix-multiraft-v1-JoinRequest)
     - [JoinResponse](#atomix-multiraft-v1-JoinResponse)
+    - [LeaderUpdatedEvent](#atomix-multiraft-v1-LeaderUpdatedEvent)
     - [LeaveRequest](#atomix-multiraft-v1-LeaveRequest)
     - [LeaveResponse](#atomix-multiraft-v1-LeaveResponse)
-    - [NodeEvent](#atomix-multiraft-v1-NodeEvent)
-    - [WatchNodeRequest](#atomix-multiraft-v1-WatchNodeRequest)
+    - [LogCompactedEvent](#atomix-multiraft-v1-LogCompactedEvent)
+    - [LogDBCompactedEvent](#atomix-multiraft-v1-LogDBCompactedEvent)
+    - [LogEvent](#atomix-multiraft-v1-LogEvent)
+    - [MemberReadyEvent](#atomix-multiraft-v1-MemberReadyEvent)
+    - [MembershipChangedEvent](#atomix-multiraft-v1-MembershipChangedEvent)
+    - [SendSnapshotAbortedEvent](#atomix-multiraft-v1-SendSnapshotAbortedEvent)
+    - [SendSnapshotCompletedEvent](#atomix-multiraft-v1-SendSnapshotCompletedEvent)
+    - [SendSnapshotStartedEvent](#atomix-multiraft-v1-SendSnapshotStartedEvent)
+    - [SnapshotCompactedEvent](#atomix-multiraft-v1-SnapshotCompactedEvent)
+    - [SnapshotCreatedEvent](#atomix-multiraft-v1-SnapshotCreatedEvent)
+    - [SnapshotReceivedEvent](#atomix-multiraft-v1-SnapshotReceivedEvent)
+    - [SnapshotRecoveredEvent](#atomix-multiraft-v1-SnapshotRecoveredEvent)
+    - [WatchRequest](#atomix-multiraft-v1-WatchRequest)
   
     - [Node](#atomix-multiraft-v1-Node)
   
@@ -37,7 +50,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| cluster | [ClusterConfig](#atomix-multiraft-v1-ClusterConfig) |  |  |
+| group | [GroupConfig](#atomix-multiraft-v1-GroupConfig) |  |  |
 
 
 
@@ -100,6 +113,35 @@
 
 
 
+<a name="atomix-multiraft-v1-Event"></a>
+
+### Event
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| member_ready | [MemberReadyEvent](#atomix-multiraft-v1-MemberReadyEvent) |  |  |
+| leader_updated | [LeaderUpdatedEvent](#atomix-multiraft-v1-LeaderUpdatedEvent) |  |  |
+| membership_changed | [MembershipChangedEvent](#atomix-multiraft-v1-MembershipChangedEvent) |  |  |
+| send_snapshot_started | [SendSnapshotStartedEvent](#atomix-multiraft-v1-SendSnapshotStartedEvent) |  |  |
+| send_snapshot_completed | [SendSnapshotCompletedEvent](#atomix-multiraft-v1-SendSnapshotCompletedEvent) |  |  |
+| send_snapshot_aborted | [SendSnapshotAbortedEvent](#atomix-multiraft-v1-SendSnapshotAbortedEvent) |  |  |
+| snapshot_received | [SnapshotReceivedEvent](#atomix-multiraft-v1-SnapshotReceivedEvent) |  |  |
+| snapshot_recovered | [SnapshotRecoveredEvent](#atomix-multiraft-v1-SnapshotRecoveredEvent) |  |  |
+| snapshot_created | [SnapshotCreatedEvent](#atomix-multiraft-v1-SnapshotCreatedEvent) |  |  |
+| snapshot_compacted | [SnapshotCompactedEvent](#atomix-multiraft-v1-SnapshotCompactedEvent) |  |  |
+| log_compacted | [LogCompactedEvent](#atomix-multiraft-v1-LogCompactedEvent) |  |  |
+| logdb_compacted | [LogDBCompactedEvent](#atomix-multiraft-v1-LogDBCompactedEvent) |  |  |
+| connection_established | [ConnectionEstablishedEvent](#atomix-multiraft-v1-ConnectionEstablishedEvent) |  |  |
+| connection_failed | [ConnectionFailedEvent](#atomix-multiraft-v1-ConnectionFailedEvent) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-v1-JoinRequest"></a>
 
 ### JoinRequest
@@ -108,7 +150,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| partition | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) |  |  |
+| group | [GroupConfig](#atomix-multiraft-v1-GroupConfig) |  |  |
 
 
 
@@ -125,6 +167,23 @@
 
 
 
+<a name="atomix-multiraft-v1-LeaderUpdatedEvent"></a>
+
+### LeaderUpdatedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| term | [uint64](#uint64) |  |  |
+| leader | [uint64](#uint64) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-v1-LeaveRequest"></a>
 
 ### LeaveRequest
@@ -133,7 +192,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| partition_id | [uint32](#uint32) |  |  |
+| group_id | [uint32](#uint32) |  |  |
 
 
 
@@ -150,26 +209,205 @@
 
 
 
-<a name="atomix-multiraft-v1-NodeEvent"></a>
+<a name="atomix-multiraft-v1-LogCompactedEvent"></a>
 
-### NodeEvent
+### LogCompactedEvent
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
-| connection_established | [ConnectionEstablishedEvent](#atomix-multiraft-v1-ConnectionEstablishedEvent) |  |  |
-| connection_failed | [ConnectionFailedEvent](#atomix-multiraft-v1-ConnectionFailedEvent) |  |  |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-WatchNodeRequest"></a>
+<a name="atomix-multiraft-v1-LogDBCompactedEvent"></a>
 
-### WatchNodeRequest
+### LogDBCompactedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-LogEvent"></a>
+
+### LogEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-MemberReadyEvent"></a>
+
+### MemberReadyEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| node_id | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-MembershipChangedEvent"></a>
+
+### MembershipChangedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| node_id | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SendSnapshotAbortedEvent"></a>
+
+### SendSnapshotAbortedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+| to | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SendSnapshotCompletedEvent"></a>
+
+### SendSnapshotCompletedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+| to | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SendSnapshotStartedEvent"></a>
+
+### SendSnapshotStartedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+| to | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SnapshotCompactedEvent"></a>
+
+### SnapshotCompactedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SnapshotCreatedEvent"></a>
+
+### SnapshotCreatedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SnapshotReceivedEvent"></a>
+
+### SnapshotReceivedEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+| from | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SnapshotRecoveredEvent"></a>
+
+### SnapshotRecoveredEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-WatchRequest"></a>
+
+### WatchRequest
 
 
 
@@ -193,7 +431,7 @@
 | Bootstrap | [BootstrapRequest](#atomix-multiraft-v1-BootstrapRequest) | [BootstrapResponse](#atomix-multiraft-v1-BootstrapResponse) |  |
 | Join | [JoinRequest](#atomix-multiraft-v1-JoinRequest) | [JoinResponse](#atomix-multiraft-v1-JoinResponse) |  |
 | Leave | [LeaveRequest](#atomix-multiraft-v1-LeaveRequest) | [LeaveResponse](#atomix-multiraft-v1-LeaveResponse) |  |
-| Watch | [WatchNodeRequest](#atomix-multiraft-v1-WatchNodeRequest) | [NodeEvent](#atomix-multiraft-v1-NodeEvent) stream |  |
+| Watch | [WatchRequest](#atomix-multiraft-v1-WatchRequest) | [Event](#atomix-multiraft-v1-Event) stream |  |
 
  
 
