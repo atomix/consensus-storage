@@ -112,7 +112,7 @@ func (r *MultiRaftNodeReconciler) Reconcile(ctx context.Context, request reconci
 func (r *MultiRaftNodeReconciler) reconcileStatus(ctx context.Context, node *storagev2beta2.MultiRaftNode) (bool, error) {
 	podName := types.NamespacedName{
 		Namespace: node.Namespace,
-		Name:      fmt.Sprintf("%s-%d", node.Spec.Cluster, node.Spec.NodeID),
+		Name:      fmt.Sprintf("%s-%d", node.Spec.Cluster, node.Spec.NodeID-1),
 	}
 	pod := &corev1.Pod{}
 	if err := r.client.Get(ctx, podName, pod); err != nil {
@@ -170,7 +170,7 @@ func (r *MultiRaftNodeReconciler) startMonitoringPod(ctx context.Context, node *
 	pod := &corev1.Pod{}
 	podName := types.NamespacedName{
 		Namespace: node.Namespace,
-		Name:      node.Name,
+		Name:      fmt.Sprintf("%s-%d", node.Spec.Cluster, node.Spec.NodeID-1),
 	}
 	if err := r.client.Get(ctx, podName, pod); err != nil {
 		return err

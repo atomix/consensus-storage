@@ -188,7 +188,7 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, cluster *st
 func getClusterConfig(store *storagev2beta2.MultiRaftStore) storagev2beta2.MultiRaftClusterConfig {
 	numNodes := getNumReplicas(store)
 	nodes := make([]storagev2beta2.MultiRaftNodeConfig, numNodes)
-	for nodeID := 0; nodeID < numNodes; nodeID++ {
+	for nodeID := 1; nodeID <= numNodes; nodeID++ {
 		nodes[nodeID] = storagev2beta2.MultiRaftNodeConfig{
 			NodeID: int32(nodeID),
 		}
@@ -202,13 +202,13 @@ func getClusterConfig(store *storagev2beta2.MultiRaftStore) storagev2beta2.Multi
 		members := make([]storagev2beta2.RaftMemberConfig, numMembers+numROMembers)
 		for j := 0; j < numMembers; j++ {
 			members[j] = storagev2beta2.RaftMemberConfig{
-				NodeID: int32((((numMembers + numROMembers) * groupID) + j) % numNodes),
+				NodeID: int32((((numMembers+numROMembers)*groupID)+j)%numNodes) + 1,
 				Type:   storagev2beta2.RaftVotingMember,
 			}
 		}
 		for j := numMembers; j < numMembers+numROMembers; j++ {
 			members[j] = storagev2beta2.RaftMemberConfig{
-				NodeID: int32((((numMembers + numROMembers) * groupID) + j) % numNodes),
+				NodeID: int32((((numMembers+numROMembers)*groupID)+j)%numNodes) + 1,
 				Type:   storagev2beta2.RaftObserver,
 			}
 		}
