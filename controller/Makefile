@@ -4,7 +4,17 @@
 
 .PHONY: build
 build:
-	go build ./...
+	docker build . -t atomix/multi-raft-controller:latest -f build/Dockerfile
+
+.PHONY: release
+release: build
+	docker tag atomix/multi-raft-controller:latest atomix/multi-raft-controller:$(VERSION)
+	docker push atomix/multi-raft-controller:latest
+	docker push atomix/multi-raft-controller:$(VERSION)
+
+kind: build
+	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
+	kind load docker-image atomix/multi-raft-controller:latest
 
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse
