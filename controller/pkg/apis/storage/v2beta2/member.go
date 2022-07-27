@@ -53,7 +53,7 @@ type RaftMemberConfig struct {
 type RaftMemberStatus struct {
 	State             RaftMemberState `json:"state,omitempty"`
 	Role              *RaftMemberRole `json:"role,omitempty"`
-	Leader            *uint32         `json:"leader,omitempty"`
+	Leader            *int32          `json:"leader,omitempty"`
 	Term              *uint64         `json:"term,omitempty"`
 	LastUpdated       *metav1.Time    `json:"lastUpdated,omitempty"`
 	LastSnapshotIndex *uint64         `json:"lastSnapshotIndex,omitempty"`

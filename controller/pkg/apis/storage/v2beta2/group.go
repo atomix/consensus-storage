@@ -42,7 +42,7 @@ type RaftConfig struct {
 // RaftGroupStatus defines the status of a RaftGroup
 type RaftGroupStatus struct {
 	State  RaftGroupState `json:"state,omitempty"`
-	Leader *uint32        `json:"leader,omitempty"`
+	Leader *int32         `json:"leader,omitempty"`
 	Term   *uint64        `json:"term,omitempty"`
 }
 
