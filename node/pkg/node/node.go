@@ -28,7 +28,7 @@ func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 	return &MultiRaftNode{
 		Options:  options,
 		network:  network,
-		protocol: protocol.NewNode(registry, options.Config),
+		protocol: protocol.NewNode(&options.Config, registry),
 		server:   grpc.NewServer(),
 	}
 }
@@ -41,9 +41,14 @@ type MultiRaftNode struct {
 }
 
 func (s *MultiRaftNode) Start() error {
+	log.Infow("Starting MultiRaftNode",
+		logging.Stringer("Config", &s.Config))
 	address := fmt.Sprintf("%s:%d", s.Host, s.Port)
 	lis, err := s.network.Listen(address)
 	if err != nil {
+		log.Errorw("Error starting MultiRaftNode",
+			logging.Stringer("Config", &s.Config),
+			logging.Error("Error", err))
 		return err
 	}
 
@@ -61,6 +66,14 @@ func (s *MultiRaftNode) Start() error {
 }
 
 func (s *MultiRaftNode) Stop() error {
+	log.Infow("Stopping MultiRaftNode",
+		logging.Stringer("Config", &s.Config))
 	s.server.Stop()
-	return s.protocol.Shutdown()
+	if err := s.protocol.Shutdown(); err != nil {
+		log.Errorw("Error starting MultiRaftNode",
+			logging.Stringer("Config", &s.Config),
+			logging.Error("Error", err))
+		return err
+	}
+	return nil
 }

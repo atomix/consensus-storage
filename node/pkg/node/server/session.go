@@ -27,11 +27,10 @@ func (s *SessionServer) CreatePrimitive(ctx context.Context, request *multiraftv
 		logging.Stringer("CreatePrimitiveRequest", request))
 	output, headers, err := s.node.CreatePrimitive(ctx, &request.CreatePrimitiveInput, &request.Headers)
 	if err != nil {
-		err = errors.ToProto(err)
 		log.Warnw("CreatePrimitive",
 			logging.Stringer("CreatePrimitiveRequest", request),
 			logging.Error("Error", err))
-		return nil, err
+		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.CreatePrimitiveResponse{
 		Headers:               *headers,
@@ -48,11 +47,10 @@ func (s *SessionServer) ClosePrimitive(ctx context.Context, request *multiraftv1
 		logging.Stringer("ClosePrimitiveRequest", request))
 	output, headers, err := s.node.ClosePrimitive(ctx, &request.ClosePrimitiveInput, &request.Headers)
 	if err != nil {
-		err = errors.ToProto(err)
 		log.Warnw("ClosePrimitive",
 			logging.Stringer("ClosePrimitiveRequest", request),
 			logging.Error("Error", err))
-		return nil, err
+		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.ClosePrimitiveResponse{
 		Headers:              *headers,

@@ -27,11 +27,10 @@ func (s *PartitionServer) OpenSession(ctx context.Context, request *multiraftv1.
 		logging.Stringer("OpenSessionRequest", request))
 	output, headers, err := s.node.OpenSession(ctx, &request.OpenSessionInput, &request.Headers)
 	if err != nil {
-		err = errors.ToProto(err)
 		log.Warnw("OpenSession",
 			logging.Stringer("OpenSessionRequest", request),
 			logging.Error("Error", err))
-		return nil, err
+		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.OpenSessionResponse{
 		Headers:           *headers,
@@ -48,11 +47,10 @@ func (s *PartitionServer) KeepAlive(ctx context.Context, request *multiraftv1.Ke
 		logging.Stringer("KeepAliveRequest", request))
 	output, headers, err := s.node.KeepAliveSession(ctx, &request.KeepAliveInput, &request.Headers)
 	if err != nil {
-		err = errors.ToProto(err)
 		log.Warnw("KeepAlive",
 			logging.Stringer("KeepAliveRequest", request),
 			logging.Error("Error", err))
-		return nil, err
+		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.KeepAliveResponse{
 		Headers:         *headers,
@@ -69,11 +67,10 @@ func (s *PartitionServer) CloseSession(ctx context.Context, request *multiraftv1
 		logging.Stringer("CloseSessionRequest", request))
 	output, headers, err := s.node.CloseSession(ctx, &request.CloseSessionInput, &request.Headers)
 	if err != nil {
-		err = errors.ToProto(err)
 		log.Warnw("CloseSession",
 			logging.Stringer("CloseSessionRequest", request),
 			logging.Error("Error", err))
-		return nil, err
+		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.CloseSessionResponse{
 		Headers:            *headers,
@@ -83,35 +80,4 @@ func (s *PartitionServer) CloseSession(ctx context.Context, request *multiraftv1
 		logging.Stringer("CloseSessionRequest", request),
 		logging.Stringer("CloseSessionResponse", response))
 	return response, nil
-}
-
-func (s *PartitionServer) Watch(request *multiraftv1.WatchPartitionRequest, server multiraftv1.Partition_WatchServer) error {
-	log.Debugw("Watch",
-		logging.Stringer("WatchPartitionRequest", request))
-	ch := make(chan multiraftv1.PartitionEvent)
-	partition, ok := s.node.Partition(request.PartitionID)
-	if !ok {
-		err := errors.NewUnavailable("partition %d not found", request.PartitionID)
-		err = errors.ToProto(err)
-		log.Warnw("Watch",
-			logging.Stringer("WatchPartitionRequest", request),
-			logging.Error("Error", err))
-		return err
-	}
-	partition.Watch(server.Context(), ch)
-	for event := range ch {
-		log.Debugw("Watch",
-			logging.Stringer("WatchPartitionRequest", request),
-			logging.Stringer("PartitionEvent", &event))
-		err := server.Send(&event)
-		if err != nil {
-			err = errors.ToProto(err)
-			log.Warnw("Watch",
-				logging.Stringer("WatchPartitionRequest", request),
-				logging.Stringer("PartitionEvent", &event),
-				logging.Error("Error", err))
-			return err
-		}
-	}
-	return nil
 }
