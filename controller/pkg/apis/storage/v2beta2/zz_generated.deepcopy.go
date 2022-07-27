@@ -506,7 +506,7 @@ func (in *RaftGroupStatus) DeepCopyInto(out *RaftGroupStatus) {
 	*out = *in
 	if in.Leader != nil {
 		in, out := &in.Leader, &out.Leader
-		*out = new(uint32)
+		*out = new(int32)
 		**out = **in
 	}
 	if in.Term != nil {
@@ -631,7 +631,7 @@ func (in *RaftMemberStatus) DeepCopyInto(out *RaftMemberStatus) {
 	}
 	if in.Leader != nil {
 		in, out := &in.Leader, &out.Leader
-		*out = new(uint32)
+		*out = new(int32)
 		**out = **in
 	}
 	if in.Term != nil {
