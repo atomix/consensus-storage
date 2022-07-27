@@ -5,26 +5,17 @@
 package client
 
 import (
-	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"hash/fnv"
 	"sync"
 )
 
 func NewProtocol() *Protocol {
-	return &Protocol{
-		partitionIDs: make(map[multiraftv1.PartitionID]*PartitionClient),
-	}
+	return &Protocol{}
 }
 
 type Protocol struct {
-	config       *multiraftv1.ClusterConfig
-	partitions   []*PartitionClient
-	partitionIDs map[multiraftv1.PartitionID]*PartitionClient
-	mu           sync.RWMutex
-}
-
-func (p *Protocol) Partition(partitionID multiraftv1.PartitionID) *PartitionClient {
-	return p.partitionIDs[partitionID]
+	partitions []*PartitionClient
+	mu         sync.RWMutex
 }
 
 func (p *Protocol) PartitionBy(partitionKey []byte) *PartitionClient {

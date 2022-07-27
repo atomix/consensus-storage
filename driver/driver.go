@@ -20,7 +20,7 @@ const (
 )
 
 func New(network runtime.Network) runtime.Driver {
-	return runtime.NewDriver[multiraftv1.ClusterConfig](name, version, func(ctx context.Context, config multiraftv1.ClusterConfig) (runtime.Client, error) {
+	return runtime.NewDriver[multiraftv1.DriverConfig](name, version, func(ctx context.Context, config multiraftv1.DriverConfig) (runtime.Client, error) {
 		client := client.NewClient(network)
 		if err := client.Connect(ctx, config); err != nil {
 			return nil, err
@@ -47,7 +47,7 @@ func (c *driverClient) Map() mapv1.MapServer {
 	return primitives.NewMapServer(c.client.Protocol)
 }
 
-func (c *driverClient) Configure(ctx context.Context, config multiraftv1.ClusterConfig) error {
+func (c *driverClient) Configure(ctx context.Context, config multiraftv1.DriverConfig) error {
 	return c.client.Configure(ctx, config)
 }
 

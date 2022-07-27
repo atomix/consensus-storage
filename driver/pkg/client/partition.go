@@ -30,6 +30,7 @@ type PartitionClient struct {
 	watchers  map[int]chan<- PartitionState
 	watcherID int
 	conn      *grpc.ClientConn
+	resolver  *partitionResolver
 	session   *SessionClient
 	mu        sync.RWMutex
 }
@@ -79,11 +80,12 @@ func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.Parti
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	address := fmt.Sprintf("%s:///%s:%d", resolverName, config.Host, config.Port)
+	address := fmt.Sprintf("%s:///%d", resolverName, p.id)
+	p.resolver = newResolver(config)
 	conn, err := grpc.DialContext(ctx, address,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, resolverName)),
-		grpc.WithResolvers(newResolver(p)),
+		grpc.WithResolvers(p.resolver),
 		grpc.WithContextDialer(p.client.network.Connect),
 		grpc.WithUnaryInterceptor(retry.RetryingUnaryClientInterceptor(retry.WithRetryOn(codes.Unavailable))),
 		grpc.WithStreamInterceptor(retry.RetryingStreamClientInterceptor(retry.WithRetryOn(codes.Unavailable))))
@@ -92,6 +94,10 @@ func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.Parti
 	}
 	p.conn = conn
 	return nil
+}
+
+func (p *PartitionClient) configure(config *multiraftv1.PartitionConfig) error {
+	return p.resolver.update(config)
 }
 
 type PartitionState struct {

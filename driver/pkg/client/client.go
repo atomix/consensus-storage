@@ -7,6 +7,7 @@ package client
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"sort"
@@ -23,24 +24,24 @@ func NewClient(network runtime.Network) *Client {
 
 type Client struct {
 	*Protocol
-	config  multiraftv1.ClusterConfig
+	config  multiraftv1.DriverConfig
 	network runtime.Network
 }
 
-func (c *Client) Connect(ctx context.Context, config multiraftv1.ClusterConfig) error {
+func (c *Client) Connect(ctx context.Context, config multiraftv1.DriverConfig) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	if len(c.partitions) > 0 {
+		return errors.NewConflict("client already connected")
+	}
+
 	for _, partitionConfig := range config.Partitions {
-		partition, ok := c.partitionIDs[partitionConfig.PartitionID]
-		if !ok {
-			partition = newPartitionClient(c, partitionConfig.PartitionID)
-			if err := partition.connect(ctx, &partitionConfig); err != nil {
-				return err
-			}
-			c.partitionIDs[partition.id] = partition
-			c.partitions = append(c.partitions, partition)
+		partition := newPartitionClient(c, partitionConfig.PartitionID)
+		if err := partition.connect(ctx, &partitionConfig); err != nil {
+			return err
 		}
+		c.partitions = append(c.partitions, partition)
 	}
 
 	sort.Slice(c.partitions, func(i, j int) bool {
@@ -51,10 +52,24 @@ func (c *Client) Connect(ctx context.Context, config multiraftv1.ClusterConfig) 
 	return nil
 }
 
-func (c *Client) Configure(ctx context.Context, config multiraftv1.ClusterConfig) error {
+func (c *Client) Configure(ctx context.Context, config multiraftv1.DriverConfig) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.config = config
+
+	partitions := make(map[multiraftv1.PartitionID]*PartitionClient)
+	for _, partition := range c.partitions {
+		partitions[partition.id] = partition
+	}
+	for _, partitionConfig := range config.Partitions {
+		partition, ok := partitions[partitionConfig.PartitionID]
+		if !ok {
+			return errors.NewInternal("partition %d not found", partitionConfig.PartitionID)
+		}
+		if err := partition.configure(&partitionConfig); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
