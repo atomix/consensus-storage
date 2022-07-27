@@ -94,7 +94,7 @@ spec:
           description: The member role
           jsonPath: .status.role
         - name: Leader
-          type: string
+          type: integer
           description: The current leader on the member
           jsonPath: .status.leader
         - name: Term

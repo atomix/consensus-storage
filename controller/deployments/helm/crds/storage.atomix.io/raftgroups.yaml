@@ -40,7 +40,7 @@ spec:
                       - nodeID
                     properties:
                       nodeID:
-                        type: string
+                        type: integer
                       type:
                         type: string
                         default: Member
@@ -71,7 +71,7 @@ spec:
           description: The group to which the member belongs
           jsonPath: .spec.groupID
         - name: Leader
-          type: string
+          type: integer
           description: The current leader for the partition
           jsonPath: .status.leader
         - name: Term

@@ -42,7 +42,7 @@ const (
 	protocolPort          = 5679
 	probePort             = 5679
 	defaultImageEnv       = "DEFAULT_NODE_V2BETA1_IMAGE"
-	defaultImage          = "atomix/atomix-raft-storage-node:latest"
+	defaultImage          = "atomix/multi-raft-node:latest"
 	headlessServiceSuffix = "hs"
 	appLabel              = "app"
 	clusterLabel          = "cluster"
@@ -438,14 +438,11 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *st
 							Command: []string{
 								"bash",
 								"-c",
-								`set -ex
-[[ ` + "`hostname`" + ` =~ -([0-9]+)$ ]] || exit 1
+								fmt.Sprintf(`set -ex
+[[ `+"`hostname`"+` =~ -([0-9]+)$ ]] || exit 1
 ordinal=${BASH_REMATCH[1]}
-atomix-multi-raft-node $ordinal`,
-							},
-							Args: []string{
-								"--config",
-								fmt.Sprintf("%s/%s", configPath, raftConfigFile),
+atomix-multi-raft-node --node $(($ordinal+1)) --config %s/%s --api-port %d --raft-host %s-$ordinal --raft-port %d`,
+									configPath, raftConfigFile, apiPort, store.Name, protocolPort),
 							},
 							ReadinessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{

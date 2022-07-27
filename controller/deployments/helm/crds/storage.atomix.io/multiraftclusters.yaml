@@ -55,7 +55,7 @@ spec:
                           - nodeID
                         properties:
                           nodeID:
-                            type: string
+                            type: integer
                           type:
                             type: string
                             default: Member

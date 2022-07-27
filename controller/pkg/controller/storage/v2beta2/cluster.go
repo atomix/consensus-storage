@@ -47,6 +47,15 @@ func addMultiRaftClusterController(mgr manager.Manager) error {
 		return err
 	}
 
+	// Watch for changes to secondary resource MultiRaftNode
+	err = controller.Watch(&source.Kind{Type: &storagev2beta2.MultiRaftNode{}}, &handler.EnqueueRequestForOwner{
+		OwnerType:    &storagev2beta2.MultiRaftCluster{},
+		IsController: true,
+	})
+	if err != nil {
+		return err
+	}
+
 	// Watch for changes to secondary resource RaftGroup
 	err = controller.Watch(&source.Kind{Type: &storagev2beta2.RaftGroup{}}, &handler.EnqueueRequestForOwner{
 		OwnerType:    &storagev2beta2.MultiRaftCluster{},
@@ -104,8 +113,8 @@ func (r *MultiRaftClusterReconciler) Reconcile(ctx context.Context, request reco
 }
 
 func (r *MultiRaftClusterReconciler) reconcileNodes(ctx context.Context, cluster *storagev2beta2.MultiRaftCluster) (bool, error) {
-	for _, groupConfig := range cluster.Spec.Nodes {
-		if ok, err := r.reconcileNode(ctx, cluster, groupConfig); err != nil {
+	for _, nodeConfig := range cluster.Spec.Nodes {
+		if ok, err := r.reconcileNode(ctx, cluster, nodeConfig); err != nil {
 			return false, err
 		} else if ok {
 			return true, nil

@@ -16,7 +16,7 @@ RUN go build -mod=readonly -trimpath -o /build/dist/bin/atomix-multi-raft-node .
 
 FROM alpine:3.15
 
-RUN apk add libc6-compat
+RUN apk add libc6-compat bash
 
 RUN addgroup -S atomix && adduser -S -G atomix atomix
 

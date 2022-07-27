@@ -48,15 +48,10 @@ spec:
             fieldRef:
               fieldPath: metadata.namespace
         volumeMounts:
-        - name: certs
-          mountPath: /tmp/k8s-webhook-server/serving-certs
-          readOnly: true
         - name: config
           mountPath: /etc/atomix/config
           readOnly: true
       volumes:
-      - name: certs
-        emptyDir: {}
       - name: config
         configMap:
           name: {{ template "atomix-multi-raft-controller.fullname" . }}-config
