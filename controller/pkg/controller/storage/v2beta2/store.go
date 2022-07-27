@@ -80,7 +80,7 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Create a new controller
-	controller, err := controller.New("atomix-raft-cluster-v2beta2", mgr, options)
+	controller, err := controller.New("atomix-multi-raft-store-v2beta2", mgr, options)
 	if err != nil {
 		return err
 	}

@@ -42,7 +42,7 @@ func addMultiRaftNodeController(mgr manager.Manager) error {
 	}
 
 	// Create a new controller
-	controller, err := controller.New("atomix-raft-member-v2beta2", mgr, options)
+	controller, err := controller.New("atomix-multi-raft-node-v2beta2", mgr, options)
 	if err != nil {
 		return err
 	}
