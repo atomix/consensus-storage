@@ -7,8 +7,9 @@ package main
 import (
 	"context"
 	"fmt"
+	multiraftapis "github.com/atomix/multi-raft-storage/controller/pkg/apis"
 	storagev2beta2 "github.com/atomix/multi-raft-storage/controller/pkg/controller/storage/v2beta2"
-	"github.com/atomix/runtime/controller/pkg/apis"
+	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
 	"github.com/atomix/runtime/pkg/logging"
 	"github.com/go-logr/logr"
@@ -74,7 +75,11 @@ func getCommand() *cobra.Command {
 			}
 
 			// Setup Scheme for all resources
-			if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
+			if err := runtimeapis.AddToScheme(mgr.GetScheme()); err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+			if err := multiraftapis.AddToScheme(mgr.GetScheme()); err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
@@ -87,7 +92,6 @@ func getCommand() *cobra.Command {
 
 			// Start the manager
 			log.Info("Starting the Manager")
-			mgr.GetWebhookServer().Port = 443
 			if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 				log.Error(err, "controller exited non-zero")
 				os.Exit(1)
