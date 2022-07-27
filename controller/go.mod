@@ -3,12 +3,13 @@ module github.com/atomix/multi-raft-storage/controller
 go 1.18
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.0.0-20220726011313-d3defa174f13
+	github.com/atomix/multi-raft-storage/api v0.0.0-20220727070848-bb0015da67af
 	github.com/atomix/runtime v0.0.0-20220706102709-8e80cf86d1f5
 	github.com/atomix/runtime/controller v0.0.0-20220720203722-fe3ff64774df
 	github.com/atomix/runtime/sdk v0.0.0-20220720203722-fe3ff64774df
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-logr/logr v1.2.0
+	github.com/gogo/protobuf v1.3.2
 	github.com/spf13/cobra v1.4.0
 	google.golang.org/grpc v1.46.0
 	k8s.io/api v0.24.0
@@ -30,7 +31,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.14 // indirect
-	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gnostic v0.5.7-v3refs // indirect
@@ -87,5 +87,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/atomix/multi-raft-storage/api => ../api
