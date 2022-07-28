@@ -41,11 +41,10 @@ func NewNode(config *multiraftv1.NodeConfig, registry *statemachine.PrimitiveTyp
 	}
 
 	node := &Node{
-		id:         config.NodeID,
 		config:     config,
 		registry:   registry,
 		partitions: make(map[multiraftv1.PartitionID]*Partition),
-		listeners:  make(map[int]chan<- multiraftv1.Event),
+		watchers:   make(map[int]chan<- multiraftv1.Event),
 	}
 
 	listener := newEventListener(node)
@@ -69,18 +68,13 @@ func NewNode(config *multiraftv1.NodeConfig, registry *statemachine.PrimitiveTyp
 }
 
 type Node struct {
-	id         multiraftv1.NodeID
 	host       *dragonboat.NodeHost
 	config     *multiraftv1.NodeConfig
 	registry   *statemachine.PrimitiveTypeRegistry
 	partitions map[multiraftv1.PartitionID]*Partition
-	listeners  map[int]chan<- multiraftv1.Event
-	listenerID int
+	watchers   map[int]chan<- multiraftv1.Event
+	watcherID  int
 	mu         sync.RWMutex
-}
-
-func (n *Node) ID() multiraftv1.NodeID {
-	return n.id
 }
 
 func (n *Node) publish(event *multiraftv1.Event) {
@@ -98,7 +92,7 @@ func (n *Node) publish(event *multiraftv1.Event) {
 	}
 	log.Infow("Publish Event",
 		logging.Stringer("Event", event))
-	for _, listener := range n.listeners {
+	for _, listener := range n.watchers {
 		listener <- *event
 	}
 }
@@ -110,29 +104,36 @@ func (n *Node) Partition(partitionID multiraftv1.PartitionID) (*Partition, bool)
 	return partition, ok
 }
 
-func (n *Node) Watch(ctx context.Context, ch chan<- multiraftv1.Event) {
-	n.listenerID++
-	id := n.listenerID
+func (n *Node) Watch(ctx context.Context, watcher chan<- multiraftv1.Event) {
+	n.watcherID++
+	id := n.watcherID
 	n.mu.Lock()
-	n.listeners[id] = ch
+	n.watchers[id] = watcher
 	for _, partition := range n.partitions {
 		term, leader := partition.getLeader()
-		ch <- multiraftv1.Event{
-			Event: &multiraftv1.Event_LeaderUpdated{
-				LeaderUpdated: &multiraftv1.LeaderUpdatedEvent{
-					GroupID: multiraftv1.GroupID(partition.id),
-					Term:    term,
-					Leader:  leader,
+		if term > 0 {
+			watcher <- multiraftv1.Event{
+				Event: &multiraftv1.Event_LeaderUpdated{
+					LeaderUpdated: &multiraftv1.LeaderUpdatedEvent{
+						MemberEvent: multiraftv1.MemberEvent{
+							GroupID:  multiraftv1.GroupID(partition.id),
+							MemberID: partition.memberID,
+						},
+						Term:   term,
+						Leader: leader,
+					},
 				},
-			},
+			}
 		}
 		ready := partition.getReady()
 		if ready {
-			ch <- multiraftv1.Event{
+			watcher <- multiraftv1.Event{
 				Event: &multiraftv1.Event_MemberReady{
 					MemberReady: &multiraftv1.MemberReadyEvent{
-						GroupID: multiraftv1.GroupID(partition.id),
-						NodeID:  n.id,
+						MemberEvent: multiraftv1.MemberEvent{
+							GroupID:  multiraftv1.GroupID(partition.id),
+							MemberID: partition.memberID,
+						},
 					},
 				},
 			}
@@ -143,37 +144,40 @@ func (n *Node) Watch(ctx context.Context, ch chan<- multiraftv1.Event) {
 	go func() {
 		<-ctx.Done()
 		n.mu.Lock()
-		close(ch)
-		delete(n.listeners, id)
+		close(watcher)
+		delete(n.watchers, id)
 		n.mu.Unlock()
 	}()
 }
 
 func (n *Node) Bootstrap(config multiraftv1.GroupConfig) error {
-	raftConfig, ok := n.getRaftConfig(config)
-	if !ok {
-		return nil
-	}
+	raftConfig := n.getRaftConfig(config)
 	members := make(map[uint64]dragonboat.Target)
 	for _, member := range config.Members {
-		members[uint64(member.NodeID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
+		members[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
 	}
 	if err := n.host.StartCluster(members, false, n.newStateMachine, raftConfig); err != nil {
-		return err
+		if err == dragonboat.ErrClusterAlreadyExist {
+			return nil
+		}
+		return wrapError(err)
 	}
 	return nil
 }
 
 func (n *Node) Join(config multiraftv1.GroupConfig) error {
-	raftConfig, ok := n.getRaftConfig(config)
-	if !ok {
-		return nil
-	}
+	raftConfig := n.getRaftConfig(config)
 	members := make(map[uint64]dragonboat.Target)
 	for _, member := range config.Members {
-		members[uint64(member.NodeID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
+		members[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
 	}
-	return n.host.StartCluster(members, true, n.newStateMachine, raftConfig)
+	if err := n.host.StartCluster(members, true, n.newStateMachine, raftConfig); err != nil {
+		if err == dragonboat.ErrClusterAlreadyExist {
+			return nil
+		}
+		return wrapError(err)
+	}
+	return nil
 }
 
 func (n *Node) Leave(groupID multiraftv1.GroupID) error {
@@ -182,7 +186,7 @@ func (n *Node) Leave(groupID multiraftv1.GroupID) error {
 
 func (n *Node) newStateMachine(clusterID, nodeID uint64) dbstatemachine.IStateMachine {
 	streams := stream.NewRegistry()
-	partition := newPartition(multiraftv1.PartitionID(clusterID), n, streams)
+	partition := newPartition(multiraftv1.PartitionID(clusterID), multiraftv1.MemberID(nodeID), n.host, streams)
 	n.mu.Lock()
 	n.partitions[partition.id] = partition
 	n.mu.Unlock()
@@ -194,19 +198,7 @@ func (n *Node) Shutdown() error {
 	return nil
 }
 
-func (n *Node) getRaftConfig(config multiraftv1.GroupConfig) (raftconfig.Config, bool) {
-	var member *multiraftv1.MemberConfig
-	for _, memberConfig := range config.Members {
-		if memberConfig.NodeID == n.id {
-			member = &memberConfig
-			break
-		}
-	}
-
-	if member == nil {
-		return raftconfig.Config{}, false
-	}
-
+func (n *Node) getRaftConfig(config multiraftv1.GroupConfig) raftconfig.Config {
 	var rtt uint64 = 250
 	if n.config.HeartbeatPeriod != nil {
 		rtt = uint64(n.config.HeartbeatPeriod.Milliseconds())
@@ -227,16 +219,16 @@ func (n *Node) getRaftConfig(config multiraftv1.GroupConfig) (raftconfig.Config,
 	}
 
 	return raftconfig.Config{
-		NodeID:             uint64(n.id),
+		NodeID:             uint64(config.MemberID),
 		ClusterID:          uint64(config.GroupID),
 		ElectionRTT:        electionRTT,
 		HeartbeatRTT:       1,
 		CheckQuorum:        true,
 		SnapshotEntries:    n.config.SnapshotEntryThreshold,
 		CompactionOverhead: n.config.CompactionRetainEntries,
-		IsObserver:         member.Role == multiraftv1.MemberConfig_OBSERVER,
-		IsWitness:          member.Role == multiraftv1.MemberConfig_WITNESS,
-	}, true
+		IsObserver:         config.Role == multiraftv1.MemberRole_OBSERVER,
+		IsWitness:          config.Role == multiraftv1.MemberRole_WITNESS,
+	}
 }
 
 func (n *Node) OpenSession(ctx context.Context, input *multiraftv1.OpenSessionInput, requestHeaders *multiraftv1.PartitionRequestHeaders) (*multiraftv1.OpenSessionOutput, *multiraftv1.PartitionResponseHeaders, error) {

@@ -29,9 +29,12 @@ func (e *eventListener) LeaderUpdated(info raftio.LeaderInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_LeaderUpdated{
 			LeaderUpdated: &multiraftv1.LeaderUpdatedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Term:    multiraftv1.Term(info.Term),
-				Leader:  multiraftv1.NodeID(info.LeaderID),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Term:   multiraftv1.Term(info.Term),
+				Leader: multiraftv1.MemberID(info.LeaderID),
 			},
 		},
 	})
@@ -50,8 +53,10 @@ func (e *eventListener) NodeReady(info raftio.NodeInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_MemberReady{
 			MemberReady: &multiraftv1.MemberReadyEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				NodeID:  multiraftv1.NodeID(info.NodeID),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
 			},
 		},
 	})
@@ -62,8 +67,10 @@ func (e *eventListener) MembershipChanged(info raftio.NodeInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_MembershipChanged{
 			MembershipChanged: &multiraftv1.MembershipChangedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				NodeID:  multiraftv1.NodeID(info.NodeID),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
 			},
 		},
 	})
@@ -102,9 +109,12 @@ func (e *eventListener) SendSnapshotStarted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SendSnapshotStarted{
 			SendSnapshotStarted: &multiraftv1.SendSnapshotStartedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
-				To:      multiraftv1.NodeID(info.NodeID),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
+				To:    multiraftv1.MemberID(info.NodeID),
 			},
 		},
 	})
@@ -115,9 +125,12 @@ func (e *eventListener) SendSnapshotCompleted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SendSnapshotCompleted{
 			SendSnapshotCompleted: &multiraftv1.SendSnapshotCompletedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
-				To:      multiraftv1.NodeID(info.NodeID),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
+				To:    multiraftv1.MemberID(info.NodeID),
 			},
 		},
 	})
@@ -128,9 +141,12 @@ func (e *eventListener) SendSnapshotAborted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SendSnapshotAborted{
 			SendSnapshotAborted: &multiraftv1.SendSnapshotAbortedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
-				To:      multiraftv1.NodeID(info.NodeID),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
+				To:    multiraftv1.MemberID(info.NodeID),
 			},
 		},
 	})
@@ -141,9 +157,12 @@ func (e *eventListener) SnapshotReceived(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SnapshotReceived{
 			SnapshotReceived: &multiraftv1.SnapshotReceivedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
-				From:    multiraftv1.NodeID(info.From),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
+				From:  multiraftv1.MemberID(info.From),
 			},
 		},
 	})
@@ -154,8 +173,11 @@ func (e *eventListener) SnapshotRecovered(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SnapshotRecovered{
 			SnapshotRecovered: &multiraftv1.SnapshotRecoveredEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
 			},
 		},
 	})
@@ -166,8 +188,11 @@ func (e *eventListener) SnapshotCreated(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SnapshotCreated{
 			SnapshotCreated: &multiraftv1.SnapshotCreatedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
 			},
 		},
 	})
@@ -178,8 +203,11 @@ func (e *eventListener) SnapshotCompacted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_SnapshotCompacted{
 			SnapshotCompacted: &multiraftv1.SnapshotCompactedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
 			},
 		},
 	})
@@ -190,8 +218,11 @@ func (e *eventListener) LogCompacted(info raftio.EntryInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_LogCompacted{
 			LogCompacted: &multiraftv1.LogCompactedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
 			},
 		},
 	})
@@ -202,8 +233,11 @@ func (e *eventListener) LogDBCompacted(info raftio.EntryInfo) {
 		Timestamp: time.Now(),
 		Event: &multiraftv1.Event_LogdbCompacted{
 			LogdbCompacted: &multiraftv1.LogDBCompactedEvent{
-				GroupID: multiraftv1.GroupID(info.ClusterID),
-				Index:   multiraftv1.Index(info.Index),
+				MemberEvent: multiraftv1.MemberEvent{
+					GroupID:  multiraftv1.GroupID(info.ClusterID),
+					MemberID: multiraftv1.MemberID(info.NodeID),
+				},
+				Index: multiraftv1.Index(info.Index),
 			},
 		},
 	})

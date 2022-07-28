@@ -11,27 +11,30 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/gogo/protobuf/proto"
+	"github.com/lni/dragonboat/v3"
 	"google.golang.org/grpc/metadata"
 	"sync"
 	"sync/atomic"
 )
 
-func newPartition(id multiraftv1.PartitionID, node *Node, streams *stream.Registry) *Partition {
+func newPartition(id multiraftv1.PartitionID, memberID multiraftv1.MemberID, host *dragonboat.NodeHost, streams *stream.Registry) *Partition {
 	return &Partition{
-		id:      id,
-		node:    node,
-		streams: streams,
+		id:       id,
+		memberID: memberID,
+		host:     host,
+		streams:  streams,
 	}
 }
 
 type Partition struct {
-	id      multiraftv1.PartitionID
-	node    *Node
-	ready   int32
-	leader  uint64
-	term    uint64
-	streams *stream.Registry
-	mu      sync.RWMutex
+	id       multiraftv1.PartitionID
+	memberID multiraftv1.MemberID
+	host     *dragonboat.NodeHost
+	ready    int32
+	leader   uint64
+	term     uint64
+	streams  *stream.Registry
+	mu       sync.RWMutex
 }
 
 func (p *Partition) ID() multiraftv1.PartitionID {
@@ -46,13 +49,13 @@ func (p *Partition) getReady() bool {
 	return atomic.LoadInt32(&p.ready) == 1
 }
 
-func (p *Partition) setLeader(term multiraftv1.Term, leader multiraftv1.NodeID) {
+func (p *Partition) setLeader(term multiraftv1.Term, leader multiraftv1.MemberID) {
 	atomic.StoreUint64(&p.term, uint64(term))
 	atomic.StoreUint64(&p.leader, uint64(leader))
 }
 
-func (p *Partition) getLeader() (multiraftv1.Term, multiraftv1.NodeID) {
-	return multiraftv1.Term(atomic.LoadUint64(&p.term)), multiraftv1.NodeID(atomic.LoadUint64(&p.leader))
+func (p *Partition) getLeader() (multiraftv1.Term, multiraftv1.MemberID) {
+	return multiraftv1.Term(atomic.LoadUint64(&p.term)), multiraftv1.MemberID(atomic.LoadUint64(&p.leader))
 }
 
 func (p *Partition) Command(ctx context.Context, command *multiraftv1.CommandInput) (*multiraftv1.CommandOutput, error) {
@@ -107,7 +110,7 @@ func (p *Partition) StreamCommand(ctx context.Context, input *multiraftv1.Comman
 
 func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput]) error {
 	term, leader := p.getLeader()
-	if leader != p.node.id {
+	if leader != p.memberID {
 		return errors.NewUnavailable("not the leader")
 	}
 
@@ -124,7 +127,7 @@ func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.Comman
 
 	ctx, cancel := context.WithTimeout(ctx, defaultClientTimeout)
 	defer cancel()
-	if _, err := p.node.host.SyncPropose(ctx, p.node.host.GetNoOPSession(uint64(p.id)), bytes); err != nil {
+	if _, err := p.host.SyncPropose(ctx, p.host.GetNoOPSession(uint64(p.id)), bytes); err != nil {
 		return wrapError(err)
 	}
 	return nil
@@ -190,11 +193,11 @@ func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInpu
 	if sync {
 		ctx, cancel := context.WithTimeout(ctx, defaultClientTimeout)
 		defer cancel()
-		if _, err := p.node.host.SyncRead(ctx, uint64(p.id), query); err != nil {
+		if _, err := p.host.SyncRead(ctx, uint64(p.id), query); err != nil {
 			return wrapError(err)
 		}
 	} else {
-		if _, err := p.node.host.StaleRead(uint64(p.id), query); err != nil {
+		if _, err := p.host.StaleRead(uint64(p.id), query); err != nil {
 			return wrapError(err)
 		}
 	}

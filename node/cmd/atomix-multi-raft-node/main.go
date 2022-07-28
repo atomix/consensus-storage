@@ -25,11 +25,6 @@ func main() {
 	cmd := &cobra.Command{
 		Use: "atomix-multi-raft-node",
 		Run: func(cmd *cobra.Command, args []string) {
-			nodeID, err := cmd.Flags().GetInt("node")
-			if err != nil {
-				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
-				os.Exit(1)
-			}
 			configPath, err := cmd.Flags().GetString("config")
 			if err != nil {
 				fmt.Fprintln(cmd.OutOrStderr(), err.Error())
@@ -73,7 +68,6 @@ func main() {
 				node.WithHost(apiHost),
 				node.WithPort(apiPort),
 				node.WithConfig(multiraftv1.NodeConfig{
-					NodeID:          multiraftv1.NodeID(nodeID),
 					Host:            raftHost,
 					Port:            int32(raftPort),
 					MultiRaftConfig: config,
@@ -97,7 +91,6 @@ func main() {
 			}
 		},
 	}
-	cmd.Flags().IntP("node", "n", 0, "the ID of this node")
 	cmd.Flags().StringP("config", "c", "", "the path to the multi-raft cluster configuration")
 	cmd.Flags().String("api-host", "", "the host to which to bind the API server")
 	cmd.Flags().Int("api-port", 8080, "the port to which to bind the API server")

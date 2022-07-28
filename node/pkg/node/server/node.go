@@ -75,7 +75,7 @@ func (s *nodeServer) Leave(ctx context.Context, request *multiraftv1.LeaveReques
 func (s *nodeServer) Watch(request *multiraftv1.WatchRequest, server multiraftv1.Node_WatchServer) error {
 	log.Debugw("Watch",
 		logging.Stringer("WatchRequest", request))
-	ch := make(chan multiraftv1.Event)
+	ch := make(chan multiraftv1.Event, 100)
 	go s.node.Watch(server.Context(), ch)
 	for event := range ch {
 		log.Debugw("Watch",
