@@ -266,7 +266,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | group_id | [uint32](#uint32) |  |  |
-| node_id | [uint64](#uint64) |  |  |
+| member_id | [uint64](#uint64) |  |  |
 
 
 
@@ -282,7 +282,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | group_id | [uint32](#uint32) |  |  |
-| node_id | [uint64](#uint64) |  |  |
+| member_id | [uint64](#uint64) |  |  |
 
 
 

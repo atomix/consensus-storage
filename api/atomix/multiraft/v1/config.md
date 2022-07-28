@@ -11,7 +11,7 @@
     - [NodeConfig](#atomix-multiraft-v1-NodeConfig)
     - [PartitionConfig](#atomix-multiraft-v1-PartitionConfig)
   
-    - [MemberConfig.Role](#atomix-multiraft-v1-MemberConfig-Role)
+    - [MemberRole](#atomix-multiraft-v1-MemberRole)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -48,6 +48,8 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | group_id | [uint32](#uint32) |  |  |
+| member_id | [uint32](#uint32) |  |  |
+| role | [MemberRole](#atomix-multiraft-v1-MemberRole) |  |  |
 | members | [MemberConfig](#atomix-multiraft-v1-MemberConfig) | repeated |  |
 
 
@@ -63,10 +65,9 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| node_id | [uint32](#uint32) |  |  |
+| member_id | [uint32](#uint32) |  |  |
 | host | [string](#string) |  |  |
 | port | [int32](#int32) |  |  |
-| role | [MemberConfig.Role](#atomix-multiraft-v1-MemberConfig-Role) |  |  |
 
 
 
@@ -100,7 +101,6 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| node_id | [uint32](#uint32) |  |  |
 | host | [string](#string) |  |  |
 | port | [int32](#int32) |  |  |
 | config | [MultiRaftConfig](#atomix-multiraft-v1-MultiRaftConfig) |  |  |
@@ -129,9 +129,9 @@
  
 
 
-<a name="atomix-multiraft-v1-MemberConfig-Role"></a>
+<a name="atomix-multiraft-v1-MemberRole"></a>
 
-### MemberConfig.Role
+### MemberRole
 
 
 | Name | Number | Description |

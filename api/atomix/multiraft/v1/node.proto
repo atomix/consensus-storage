@@ -88,9 +88,9 @@ message MemberReadyEvent {
         (gogoproto.customname) = "GroupID",
         (gogoproto.casttype) = "GroupID"
     ];
-    uint64 node_id = 2 [
-        (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID"
+    uint64 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 
@@ -99,9 +99,9 @@ message MembershipChangedEvent {
         (gogoproto.customname) = "GroupID",
         (gogoproto.casttype) = "GroupID"
     ];
-    uint64 node_id = 2 [
-        (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID"
+    uint64 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 
@@ -114,7 +114,7 @@ message LeaderUpdatedEvent {
         (gogoproto.casttype) = "Term"
     ];
     uint64 leader = 3 [
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 
@@ -128,7 +128,7 @@ message SendSnapshotStartedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 to = 3 [
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 
@@ -141,7 +141,7 @@ message SendSnapshotCompletedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 to = 3 [
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 
@@ -154,7 +154,7 @@ message SendSnapshotAbortedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 to = 3 [
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 
@@ -167,7 +167,7 @@ message SnapshotReceivedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 from = 3 [
-        (gogoproto.casttype) = "NodeID"
+        (gogoproto.casttype) = "MemberID"
     ];
 }
 

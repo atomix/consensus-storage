@@ -24,14 +24,9 @@ message MultiRaftConfig {
 }
 
 message NodeConfig {
-    uint32 node_id = 1 [
-        (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID",
-        (gogoproto.jsontag) = "nodeId"
-    ];
-    string host = 2;
-    int32 port = 3;
-    MultiRaftConfig config = 4 [
+    string host = 1;
+    int32 port = 2;
+    MultiRaftConfig config = 3 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -42,27 +37,30 @@ message GroupConfig {
         (gogoproto.customname) = "GroupID",
         (gogoproto.casttype) = "GroupID"
     ];
-    repeated MemberConfig members = 2 [
+    uint32 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
+    ];
+    MemberRole role = 3;
+    repeated MemberConfig members = 4 [
         (gogoproto.nullable) = false
     ];
 }
 
+enum MemberRole {
+    UNKNOWN = 0;
+    MEMBER = 1;
+    OBSERVER = 2;
+    WITNESS = 3;
+}
+
 message MemberConfig {
-    uint32 node_id = 1 [
-        (gogoproto.customname) = "NodeID",
-        (gogoproto.casttype) = "NodeID",
-        (gogoproto.jsontag) = "nodeId"
+    uint32 member_id = 1 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
     ];
     string host = 2;
     int32 port = 3;
-    Role role = 4;
-
-    enum Role {
-        UNKNOWN = 0;
-        MEMBER = 1;
-        OBSERVER = 2;
-        WITNESS = 3;
-    }
 }
 
 message DriverConfig {

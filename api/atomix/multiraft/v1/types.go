@@ -6,7 +6,7 @@ package v1
 
 type PartitionID uint32
 
-type NodeID uint8
+type MemberID uint32
 
 type GroupID uint32
 
