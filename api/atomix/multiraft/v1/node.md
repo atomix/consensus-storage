@@ -18,6 +18,7 @@
     - [LogCompactedEvent](#atomix-multiraft-v1-LogCompactedEvent)
     - [LogDBCompactedEvent](#atomix-multiraft-v1-LogDBCompactedEvent)
     - [LogEvent](#atomix-multiraft-v1-LogEvent)
+    - [MemberEvent](#atomix-multiraft-v1-MemberEvent)
     - [MemberReadyEvent](#atomix-multiraft-v1-MemberReadyEvent)
     - [MembershipChangedEvent](#atomix-multiraft-v1-MembershipChangedEvent)
     - [SendSnapshotAbortedEvent](#atomix-multiraft-v1-SendSnapshotAbortedEvent)
@@ -175,7 +176,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | term | [uint64](#uint64) |  |  |
 | leader | [uint64](#uint64) |  |  |
 
@@ -217,7 +218,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 
 
@@ -233,7 +234,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 
 
@@ -249,8 +250,24 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-MemberEvent"></a>
+
+### MemberEvent
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| group_id | [uint32](#uint32) |  |  |
+| member_id | [uint64](#uint64) |  |  |
 
 
 
@@ -265,8 +282,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
-| member_id | [uint64](#uint64) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 
 
 
@@ -281,8 +297,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
-| member_id | [uint64](#uint64) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 
 
 
@@ -297,7 +312,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 | to | [uint64](#uint64) |  |  |
 
@@ -314,7 +329,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 | to | [uint64](#uint64) |  |  |
 
@@ -331,7 +346,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 | to | [uint64](#uint64) |  |  |
 
@@ -348,7 +363,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 
 
@@ -364,7 +379,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 
 
@@ -380,7 +395,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 | from | [uint64](#uint64) |  |  |
 
@@ -397,7 +412,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| group_id | [uint32](#uint32) |  |  |
+| member | [MemberEvent](#atomix-multiraft-v1-MemberEvent) |  |  |
 | index | [uint64](#uint64) |  |  |
 
 

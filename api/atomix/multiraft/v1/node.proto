@@ -83,7 +83,7 @@ message ConnectionInfo {
     bool snapshot = 2;
 }
 
-message MemberReadyEvent {
+message MemberEvent {
     uint32 group_id = 1 [
         (gogoproto.customname) = "GroupID",
         (gogoproto.casttype) = "GroupID"
@@ -91,24 +91,27 @@ message MemberReadyEvent {
     uint64 member_id = 2 [
         (gogoproto.customname) = "MemberID",
         (gogoproto.casttype) = "MemberID"
+    ];
+}
+
+message MemberReadyEvent {
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
 }
 
 message MembershipChangedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
-    ];
-    uint64 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
 }
 
 message LeaderUpdatedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 term = 2 [
         (gogoproto.casttype) = "Term"
@@ -120,9 +123,9 @@ message LeaderUpdatedEvent {
 
 
 message SendSnapshotStartedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -133,9 +136,9 @@ message SendSnapshotStartedEvent {
 }
 
 message SendSnapshotCompletedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -146,9 +149,9 @@ message SendSnapshotCompletedEvent {
 }
 
 message SendSnapshotAbortedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -159,9 +162,9 @@ message SendSnapshotAbortedEvent {
 }
 
 message SnapshotReceivedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -172,9 +175,9 @@ message SnapshotReceivedEvent {
 }
 
 message SnapshotRecoveredEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -182,9 +185,9 @@ message SnapshotRecoveredEvent {
 }
 
 message SnapshotCreatedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -192,9 +195,9 @@ message SnapshotCreatedEvent {
 }
 
 message SnapshotCompactedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -202,9 +205,9 @@ message SnapshotCompactedEvent {
 }
 
 message LogEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -212,9 +215,9 @@ message LogEvent {
 }
 
 message LogCompactedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"
@@ -222,9 +225,9 @@ message LogCompactedEvent {
 }
 
 message LogDBCompactedEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    MemberEvent member = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.embed) = true
     ];
     uint64 index = 2 [
         (gogoproto.casttype) = "Index"

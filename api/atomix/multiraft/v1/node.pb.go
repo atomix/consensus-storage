@@ -608,16 +608,67 @@ func (m *ConnectionInfo) GetSnapshot() bool {
 	return false
 }
 
-type MemberReadyEvent struct {
+type MemberEvent struct {
 	GroupID  GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
 	MemberID MemberID `protobuf:"varint,2,opt,name=member_id,json=memberId,proto3,casttype=MemberID" json:"member_id,omitempty"`
+}
+
+func (m *MemberEvent) Reset()         { *m = MemberEvent{} }
+func (m *MemberEvent) String() string { return proto.CompactTextString(m) }
+func (*MemberEvent) ProtoMessage()    {}
+func (*MemberEvent) Descriptor() ([]byte, []int) {
+	return fileDescriptor_65a174c3980109d8, []int{9}
+}
+func (m *MemberEvent) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MemberEvent) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MemberEvent.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MemberEvent) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MemberEvent.Merge(m, src)
+}
+func (m *MemberEvent) XXX_Size() int {
+	return m.Size()
+}
+func (m *MemberEvent) XXX_DiscardUnknown() {
+	xxx_messageInfo_MemberEvent.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MemberEvent proto.InternalMessageInfo
+
+func (m *MemberEvent) GetGroupID() GroupID {
+	if m != nil {
+		return m.GroupID
+	}
+	return 0
+}
+
+func (m *MemberEvent) GetMemberID() MemberID {
+	if m != nil {
+		return m.MemberID
+	}
+	return 0
+}
+
+type MemberReadyEvent struct {
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
 }
 
 func (m *MemberReadyEvent) Reset()         { *m = MemberReadyEvent{} }
 func (m *MemberReadyEvent) String() string { return proto.CompactTextString(m) }
 func (*MemberReadyEvent) ProtoMessage()    {}
 func (*MemberReadyEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{9}
+	return fileDescriptor_65a174c3980109d8, []int{10}
 }
 func (m *MemberReadyEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -646,30 +697,15 @@ func (m *MemberReadyEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MemberReadyEvent proto.InternalMessageInfo
 
-func (m *MemberReadyEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
-func (m *MemberReadyEvent) GetMemberID() MemberID {
-	if m != nil {
-		return m.MemberID
-	}
-	return 0
-}
-
 type MembershipChangedEvent struct {
-	GroupID  GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	MemberID MemberID `protobuf:"varint,2,opt,name=member_id,json=memberId,proto3,casttype=MemberID" json:"member_id,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
 }
 
 func (m *MembershipChangedEvent) Reset()         { *m = MembershipChangedEvent{} }
 func (m *MembershipChangedEvent) String() string { return proto.CompactTextString(m) }
 func (*MembershipChangedEvent) ProtoMessage()    {}
 func (*MembershipChangedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{10}
+	return fileDescriptor_65a174c3980109d8, []int{11}
 }
 func (m *MembershipChangedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -698,31 +734,17 @@ func (m *MembershipChangedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MembershipChangedEvent proto.InternalMessageInfo
 
-func (m *MembershipChangedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
-func (m *MembershipChangedEvent) GetMemberID() MemberID {
-	if m != nil {
-		return m.MemberID
-	}
-	return 0
-}
-
 type LeaderUpdatedEvent struct {
-	GroupID GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Term    Term     `protobuf:"varint,2,opt,name=term,proto3,casttype=Term" json:"term,omitempty"`
-	Leader  MemberID `protobuf:"varint,3,opt,name=leader,proto3,casttype=MemberID" json:"leader,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Term        Term     `protobuf:"varint,2,opt,name=term,proto3,casttype=Term" json:"term,omitempty"`
+	Leader      MemberID `protobuf:"varint,3,opt,name=leader,proto3,casttype=MemberID" json:"leader,omitempty"`
 }
 
 func (m *LeaderUpdatedEvent) Reset()         { *m = LeaderUpdatedEvent{} }
 func (m *LeaderUpdatedEvent) String() string { return proto.CompactTextString(m) }
 func (*LeaderUpdatedEvent) ProtoMessage()    {}
 func (*LeaderUpdatedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{11}
+	return fileDescriptor_65a174c3980109d8, []int{12}
 }
 func (m *LeaderUpdatedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -751,13 +773,6 @@ func (m *LeaderUpdatedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LeaderUpdatedEvent proto.InternalMessageInfo
 
-func (m *LeaderUpdatedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *LeaderUpdatedEvent) GetTerm() Term {
 	if m != nil {
 		return m.Term
@@ -773,16 +788,16 @@ func (m *LeaderUpdatedEvent) GetLeader() MemberID {
 }
 
 type SendSnapshotStartedEvent struct {
-	GroupID GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
-	To      MemberID `protobuf:"varint,3,opt,name=to,proto3,casttype=MemberID" json:"to,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	To          MemberID `protobuf:"varint,3,opt,name=to,proto3,casttype=MemberID" json:"to,omitempty"`
 }
 
 func (m *SendSnapshotStartedEvent) Reset()         { *m = SendSnapshotStartedEvent{} }
 func (m *SendSnapshotStartedEvent) String() string { return proto.CompactTextString(m) }
 func (*SendSnapshotStartedEvent) ProtoMessage()    {}
 func (*SendSnapshotStartedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{12}
+	return fileDescriptor_65a174c3980109d8, []int{13}
 }
 func (m *SendSnapshotStartedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -811,13 +826,6 @@ func (m *SendSnapshotStartedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SendSnapshotStartedEvent proto.InternalMessageInfo
 
-func (m *SendSnapshotStartedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SendSnapshotStartedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -833,16 +841,16 @@ func (m *SendSnapshotStartedEvent) GetTo() MemberID {
 }
 
 type SendSnapshotCompletedEvent struct {
-	GroupID GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
-	To      MemberID `protobuf:"varint,3,opt,name=to,proto3,casttype=MemberID" json:"to,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	To          MemberID `protobuf:"varint,3,opt,name=to,proto3,casttype=MemberID" json:"to,omitempty"`
 }
 
 func (m *SendSnapshotCompletedEvent) Reset()         { *m = SendSnapshotCompletedEvent{} }
 func (m *SendSnapshotCompletedEvent) String() string { return proto.CompactTextString(m) }
 func (*SendSnapshotCompletedEvent) ProtoMessage()    {}
 func (*SendSnapshotCompletedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{13}
+	return fileDescriptor_65a174c3980109d8, []int{14}
 }
 func (m *SendSnapshotCompletedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -871,13 +879,6 @@ func (m *SendSnapshotCompletedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SendSnapshotCompletedEvent proto.InternalMessageInfo
 
-func (m *SendSnapshotCompletedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SendSnapshotCompletedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -893,16 +894,16 @@ func (m *SendSnapshotCompletedEvent) GetTo() MemberID {
 }
 
 type SendSnapshotAbortedEvent struct {
-	GroupID GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
-	To      MemberID `protobuf:"varint,3,opt,name=to,proto3,casttype=MemberID" json:"to,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	To          MemberID `protobuf:"varint,3,opt,name=to,proto3,casttype=MemberID" json:"to,omitempty"`
 }
 
 func (m *SendSnapshotAbortedEvent) Reset()         { *m = SendSnapshotAbortedEvent{} }
 func (m *SendSnapshotAbortedEvent) String() string { return proto.CompactTextString(m) }
 func (*SendSnapshotAbortedEvent) ProtoMessage()    {}
 func (*SendSnapshotAbortedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{14}
+	return fileDescriptor_65a174c3980109d8, []int{15}
 }
 func (m *SendSnapshotAbortedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -931,13 +932,6 @@ func (m *SendSnapshotAbortedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SendSnapshotAbortedEvent proto.InternalMessageInfo
 
-func (m *SendSnapshotAbortedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SendSnapshotAbortedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -953,16 +947,16 @@ func (m *SendSnapshotAbortedEvent) GetTo() MemberID {
 }
 
 type SnapshotReceivedEvent struct {
-	GroupID GroupID  `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
-	From    MemberID `protobuf:"varint,3,opt,name=from,proto3,casttype=MemberID" json:"from,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index    `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	From        MemberID `protobuf:"varint,3,opt,name=from,proto3,casttype=MemberID" json:"from,omitempty"`
 }
 
 func (m *SnapshotReceivedEvent) Reset()         { *m = SnapshotReceivedEvent{} }
 func (m *SnapshotReceivedEvent) String() string { return proto.CompactTextString(m) }
 func (*SnapshotReceivedEvent) ProtoMessage()    {}
 func (*SnapshotReceivedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{15}
+	return fileDescriptor_65a174c3980109d8, []int{16}
 }
 func (m *SnapshotReceivedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -991,13 +985,6 @@ func (m *SnapshotReceivedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SnapshotReceivedEvent proto.InternalMessageInfo
 
-func (m *SnapshotReceivedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SnapshotReceivedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1013,15 +1000,15 @@ func (m *SnapshotReceivedEvent) GetFrom() MemberID {
 }
 
 type SnapshotRecoveredEvent struct {
-	GroupID GroupID `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index   `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
 }
 
 func (m *SnapshotRecoveredEvent) Reset()         { *m = SnapshotRecoveredEvent{} }
 func (m *SnapshotRecoveredEvent) String() string { return proto.CompactTextString(m) }
 func (*SnapshotRecoveredEvent) ProtoMessage()    {}
 func (*SnapshotRecoveredEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{16}
+	return fileDescriptor_65a174c3980109d8, []int{17}
 }
 func (m *SnapshotRecoveredEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1050,13 +1037,6 @@ func (m *SnapshotRecoveredEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SnapshotRecoveredEvent proto.InternalMessageInfo
 
-func (m *SnapshotRecoveredEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SnapshotRecoveredEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1065,15 +1045,15 @@ func (m *SnapshotRecoveredEvent) GetIndex() Index {
 }
 
 type SnapshotCreatedEvent struct {
-	GroupID GroupID `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index   `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
 }
 
 func (m *SnapshotCreatedEvent) Reset()         { *m = SnapshotCreatedEvent{} }
 func (m *SnapshotCreatedEvent) String() string { return proto.CompactTextString(m) }
 func (*SnapshotCreatedEvent) ProtoMessage()    {}
 func (*SnapshotCreatedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{17}
+	return fileDescriptor_65a174c3980109d8, []int{18}
 }
 func (m *SnapshotCreatedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1102,13 +1082,6 @@ func (m *SnapshotCreatedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SnapshotCreatedEvent proto.InternalMessageInfo
 
-func (m *SnapshotCreatedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SnapshotCreatedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1117,15 +1090,15 @@ func (m *SnapshotCreatedEvent) GetIndex() Index {
 }
 
 type SnapshotCompactedEvent struct {
-	GroupID GroupID `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index   `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
 }
 
 func (m *SnapshotCompactedEvent) Reset()         { *m = SnapshotCompactedEvent{} }
 func (m *SnapshotCompactedEvent) String() string { return proto.CompactTextString(m) }
 func (*SnapshotCompactedEvent) ProtoMessage()    {}
 func (*SnapshotCompactedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{18}
+	return fileDescriptor_65a174c3980109d8, []int{19}
 }
 func (m *SnapshotCompactedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1154,13 +1127,6 @@ func (m *SnapshotCompactedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SnapshotCompactedEvent proto.InternalMessageInfo
 
-func (m *SnapshotCompactedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *SnapshotCompactedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1169,15 +1135,15 @@ func (m *SnapshotCompactedEvent) GetIndex() Index {
 }
 
 type LogEvent struct {
-	GroupID GroupID `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index   `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
 }
 
 func (m *LogEvent) Reset()         { *m = LogEvent{} }
 func (m *LogEvent) String() string { return proto.CompactTextString(m) }
 func (*LogEvent) ProtoMessage()    {}
 func (*LogEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{19}
+	return fileDescriptor_65a174c3980109d8, []int{20}
 }
 func (m *LogEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1206,13 +1172,6 @@ func (m *LogEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LogEvent proto.InternalMessageInfo
 
-func (m *LogEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *LogEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1221,15 +1180,15 @@ func (m *LogEvent) GetIndex() Index {
 }
 
 type LogCompactedEvent struct {
-	GroupID GroupID `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index   `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
 }
 
 func (m *LogCompactedEvent) Reset()         { *m = LogCompactedEvent{} }
 func (m *LogCompactedEvent) String() string { return proto.CompactTextString(m) }
 func (*LogCompactedEvent) ProtoMessage()    {}
 func (*LogCompactedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{20}
+	return fileDescriptor_65a174c3980109d8, []int{21}
 }
 func (m *LogCompactedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1258,13 +1217,6 @@ func (m *LogCompactedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LogCompactedEvent proto.InternalMessageInfo
 
-func (m *LogCompactedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *LogCompactedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1273,15 +1225,15 @@ func (m *LogCompactedEvent) GetIndex() Index {
 }
 
 type LogDBCompactedEvent struct {
-	GroupID GroupID `protobuf:"varint,1,opt,name=group_id,json=groupId,proto3,casttype=GroupID" json:"group_id,omitempty"`
-	Index   Index   `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
+	MemberEvent `protobuf:"bytes,1,opt,name=member,proto3,embedded=member" json:"member"`
+	Index       Index `protobuf:"varint,2,opt,name=index,proto3,casttype=Index" json:"index,omitempty"`
 }
 
 func (m *LogDBCompactedEvent) Reset()         { *m = LogDBCompactedEvent{} }
 func (m *LogDBCompactedEvent) String() string { return proto.CompactTextString(m) }
 func (*LogDBCompactedEvent) ProtoMessage()    {}
 func (*LogDBCompactedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{21}
+	return fileDescriptor_65a174c3980109d8, []int{22}
 }
 func (m *LogDBCompactedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1310,13 +1262,6 @@ func (m *LogDBCompactedEvent) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LogDBCompactedEvent proto.InternalMessageInfo
 
-func (m *LogDBCompactedEvent) GetGroupID() GroupID {
-	if m != nil {
-		return m.GroupID
-	}
-	return 0
-}
-
 func (m *LogDBCompactedEvent) GetIndex() Index {
 	if m != nil {
 		return m.Index
@@ -1332,7 +1277,7 @@ func (m *ConnectionEstablishedEvent) Reset()         { *m = ConnectionEstablishe
 func (m *ConnectionEstablishedEvent) String() string { return proto.CompactTextString(m) }
 func (*ConnectionEstablishedEvent) ProtoMessage()    {}
 func (*ConnectionEstablishedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{22}
+	return fileDescriptor_65a174c3980109d8, []int{23}
 }
 func (m *ConnectionEstablishedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1369,7 +1314,7 @@ func (m *ConnectionFailedEvent) Reset()         { *m = ConnectionFailedEvent{} }
 func (m *ConnectionFailedEvent) String() string { return proto.CompactTextString(m) }
 func (*ConnectionFailedEvent) ProtoMessage()    {}
 func (*ConnectionFailedEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_65a174c3980109d8, []int{23}
+	return fileDescriptor_65a174c3980109d8, []int{24}
 }
 func (m *ConnectionFailedEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1408,6 +1353,7 @@ func init() {
 	proto.RegisterType((*WatchRequest)(nil), "atomix.multiraft.v1.WatchRequest")
 	proto.RegisterType((*Event)(nil), "atomix.multiraft.v1.Event")
 	proto.RegisterType((*ConnectionInfo)(nil), "atomix.multiraft.v1.ConnectionInfo")
+	proto.RegisterType((*MemberEvent)(nil), "atomix.multiraft.v1.MemberEvent")
 	proto.RegisterType((*MemberReadyEvent)(nil), "atomix.multiraft.v1.MemberReadyEvent")
 	proto.RegisterType((*MembershipChangedEvent)(nil), "atomix.multiraft.v1.MembershipChangedEvent")
 	proto.RegisterType((*LeaderUpdatedEvent)(nil), "atomix.multiraft.v1.LeaderUpdatedEvent")
@@ -1428,75 +1374,77 @@ func init() {
 func init() { proto.RegisterFile("atomix/multiraft/v1/node.proto", fileDescriptor_65a174c3980109d8) }
 
 var fileDescriptor_65a174c3980109d8 = []byte{
-	// 1087 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x57, 0x4f, 0x6f, 0xdb, 0xc6,
-	0x13, 0x15, 0xfd, 0xa3, 0x2c, 0x69, 0x2c, 0xc9, 0xf6, 0x3a, 0xf6, 0x8f, 0x20, 0x02, 0xc9, 0x66,
-	0xdb, 0x34, 0x6d, 0x51, 0xa9, 0x4e, 0xd1, 0x5b, 0x2f, 0xa6, 0x92, 0x34, 0x4a, 0x9c, 0x20, 0xa0,
-	0xd3, 0x16, 0x0d, 0x8a, 0x0a, 0x14, 0x77, 0x45, 0xb1, 0x20, 0xb9, 0x2a, 0x49, 0x09, 0x29, 0xd0,
-	0x53, 0xaf, 0xfd, 0x83, 0x7c, 0xac, 0xf4, 0xe6, 0x63, 0x2f, 0x55, 0x0b, 0xf9, 0x5b, 0xf8, 0x54,
-	0x70, 0xf9, 0x47, 0x94, 0xb4, 0x92, 0x03, 0x23, 0x6a, 0x6e, 0xf4, 0xce, 0x9b, 0xf7, 0xde, 0x6a,
-	0xd6, 0x33, 0x18, 0xa8, 0xe9, 0x01, 0x75, 0xac, 0x17, 0x4d, 0x67, 0x68, 0x07, 0x96, 0xa7, 0xf7,
-	0x82, 0xe6, 0xe8, 0xb8, 0xe9, 0x52, 0x4c, 0x1a, 0x03, 0x8f, 0x06, 0x14, 0xed, 0x45, 0xf1, 0x46,
-	0x1a, 0x6f, 0x8c, 0x8e, 0xe5, 0xba, 0x49, 0xa9, 0x69, 0x93, 0x26, 0x83, 0x74, 0x87, 0xbd, 0x66,
-	0x60, 0x39, 0xc4, 0x0f, 0x74, 0x67, 0x10, 0x65, 0xc9, 0x37, 0x4c, 0x6a, 0x52, 0xf6, 0xd9, 0x0c,
-	0xbf, 0xe2, 0xd3, 0x43, 0x9e, 0x96, 0x41, 0xdd, 0x9e, 0x65, 0xc6, 0x88, 0x23, 0x1e, 0xa2, 0x4f,
-	0x74, 0x4c, 0x3c, 0x3f, 0x82, 0x28, 0x4f, 0x61, 0x47, 0xa5, 0x34, 0xf0, 0x03, 0x4f, 0x1f, 0x68,
-	0xe4, 0x87, 0x21, 0xf1, 0x03, 0xf4, 0x39, 0xe4, 0x4d, 0x8f, 0x0e, 0x07, 0x92, 0x70, 0x28, 0xdc,
-	0xde, 0xba, 0x73, 0xd8, 0xe0, 0x98, 0x6e, 0x7c, 0x11, 0x22, 0x5a, 0x4c, 0x4d, 0x15, 0x5f, 0x8d,
-	0xeb, 0x39, 0x2d, 0x4a, 0x52, 0xf6, 0x60, 0x37, 0xc3, 0xe8, 0x0f, 0xa8, 0xeb, 0x13, 0xe5, 0x11,
-	0x6c, 0x3d, 0xa4, 0x96, 0xfb, 0x66, 0x14, 0xaa, 0x50, 0x8e, 0xc8, 0x62, 0xf2, 0x13, 0x28, 0x9f,
-	0x12, 0x7d, 0x44, 0x12, 0xf6, 0x63, 0x28, 0x32, 0x60, 0xc7, 0xc2, 0x4c, 0xa0, 0xa2, 0x1e, 0x4c,
-	0xc6, 0xf5, 0x02, 0xe3, 0x6b, 0xdf, 0xbd, 0x9c, 0x7e, 0x6a, 0x05, 0x86, 0x6b, 0x63, 0x65, 0x1b,
-	0x2a, 0x31, 0x45, 0xcc, 0x59, 0x85, 0xf2, 0xd7, 0x7a, 0x60, 0xf4, 0x63, 0x4e, 0xe5, 0x2f, 0x80,
-	0xfc, 0xbd, 0x11, 0x71, 0x03, 0xa4, 0x42, 0x29, 0xad, 0x4f, 0xec, 0x5f, 0x6e, 0x44, 0x15, 0x6c,
-	0x24, 0x15, 0x6c, 0x3c, 0x4b, 0x10, 0x6a, 0x31, 0x74, 0xfe, 0xf2, 0xef, 0xba, 0xa0, 0x4d, 0xd3,
-	0xd0, 0x43, 0x28, 0x3b, 0xc4, 0xe9, 0x12, 0xaf, 0xe3, 0x11, 0x1d, 0xff, 0x28, 0x6d, 0x30, 0x9a,
-	0xf7, 0xb8, 0x3f, 0xc3, 0x63, 0x06, 0xd4, 0x42, 0x1c, 0x33, 0xf0, 0x20, 0xa7, 0x6d, 0x39, 0xd3,
-	0x33, 0xf4, 0x14, 0xaa, 0x36, 0x2b, 0x69, 0x67, 0x38, 0xc0, 0x7a, 0x40, 0xb0, 0xf4, 0x3f, 0xc6,
-	0xf6, 0x3e, 0x97, 0xed, 0x94, 0x41, 0xbf, 0x8c, 0x90, 0x09, 0x5f, 0xc5, 0xce, 0x9e, 0xa2, 0x6f,
-	0x01, 0x45, 0x02, 0x7e, 0xdf, 0x1a, 0x74, 0x8c, 0xbe, 0xee, 0x9a, 0x04, 0x4b, 0x22, 0x63, 0xfd,
-	0x68, 0x85, 0xc7, 0x10, 0xde, 0x8a, 0xd0, 0x09, 0xf3, 0xae, 0x33, 0x1f, 0x41, 0x06, 0xec, 0xfb,
-	0xc4, 0xc5, 0x1d, 0xdf, 0xd5, 0x07, 0x7e, 0x9f, 0x06, 0x1d, 0x3f, 0xd0, 0xbd, 0xd0, 0x76, 0x9e,
-	0x09, 0x7c, 0xcc, 0x15, 0x38, 0x23, 0x2e, 0x3e, 0x8b, 0x13, 0xce, 0x22, 0x7c, 0x22, 0xb1, 0xe7,
-	0x2f, 0xc6, 0x90, 0x05, 0xff, 0x9f, 0x15, 0x31, 0xa8, 0x33, 0xb0, 0x49, 0x28, 0xb3, 0xc9, 0x64,
-	0x9a, 0x57, 0xca, 0xb4, 0x92, 0x8c, 0x44, 0x68, 0xdf, 0xe7, 0x45, 0x17, 0xef, 0xa3, 0x77, 0x29,
-	0xbb, 0x4f, 0xe1, 0x35, 0xef, 0x73, 0x12, 0xe1, 0xb9, 0xf7, 0x89, 0x63, 0xe8, 0x1b, 0xd8, 0x4d,
-	0xf9, 0x3d, 0x62, 0x10, 0x6b, 0x44, 0xb0, 0x54, 0x64, 0x02, 0x1f, 0xf2, 0x05, 0x62, 0xb4, 0x16,
-	0x83, 0x13, 0xf6, 0x1d, 0x7f, 0x2e, 0x10, 0x56, 0x3b, 0x4b, 0x4d, 0x47, 0xc4, 0x23, 0x58, 0x2a,
-	0xad, 0xa8, 0x76, 0x86, 0x3b, 0x42, 0xa7, 0xd5, 0xf6, 0xe7, 0x23, 0xe8, 0x2b, 0xd8, 0x99, 0xd6,
-	0xc0, 0x23, 0xec, 0x7d, 0x02, 0xe3, 0xfe, 0x60, 0x25, 0x77, 0x2b, 0xc2, 0x26, 0xcc, 0xdb, 0xfe,
-	0xec, 0xf9, 0x8c, 0xeb, 0xb0, 0xb6, 0xba, 0x11, 0x32, 0x6f, 0xbd, 0x86, 0xeb, 0x56, 0x82, 0x5e,
-	0x70, 0x9d, 0x46, 0xd0, 0x63, 0xa8, 0xd8, 0xd4, 0xcc, 0x10, 0x97, 0x19, 0xf1, 0x2d, 0xfe, 0xbf,
-	0x14, 0x35, 0x17, 0x38, 0xcb, 0x76, 0xe6, 0x10, 0x9d, 0xc1, 0xb6, 0x4d, 0x4d, 0xdc, 0xcd, 0x10,
-	0x56, 0x18, 0xe1, 0xed, 0x65, 0x84, 0x77, 0xd5, 0x05, 0xca, 0x2a, 0xa3, 0x98, 0x92, 0xf6, 0xe1,
-	0xc0, 0xa0, 0xae, 0x4b, 0x8c, 0xc0, 0xa2, 0x6e, 0x27, 0x6c, 0x2c, 0x5d, 0xdb, 0xf2, 0xfb, 0x04,
-	0x4b, 0xd5, 0x15, 0x2f, 0xbc, 0x95, 0xa6, 0xdc, 0x9b, 0x66, 0xa4, 0x2f, 0xdc, 0xe0, 0x45, 0xc3,
-	0xc7, 0x97, 0x51, 0xea, 0xe9, 0x96, 0x4d, 0xb0, 0xb4, 0xbd, 0xe2, 0xf1, 0x4d, 0x45, 0xee, 0x33,
-	0x70, 0xfa, 0xf8, 0x8c, 0xb9, 0x80, 0x5a, 0x80, 0x3c, 0x09, 0x83, 0xca, 0x7d, 0xa8, 0x4e, 0xb3,
-	0xda, 0x6e, 0x8f, 0x22, 0x09, 0x0a, 0x3a, 0xc6, 0x1e, 0xf1, 0x7d, 0xd6, 0x65, 0x4b, 0x5a, 0xf2,
-	0x27, 0x92, 0xa1, 0x98, 0x94, 0x8c, 0x75, 0xce, 0xa2, 0x96, 0xfe, 0xad, 0xfc, 0x04, 0x3b, 0xf3,
-	0x0d, 0xf3, 0x1a, 0xf3, 0x00, 0x7d, 0x06, 0xa5, 0xb8, 0x41, 0x5b, 0x98, 0x69, 0x88, 0xaa, 0x34,
-	0x19, 0xd7, 0x8b, 0x11, 0x37, 0x4b, 0x4a, 0xbf, 0xb5, 0x62, 0x04, 0x6d, 0x63, 0xe5, 0x67, 0x01,
-	0x0e, 0xf8, 0xbd, 0xf0, 0x3f, 0x34, 0xf1, 0x8b, 0x00, 0x68, 0xb1, 0xcd, 0x5f, 0xc7, 0xc0, 0x4d,
-	0x10, 0x03, 0xe2, 0x39, 0xb1, 0x76, 0xf1, 0x72, 0x5c, 0x17, 0x9f, 0x11, 0xcf, 0xd1, 0xd8, 0x29,
-	0x7a, 0x17, 0x36, 0xa3, 0xb9, 0xc1, 0x06, 0x8e, 0xa8, 0x96, 0x67, 0xfc, 0xc4, 0x31, 0xe5, 0x57,
-	0x01, 0xa4, 0x65, 0xdd, 0xfb, 0x3a, 0x9e, 0xea, 0x90, 0xb7, 0x5c, 0x4c, 0x5e, 0xc4, 0xa6, 0x4a,
-	0x97, 0xe3, 0x7a, 0xbe, 0x1d, 0x1e, 0x68, 0xd1, 0x39, 0xba, 0x09, 0x1b, 0x01, 0xe5, 0x5a, 0xda,
-	0x08, 0xa8, 0xf2, 0xbb, 0x00, 0xf2, 0xf2, 0x2e, 0xff, 0x16, 0x0c, 0xcd, 0xff, 0x3e, 0xd9, 0x69,
-	0xf0, 0x16, 0xec, 0xfc, 0x26, 0xc0, 0x3e, 0x77, 0x76, 0xac, 0xc5, 0xcb, 0x21, 0x88, 0x3d, 0x8f,
-	0x3a, 0x5c, 0x37, 0x2c, 0xa2, 0xd8, 0x70, 0xc0, 0x1f, 0x37, 0xeb, 0xf0, 0xa3, 0x7c, 0x0f, 0x37,
-	0x78, 0x03, 0x68, 0x2d, 0x5a, 0x99, 0x9b, 0xcd, 0xf6, 0xfa, 0xb5, 0xa8, 0x7d, 0x07, 0xc5, 0x53,
-	0x6a, 0xae, 0x8f, 0xdf, 0x84, 0xdd, 0x85, 0x39, 0xb8, 0x16, 0x21, 0x0b, 0xf6, 0x38, 0xf3, 0x71,
-	0x2d, 0x52, 0x1d, 0x90, 0x97, 0x8f, 0x4b, 0x74, 0x02, 0xa2, 0xe5, 0xf6, 0x68, 0xbc, 0x02, 0xbc,
-	0x73, 0xc5, 0x20, 0x0c, 0x47, 0x5a, 0xb4, 0x0b, 0x9c, 0x8f, 0xeb, 0x82, 0xc6, 0x52, 0x95, 0xe7,
-	0xb0, 0xcf, 0x1d, 0x95, 0x6f, 0x80, 0xfb, 0xce, 0x1f, 0x1b, 0x20, 0x3e, 0xa1, 0x98, 0xa0, 0xe7,
-	0x50, 0x4a, 0xf7, 0x31, 0xc4, 0x5f, 0x31, 0xe6, 0x37, 0x40, 0xf9, 0xd6, 0x55, 0xb0, 0x68, 0x4b,
-	0x42, 0x8f, 0x40, 0x0c, 0x37, 0x31, 0xc4, 0x5f, 0xe0, 0x32, 0x1b, 0x9f, 0x7c, 0xb4, 0x02, 0x11,
-	0x93, 0x3d, 0x81, 0x3c, 0xdb, 0xc1, 0xd0, 0xd1, 0xb2, 0xcd, 0x25, 0x5d, 0xf1, 0x64, 0x65, 0x15,
-	0x24, 0xe6, 0x7b, 0x00, 0x79, 0xb6, 0xc2, 0x2d, 0xe1, 0xcb, 0xae, 0x77, 0xb2, 0xcc, 0x85, 0xb0,
-	0x62, 0x7c, 0x22, 0xa8, 0xd2, 0xab, 0x49, 0x4d, 0x38, 0x9f, 0xd4, 0x84, 0x7f, 0x26, 0x35, 0xe1,
-	0xe5, 0x45, 0x2d, 0x77, 0x7e, 0x51, 0xcb, 0xfd, 0x79, 0x51, 0xcb, 0x75, 0x37, 0xd9, 0xc6, 0xf7,
-	0xe9, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0xad, 0x74, 0xeb, 0xaa, 0xf8, 0x0f, 0x00, 0x00,
+	// 1110 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x57, 0xcd, 0x6e, 0xdb, 0x46,
+	0x10, 0x36, 0x5d, 0xca, 0x96, 0xc6, 0xb2, 0x6c, 0xaf, 0x63, 0x97, 0x20, 0x02, 0xc9, 0x66, 0xdb,
+	0x34, 0x6d, 0x51, 0xa9, 0x4e, 0xd1, 0x5b, 0x2f, 0xa6, 0x92, 0x34, 0x4e, 0x9c, 0x20, 0xa0, 0xd3,
+	0x14, 0x0d, 0x02, 0x08, 0x14, 0x77, 0x45, 0x11, 0x20, 0xb9, 0x2a, 0x49, 0xab, 0x6e, 0x8b, 0xbe,
+	0x43, 0x1e, 0xa0, 0x3f, 0xaf, 0x93, 0xde, 0x7c, 0xec, 0xa5, 0x6a, 0x61, 0xbf, 0x85, 0x4f, 0x05,
+	0x77, 0x49, 0x8a, 0x92, 0x56, 0x72, 0x02, 0x08, 0x42, 0x6e, 0xf4, 0xce, 0x37, 0xdf, 0xf7, 0xed,
+	0xce, 0x7a, 0x47, 0x03, 0x55, 0x33, 0xa2, 0x9e, 0x73, 0xd6, 0xf0, 0x4e, 0xdd, 0xc8, 0x09, 0xcc,
+	0x4e, 0xd4, 0xe8, 0x1f, 0x34, 0x7c, 0x8a, 0x49, 0xbd, 0x17, 0xd0, 0x88, 0xa2, 0x6d, 0x1e, 0xaf,
+	0x67, 0xf1, 0x7a, 0xff, 0x40, 0xad, 0xd9, 0x94, 0xda, 0x2e, 0x69, 0x30, 0x48, 0xfb, 0xb4, 0xd3,
+	0x88, 0x1c, 0x8f, 0x84, 0x91, 0xe9, 0xf5, 0x78, 0x96, 0x7a, 0xc3, 0xa6, 0x36, 0x65, 0x9f, 0x8d,
+	0xf8, 0x2b, 0x59, 0xdd, 0x13, 0x69, 0x59, 0xd4, 0xef, 0x38, 0x76, 0x82, 0xd8, 0x17, 0x21, 0xba,
+	0xc4, 0xc4, 0x24, 0x08, 0x39, 0x44, 0x7b, 0x0a, 0x9b, 0x3a, 0xa5, 0x51, 0x18, 0x05, 0x66, 0xcf,
+	0x20, 0x3f, 0x9c, 0x92, 0x30, 0x42, 0x5f, 0x43, 0xc1, 0x0e, 0xe8, 0x69, 0x4f, 0x91, 0xf6, 0xa4,
+	0xdb, 0x6b, 0x77, 0xf6, 0xea, 0x02, 0xd3, 0xf5, 0x6f, 0x62, 0x44, 0x93, 0xa9, 0xe9, 0xf2, 0xeb,
+	0x41, 0x6d, 0xc9, 0xe0, 0x49, 0xda, 0x36, 0x6c, 0xe5, 0x18, 0xc3, 0x1e, 0xf5, 0x43, 0xa2, 0x3d,
+	0x82, 0xb5, 0x87, 0xd4, 0xf1, 0xe7, 0xa3, 0x50, 0x81, 0x32, 0x27, 0x4b, 0xc8, 0x0f, 0xa1, 0x7c,
+	0x4c, 0xcc, 0x3e, 0x49, 0xd9, 0x0f, 0xa0, 0xc8, 0x80, 0x2d, 0x07, 0x33, 0x81, 0x75, 0x7d, 0xf7,
+	0x62, 0x50, 0x5b, 0x65, 0x7c, 0x47, 0x77, 0xaf, 0x86, 0x9f, 0xc6, 0x2a, 0xc3, 0x1d, 0x61, 0x6d,
+	0x03, 0xd6, 0x13, 0x8a, 0x84, 0xb3, 0x02, 0xe5, 0xef, 0xcc, 0xc8, 0xea, 0x26, 0x9c, 0xda, 0x3f,
+	0x00, 0x85, 0x7b, 0x7d, 0xe2, 0x47, 0x48, 0x87, 0x52, 0x56, 0x9f, 0xc4, 0xbf, 0x5a, 0xe7, 0x15,
+	0xac, 0xa7, 0x15, 0xac, 0x3f, 0x4b, 0x11, 0x7a, 0x31, 0x76, 0xfe, 0xea, 0xdf, 0x9a, 0x64, 0x0c,
+	0xd3, 0xd0, 0x43, 0x28, 0x7b, 0xc4, 0x6b, 0x93, 0xa0, 0x15, 0x10, 0x13, 0xff, 0xa4, 0x2c, 0x33,
+	0x9a, 0x8f, 0x84, 0xc7, 0xf0, 0x98, 0x01, 0x8d, 0x18, 0xc7, 0x0c, 0x3c, 0x58, 0x32, 0xd6, 0xbc,
+	0xe1, 0x1a, 0x7a, 0x0a, 0x15, 0x97, 0x95, 0xb4, 0x75, 0xda, 0xc3, 0x66, 0x44, 0xb0, 0xf2, 0x1e,
+	0x63, 0xfb, 0x58, 0xc8, 0x76, 0xcc, 0xa0, 0xdf, 0x72, 0x64, 0xca, 0xb7, 0xee, 0xe6, 0x57, 0xd1,
+	0x4b, 0x40, 0x5c, 0x20, 0xec, 0x3a, 0xbd, 0x96, 0xd5, 0x35, 0x7d, 0x9b, 0x60, 0x45, 0x66, 0xac,
+	0x9f, 0xcd, 0xf0, 0x18, 0xc3, 0x9b, 0x1c, 0x9d, 0x32, 0x6f, 0x79, 0xe3, 0x11, 0x64, 0xc1, 0x4e,
+	0x48, 0x7c, 0xdc, 0x0a, 0x7d, 0xb3, 0x17, 0x76, 0x69, 0xd4, 0x0a, 0x23, 0x33, 0x88, 0x6d, 0x17,
+	0x98, 0xc0, 0xe7, 0x42, 0x81, 0x13, 0xe2, 0xe3, 0x93, 0x24, 0xe1, 0x84, 0xe3, 0x53, 0x89, 0xed,
+	0x70, 0x32, 0x86, 0x1c, 0x78, 0x7f, 0x54, 0xc4, 0xa2, 0x5e, 0xcf, 0x25, 0xb1, 0xcc, 0x0a, 0x93,
+	0x69, 0x5c, 0x2b, 0xd3, 0x4c, 0x33, 0x52, 0xa1, 0x9d, 0x50, 0x14, 0x9d, 0xdc, 0x8f, 0xd9, 0xa6,
+	0x6c, 0x3f, 0xab, 0x6f, 0xb8, 0x9f, 0x43, 0x8e, 0x17, 0xee, 0x27, 0x89, 0xa1, 0xef, 0x61, 0x2b,
+	0xe3, 0x0f, 0x88, 0x45, 0x9c, 0x3e, 0xc1, 0x4a, 0x91, 0x09, 0x7c, 0x2a, 0x16, 0x48, 0xd0, 0x46,
+	0x02, 0x4e, 0xd9, 0x37, 0xc3, 0xb1, 0x40, 0x5c, 0xed, 0x3c, 0x35, 0xed, 0x93, 0x80, 0x60, 0xa5,
+	0x34, 0xa3, 0xda, 0x39, 0x6e, 0x8e, 0xce, 0xaa, 0x1d, 0x8e, 0x47, 0xd0, 0x73, 0xd8, 0x1c, 0xd6,
+	0x20, 0x20, 0xec, 0x7e, 0x02, 0xe3, 0xfe, 0x64, 0x26, 0x77, 0x93, 0x63, 0x53, 0xe6, 0x8d, 0x70,
+	0x74, 0x7d, 0xc4, 0x75, 0x5c, 0x5b, 0xd3, 0x8a, 0x99, 0xd7, 0xde, 0xc0, 0x75, 0x33, 0x45, 0x4f,
+	0xb8, 0xce, 0x22, 0xe8, 0x31, 0xac, 0xbb, 0xd4, 0xce, 0x11, 0x97, 0x19, 0xf1, 0x2d, 0xf1, 0xbf,
+	0x14, 0xb5, 0x27, 0x38, 0xcb, 0x6e, 0x6e, 0x11, 0x9d, 0xc0, 0x86, 0x4b, 0x6d, 0xdc, 0xce, 0x11,
+	0xae, 0x33, 0xc2, 0xdb, 0xd3, 0x08, 0xef, 0xea, 0x13, 0x94, 0x15, 0x46, 0x31, 0x24, 0xed, 0xc2,
+	0xae, 0x45, 0x7d, 0x9f, 0x58, 0x91, 0x43, 0xfd, 0x56, 0xfc, 0xb0, 0xb4, 0x5d, 0x27, 0xec, 0x12,
+	0xac, 0x54, 0x66, 0xdc, 0xf0, 0x66, 0x96, 0x72, 0x6f, 0x98, 0x91, 0xdd, 0x70, 0x4b, 0x14, 0x8d,
+	0x2f, 0x5f, 0x4e, 0xa9, 0x63, 0x3a, 0x2e, 0xc1, 0xca, 0xc6, 0x8c, 0xcb, 0x37, 0x14, 0xb9, 0xcf,
+	0xc0, 0xd9, 0xe5, 0xb3, 0xc6, 0x02, 0xfa, 0x2a, 0x14, 0x48, 0x1c, 0xd4, 0xee, 0x43, 0x65, 0x98,
+	0x75, 0xe4, 0x77, 0x28, 0x52, 0x60, 0xd5, 0xc4, 0x38, 0x20, 0x61, 0xc8, 0x5e, 0xd9, 0x92, 0x91,
+	0xfe, 0x89, 0x54, 0x28, 0xa6, 0x25, 0x63, 0x2f, 0x67, 0xd1, 0xc8, 0xfe, 0xd6, 0x7e, 0x84, 0x35,
+	0xfe, 0x18, 0xf1, 0xc7, 0xfa, 0xed, 0x5b, 0x01, 0xfa, 0x0a, 0x4a, 0xc9, 0xdb, 0xec, 0x60, 0x46,
+	0x2f, 0xeb, 0xca, 0xc5, 0xa0, 0x56, 0xe4, 0xb4, 0x2c, 0x29, 0xfb, 0x36, 0x8a, 0x1c, 0x7a, 0x84,
+	0xb5, 0xe7, 0xb0, 0x39, 0xfe, 0x52, 0x23, 0x1d, 0x56, 0x78, 0x7c, 0x66, 0x9f, 0xcb, 0xf9, 0xe5,
+	0xdd, 0xe2, 0x7c, 0x50, 0x93, 0x8c, 0x24, 0x53, 0x7b, 0x09, 0xbb, 0xe2, 0xd7, 0x75, 0x2e, 0xec,
+	0xbf, 0x49, 0x80, 0x26, 0x5b, 0xc2, 0x3c, 0xa8, 0xd1, 0x4d, 0x90, 0x23, 0x12, 0x78, 0xc9, 0x11,
+	0x16, 0xaf, 0x06, 0x35, 0xf9, 0x19, 0x09, 0x3c, 0x83, 0xad, 0xa2, 0x0f, 0x61, 0x85, 0x37, 0x1d,
+	0xd6, 0xad, 0x64, 0xbd, 0x3c, 0x72, 0xac, 0x49, 0x4c, 0xfb, 0x5d, 0x02, 0x65, 0xda, 0xd3, 0x3f,
+	0x17, 0x93, 0x35, 0x28, 0x38, 0x3e, 0x26, 0x67, 0x89, 0xcb, 0xd2, 0xd5, 0xa0, 0x56, 0x38, 0x8a,
+	0x17, 0x0c, 0xbe, 0x8e, 0x6e, 0xc2, 0x72, 0x44, 0x85, 0x1e, 0x97, 0x23, 0xaa, 0xfd, 0x29, 0x81,
+	0x3a, 0xbd, 0x67, 0xbc, 0x0b, 0x0e, 0xc7, 0x4f, 0x30, 0xdf, 0x6c, 0xde, 0x05, 0x7f, 0x7f, 0x48,
+	0xb0, 0x23, 0xec, 0x55, 0x8b, 0x31, 0xb7, 0x07, 0x72, 0x27, 0xa0, 0x9e, 0xd0, 0x1e, 0x8b, 0x68,
+	0xbf, 0xc2, 0xae, 0xb8, 0xdf, 0x2d, 0xc4, 0xa0, 0xf6, 0x0b, 0xdc, 0x10, 0xb5, 0xc4, 0xc5, 0x88,
+	0xe7, 0xf6, 0x3e, 0xda, 0x8e, 0x16, 0x23, 0x4f, 0xa1, 0x78, 0x4c, 0xed, 0x05, 0x0a, 0x9e, 0xc1,
+	0xd6, 0x44, 0x33, 0x5f, 0x8c, 0xf2, 0xcf, 0xb0, 0x2d, 0xe8, 0xfa, 0x8b, 0xd1, 0x6e, 0x81, 0x3a,
+	0xfd, 0x57, 0x01, 0x3a, 0x04, 0xd9, 0xf1, 0x3b, 0x34, 0x31, 0xf0, 0xc1, 0x35, 0xfd, 0x3e, 0xee,
+	0xdc, 0x39, 0x0f, 0x2c, 0x55, 0x7b, 0x01, 0x3b, 0xc2, 0x5f, 0x04, 0x73, 0xe0, 0xbe, 0xf3, 0xd7,
+	0x32, 0xc8, 0x4f, 0x28, 0x26, 0xe8, 0x05, 0x94, 0xb2, 0xb1, 0x13, 0x89, 0x27, 0xa9, 0xf1, 0x41,
+	0x57, 0xbd, 0x75, 0x1d, 0x8c, 0x0f, 0x83, 0xe8, 0x11, 0xc8, 0xf1, 0xc0, 0x89, 0xc4, 0xc7, 0x9f,
+	0x1b, 0x6c, 0xd5, 0xfd, 0x19, 0x88, 0x84, 0xec, 0x09, 0x14, 0xd8, 0xa8, 0x89, 0xf6, 0xa7, 0x0d,
+	0x68, 0xd9, 0x24, 0xab, 0x6a, 0xb3, 0x20, 0x09, 0xdf, 0x03, 0x28, 0xb0, 0x49, 0x75, 0x0a, 0x5f,
+	0x7e, 0x8a, 0x55, 0x55, 0x21, 0x84, 0x15, 0xe3, 0x0b, 0x49, 0x57, 0x5e, 0x5f, 0x54, 0xa5, 0xf3,
+	0x8b, 0xaa, 0xf4, 0xdf, 0x45, 0x55, 0x7a, 0x75, 0x59, 0x5d, 0x3a, 0xbf, 0xac, 0x2e, 0xfd, 0x7d,
+	0x59, 0x5d, 0x6a, 0xaf, 0xb0, 0xc1, 0xf6, 0xcb, 0xff, 0x03, 0x00, 0x00, 0xff, 0xff, 0xf4, 0x3b,
+	0x0a, 0x59, 0xdf, 0x10, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -2275,6 +2223,39 @@ func (m *ConnectionInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *MemberEvent) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MemberEvent) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MemberEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.MemberID != 0 {
+		i = encodeVarintNode(dAtA, i, uint64(m.MemberID))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.GroupID != 0 {
+		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *MemberReadyEvent) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -2295,16 +2276,16 @@ func (m *MemberReadyEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.MemberID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.MemberID))
-		i--
-		dAtA[i] = 0x10
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
-	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2328,16 +2309,16 @@ func (m *MembershipChangedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
-	if m.MemberID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.MemberID))
-		i--
-		dAtA[i] = 0x10
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
-	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2371,11 +2352,16 @@ func (m *LeaderUpdatedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2409,11 +2395,16 @@ func (m *SendSnapshotStartedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2447,11 +2438,16 @@ func (m *SendSnapshotCompletedEvent) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2485,11 +2481,16 @@ func (m *SendSnapshotAbortedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2523,11 +2524,16 @@ func (m *SnapshotReceivedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2556,11 +2562,16 @@ func (m *SnapshotRecoveredEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2589,11 +2600,16 @@ func (m *SnapshotCreatedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2622,11 +2638,16 @@ func (m *SnapshotCompactedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2655,11 +2676,16 @@ func (m *LogEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2688,11 +2714,16 @@ func (m *LogCompactedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2721,11 +2752,16 @@ func (m *LogDBCompactedEvent) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x10
 	}
-	if m.GroupID != 0 {
-		i = encodeVarintNode(dAtA, i, uint64(m.GroupID))
-		i--
-		dAtA[i] = 0x8
+	{
+		size, err := m.MemberEvent.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintNode(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -3074,7 +3110,7 @@ func (m *ConnectionInfo) Size() (n int) {
 	return n
 }
 
-func (m *MemberReadyEvent) Size() (n int) {
+func (m *MemberEvent) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3086,6 +3122,17 @@ func (m *MemberReadyEvent) Size() (n int) {
 	if m.MemberID != 0 {
 		n += 1 + sovNode(uint64(m.MemberID))
 	}
+	return n
+}
+
+func (m *MemberReadyEvent) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	return n
 }
 
@@ -3095,12 +3142,8 @@ func (m *MembershipChangedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
-	if m.MemberID != 0 {
-		n += 1 + sovNode(uint64(m.MemberID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	return n
 }
 
@@ -3110,9 +3153,8 @@ func (m *LeaderUpdatedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Term != 0 {
 		n += 1 + sovNode(uint64(m.Term))
 	}
@@ -3128,9 +3170,8 @@ func (m *SendSnapshotStartedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3146,9 +3187,8 @@ func (m *SendSnapshotCompletedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3164,9 +3204,8 @@ func (m *SendSnapshotAbortedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3182,9 +3221,8 @@ func (m *SnapshotReceivedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3200,9 +3238,8 @@ func (m *SnapshotRecoveredEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3215,9 +3252,8 @@ func (m *SnapshotCreatedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3230,9 +3266,8 @@ func (m *SnapshotCompactedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3245,9 +3280,8 @@ func (m *LogEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3260,9 +3294,8 @@ func (m *LogCompactedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -3275,9 +3308,8 @@ func (m *LogDBCompactedEvent) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.GroupID != 0 {
-		n += 1 + sovNode(uint64(m.GroupID))
-	}
+	l = m.MemberEvent.Size()
+	n += 1 + l + sovNode(uint64(l))
 	if m.Index != 0 {
 		n += 1 + sovNode(uint64(m.Index))
 	}
@@ -4422,7 +4454,7 @@ func (m *ConnectionInfo) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MemberReadyEvent) Unmarshal(dAtA []byte) error {
+func (m *MemberEvent) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4445,10 +4477,10 @@ func (m *MemberReadyEvent) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MemberReadyEvent: wiretype end group for non-group")
+			return fmt.Errorf("proto: MemberEvent: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MemberReadyEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MemberEvent: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4489,6 +4521,89 @@ func (m *MemberReadyEvent) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipNode(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthNode
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MemberReadyEvent) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowNode
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MemberReadyEvent: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MemberReadyEvent: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowNode
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipNode(dAtA[iNdEx:])
@@ -4540,10 +4655,10 @@ func (m *MembershipChangedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -4553,30 +4668,25 @@ func (m *MembershipChangedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MemberID", wireType)
+			if msglen < 0 {
+				return ErrInvalidLengthNode
 			}
-			m.MemberID = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowNode
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.MemberID |= MemberID(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
 			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipNode(dAtA[iNdEx:])
@@ -4628,10 +4738,10 @@ func (m *LeaderUpdatedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -4641,11 +4751,25 @@ func (m *LeaderUpdatedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Term", wireType)
@@ -4735,10 +4859,10 @@ func (m *SendSnapshotStartedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -4748,11 +4872,25 @@ func (m *SendSnapshotStartedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -4842,10 +4980,10 @@ func (m *SendSnapshotCompletedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -4855,11 +4993,25 @@ func (m *SendSnapshotCompletedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -4949,10 +5101,10 @@ func (m *SendSnapshotAbortedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -4962,11 +5114,25 @@ func (m *SendSnapshotAbortedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5056,10 +5222,10 @@ func (m *SnapshotReceivedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5069,11 +5235,25 @@ func (m *SnapshotReceivedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5163,10 +5343,10 @@ func (m *SnapshotRecoveredEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5176,11 +5356,25 @@ func (m *SnapshotRecoveredEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5251,10 +5445,10 @@ func (m *SnapshotCreatedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5264,11 +5458,25 @@ func (m *SnapshotCreatedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5339,10 +5547,10 @@ func (m *SnapshotCompactedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5352,11 +5560,25 @@ func (m *SnapshotCompactedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5427,10 +5649,10 @@ func (m *LogEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5440,11 +5662,25 @@ func (m *LogEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5515,10 +5751,10 @@ func (m *LogCompactedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5528,11 +5764,25 @@ func (m *LogCompactedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
@@ -5603,10 +5853,10 @@ func (m *LogDBCompactedEvent) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupID", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberEvent", wireType)
 			}
-			m.GroupID = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowNode
@@ -5616,11 +5866,25 @@ func (m *LogDBCompactedEvent) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.GroupID |= GroupID(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			if msglen < 0 {
+				return ErrInvalidLengthNode
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthNode
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MemberEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
