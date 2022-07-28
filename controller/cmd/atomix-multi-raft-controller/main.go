@@ -11,7 +11,7 @@ import (
 	storagev2beta2 "github.com/atomix/multi-raft-storage/controller/pkg/controller/storage/v2beta2"
 	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
-	"github.com/atomix/runtime/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"os"

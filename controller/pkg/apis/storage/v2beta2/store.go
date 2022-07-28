@@ -48,7 +48,14 @@ type MultiRaftStoreSpec struct {
 
 // MultiRaftStoreStatus defines the status of a MultiRaftStore
 type MultiRaftStoreStatus struct {
-	State MultiRaftStoreState `json:"state,omitempty"`
+	State      MultiRaftStoreState   `json:"state,omitempty"`
+	Partitions []RaftPartitionStatus `json:"partitions,omitempty"`
+}
+
+type RaftPartitionStatus struct {
+	PartitionID int32    `json:"partitionID"`
+	Leader      *string  `json:"leader"`
+	Followers   []string `json:"followers"`
 }
 
 // +genclient

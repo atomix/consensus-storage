@@ -15,7 +15,7 @@ spec:
       served: true
       storage: true
       subresources:
-        status: {}
+        status: { }
       schema:
         openAPIV3Schema:
           type: object
@@ -25,16 +25,16 @@ spec:
             spec:
               type: object
               required:
-                - cluster
-                - groupID
-                - nodeID
+                - pod
+                - type
               properties:
-                cluster:
-                  type: string
-                groupID:
-                  type: integer
-                nodeID:
-                  type: integer
+                pod:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
                 type:
                   type: string
                   default: Member
@@ -45,12 +45,13 @@ spec:
             status:
               type: object
               properties:
+                version:
+                  type: integer
                 state:
                   type: string
-                  default: Stopped
+                  default: NotReady
                   enum:
-                    - Stopped
-                    - Running
+                    - NotReady
                     - Ready
                 role:
                   type: string
@@ -58,12 +59,15 @@ spec:
                     - Follower
                     - Candidate
                     - Leader
-                leader:
-                  type: integer
                 term:
                   type: integer
-                index:
-                  type: integer
+                leader:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
                 lastUpdated:
                   type: string
                   format: date-time
@@ -73,20 +77,12 @@ spec:
                   type: string
                   format: date-time
       additionalPrinterColumns:
-        - name: Cluster
+        - name: Pod
           type: string
-          description: The cluster to which the member belongs
-          jsonPath: .spec.cluster
-        - name: Node
-          type: integer
-          description: The node to which the member belongs
-          jsonPath: .spec.nodeID
-        - name: Group
-          type: integer
-          description: The group to which the member belongs
-          jsonPath: .spec.groupID
+          description: The pod to which the member belongs
+          jsonPath: .spec.pod.name
         - name: Type
-          type: integer
+          type: string
           description: The member type
           jsonPath: .spec.type
         - name: Role
@@ -94,9 +90,9 @@ spec:
           description: The member role
           jsonPath: .status.role
         - name: Leader
-          type: integer
+          type: string
           description: The current leader on the member
-          jsonPath: .status.leader
+          jsonPath: .status.leader.name
         - name: Term
           type: integer
           description: The current term on the member

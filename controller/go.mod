@@ -3,7 +3,7 @@ module github.com/atomix/multi-raft-storage/controller
 go 1.18
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.0.0-20220727070848-bb0015da67af
+	github.com/atomix/multi-raft-storage/api v0.0.0-20220728201523-7dcf2d5be56a
 	github.com/atomix/runtime v0.0.0-20220706102709-8e80cf86d1f5
 	github.com/atomix/runtime/controller v0.0.0-20220720203722-fe3ff64774df
 	github.com/atomix/runtime/sdk v0.0.0-20220720203722-fe3ff64774df

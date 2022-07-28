@@ -85,3 +85,23 @@ spec:
                   enum:
                     - NotReady
                     - Ready
+                partitions:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - partitionID
+                    properties:
+                      partitionID:
+                        type: integer
+                      leader:
+                        type: string
+                      followers:
+                        type: array
+                        items:
+                          type: string
+      additionalPrinterColumns:
+        - name: Status
+          type: string
+          description: The group state
+          jsonPath: .status.state

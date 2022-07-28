@@ -24,30 +24,21 @@ spec:
           properties:
             spec:
               type: object
-              required:
-                - cluster
-                - groupID
               properties:
-                cluster:
-                  type: string
-                groupID:
+                quorumSize:
                   type: integer
-                members:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - nodeID
-                    properties:
-                      nodeID:
-                        type: integer
-                      type:
-                        type: string
-                        default: Member
-                        enum:
-                          - Member
-                          - Observer
-                          - Witness
+                readReplicas:
+                  type: integer
+                heartbeatPeriod:
+                  type: string
+                electionTimeout:
+                  type: string
+                snapshotEntryThreshold:
+                  type: integer
+                  minimum: 0
+                compactionRetainEntries:
+                  type: integer
+                  minimum: 0
             status:
               type: object
               properties:
@@ -57,28 +48,34 @@ spec:
                   enum:
                     - NotReady
                     - Ready
-                leader:
-                  type: integer
                 term:
                   type: integer
+                leader:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                followers:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                    properties:
+                      name:
+                        type: string
       additionalPrinterColumns:
-        - name: Cluster
-          type: string
-          description: The cluster to which the member belongs
-          jsonPath: .spec.cluster
-        - name: Group
-          type: integer
-          description: The group to which the member belongs
-          jsonPath: .spec.groupID
         - name: Leader
-          type: integer
-          description: The current leader for the partition
-          jsonPath: .status.leader
+          type: string
+          description: The current leader for the group
+          jsonPath: .status.leader.name
         - name: Term
           type: integer
-          description: The current term for the partition
+          description: The current term for the group
           jsonPath: .status.term
         - name: Status
           type: string
-          description: The partition state
+          description: The group state
           jsonPath: .status.state
