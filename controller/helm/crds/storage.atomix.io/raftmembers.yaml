@@ -11,7 +11,7 @@ spec:
     singular: raftmember
   scope: Namespaced
   versions:
-    - name: v2beta2
+    - name: v3beta1
       served: true
       storage: true
       subresources:

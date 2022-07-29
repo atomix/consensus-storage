@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	storagev2beta2 "github.com/atomix/multi-raft-storage/controller/pkg/apis/storage/v2beta2"
+	storagev3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/storage/v3beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -82,20 +82,20 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Create a new controller
-	controller, err := controller.New("atomix-multi-raft-store-v2beta2", mgr, options)
+	controller, err := controller.New("atomix-multi-raft-store-v3beta1", mgr, options)
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to the storage resource and enqueue Stores that reference it
-	err = controller.Watch(&source.Kind{Type: &storagev2beta2.MultiRaftStore{}}, &handler.EnqueueRequestForObject{})
+	err = controller.Watch(&source.Kind{Type: &storagev3beta1.MultiRaftStore{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resource StatefulSet
 	err = controller.Watch(&source.Kind{Type: &appsv1.StatefulSet{}}, &handler.EnqueueRequestForOwner{
-		OwnerType:    &storagev2beta2.MultiRaftStore{},
+		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
 	if err != nil {
@@ -103,8 +103,8 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Watch for changes to secondary resource RaftGroup
-	err = controller.Watch(&source.Kind{Type: &storagev2beta2.RaftGroup{}}, &handler.EnqueueRequestForOwner{
-		OwnerType:    &storagev2beta2.MultiRaftStore{},
+	err = controller.Watch(&source.Kind{Type: &storagev3beta1.RaftGroup{}}, &handler.EnqueueRequestForOwner{
+		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
 	if err != nil {
@@ -112,8 +112,8 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Watch for changes to secondary resource RaftMember
-	err = controller.Watch(&source.Kind{Type: &storagev2beta2.RaftMember{}}, &handler.EnqueueRequestForOwner{
-		OwnerType:    &storagev2beta2.MultiRaftStore{},
+	err = controller.Watch(&source.Kind{Type: &storagev3beta1.RaftMember{}}, &handler.EnqueueRequestForOwner{
+		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
 	if err != nil {
@@ -122,7 +122,7 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 
 	// Watch for changes to secondary resource Store
 	err = controller.Watch(&source.Kind{Type: &v1beta1.Store{}}, &handler.EnqueueRequestForOwner{
-		OwnerType:    &storagev2beta2.MultiRaftStore{},
+		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
 	if err != nil {
@@ -161,7 +161,7 @@ type MultiRaftStoreReconciler struct {
 // and what is in the Store.Spec
 func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log.Info("Reconcile MultiRaftStore")
-	store := &storagev2beta2.MultiRaftStore{}
+	store := &storagev3beta1.MultiRaftStore{}
 	err := r.client.Get(ctx, request.NamespacedName, store)
 	if err != nil {
 		log.Error(err, "Reconcile MultiRaftStore")
@@ -205,7 +205,7 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 	return reconcile.Result{}, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileConfigMap(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileConfigMap(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol config map")
 	cm := &corev1.ConfigMap{}
 	name := types.NamespacedName{
@@ -219,7 +219,7 @@ func (r *MultiRaftStoreReconciler) reconcileConfigMap(ctx context.Context, store
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating raft ConfigMap", "Name", store.Name, "Namespace", store.Namespace)
 	raftConfig, err := newRaftConfigString(store)
 	if err != nil {
@@ -245,7 +245,7 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *stor
 }
 
 // newRaftConfigString creates a protocol configuration string for the given store and protocol
-func newRaftConfigString(store *storagev2beta2.MultiRaftStore) (string, error) {
+func newRaftConfigString(store *storagev3beta1.MultiRaftStore) (string, error) {
 	config := multiraftv1.MultiRaftConfig{}
 
 	electionTimeout := store.Spec.RaftConfig.ElectionTimeout
@@ -279,7 +279,7 @@ func newRaftConfigString(store *storagev2beta2.MultiRaftStore) (string, error) {
 	return string(bytes), nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol stateful set")
 	statefulSet := &appsv1.StatefulSet{}
 	name := types.NamespacedName{
@@ -293,7 +293,7 @@ func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, sto
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating raft replicas", "Name", store.Name, "Namespace", store.Namespace)
 
 	image := getImage(store)
@@ -444,7 +444,7 @@ atomix-multi-raft-node --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%
 	return r.client.Create(ctx, set)
 }
 
-func (r *MultiRaftStoreReconciler) reconcileService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileService(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol service")
 	service := &corev1.Service{}
 	name := types.NamespacedName{
@@ -458,7 +458,7 @@ func (r *MultiRaftStoreReconciler) reconcileService(ctx context.Context, store *
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) addService(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating raft service", "Name", store.Name, "Namespace", store.Namespace)
 
 	service := &corev1.Service{
@@ -489,7 +489,7 @@ func (r *MultiRaftStoreReconciler) addService(ctx context.Context, store *storag
 	return r.client.Create(ctx, service)
 }
 
-func (r *MultiRaftStoreReconciler) reconcileHeadlessService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileHeadlessService(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Reconcile raft protocol headless service")
 	service := &corev1.Service{}
 	name := types.NamespacedName{
@@ -503,7 +503,7 @@ func (r *MultiRaftStoreReconciler) reconcileHeadlessService(ctx context.Context,
 	return err
 }
 
-func (r *MultiRaftStoreReconciler) addHeadlessService(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) addHeadlessService(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating headless raft service", "Name", store.Name, "Namespace", store.Namespace)
 
 	annotations := newStoreAnnotations(store)
@@ -538,16 +538,16 @@ func (r *MultiRaftStoreReconciler) addHeadlessService(ctx context.Context, store
 	return r.client.Create(ctx, service)
 }
 
-func (r *MultiRaftStoreReconciler) reconcileGroups(ctx context.Context, store *storagev2beta2.MultiRaftStore) (bool, error) {
+func (r *MultiRaftStoreReconciler) reconcileGroups(ctx context.Context, store *storagev3beta1.MultiRaftStore) (bool, error) {
 	numGroups := getNumGroups(store)
-	state := storagev2beta2.MultiRaftStoreReady
+	state := storagev3beta1.MultiRaftStoreReady
 	for groupID := 1; groupID <= numGroups; groupID++ {
 		if group, updated, err := r.reconcileGroup(ctx, store, groupID); err != nil {
 			return false, err
 		} else if updated {
 			return true, nil
-		} else if group.Status.State == storagev2beta2.RaftGroupNotReady {
-			state = storagev2beta2.MultiRaftStoreNotReady
+		} else if group.Status.State == storagev3beta1.RaftGroupNotReady {
+			state = storagev3beta1.MultiRaftStoreNotReady
 		}
 	}
 
@@ -561,24 +561,24 @@ func (r *MultiRaftStoreReconciler) reconcileGroups(ctx context.Context, store *s
 	return false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *storagev2beta2.MultiRaftStore, groupID int) (*storagev2beta2.RaftGroup, bool, error) {
+func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *storagev3beta1.MultiRaftStore, groupID int) (*storagev3beta1.RaftGroup, bool, error) {
 	groupName := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      fmt.Sprintf("%s-%d", store.Name, groupID),
 	}
-	group := &storagev2beta2.RaftGroup{}
+	group := &storagev3beta1.RaftGroup{}
 	if err := r.client.Get(ctx, groupName, group); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return nil, false, err
 		}
 
-		group = &storagev2beta2.RaftGroup{
+		group = &storagev3beta1.RaftGroup{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: groupName.Namespace,
 				Name:      groupName.Name,
 				Labels:    store.Labels,
 			},
-			Spec: storagev2beta2.RaftGroupSpec{
+			Spec: storagev3beta1.RaftGroupSpec{
 				RaftConfig: store.Spec.RaftConfig,
 			},
 		}
@@ -599,15 +599,15 @@ func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *st
 	return group, false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileMembers(ctx context.Context, store *storagev2beta2.MultiRaftStore, group *storagev2beta2.RaftGroup, groupID int) (bool, error) {
-	state := storagev2beta2.RaftGroupReady
+func (r *MultiRaftStoreReconciler) reconcileMembers(ctx context.Context, store *storagev3beta1.MultiRaftStore, group *storagev3beta1.RaftGroup, groupID int) (bool, error) {
+	state := storagev3beta1.RaftGroupReady
 	for memberID := 1; memberID <= getNumMembers(store); memberID++ {
 		if member, ok, err := r.reconcileMember(ctx, store, group, groupID, memberID); err != nil {
 			return false, err
 		} else if ok {
 			return true, nil
-		} else if member.Status.State == storagev2beta2.RaftMemberNotReady {
-			state = storagev2beta2.RaftGroupNotReady
+		} else if member.Status.State == storagev3beta1.RaftMemberNotReady {
+			state = storagev3beta1.RaftGroupNotReady
 		}
 	}
 
@@ -621,33 +621,33 @@ func (r *MultiRaftStoreReconciler) reconcileMembers(ctx context.Context, store *
 	return false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *storagev2beta2.MultiRaftStore, group *storagev2beta2.RaftGroup, groupID int, memberID int) (*storagev2beta2.RaftMember, bool, error) {
+func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *storagev3beta1.MultiRaftStore, group *storagev3beta1.RaftGroup, groupID int, memberID int) (*storagev3beta1.RaftMember, bool, error) {
 	memberName := types.NamespacedName{
 		Namespace: group.Namespace,
 		Name:      fmt.Sprintf("%s-%d", group.Name, memberID),
 	}
-	member := &storagev2beta2.RaftMember{}
+	member := &storagev3beta1.RaftMember{}
 	if err := r.client.Get(ctx, memberName, member); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return nil, false, err
 		}
 
-		var memberType storagev2beta2.RaftMemberType
+		var memberType storagev3beta1.RaftMemberType
 		if memberID <= getNumVotingMembers(store) {
-			memberType = storagev2beta2.RaftVotingMember
+			memberType = storagev3beta1.RaftVotingMember
 		} else if memberID <= getNumMembers(store) {
-			memberType = storagev2beta2.RaftObserver
+			memberType = storagev3beta1.RaftObserver
 		} else {
-			memberType = storagev2beta2.RaftWitness
+			memberType = storagev3beta1.RaftWitness
 		}
 
-		member = &storagev2beta2.RaftMember{
+		member = &storagev3beta1.RaftMember{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: memberName.Namespace,
 				Name:      memberName.Name,
 				Labels:    member.Labels,
 			},
-			Spec: storagev2beta2.RaftMemberSpec{
+			Spec: storagev3beta1.RaftMemberSpec{
 				Pod: corev1.LocalObjectReference{
 					Name: getPodName(store, groupID, memberID),
 				},
@@ -684,8 +684,8 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 	}
 
 	if member.Status.Version == nil || containerVersion > *member.Status.Version {
-		if member.Status.State != storagev2beta2.RaftMemberNotReady {
-			member.Status.State = storagev2beta2.RaftMemberNotReady
+		if member.Status.State != storagev3beta1.RaftMemberNotReady {
+			member.Status.State = storagev3beta1.RaftMemberNotReady
 			if err := r.client.Status().Update(ctx, member); err != nil {
 				return nil, false, err
 			}
@@ -711,11 +711,11 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 
 		var role multiraftv1.MemberRole
 		switch member.Spec.Type {
-		case storagev2beta2.RaftVotingMember:
+		case storagev3beta1.RaftVotingMember:
 			role = multiraftv1.MemberRole_MEMBER
-		case storagev2beta2.RaftObserver:
+		case storagev3beta1.RaftObserver:
 			role = multiraftv1.MemberRole_OBSERVER
-		case storagev2beta2.RaftWitness:
+		case storagev3beta1.RaftWitness:
 			role = multiraftv1.MemberRole_WITNESS
 		}
 
@@ -741,7 +741,7 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 	return member, false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *storagev2beta2.MultiRaftStore) error {
+func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	partitions, err := r.getPartitions(ctx, store)
 	if err != nil {
 		return err
@@ -807,7 +807,7 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 	return nil
 }
 
-func isPartitionsEqual(partitions1, partitions2 []storagev2beta2.RaftPartitionStatus) bool {
+func isPartitionsEqual(partitions1, partitions2 []storagev3beta1.RaftPartitionStatus) bool {
 	if len(partitions1) != len(partitions2) {
 		return false
 	}
@@ -819,7 +819,7 @@ func isPartitionsEqual(partitions1, partitions2 []storagev2beta2.RaftPartitionSt
 	return true
 }
 
-func isPartitionEqual(partition1, partition2 storagev2beta2.RaftPartitionStatus) bool {
+func isPartitionEqual(partition1, partition2 storagev3beta1.RaftPartitionStatus) bool {
 	if partition1.Leader == nil && partition2.Leader != nil {
 		return false
 	}
@@ -846,7 +846,7 @@ func isPartitionEqual(partition1, partition2 storagev2beta2.RaftPartitionStatus)
 	return true
 }
 
-func getConfig(partitions []storagev2beta2.RaftPartitionStatus) multiraftv1.DriverConfig {
+func getConfig(partitions []storagev3beta1.RaftPartitionStatus) multiraftv1.DriverConfig {
 	var config multiraftv1.DriverConfig
 	for _, partition := range partitions {
 		var leader string
@@ -862,20 +862,20 @@ func getConfig(partitions []storagev2beta2.RaftPartitionStatus) multiraftv1.Driv
 	return config
 }
 
-func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *storagev2beta2.MultiRaftStore) ([]storagev2beta2.RaftPartitionStatus, error) {
+func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *storagev3beta1.MultiRaftStore) ([]storagev3beta1.RaftPartitionStatus, error) {
 	numGroups := getNumGroups(store)
-	partitions := make([]storagev2beta2.RaftPartitionStatus, 0, numGroups)
+	partitions := make([]storagev3beta1.RaftPartitionStatus, 0, numGroups)
 	for groupID := 1; groupID <= numGroups; groupID++ {
 		groupName := types.NamespacedName{
 			Namespace: store.Namespace,
 			Name:      fmt.Sprintf("%s-%d", store.Name, groupID),
 		}
-		group := &storagev2beta2.RaftGroup{}
+		group := &storagev3beta1.RaftGroup{}
 		if err := r.client.Get(ctx, groupName, group); err != nil {
 			return nil, err
 		}
 
-		partition := storagev2beta2.RaftPartitionStatus{
+		partition := storagev3beta1.RaftPartitionStatus{
 			PartitionID: int32(groupID),
 		}
 		if group.Status.Leader != nil {
@@ -883,7 +883,7 @@ func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *sto
 				Namespace: group.Namespace,
 				Name:      group.Status.Leader.Name,
 			}
-			member := &storagev2beta2.RaftMember{}
+			member := &storagev3beta1.RaftMember{}
 			if err := r.client.Get(ctx, memberName, member); err != nil {
 				return nil, err
 			}
@@ -896,7 +896,7 @@ func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *sto
 				Namespace: group.Namespace,
 				Name:      follower.Name,
 			}
-			member := &storagev2beta2.RaftMember{}
+			member := &storagev3beta1.RaftMember{}
 			if err := r.client.Get(ctx, memberName, member); err != nil {
 				return nil, err
 			}
@@ -910,32 +910,32 @@ func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *sto
 
 var _ reconcile.Reconciler = (*MultiRaftStoreReconciler)(nil)
 
-func getNumGroups(store *storagev2beta2.MultiRaftStore) int {
+func getNumGroups(store *storagev3beta1.MultiRaftStore) int {
 	if store.Spec.Groups == 0 {
 		return 1
 	}
 	return int(store.Spec.Groups)
 }
 
-func getNumReplicas(store *storagev2beta2.MultiRaftStore) int {
+func getNumReplicas(store *storagev3beta1.MultiRaftStore) int {
 	if store.Spec.Replicas == 0 {
 		return 1
 	}
 	return int(store.Spec.Replicas)
 }
 
-func getNumMembers(store *storagev2beta2.MultiRaftStore) int {
+func getNumMembers(store *storagev3beta1.MultiRaftStore) int {
 	return getNumVotingMembers(store) + getNumNonVotingMembers(store)
 }
 
-func getNumVotingMembers(store *storagev2beta2.MultiRaftStore) int {
+func getNumVotingMembers(store *storagev3beta1.MultiRaftStore) int {
 	if store.Spec.RaftConfig.QuorumSize == nil {
 		return getNumReplicas(store)
 	}
 	return int(*store.Spec.RaftConfig.QuorumSize)
 }
 
-func getNumNonVotingMembers(store *storagev2beta2.MultiRaftStore) int {
+func getNumNonVotingMembers(store *storagev3beta1.MultiRaftStore) int {
 	if store.Spec.RaftConfig.ReadReplicas == nil {
 		return 0
 	}
@@ -971,13 +971,13 @@ func getPodDNSName(namespace string, store string, name string) string {
 	return fmt.Sprintf("%s.%s.%s.svc.%s", name, getStoreHeadlessServiceName(store), namespace, getClusterDomain())
 }
 
-func getPodName(store *storagev2beta2.MultiRaftStore, groupID int, memberID int) string {
+func getPodName(store *storagev3beta1.MultiRaftStore, groupID int, memberID int) string {
 	podOrdinal := ((getNumMembers(store) * groupID) + (memberID - 1)) % getNumReplicas(store)
 	return fmt.Sprintf("%s-%d", store.Name, podOrdinal)
 }
 
 // newStoreLabels returns the labels for the given cluster
-func newStoreLabels(store *storagev2beta2.MultiRaftStore) map[string]string {
+func newStoreLabels(store *storagev3beta1.MultiRaftStore) map[string]string {
 	labels := make(map[string]string)
 	for key, value := range store.Labels {
 		labels[key] = value
@@ -987,7 +987,7 @@ func newStoreLabels(store *storagev2beta2.MultiRaftStore) map[string]string {
 	return labels
 }
 
-func newStoreAnnotations(store *storagev2beta2.MultiRaftStore) map[string]string {
+func newStoreAnnotations(store *storagev3beta1.MultiRaftStore) map[string]string {
 	annotations := make(map[string]string)
 	for key, value := range store.Annotations {
 		annotations[key] = value
@@ -996,7 +996,7 @@ func newStoreAnnotations(store *storagev2beta2.MultiRaftStore) map[string]string
 	return annotations
 }
 
-func getImage(store *storagev2beta2.MultiRaftStore) string {
+func getImage(store *storagev3beta1.MultiRaftStore) string {
 	if store.Spec.Image != "" {
 		return store.Spec.Image
 	}

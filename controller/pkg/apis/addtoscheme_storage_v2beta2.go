@@ -5,7 +5,7 @@
 package apis
 
 import (
-	storagev2beta2 "github.com/atomix/multi-raft-storage/controller/pkg/apis/storage/v2beta2"
+	storagev2beta2 "github.com/atomix/multi-raft-storage/controller/pkg/apis/storage/v3beta1"
 )
 
 func init() {
