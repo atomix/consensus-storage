@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/runtime/controller/pkg/apis/atomix/v1beta1"
+	atomixv3beta1 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta1"
 	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -121,7 +121,7 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Watch for changes to secondary resource Store
-	err = controller.Watch(&source.Kind{Type: &v1beta1.Store{}}, &handler.EnqueueRequestForOwner{
+	err = controller.Watch(&source.Kind{Type: &atomixv3beta1.Store{}}, &handler.EnqueueRequestForOwner{
 		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
@@ -758,7 +758,7 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 		return err
 	}
 
-	atomixStore := &v1beta1.Store{}
+	atomixStore := &atomixv3beta1.Store{}
 	atomixStoreName := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      store.Name,
@@ -768,14 +768,14 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 			return err
 		}
 
-		atomixStore = &v1beta1.Store{
+		atomixStore = &atomixv3beta1.Store{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: atomixStoreName.Namespace,
 				Name:      atomixStoreName.Name,
 				Labels:    store.Labels,
 			},
-			Spec: v1beta1.StoreSpec{
-				Driver: v1beta1.Driver{
+			Spec: atomixv3beta1.StoreSpec{
+				Driver: atomixv3beta1.Driver{
 					Name:    driverName,
 					Version: driverVersion,
 				},
