@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/atomix/multi-raft-storage/api v0.0.0-20220728201523-7dcf2d5be56a
-	github.com/atomix/runtime/controller v0.1.2-0.20220729103733-76db04526fb3
+	github.com/atomix/runtime/controller v0.2.0
 	github.com/atomix/runtime/sdk v0.1.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-logr/logr v1.2.0
