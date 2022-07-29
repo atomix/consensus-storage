@@ -600,10 +600,8 @@ func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *st
 }
 
 func (r *MultiRaftStoreReconciler) reconcileMembers(ctx context.Context, store *storagev2beta2.MultiRaftStore, group *storagev2beta2.RaftGroup, groupID int) (bool, error) {
-	numMembers := getNumMembers(store)
-	numROMembers := getNumROMembers(store)
 	state := storagev2beta2.RaftGroupReady
-	for memberID := 1; memberID < numMembers+numROMembers; memberID++ {
+	for memberID := 1; memberID <= getNumMembers(store); memberID++ {
 		if member, ok, err := r.reconcileMember(ctx, store, group, groupID, memberID); err != nil {
 			return false, err
 		} else if ok {
@@ -624,9 +622,6 @@ func (r *MultiRaftStoreReconciler) reconcileMembers(ctx context.Context, store *
 }
 
 func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *storagev2beta2.MultiRaftStore, group *storagev2beta2.RaftGroup, groupID int, memberID int) (*storagev2beta2.RaftMember, bool, error) {
-	numMembers := getNumMembers(store)
-	numROMembers := getNumROMembers(store)
-
 	memberName := types.NamespacedName{
 		Namespace: group.Namespace,
 		Name:      fmt.Sprintf("%s-%d", group.Name, memberID),
@@ -638,9 +633,9 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 		}
 
 		var memberType storagev2beta2.RaftMemberType
-		if memberID <= numMembers {
+		if memberID <= getNumVotingMembers(store) {
 			memberType = storagev2beta2.RaftVotingMember
-		} else if memberID <= numMembers+numROMembers {
+		} else if memberID <= getNumMembers(store) {
 			memberType = storagev2beta2.RaftObserver
 		} else {
 			memberType = storagev2beta2.RaftWitness
@@ -705,8 +700,8 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 		}
 		defer conn.Close()
 
-		members := make([]multiraftv1.MemberConfig, numMembers+numROMembers)
-		for i := 0; i < numMembers+numROMembers; i++ {
+		members := make([]multiraftv1.MemberConfig, getNumMembers(store))
+		for i := 0; i < getNumMembers(store); i++ {
 			members[i] = multiraftv1.MemberConfig{
 				MemberID: multiraftv1.MemberID(i + 1),
 				Host:     getPodDNSName(store.Namespace, store.Name, getPodName(store, groupID, i+1)),
@@ -930,13 +925,17 @@ func getNumReplicas(store *storagev2beta2.MultiRaftStore) int {
 }
 
 func getNumMembers(store *storagev2beta2.MultiRaftStore) int {
+	return getNumVotingMembers(store) + getNumNonVotingMembers(store)
+}
+
+func getNumVotingMembers(store *storagev2beta2.MultiRaftStore) int {
 	if store.Spec.RaftConfig.QuorumSize == nil {
 		return getNumReplicas(store)
 	}
 	return int(*store.Spec.RaftConfig.QuorumSize)
 }
 
-func getNumROMembers(store *storagev2beta2.MultiRaftStore) int {
+func getNumNonVotingMembers(store *storagev2beta2.MultiRaftStore) int {
 	if store.Spec.RaftConfig.ReadReplicas == nil {
 		return 0
 	}
@@ -973,9 +972,7 @@ func getPodDNSName(namespace string, store string, name string) string {
 }
 
 func getPodName(store *storagev2beta2.MultiRaftStore, groupID int, memberID int) string {
-	numMembers := getNumMembers(store)
-	numROMembers := getNumROMembers(store)
-	podOrdinal := (((numMembers + numROMembers) * groupID) + (memberID - 1)) % int(store.Spec.Replicas)
+	podOrdinal := ((getNumMembers(store) * groupID) + (memberID - 1)) % getNumReplicas(store)
 	return fmt.Sprintf("%s-%d", store.Name, podOrdinal)
 }
 
