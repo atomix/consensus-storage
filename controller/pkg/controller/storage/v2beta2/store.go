@@ -42,7 +42,7 @@ const (
 	apiPort                  = 5678
 	protocolPort             = 5679
 	probePort                = 5679
-	defaultImageEnv          = "DEFAULT_NODE_V2BETA1_IMAGE"
+	defaultImageEnv          = "DEFAULT_NODE_IMAGE"
 	defaultImage             = "atomix/multi-raft-node:latest"
 	headlessServiceSuffix    = "hs"
 	appLabel                 = "app"

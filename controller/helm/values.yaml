@@ -4,9 +4,18 @@
 
 replicas: 1
 
-image:
-  registry: ""
-  repository: atomix/multi-raft-controller
-  tag: latest
-  pullPolicy: IfNotPresent
-  pullSecrets: []
+controller:
+  image:
+    registry: ""
+    repository: atomix/multi-raft-controller
+    tag: latest
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+
+node:
+  image:
+    registry: ""
+    repository: atomix/multi-raft-node
+    tag: latest
+    pullPolicy: IfNotPresent
+    pullSecrets: []
