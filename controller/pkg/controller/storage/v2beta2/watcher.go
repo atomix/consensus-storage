@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/grpc/retry"
 	"github.com/cenkalti/backoff"
 	"google.golang.org/grpc"
@@ -184,6 +185,10 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 				return
 			}
 			if err != nil {
+				err = errors.FromProto(err)
+				if errors.IsCanceled(err) {
+					return
+				}
 				log.Error(err)
 			} else {
 				log.Infof("Received event %+v from %s", event, address)
@@ -204,7 +209,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 					r.recordGroupEvent(ctx, storeName, e.MemberReady.GroupID,
 						func(status *storagev2beta2.RaftGroupStatus) bool {
 							memberName := corev1.LocalObjectReference{
-								Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.MemberReady.GroupID, e.MemberReady.MemberEvent),
+								Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.MemberReady.GroupID, e.MemberReady.MemberID),
 							}
 							if status.Leader != nil && status.Leader.Name == memberName.Name {
 								return false
