@@ -226,85 +226,61 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 					r.recordMemberEvent(ctx, storeName, e.LeaderUpdated.MemberEvent,
 						func(status *storagev2beta2.RaftMemberStatus) bool {
 							term := uint64(e.LeaderUpdated.Term)
-							if status.Term == nil || term > *status.Term {
-								status.Term = &term
-								status.Leader = nil
+							if status.Term == nil || *status.Term < term || (*status.Term == term && status.Leader == nil && e.LeaderUpdated.Leader != 0) {
 								role := storagev2beta2.RaftFollower
+								if e.LeaderUpdated.Leader == 0 {
+									status.Leader = nil
+								} else {
+									status.Leader = &corev1.LocalObjectReference{
+										Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.LeaderUpdated.GroupID, e.LeaderUpdated.Leader),
+									}
+									if e.LeaderUpdated.Leader == e.LeaderUpdated.MemberID {
+										role = storagev2beta2.RaftLeader
+									}
+								}
+								status.Term = &term
 								status.Role = &role
 								status.LastUpdated = &timestamp
 								return true
 							}
 							return false
 						}, func(member *storagev2beta2.RaftMember) {
-							r.events.Eventf(member, "Normal", "TermChanged", "Term changed to %d", e.LeaderUpdated.Term)
+							if member.Status.Role != nil && *member.Status.Role == storagev2beta2.RaftLeader {
+								r.events.Eventf(member, "Normal", "ElectedLeader", "Elected leader for term %d", e.LeaderUpdated.Term)
+							}
 						})
-					if e.LeaderUpdated.Leader != 0 {
-						r.recordMemberEvent(ctx, storeName, e.LeaderUpdated.MemberEvent,
-							func(status *storagev2beta2.RaftMemberStatus) bool {
-								term := uint64(e.LeaderUpdated.Term)
-								if status.Leader == nil && status.Term != nil && *status.Term == term {
-									if e.LeaderUpdated.Leader == e.LeaderUpdated.MemberID {
-										role := storagev2beta2.RaftLeader
-										status.Role = &role
-									}
-									status.Leader = &corev1.LocalObjectReference{
-										Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.LeaderUpdated.GroupID, e.LeaderUpdated.Leader),
-									}
-									status.LastUpdated = &timestamp
-									return true
-								}
-								return false
-							}, func(member *storagev2beta2.RaftMember) {
-								if member.Status.Role != nil && *member.Status.Role == storagev2beta2.RaftLeader {
-									r.events.Eventf(member, "Normal", "BecameLeader", "Became leader for term %d", e.LeaderUpdated.Term)
-								}
-							})
-					}
 					r.recordGroupEvent(ctx, storeName, e.LeaderUpdated.MemberEvent.GroupID,
 						func(status *storagev2beta2.RaftGroupStatus) bool {
 							term := uint64(e.LeaderUpdated.Term)
-							if status.Term == nil || term > *status.Term {
-								status.Term = &term
-								var leader *corev1.ObjectReference
+							if status.Term == nil || *status.Term < term || (*status.Term == term && status.Leader == nil && e.LeaderUpdated.Leader != 0) {
+								var leader *corev1.LocalObjectReference
 								if e.LeaderUpdated.Leader != 0 {
-									leader = &corev1.ObjectReference{
+									leader = &corev1.LocalObjectReference{
 										Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.LeaderUpdated.GroupID, e.LeaderUpdated.Leader),
 									}
 								}
 								if status.Leader != nil && (leader == nil || status.Leader.Name != leader.Name) {
 									status.Followers = append(status.Followers, *status.Leader)
-									status.Leader = nil
 								}
+								var followers []corev1.LocalObjectReference
+								for _, follower := range status.Followers {
+									if leader == nil || follower.Name != leader.Name {
+										followers = append(followers, follower)
+									}
+								}
+								status.Term = &term
+								status.Leader = leader
+								status.Followers = followers
 								return true
 							}
 							return false
 						}, func(group *storagev2beta2.RaftGroup) {
-							r.events.Eventf(group, "Normal", "TermChanged", "Term changed to %d", e.LeaderUpdated.Term)
+							if group.Status.Leader != nil {
+								r.events.Eventf(group, "Normal", "LeaderChanged", "%s elected leader for term %d", group.Status.Leader.Name, e.LeaderUpdated.Term)
+							} else {
+								r.events.Eventf(group, "Normal", "TermChanged", "Term changed to %d", e.LeaderUpdated.Term)
+							}
 						})
-					if e.LeaderUpdated.Leader != 0 {
-						r.recordGroupEvent(ctx, storeName, e.LeaderUpdated.MemberEvent.GroupID,
-							func(status *storagev2beta2.RaftGroupStatus) bool {
-								term := uint64(e.LeaderUpdated.Term)
-								if status.Leader == nil && status.Term != nil && *status.Term == term {
-									status.Leader = &corev1.LocalObjectReference{
-										Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.LeaderUpdated.GroupID, e.LeaderUpdated.Leader),
-									}
-									var followers []corev1.LocalObjectReference
-									for _, follower := range status.Followers {
-										if follower.Name != status.Leader.Name {
-											followers = append(followers, follower)
-										}
-									}
-									status.Followers = followers
-									return true
-								}
-								return false
-							}, func(group *storagev2beta2.RaftGroup) {
-								if group.Status.Leader != nil {
-									r.events.Eventf(group, "Normal", "LeaderChanged", "Leader changed to %s for term %d", group.Status.Leader.Name, e.LeaderUpdated.Term)
-								}
-							})
-					}
 				case *multiraftv1.Event_MembershipChanged:
 					r.recordMemberEvent(ctx, storeName, e.MembershipChanged.MemberEvent,
 						func(status *storagev2beta2.RaftMemberStatus) bool {
