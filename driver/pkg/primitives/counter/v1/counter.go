@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package primitives
+package v1
 
 import (
 	"context"
@@ -16,10 +16,11 @@ import (
 	"google.golang.org/grpc"
 )
 
-const counterType = "Counter"
-const counterAPIVersion = "v1"
+var log = logging.GetLogger()
 
-func NewCounterServer(protocol *client.Protocol) counterv1.CounterServer {
+const Service = "atomix.multiraft.counter.v1.Counter"
+
+func NewCounterServer(protocol *client.Protocol, config api.CounterConfig) counterv1.CounterServer {
 	return &CounterServer{
 		Protocol: protocol,
 	}
@@ -41,10 +42,7 @@ func (s *CounterServer) Create(ctx context.Context, request *counterv1.CreateReq
 		return nil, errors.ToProto(err)
 	}
 	spec := multiraftv1.PrimitiveSpec{
-		Type: multiraftv1.PrimitiveType{
-			Name:       counterType,
-			ApiVersion: counterAPIVersion,
-		},
+		Service:   Service,
 		Namespace: runtime.GetNamespace(),
 		Name:      request.ID.Name,
 	}
@@ -124,49 +122,6 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	log.Debugw("Set",
 		logging.Stringer("SetRequest", request),
 		logging.Stringer("SetResponse", response))
-	return response, nil
-}
-
-func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest) (*counterv1.CompareAndSetResponse, error) {
-	log.Debugw("CompareAndSet",
-		logging.Stringer("CompareAndSetRequest", request))
-	partition := s.PartitionBy([]byte(request.ID.Name))
-	session, err := partition.GetSession(ctx)
-	if err != nil {
-		log.Warnw("CompareAndSet",
-			logging.Stringer("CompareAndSetRequest", request),
-			logging.Error("Error", err))
-		return nil, errors.ToProto(err)
-	}
-	primitive, err := session.GetPrimitive(request.ID.Name)
-	if err != nil {
-		log.Warnw("CompareAndSet",
-			logging.Stringer("CompareAndSetRequest", request),
-			logging.Error("Error", err))
-		return nil, errors.ToProto(err)
-	}
-	command := client.Command[*api.CompareAndSetResponse](primitive)
-	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.CompareAndSetResponse, error) {
-		return api.NewCounterClient(conn).CompareAndSet(ctx, &api.CompareAndSetRequest{
-			Headers: *headers,
-			CompareAndSetInput: &api.CompareAndSetInput{
-				Compare: request.Check,
-				Update:  request.Update,
-			},
-		})
-	})
-	if err != nil {
-		log.Warnw("CompareAndSet",
-			logging.Stringer("CompareAndSetRequest", request),
-			logging.Error("Error", err))
-		return nil, errors.ToProto(err)
-	}
-	response := &counterv1.CompareAndSetResponse{
-		Value: output.Value,
-	}
-	log.Debugw("CompareAndSet",
-		logging.Stringer("CompareAndSetRequest", request),
-		logging.Stringer("CompareAndSetResponse", response))
 	return response, nil
 }
 

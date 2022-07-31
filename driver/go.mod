@@ -18,8 +18,8 @@ require (
 
 require (
 	github.com/atomix/multi-raft-storage/api v0.1.0
-	github.com/atomix/runtime/api v0.1.0
-	github.com/atomix/runtime/sdk v0.1.0
+	github.com/atomix/runtime/api v0.1.1-0.20220731065539-c3d767efc511
+	github.com/atomix/runtime/sdk v0.1.1-0.20220731065920-23e72239b306
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/stretchr/testify v1.7.1
 )
@@ -50,3 +50,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
+
+replace github.com/atomix/multi-raft-storage/api => ../api

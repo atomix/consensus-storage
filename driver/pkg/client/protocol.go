@@ -18,6 +18,14 @@ type Protocol struct {
 	mu         sync.RWMutex
 }
 
+func (p *Protocol) PartitionIndex(partitionKey []byte) int {
+	i, err := getPartitionIndex(partitionKey, len(p.partitions))
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
 func (p *Protocol) PartitionBy(partitionKey []byte) *PartitionClient {
 	i, err := getPartitionIndex(partitionKey, len(p.partitions))
 	if err != nil {
