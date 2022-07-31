@@ -2,7 +2,6 @@ apiVersion: storage.atomix.io/v3beta1
 kind: MultiRaftStore
 metadata:
   name: example-multi-raft-store
-  namespace: default
 spec:
   replicas: 3
   groups: 3
