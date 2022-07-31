@@ -14,14 +14,10 @@
     - [EventsOutput](#atomix-multiraft-map-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-map-v1-GetInput)
     - [GetOutput](#atomix-multiraft-map-v1-GetOutput)
-    - [InsertInput](#atomix-multiraft-map-v1-InsertInput)
-    - [InsertOutput](#atomix-multiraft-map-v1-InsertOutput)
     - [MapEntry](#atomix-multiraft-map-v1-MapEntry)
     - [MapInput](#atomix-multiraft-map-v1-MapInput)
-    - [MapKey](#atomix-multiraft-map-v1-MapKey)
     - [MapListener](#atomix-multiraft-map-v1-MapListener)
     - [MapOutput](#atomix-multiraft-map-v1-MapOutput)
-    - [MapSnapshot](#atomix-multiraft-map-v1-MapSnapshot)
     - [MapValue](#atomix-multiraft-map-v1-MapValue)
     - [PutInput](#atomix-multiraft-map-v1-PutInput)
     - [PutOutput](#atomix-multiraft-map-v1-PutOutput)
@@ -29,8 +25,6 @@
     - [RemoveOutput](#atomix-multiraft-map-v1-RemoveOutput)
     - [SizeInput](#atomix-multiraft-map-v1-SizeInput)
     - [SizeOutput](#atomix-multiraft-map-v1-SizeOutput)
-    - [UpdateInput](#atomix-multiraft-map-v1-UpdateInput)
-    - [UpdateOutput](#atomix-multiraft-map-v1-UpdateOutput)
     - [Value](#atomix-multiraft-map-v1-Value)
   
     - [Event.Type](#atomix-multiraft-map-v1-Event-Type)
@@ -101,7 +95,6 @@
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
 | value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
-| index | [uint64](#uint64) |  |  |
 
 
 
@@ -185,37 +178,6 @@
 
 
 
-<a name="atomix-multiraft-map-v1-InsertInput"></a>
-
-### InsertInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-InsertOutput"></a>
-
-### InsertOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-map-v1-MapEntry"></a>
 
 ### MapEntry
@@ -224,7 +186,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| key | [MapKey](#atomix-multiraft-map-v1-MapKey) |  |  |
+| key | [string](#string) |  |  |
 | value | [MapValue](#atomix-multiraft-map-v1-MapValue) |  |  |
 
 
@@ -242,29 +204,11 @@
 | ----- | ---- | ----- | ----------- |
 | size | [SizeInput](#atomix-multiraft-map-v1-SizeInput) |  |  |
 | put | [PutInput](#atomix-multiraft-map-v1-PutInput) |  |  |
-| insert | [InsertInput](#atomix-multiraft-map-v1-InsertInput) |  |  |
-| update | [UpdateInput](#atomix-multiraft-map-v1-UpdateInput) |  |  |
 | get | [GetInput](#atomix-multiraft-map-v1-GetInput) |  |  |
 | remove | [RemoveInput](#atomix-multiraft-map-v1-RemoveInput) |  |  |
 | clear | [ClearInput](#atomix-multiraft-map-v1-ClearInput) |  |  |
 | entries | [EntriesInput](#atomix-multiraft-map-v1-EntriesInput) |  |  |
 | events | [EventsInput](#atomix-multiraft-map-v1-EventsInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-MapKey"></a>
-
-### MapKey
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| key | [string](#string) |  |  |
 
 
 
@@ -297,29 +241,11 @@
 | ----- | ---- | ----- | ----------- |
 | size | [SizeOutput](#atomix-multiraft-map-v1-SizeOutput) |  |  |
 | put | [PutOutput](#atomix-multiraft-map-v1-PutOutput) |  |  |
-| insert | [InsertOutput](#atomix-multiraft-map-v1-InsertOutput) |  |  |
-| update | [UpdateOutput](#atomix-multiraft-map-v1-UpdateOutput) |  |  |
 | get | [GetOutput](#atomix-multiraft-map-v1-GetOutput) |  |  |
 | remove | [RemoveOutput](#atomix-multiraft-map-v1-RemoveOutput) |  |  |
 | clear | [ClearOutput](#atomix-multiraft-map-v1-ClearOutput) |  |  |
 | entries | [EntriesOutput](#atomix-multiraft-map-v1-EntriesOutput) |  |  |
 | events | [EventsOutput](#atomix-multiraft-map-v1-EventsOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-MapSnapshot"></a>
-
-### MapSnapshot
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| listeners | [MapListener](#atomix-multiraft-map-v1-MapListener) | repeated |  |
-| entries | [MapEntry](#atomix-multiraft-map-v1-MapEntry) | repeated |  |
 
 
 
@@ -350,9 +276,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
-| index | [uint64](#uint64) |  |  |
+| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
 
 
 
@@ -363,11 +287,6 @@
 
 ### PutOutput
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
 
 
 
@@ -383,7 +302,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| index | [uint64](#uint64) |  |  |
 
 
 
@@ -430,38 +348,6 @@
 
 
 
-<a name="atomix-multiraft-map-v1-UpdateInput"></a>
-
-### UpdateInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
-| index | [uint64](#uint64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-UpdateOutput"></a>
-
-### UpdateOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-map-v1-Value"></a>
 
 ### Value
@@ -491,7 +377,6 @@
 | INSERT | 1 |  |
 | UPDATE | 2 |  |
 | REMOVE | 3 |  |
-| REPLAY | 4 |  |
 
 
  

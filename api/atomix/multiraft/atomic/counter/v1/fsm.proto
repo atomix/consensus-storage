@@ -6,23 +6,25 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-package atomix.multiraft.counter.v1;
+package atomix.multiraft.atomic.counter.v1;
 
-message CounterInput {
+message AtomicCounterInput {
     oneof input {
         IncrementInput increment = 1;
         DecrementInput decrement = 2;
         GetInput get = 3;
         SetInput set = 4;
+        UpdateInput update = 5;
     }
 }
 
-message CounterOutput {
+message AtomicCounterOutput {
     oneof output {
         IncrementOutput increment = 1;
         DecrementOutput decrement = 2;
         GetOutput get = 3;
         SetOutput set = 4;
+        UpdateOutput update = 5;
     }
 }
 
@@ -55,5 +57,14 @@ message SetInput {
 }
 
 message SetOutput {
+    int64 value = 1;
+}
+
+message UpdateInput {
+    int64 compare = 1;
+    int64 update = 2;
+}
+
+message UpdateOutput {
     int64 value = 1;
 }

@@ -12,16 +12,12 @@
     - [EventsResponse](#atomix-multiraft-map-v1-EventsResponse)
     - [GetRequest](#atomix-multiraft-map-v1-GetRequest)
     - [GetResponse](#atomix-multiraft-map-v1-GetResponse)
-    - [InsertRequest](#atomix-multiraft-map-v1-InsertRequest)
-    - [InsertResponse](#atomix-multiraft-map-v1-InsertResponse)
     - [PutRequest](#atomix-multiraft-map-v1-PutRequest)
     - [PutResponse](#atomix-multiraft-map-v1-PutResponse)
     - [RemoveRequest](#atomix-multiraft-map-v1-RemoveRequest)
     - [RemoveResponse](#atomix-multiraft-map-v1-RemoveResponse)
     - [SizeRequest](#atomix-multiraft-map-v1-SizeRequest)
     - [SizeResponse](#atomix-multiraft-map-v1-SizeResponse)
-    - [UpdateRequest](#atomix-multiraft-map-v1-UpdateRequest)
-    - [UpdateResponse](#atomix-multiraft-map-v1-UpdateResponse)
   
     - [Map](#atomix-multiraft-map-v1-Map)
   
@@ -164,38 +160,6 @@
 
 
 
-<a name="atomix-multiraft-map-v1-InsertRequest"></a>
-
-### InsertRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
-| input | [InsertInput](#atomix-multiraft-map-v1-InsertInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-InsertResponse"></a>
-
-### InsertResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
-| output | [InsertOutput](#atomix-multiraft-map-v1-InsertOutput) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-map-v1-PutRequest"></a>
 
 ### PutRequest
@@ -291,38 +255,6 @@
 
 
 
-
-<a name="atomix-multiraft-map-v1-UpdateRequest"></a>
-
-### UpdateRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
-| input | [UpdateInput](#atomix-multiraft-map-v1-UpdateInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-UpdateResponse"></a>
-
-### UpdateResponse
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
-| output | [UpdateOutput](#atomix-multiraft-map-v1-UpdateOutput) |  |  |
-
-
-
-
-
  
 
  
@@ -339,8 +271,6 @@ Map is a service for a map primitive
 | ----------- | ------------ | ------------- | ------------|
 | Size | [SizeRequest](#atomix-multiraft-map-v1-SizeRequest) | [SizeResponse](#atomix-multiraft-map-v1-SizeResponse) | Size returns the size of the map |
 | Put | [PutRequest](#atomix-multiraft-map-v1-PutRequest) | [PutResponse](#atomix-multiraft-map-v1-PutResponse) | Put puts an entry into the map |
-| Insert | [InsertRequest](#atomix-multiraft-map-v1-InsertRequest) | [InsertResponse](#atomix-multiraft-map-v1-InsertResponse) | Insert inserts an entry into the map |
-| Update | [UpdateRequest](#atomix-multiraft-map-v1-UpdateRequest) | [UpdateResponse](#atomix-multiraft-map-v1-UpdateResponse) | Update updates an entry in the map |
 | Get | [GetRequest](#atomix-multiraft-map-v1-GetRequest) | [GetResponse](#atomix-multiraft-map-v1-GetResponse) | Get gets the entry for a key |
 | Remove | [RemoveRequest](#atomix-multiraft-map-v1-RemoveRequest) | [RemoveResponse](#atomix-multiraft-map-v1-RemoveResponse) | Remove removes an entry from the map |
 | Clear | [ClearRequest](#atomix-multiraft-map-v1-ClearRequest) | [ClearResponse](#atomix-multiraft-map-v1-ClearResponse) | Clear removes all entries from the map |

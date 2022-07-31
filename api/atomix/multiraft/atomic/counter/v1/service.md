@@ -3,30 +3,32 @@
 
 ## Table of Contents
 
-- [atomix/multiraft/counter/v1/service.proto](#atomix_multiraft_counter_v1_service-proto)
-    - [DecrementRequest](#atomix-multiraft-counter-v1-DecrementRequest)
-    - [DecrementResponse](#atomix-multiraft-counter-v1-DecrementResponse)
-    - [GetRequest](#atomix-multiraft-counter-v1-GetRequest)
-    - [GetResponse](#atomix-multiraft-counter-v1-GetResponse)
-    - [IncrementRequest](#atomix-multiraft-counter-v1-IncrementRequest)
-    - [IncrementResponse](#atomix-multiraft-counter-v1-IncrementResponse)
-    - [SetRequest](#atomix-multiraft-counter-v1-SetRequest)
-    - [SetResponse](#atomix-multiraft-counter-v1-SetResponse)
+- [atomix/multiraft/atomic/counter/v1/service.proto](#atomix_multiraft_atomic_counter_v1_service-proto)
+    - [DecrementRequest](#atomix-multiraft-atomic-counter-v1-DecrementRequest)
+    - [DecrementResponse](#atomix-multiraft-atomic-counter-v1-DecrementResponse)
+    - [GetRequest](#atomix-multiraft-atomic-counter-v1-GetRequest)
+    - [GetResponse](#atomix-multiraft-atomic-counter-v1-GetResponse)
+    - [IncrementRequest](#atomix-multiraft-atomic-counter-v1-IncrementRequest)
+    - [IncrementResponse](#atomix-multiraft-atomic-counter-v1-IncrementResponse)
+    - [SetRequest](#atomix-multiraft-atomic-counter-v1-SetRequest)
+    - [SetResponse](#atomix-multiraft-atomic-counter-v1-SetResponse)
+    - [UpdateRequest](#atomix-multiraft-atomic-counter-v1-UpdateRequest)
+    - [UpdateResponse](#atomix-multiraft-atomic-counter-v1-UpdateResponse)
   
-    - [Counter](#atomix-multiraft-counter-v1-Counter)
+    - [AtomicCounter](#atomix-multiraft-atomic-counter-v1-AtomicCounter)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="atomix_multiraft_counter_v1_service-proto"></a>
+<a name="atomix_multiraft_atomic_counter_v1_service-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## atomix/multiraft/counter/v1/service.proto
+## atomix/multiraft/atomic/counter/v1/service.proto
 
 
 
-<a name="atomix-multiraft-counter-v1-DecrementRequest"></a>
+<a name="atomix-multiraft-atomic-counter-v1-DecrementRequest"></a>
 
 ### DecrementRequest
 
@@ -35,14 +37,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
-| input | [DecrementInput](#atomix-multiraft-counter-v1-DecrementInput) |  |  |
+| input | [DecrementInput](#atomix-multiraft-atomic-counter-v1-DecrementInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-DecrementResponse"></a>
+<a name="atomix-multiraft-atomic-counter-v1-DecrementResponse"></a>
 
 ### DecrementResponse
 
@@ -51,14 +53,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
-| output | [DecrementOutput](#atomix-multiraft-counter-v1-DecrementOutput) |  |  |
+| output | [DecrementOutput](#atomix-multiraft-atomic-counter-v1-DecrementOutput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-GetRequest"></a>
+<a name="atomix-multiraft-atomic-counter-v1-GetRequest"></a>
 
 ### GetRequest
 
@@ -67,14 +69,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.QueryRequestHeaders](#atomix-multiraft-v1-QueryRequestHeaders) |  |  |
-| input | [GetInput](#atomix-multiraft-counter-v1-GetInput) |  |  |
+| input | [GetInput](#atomix-multiraft-atomic-counter-v1-GetInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-GetResponse"></a>
+<a name="atomix-multiraft-atomic-counter-v1-GetResponse"></a>
 
 ### GetResponse
 
@@ -83,14 +85,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.QueryResponseHeaders](#atomix-multiraft-v1-QueryResponseHeaders) |  |  |
-| output | [GetOutput](#atomix-multiraft-counter-v1-GetOutput) |  |  |
+| output | [GetOutput](#atomix-multiraft-atomic-counter-v1-GetOutput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-IncrementRequest"></a>
+<a name="atomix-multiraft-atomic-counter-v1-IncrementRequest"></a>
 
 ### IncrementRequest
 
@@ -99,14 +101,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
-| input | [IncrementInput](#atomix-multiraft-counter-v1-IncrementInput) |  |  |
+| input | [IncrementInput](#atomix-multiraft-atomic-counter-v1-IncrementInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-IncrementResponse"></a>
+<a name="atomix-multiraft-atomic-counter-v1-IncrementResponse"></a>
 
 ### IncrementResponse
 
@@ -115,14 +117,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
-| output | [IncrementOutput](#atomix-multiraft-counter-v1-IncrementOutput) |  |  |
+| output | [IncrementOutput](#atomix-multiraft-atomic-counter-v1-IncrementOutput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-SetRequest"></a>
+<a name="atomix-multiraft-atomic-counter-v1-SetRequest"></a>
 
 ### SetRequest
 
@@ -131,14 +133,14 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
-| input | [SetInput](#atomix-multiraft-counter-v1-SetInput) |  |  |
+| input | [SetInput](#atomix-multiraft-atomic-counter-v1-SetInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-SetResponse"></a>
+<a name="atomix-multiraft-atomic-counter-v1-SetResponse"></a>
 
 ### SetResponse
 
@@ -147,7 +149,39 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
-| output | [SetOutput](#atomix-multiraft-counter-v1-SetOutput) |  |  |
+| output | [SetOutput](#atomix-multiraft-atomic-counter-v1-SetOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-atomic-counter-v1-UpdateRequest"></a>
+
+### UpdateRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [UpdateInput](#atomix-multiraft-atomic-counter-v1-UpdateInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-atomic-counter-v1-UpdateResponse"></a>
+
+### UpdateResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [UpdateOutput](#atomix-multiraft-atomic-counter-v1-UpdateOutput) |  |  |
 
 
 
@@ -160,17 +194,18 @@
  
 
 
-<a name="atomix-multiraft-counter-v1-Counter"></a>
+<a name="atomix-multiraft-atomic-counter-v1-AtomicCounter"></a>
 
-### Counter
-Counter is a service for a counter primitive
+### AtomicCounter
+AtomicCounter is a service for a counter primitive
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| Set | [SetRequest](#atomix-multiraft-counter-v1-SetRequest) | [SetResponse](#atomix-multiraft-counter-v1-SetResponse) | Set sets the counter value |
-| Get | [GetRequest](#atomix-multiraft-counter-v1-GetRequest) | [GetResponse](#atomix-multiraft-counter-v1-GetResponse) | Get gets the current counter value |
-| Increment | [IncrementRequest](#atomix-multiraft-counter-v1-IncrementRequest) | [IncrementResponse](#atomix-multiraft-counter-v1-IncrementResponse) | Increment increments the counter value |
-| Decrement | [DecrementRequest](#atomix-multiraft-counter-v1-DecrementRequest) | [DecrementResponse](#atomix-multiraft-counter-v1-DecrementResponse) | Decrement decrements the counter value |
+| Set | [SetRequest](#atomix-multiraft-atomic-counter-v1-SetRequest) | [SetResponse](#atomix-multiraft-atomic-counter-v1-SetResponse) | Set sets the counter value |
+| Update | [UpdateRequest](#atomix-multiraft-atomic-counter-v1-UpdateRequest) | [UpdateResponse](#atomix-multiraft-atomic-counter-v1-UpdateResponse) | Update sets the counter value |
+| Get | [GetRequest](#atomix-multiraft-atomic-counter-v1-GetRequest) | [GetResponse](#atomix-multiraft-atomic-counter-v1-GetResponse) | Get gets the current counter value |
+| Increment | [IncrementRequest](#atomix-multiraft-atomic-counter-v1-IncrementRequest) | [IncrementResponse](#atomix-multiraft-atomic-counter-v1-IncrementResponse) | Increment increments the counter value |
+| Decrement | [DecrementRequest](#atomix-multiraft-atomic-counter-v1-DecrementRequest) | [DecrementResponse](#atomix-multiraft-atomic-counter-v1-DecrementResponse) | Decrement decrements the counter value |
 
  
 

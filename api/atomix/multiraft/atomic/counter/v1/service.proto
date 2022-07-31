@@ -6,17 +6,22 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-package atomix.multiraft.counter.v1;
+package atomix.multiraft.atomic.counter.v1;
 
-import "atomix/multiraft/counter/v1/fsm.proto";
+import "atomix/multiraft/atomic/counter/v1/fsm.proto";
 import "atomix/multiraft/v1/descriptor.proto";
 import "atomix/multiraft/v1/headers.proto";
 import "gogoproto/gogo.proto";
 
-// Counter is a service for a counter primitive
-service Counter {
+// AtomicCounter is a service for a counter primitive
+service AtomicCounter {
     // Set sets the counter value
     rpc Set (SetRequest) returns (SetResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Update sets the counter value
+    rpc Update (UpdateRequest) returns (UpdateResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
@@ -119,6 +124,28 @@ message SetResponse {
         (gogoproto.nullable) = false
     ];
     SetOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UpdateRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UpdateInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UpdateResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UpdateOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

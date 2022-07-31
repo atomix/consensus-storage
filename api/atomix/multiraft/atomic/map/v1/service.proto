@@ -6,15 +6,15 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-package atomix.multiraft.map.v1;
+package atomix.multiraft.atomic.map.v1;
 
-import "atomix/multiraft/map/v1/fsm.proto";
+import "atomix/multiraft/atomic/map/v1/fsm.proto";
 import "atomix/multiraft/v1/descriptor.proto";
 import "atomix/multiraft/v1/headers.proto";
 import "gogoproto/gogo.proto";
 
-// Map is a service for a map primitive
-service Map {
+// AtomicMap is a service for a map primitive
+service AtomicMap {
     // Size returns the size of the map
     rpc Size (SizeRequest) returns (SizeResponse) {
         option (atomix.multiraft.v1.operation_type) = QUERY;
@@ -22,6 +22,16 @@ service Map {
 
     // Put puts an entry into the map
     rpc Put (PutRequest) returns (PutResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Insert inserts an entry into the map
+    rpc Insert (InsertRequest) returns (InsertResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Update updates an entry in the map
+    rpc Update (UpdateRequest) returns (UpdateResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
@@ -37,6 +47,16 @@ service Map {
 
     // Clear removes all entries from the map
     rpc Clear (ClearRequest) returns (ClearResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Lock locks a key in the map
+    rpc Lock(LockRequest) returns (LockResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Unlock unlocks a key in the map
+    rpc Unlock(UnlockRequest) returns (UnlockResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
@@ -90,6 +110,50 @@ message PutResponse {
         (gogoproto.nullable) = false
     ];
     PutOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message InsertRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    InsertInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message InsertResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    InsertOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UpdateRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UpdateInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UpdateResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UpdateOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];
@@ -156,6 +220,50 @@ message ClearResponse {
         (gogoproto.nullable) = false
     ];
     ClearOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LockRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    LockInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LockResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    LockOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UnlockRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UnlockInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message UnlockResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true,
+        (gogoproto.nullable) = false
+    ];
+    UnlockOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

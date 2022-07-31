@@ -3,174 +3,48 @@
 
 ## Table of Contents
 
-- [atomix/multiraft/counter/v1/fsm.proto](#atomix_multiraft_counter_v1_fsm-proto)
-    - [CounterInput](#atomix-multiraft-counter-v1-CounterInput)
-    - [CounterOutput](#atomix-multiraft-counter-v1-CounterOutput)
-    - [DecrementInput](#atomix-multiraft-counter-v1-DecrementInput)
-    - [DecrementOutput](#atomix-multiraft-counter-v1-DecrementOutput)
-    - [GetInput](#atomix-multiraft-counter-v1-GetInput)
-    - [GetOutput](#atomix-multiraft-counter-v1-GetOutput)
-    - [IncrementInput](#atomix-multiraft-counter-v1-IncrementInput)
-    - [IncrementOutput](#atomix-multiraft-counter-v1-IncrementOutput)
-    - [SetInput](#atomix-multiraft-counter-v1-SetInput)
-    - [SetOutput](#atomix-multiraft-counter-v1-SetOutput)
+- [atomix/multiraft/atomic/map/v1/config.proto](#atomix_multiraft_atomic_map_v1_config-proto)
+    - [AtomicMapConfig](#atomix-multiraft-atomic-map-v1-AtomicMapConfig)
+    - [CacheConfig](#atomix-multiraft-atomic-map-v1-CacheConfig)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="atomix_multiraft_counter_v1_fsm-proto"></a>
+<a name="atomix_multiraft_atomic_map_v1_config-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## atomix/multiraft/counter/v1/fsm.proto
+## atomix/multiraft/atomic/map/v1/config.proto
 
 
 
-<a name="atomix-multiraft-counter-v1-CounterInput"></a>
+<a name="atomix-multiraft-atomic-map-v1-AtomicMapConfig"></a>
 
-### CounterInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| increment | [IncrementInput](#atomix-multiraft-counter-v1-IncrementInput) |  |  |
-| decrement | [DecrementInput](#atomix-multiraft-counter-v1-DecrementInput) |  |  |
-| get | [GetInput](#atomix-multiraft-counter-v1-GetInput) |  |  |
-| set | [SetInput](#atomix-multiraft-counter-v1-SetInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-CounterOutput"></a>
-
-### CounterOutput
+### AtomicMapConfig
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| increment | [IncrementOutput](#atomix-multiraft-counter-v1-IncrementOutput) |  |  |
-| decrement | [DecrementOutput](#atomix-multiraft-counter-v1-DecrementOutput) |  |  |
-| get | [GetOutput](#atomix-multiraft-counter-v1-GetOutput) |  |  |
-| set | [SetOutput](#atomix-multiraft-counter-v1-SetOutput) |  |  |
+| cache | [CacheConfig](#atomix-multiraft-atomic-map-v1-CacheConfig) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-counter-v1-DecrementInput"></a>
+<a name="atomix-multiraft-atomic-map-v1-CacheConfig"></a>
 
-### DecrementInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| delta | [int64](#int64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-DecrementOutput"></a>
-
-### DecrementOutput
+### CacheConfig
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [int64](#int64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-GetInput"></a>
-
-### GetInput
-
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-GetOutput"></a>
-
-### GetOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| value | [int64](#int64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-IncrementInput"></a>
-
-### IncrementInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| delta | [int64](#int64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-IncrementOutput"></a>
-
-### IncrementOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| value | [int64](#int64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-SetInput"></a>
-
-### SetInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| value | [int64](#int64) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-counter-v1-SetOutput"></a>
-
-### SetOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| value | [int64](#int64) |  |  |
+| enabled | [bool](#bool) |  |  |
+| size | [uint64](#uint64) |  |  |
+| evict_after | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+| eviction_interval | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 
 
 
