@@ -220,10 +220,10 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 	}
 	response := &mapv1.GetResponse{
 		Entry: mapv1.Entry{
-			Key: output.Entry.Key,
+			Key: request.Key,
 			Value: &mapv1.Value{
-				Value: output.Entry.Value.Value,
-				TTL:   output.Entry.Value.TTL,
+				Value: output.Value.Value,
+				TTL:   output.Value.TTL,
 			},
 		},
 	}
