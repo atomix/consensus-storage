@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package primitives
+package v1
 
 import (
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
@@ -12,11 +12,13 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-func RegisterCounterType(registry *statemachine.PrimitiveTypeRegistry) {
+const Service = "atomix.multiraft.counter.v1.Counter"
+
+func Register(registry *statemachine.PrimitiveTypeRegistry) {
 	statemachine.RegisterPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(CounterType)
 }
 
-var CounterType = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput]("Counter", "v1", counterCodec, newCounterStateMachine)
+var CounterType = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](Service, counterCodec, newCounterStateMachine)
 
 var counterCodec = statemachine.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
 	func(bytes []byte) (*counterv1.CounterInput, error) {
@@ -58,8 +60,6 @@ func (s *CounterStateMachine) Update(proposal statemachine.Proposal[*counterv1.C
 	switch proposal.Input().Input.(type) {
 	case *counterv1.CounterInput_Set:
 		s.set(proposal)
-	case *counterv1.CounterInput_CompareAndSet:
-		s.compareAndSet(proposal)
 	case *counterv1.CounterInput_Increment:
 		s.increment(proposal)
 	case *counterv1.CounterInput_Decrement:
@@ -79,22 +79,6 @@ func (s *CounterStateMachine) set(proposal statemachine.Proposal[*counterv1.Coun
 			},
 		},
 	})
-}
-
-func (s *CounterStateMachine) compareAndSet(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	defer proposal.Close()
-	if s.value != proposal.Input().GetCompareAndSet().Compare {
-		proposal.Error(errors.NewConflict("optimistic lock failure"))
-	} else {
-		s.value = proposal.Input().GetCompareAndSet().Update
-		proposal.Output(&counterv1.CounterOutput{
-			Output: &counterv1.CounterOutput_CompareAndSet{
-				CompareAndSet: &counterv1.CompareAndSetOutput{
-					Value: s.value,
-				},
-			},
-		})
-	}
 }
 
 func (s *CounterStateMachine) increment(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {

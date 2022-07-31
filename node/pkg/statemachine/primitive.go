@@ -55,7 +55,7 @@ func (m *primitiveManager) recover(reader *snapshot.Reader) error {
 		if err := reader.ReadMessage(snapshot); err != nil {
 			return err
 		}
-		factory, ok := m.registry.lookup(snapshot.Spec.Type.Name, snapshot.Spec.Type.ApiVersion)
+		factory, ok := m.registry.lookup(snapshot.Spec.Service)
 		if !ok {
 			return errors.NewFault("primitive type not found")
 		}
@@ -77,7 +77,7 @@ func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
 	var executor primitiveExecutor
 	for _, p := range m.primitives {
 		if p.info().spec.Namespace == command.Input().Namespace && p.info().spec.Name == command.Input().Name {
-			if p.info().spec.Type.Name != command.Input().Type.Name || p.info().spec.Type.ApiVersion != command.Input().Type.ApiVersion {
+			if p.info().spec.Service != command.Input().Service {
 				command.Error(errors.NewForbidden("cannot create primitive of a different type with the same name"))
 				command.Close()
 				return
@@ -88,7 +88,7 @@ func (m *primitiveManager) create(command *raftSessionCreatePrimitiveCommand) {
 	}
 
 	if executor == nil {
-		factory, ok := m.registry.lookup(command.Input().Type.Name, command.Input().Type.ApiVersion)
+		factory, ok := m.registry.lookup(command.Input().Service)
 		if !ok {
 			command.Error(errors.NewForbidden("unknown primitive type"))
 			command.Close()

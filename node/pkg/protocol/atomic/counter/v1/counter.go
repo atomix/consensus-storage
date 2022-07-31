@@ -2,49 +2,46 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package primitives
+package v1
 
 import (
 	"context"
-	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
+	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/counter/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/gogo/protobuf/proto"
-	"google.golang.org/grpc"
 )
 
-func RegisterCounterServer(server *grpc.Server, node *protocol.Node) {
-	counterv1.RegisterCounterServer(server, newCounterServer(node))
-}
+var log = logging.GetLogger()
 
-var counterCodec = protocol.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
-	func(input *counterv1.CounterInput) ([]byte, error) {
+var counterCodec = protocol.NewCodec[*counterv1.AtomicCounterInput, *counterv1.AtomicCounterOutput](
+	func(input *counterv1.AtomicCounterInput) ([]byte, error) {
 		return proto.Marshal(input)
 	},
-	func(bytes []byte) (*counterv1.CounterOutput, error) {
-		output := &counterv1.CounterOutput{}
+	func(bytes []byte) (*counterv1.AtomicCounterOutput, error) {
+		output := &counterv1.AtomicCounterOutput{}
 		if err := proto.Unmarshal(bytes, output); err != nil {
 			return nil, err
 		}
 		return output, nil
 	})
 
-func newCounterServer(node *protocol.Node) counterv1.CounterServer {
+func NewAtomicCounterServer(node *protocol.Node) counterv1.AtomicCounterServer {
 	return &CounterServer{
-		protocol: protocol.NewProtocol[*counterv1.CounterInput, *counterv1.CounterOutput](node, counterCodec),
+		protocol: protocol.NewProtocol[*counterv1.AtomicCounterInput, *counterv1.AtomicCounterOutput](node, counterCodec),
 	}
 }
 
 type CounterServer struct {
-	protocol protocol.Protocol[*counterv1.CounterInput, *counterv1.CounterOutput]
+	protocol protocol.Protocol[*counterv1.AtomicCounterInput, *counterv1.AtomicCounterOutput]
 }
 
 func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
 	log.Debugw("Set",
 		logging.Stringer("SetRequest", request))
-	input := &counterv1.CounterInput{
-		Input: &counterv1.CounterInput_Set{
+	input := &counterv1.AtomicCounterInput{
+		Input: &counterv1.AtomicCounterInput_Set{
 			Set: request.SetInput,
 		},
 	}
@@ -66,37 +63,37 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	return response, nil
 }
 
-func (s *CounterServer) CompareAndSet(ctx context.Context, request *counterv1.CompareAndSetRequest) (*counterv1.CompareAndSetResponse, error) {
-	log.Debugw("CompareAndSet",
-		logging.Stringer("CompareAndSetRequest", request))
-	input := &counterv1.CounterInput{
-		Input: &counterv1.CounterInput_CompareAndSet{
-			CompareAndSet: request.CompareAndSetInput,
+func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateRequest) (*counterv1.UpdateResponse, error) {
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request))
+	input := &counterv1.AtomicCounterInput{
+		Input: &counterv1.AtomicCounterInput_Update{
+			Update: request.UpdateInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
-		log.Warnw("CompareAndSet",
-			logging.Stringer("CompareAndSetRequest", request),
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &counterv1.CompareAndSetResponse{
-		Headers:             *headers,
-		CompareAndSetOutput: output.GetCompareAndSet(),
+	response := &counterv1.UpdateResponse{
+		Headers:      *headers,
+		UpdateOutput: output.GetUpdate(),
 	}
-	log.Debugw("CompareAndSet",
-		logging.Stringer("CompareAndSetRequest", request),
-		logging.Stringer("CompareAndSetResponse", response))
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request),
+		logging.Stringer("UpdateResponse", response))
 	return response, nil
 }
 
 func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
-	input := &counterv1.CounterInput{
-		Input: &counterv1.CounterInput_Get{
+	input := &counterv1.AtomicCounterInput{
+		Input: &counterv1.AtomicCounterInput_Get{
 			Get: request.GetInput,
 		},
 	}
@@ -121,8 +118,8 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 func (s *CounterServer) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
 	log.Debugw("Increment",
 		logging.Stringer("IncrementRequest", request))
-	input := &counterv1.CounterInput{
-		Input: &counterv1.CounterInput_Increment{
+	input := &counterv1.AtomicCounterInput{
+		Input: &counterv1.AtomicCounterInput_Increment{
 			Increment: request.IncrementInput,
 		},
 	}
@@ -147,8 +144,8 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
 	log.Debugw("Decrement",
 		logging.Stringer("DecrementRequest", request))
-	input := &counterv1.CounterInput{
-		Input: &counterv1.CounterInput_Decrement{
+	input := &counterv1.AtomicCounterInput{
+		Input: &counterv1.AtomicCounterInput_Decrement{
 			Decrement: request.DecrementInput,
 		},
 	}
@@ -170,4 +167,4 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	return response, nil
 }
 
-var _ counterv1.CounterServer = (*CounterServer)(nil)
+var _ counterv1.AtomicCounterServer = (*CounterServer)(nil)

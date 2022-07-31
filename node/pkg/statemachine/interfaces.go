@@ -11,34 +11,27 @@ import (
 )
 
 type PrimitiveType[I, O any] interface {
-	Name() string
-	APIVersion() string
+	Service() string
 	Codec() Codec[I, O]
 	NewPrimitive(PrimitiveContext[I, O]) Primitive[I, O]
 }
 
-func NewPrimitiveType[I, O any](name, apiVersion string, codec Codec[I, O], factory func(PrimitiveContext[I, O]) Primitive[I, O]) PrimitiveType[I, O] {
+func NewPrimitiveType[I, O any](service string, codec Codec[I, O], factory func(PrimitiveContext[I, O]) Primitive[I, O]) PrimitiveType[I, O] {
 	return &primitiveType[I, O]{
-		name:       name,
-		apiVersion: apiVersion,
-		codec:      codec,
-		factory:    factory,
+		service: service,
+		codec:   codec,
+		factory: factory,
 	}
 }
 
 type primitiveType[I, O any] struct {
-	name       string
-	apiVersion string
-	codec      Codec[I, O]
-	factory    func(PrimitiveContext[I, O]) Primitive[I, O]
+	service string
+	codec   Codec[I, O]
+	factory func(PrimitiveContext[I, O]) Primitive[I, O]
 }
 
-func (t *primitiveType[I, O]) Name() string {
-	return t.name
-}
-
-func (t *primitiveType[I, O]) APIVersion() string {
-	return t.apiVersion
+func (t *primitiveType[I, O]) Service() string {
+	return t.service
 }
 
 func (t *primitiveType[I, O]) Codec() Codec[I, O] {

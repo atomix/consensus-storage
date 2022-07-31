@@ -6,12 +6,22 @@ package node
 
 import (
 	"fmt"
+	atomiccounterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/counter/v1"
+	atomicmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/map/v1"
+	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
+	mapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/node/server"
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
-	servers "github.com/atomix/multi-raft-storage/node/pkg/protocol/primitives"
+	atomiccounterv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/atomic/counter/v1"
+	atomicmapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/atomic/map/v1"
+	counterv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/counter/v1"
+	mapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/map/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
-	statemachines "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitives"
+	atomiccountersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/atomic/counter/v1"
+	atomicmapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/atomic/map/v1"
+	countersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/counter/v1"
+	mapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/map/v1"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
@@ -24,7 +34,10 @@ func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 	var options Options
 	options.apply(opts...)
 	registry := statemachine.NewPrimitiveTypeRegistry()
-	statemachines.RegisterPrimitiveTypes(registry)
+	countersmv1.Register(registry)
+	atomiccountersmv1.Register(registry)
+	mapsmv1.Register(registry)
+	atomicmapsmv1.Register(registry)
 	return &MultiRaftNode{
 		Options:  options,
 		network:  network,
@@ -55,7 +68,12 @@ func (s *MultiRaftNode) Start() error {
 	multiraftv1.RegisterNodeServer(s.server, server.NewNodeServer(s.protocol))
 	multiraftv1.RegisterPartitionServer(s.server, server.NewPartitionServer(s.protocol))
 	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.protocol))
-	servers.RegisterPrimitiveServers(s.server, s.protocol)
+
+	atomiccounterv1.RegisterAtomicCounterServer(s.server, atomiccounterv1server.NewAtomicCounterServer(s.protocol))
+	atomicmapv1.RegisterAtomicMapServer(s.server, atomicmapv1server.NewAtomicMapServer(s.protocol))
+	counterv1.RegisterCounterServer(s.server, counterv1server.NewCounterServer(s.protocol))
+	mapv1.RegisterMapServer(s.server, mapv1server.NewMapServer(s.protocol))
+
 	go func() {
 		if err := s.server.Serve(lis); err != nil {
 			fmt.Println(err)

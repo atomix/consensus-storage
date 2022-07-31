@@ -17,8 +17,8 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.1.0
-	github.com/atomix/runtime/sdk v0.1.0
+	github.com/atomix/multi-raft-storage/api v0.1.1-0.20220731085348-ef95a594ce50
+	github.com/atomix/runtime/sdk v0.1.1-0.20220731065920-23e72239b306
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/google/uuid v1.1.2
 	github.com/lni/dragonboat/v3 v3.3.5
@@ -28,6 +28,7 @@ require (
 require (
 	github.com/VictoriaMetrics/metrics v1.6.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
+	github.com/atomix/runtime/api v0.1.1-0.20220731065539-c3d767efc511 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/cockroachdb/errors v1.7.5 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
