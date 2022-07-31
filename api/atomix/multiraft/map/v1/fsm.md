@@ -171,7 +171,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
+| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
 
 
 
@@ -316,7 +316,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
+| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
 
 
 

@@ -76,7 +76,7 @@ message GetInput {
 }
 
 message GetOutput {
-    Entry entry = 1;
+    Value value = 1;
 }
 
 message RemoveInput {
@@ -84,7 +84,7 @@ message RemoveInput {
 }
 
 message RemoveOutput {
-    Entry entry = 1;
+    Value value = 1;
 }
 
 message ClearInput {
