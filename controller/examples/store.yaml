@@ -1,4 +1,4 @@
-apiVersion: storage.atomix.io/v3beta1
+apiVersion: multiraft.storage.atomix.io/v3beta1
 kind: MultiRaftStore
 metadata:
   name: example-multi-raft-store

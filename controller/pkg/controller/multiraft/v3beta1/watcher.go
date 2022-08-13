@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package v2beta2
+package v3beta1
 
 import (
 	"context"
@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	storagev3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/storage/v3beta1"
+	storagev3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/multiraft/v3beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -100,8 +100,8 @@ func (r *PodReconciler) reconcileCreate(ctx context.Context, pod *corev1.Pod) er
 		return nil
 	}
 
-	if !hasFinalizer(pod, multiRaftStoreFinalizer) {
-		addFinalizer(pod, multiRaftStoreFinalizer)
+	if !hasFinalizer(pod, multiRaftPodFinalizer) {
+		addFinalizer(pod, multiRaftPodFinalizer)
 		if err := r.client.Update(ctx, pod); err != nil {
 			return err
 		}
@@ -125,7 +125,7 @@ func (r *PodReconciler) reconcileDelete(ctx context.Context, pod *corev1.Pod) er
 		return nil
 	}
 
-	if !hasFinalizer(pod, multiRaftStoreFinalizer) {
+	if !hasFinalizer(pod, multiRaftPodFinalizer) {
 		return nil
 	}
 
@@ -134,7 +134,7 @@ func (r *PodReconciler) reconcileDelete(ctx context.Context, pod *corev1.Pod) er
 		return err
 	}
 
-	removeFinalizer(pod, multiRaftStoreFinalizer)
+	removeFinalizer(pod, multiRaftPodFinalizer)
 	if err := r.client.Update(ctx, pod); err != nil {
 		return err
 	}

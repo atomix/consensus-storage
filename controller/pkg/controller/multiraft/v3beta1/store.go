@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package v2beta2
+package v3beta1
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	atomixv3beta1 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta1"
+	atomixv3beta1 "github.com/atomix/runtime/controller/pkg/apis/storage/v3beta1"
 	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -31,7 +31,7 @@ import (
 	"strings"
 	"time"
 
-	storagev3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/storage/v3beta1"
+	storagev3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/multiraft/v3beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,7 +50,7 @@ const (
 	appAtomix                = "atomix"
 	nodeContainerName        = "atomix-multi-raft-node"
 	multiRaftStoreAnnotation = "multiraft.storage.atomix.io/store"
-	multiRaftStoreFinalizer  = "storage.atomix.io/multi-raft"
+	multiRaftPodFinalizer    = "multiraft.storage.atomix.io/pod"
 )
 
 const (

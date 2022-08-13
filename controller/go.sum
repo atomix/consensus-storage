@@ -65,8 +65,8 @@ github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkY
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
 github.com/atomix/multi-raft-storage/api v0.3.0 h1:4jjm7zA+/EImjFS2YvtCoESg2lOiNMWNp3Jgphp2l2M=
 github.com/atomix/multi-raft-storage/api v0.3.0/go.mod h1:pyTem+T3db37Xchc6aLtkhEunaqcg6j+KZI+wKE4d5M=
-github.com/atomix/runtime/controller v0.3.1 h1:RKXSga6FdPyEAH3SSgI7GuQDD6ISryyaw4+OtiOchoI=
-github.com/atomix/runtime/controller v0.3.1/go.mod h1:gn7MbcrYVmk7IzBk2DNHoxmj8P3YX0YKQ1bptSwUGDk=
+github.com/atomix/runtime/controller v0.4.0 h1:hLY+1SMWdJEQPb+YsgGUct07AvtksFJ33sOSIRo5mV8=
+github.com/atomix/runtime/controller v0.4.0/go.mod h1:gn7MbcrYVmk7IzBk2DNHoxmj8P3YX0YKQ1bptSwUGDk=
 github.com/atomix/runtime/sdk v0.3.0 h1:HKky6/inHxU2sIoy0OZkY0FYGCkRrgdkLSn4ocV4ehw=
 github.com/atomix/runtime/sdk v0.3.0/go.mod h1:s0aNFi1Qs4encljkmhlMO0Yam2FVZDy5IBUBll4Zs6k=
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=
