@@ -25,7 +25,7 @@ type SessionServer struct {
 func (s *SessionServer) CreatePrimitive(ctx context.Context, request *multiraftv1.CreatePrimitiveRequest) (*multiraftv1.CreatePrimitiveResponse, error) {
 	log.Debugw("CreatePrimitive",
 		logging.Stringer("CreatePrimitiveRequest", request))
-	output, headers, err := s.node.CreatePrimitive(ctx, &request.CreatePrimitiveInput, &request.Headers)
+	output, headers, err := s.node.CreatePrimitive(ctx, &request.CreatePrimitiveInput, request.Headers)
 	if err != nil {
 		log.Warnw("CreatePrimitive",
 			logging.Stringer("CreatePrimitiveRequest", request),
@@ -33,8 +33,8 @@ func (s *SessionServer) CreatePrimitive(ctx context.Context, request *multiraftv
 		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.CreatePrimitiveResponse{
-		Headers:               *headers,
-		CreatePrimitiveOutput: *output,
+		Headers:               headers,
+		CreatePrimitiveOutput: output,
 	}
 	log.Debugw("CreatePrimitive",
 		logging.Stringer("CreatePrimitiveRequest", request),
@@ -45,7 +45,7 @@ func (s *SessionServer) CreatePrimitive(ctx context.Context, request *multiraftv
 func (s *SessionServer) ClosePrimitive(ctx context.Context, request *multiraftv1.ClosePrimitiveRequest) (*multiraftv1.ClosePrimitiveResponse, error) {
 	log.Debugw("ClosePrimitive",
 		logging.Stringer("ClosePrimitiveRequest", request))
-	output, headers, err := s.node.ClosePrimitive(ctx, &request.ClosePrimitiveInput, &request.Headers)
+	output, headers, err := s.node.ClosePrimitive(ctx, &request.ClosePrimitiveInput, request.Headers)
 	if err != nil {
 		log.Warnw("ClosePrimitive",
 			logging.Stringer("ClosePrimitiveRequest", request),
@@ -53,8 +53,8 @@ func (s *SessionServer) ClosePrimitive(ctx context.Context, request *multiraftv1
 		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.ClosePrimitiveResponse{
-		Headers:              *headers,
-		ClosePrimitiveOutput: *output,
+		Headers:              headers,
+		ClosePrimitiveOutput: output,
 	}
 	log.Debugw("ClosePrimitive",
 		logging.Stringer("ClosePrimitiveRequest", request),

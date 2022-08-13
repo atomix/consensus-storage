@@ -45,7 +45,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 			Get: request.GetInput,
 		},
 	}
-	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Query(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
@@ -54,7 +54,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 		return nil, err
 	}
 	response := &counterv1.GetResponse{
-		Headers:   *headers,
+		Headers:   headers,
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
@@ -71,7 +71,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 			Increment: request.IncrementInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Increment",
@@ -80,7 +80,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 		return nil, err
 	}
 	response := &counterv1.IncrementResponse{
-		Headers:         *headers,
+		Headers:         headers,
 		IncrementOutput: output.GetIncrement(),
 	}
 	log.Debugw("Increment",
@@ -97,7 +97,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 			Decrement: request.DecrementInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Decrement",
@@ -106,7 +106,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 		return nil, err
 	}
 	response := &counterv1.DecrementResponse{
-		Headers:         *headers,
+		Headers:         headers,
 		DecrementOutput: output.GetDecrement(),
 	}
 	log.Debugw("Decrement",

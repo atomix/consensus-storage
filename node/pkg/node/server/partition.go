@@ -25,7 +25,7 @@ type PartitionServer struct {
 func (s *PartitionServer) OpenSession(ctx context.Context, request *multiraftv1.OpenSessionRequest) (*multiraftv1.OpenSessionResponse, error) {
 	log.Debugw("OpenSession",
 		logging.Stringer("OpenSessionRequest", request))
-	output, headers, err := s.node.OpenSession(ctx, &request.OpenSessionInput, &request.Headers)
+	output, headers, err := s.node.OpenSession(ctx, request.OpenSessionInput, request.Headers)
 	if err != nil {
 		log.Warnw("OpenSession",
 			logging.Stringer("OpenSessionRequest", request),
@@ -33,8 +33,8 @@ func (s *PartitionServer) OpenSession(ctx context.Context, request *multiraftv1.
 		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.OpenSessionResponse{
-		Headers:           *headers,
-		OpenSessionOutput: *output,
+		Headers:           headers,
+		OpenSessionOutput: output,
 	}
 	log.Debugw("OpenSession",
 		logging.Stringer("OpenSessionRequest", request),
@@ -45,7 +45,7 @@ func (s *PartitionServer) OpenSession(ctx context.Context, request *multiraftv1.
 func (s *PartitionServer) KeepAlive(ctx context.Context, request *multiraftv1.KeepAliveRequest) (*multiraftv1.KeepAliveResponse, error) {
 	log.Debugw("KeepAlive",
 		logging.Stringer("KeepAliveRequest", request))
-	output, headers, err := s.node.KeepAliveSession(ctx, &request.KeepAliveInput, &request.Headers)
+	output, headers, err := s.node.KeepAliveSession(ctx, request.KeepAliveInput, request.Headers)
 	if err != nil {
 		log.Warnw("KeepAlive",
 			logging.Stringer("KeepAliveRequest", request),
@@ -53,8 +53,8 @@ func (s *PartitionServer) KeepAlive(ctx context.Context, request *multiraftv1.Ke
 		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.KeepAliveResponse{
-		Headers:         *headers,
-		KeepAliveOutput: *output,
+		Headers:         headers,
+		KeepAliveOutput: output,
 	}
 	log.Debugw("KeepAlive",
 		logging.Stringer("KeepAliveRequest", request),
@@ -65,7 +65,7 @@ func (s *PartitionServer) KeepAlive(ctx context.Context, request *multiraftv1.Ke
 func (s *PartitionServer) CloseSession(ctx context.Context, request *multiraftv1.CloseSessionRequest) (*multiraftv1.CloseSessionResponse, error) {
 	log.Debugw("CloseSession",
 		logging.Stringer("CloseSessionRequest", request))
-	output, headers, err := s.node.CloseSession(ctx, &request.CloseSessionInput, &request.Headers)
+	output, headers, err := s.node.CloseSession(ctx, request.CloseSessionInput, request.Headers)
 	if err != nil {
 		log.Warnw("CloseSession",
 			logging.Stringer("CloseSessionRequest", request),
@@ -73,8 +73,8 @@ func (s *PartitionServer) CloseSession(ctx context.Context, request *multiraftv1
 		return nil, errors.ToProto(err)
 	}
 	response := &multiraftv1.CloseSessionResponse{
-		Headers:            *headers,
-		CloseSessionOutput: *output,
+		Headers:            headers,
+		CloseSessionOutput: output,
 	}
 	log.Debugw("CloseSession",
 		logging.Stringer("CloseSessionRequest", request),

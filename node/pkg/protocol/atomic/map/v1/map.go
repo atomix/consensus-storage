@@ -46,7 +46,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 			Size_: request.SizeInput,
 		},
 	}
-	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Query(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Size",
@@ -55,7 +55,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 		return nil, err
 	}
 	response := &mapv1.SizeResponse{
-		Headers:    *headers,
+		Headers:    headers,
 		SizeOutput: output.GetSize_(),
 	}
 	log.Debugw("Size",
@@ -72,7 +72,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 			Put: request.PutInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Put",
@@ -81,7 +81,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		return nil, err
 	}
 	response := &mapv1.PutResponse{
-		Headers:   *headers,
+		Headers:   headers,
 		PutOutput: output.GetPut(),
 	}
 	log.Debugw("Put",
@@ -98,7 +98,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 			Insert: request.InsertInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Insert",
@@ -107,7 +107,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 		return nil, err
 	}
 	response := &mapv1.InsertResponse{
-		Headers:      *headers,
+		Headers:      headers,
 		InsertOutput: output.GetInsert(),
 	}
 	log.Debugw("Insert",
@@ -124,7 +124,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 			Update: request.UpdateInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Update",
@@ -133,7 +133,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 		return nil, err
 	}
 	response := &mapv1.UpdateResponse{
-		Headers:      *headers,
+		Headers:      headers,
 		UpdateOutput: output.GetUpdate(),
 	}
 	log.Debugw("Update",
@@ -150,7 +150,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 			Get: request.GetInput,
 		},
 	}
-	output, headers, err := s.protocol.Query(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Query(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
@@ -159,7 +159,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 		return nil, err
 	}
 	response := &mapv1.GetResponse{
-		Headers:   *headers,
+		Headers:   headers,
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
@@ -176,7 +176,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 			Remove: request.RemoveInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Remove",
@@ -185,7 +185,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		return nil, err
 	}
 	response := &mapv1.RemoveResponse{
-		Headers:      *headers,
+		Headers:      headers,
 		RemoveOutput: output.GetRemove(),
 	}
 	log.Debugw("Remove",
@@ -202,7 +202,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 			Clear: request.ClearInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Clear",
@@ -211,7 +211,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 		return nil, err
 	}
 	response := &mapv1.ClearResponse{
-		Headers:     *headers,
+		Headers:     headers,
 		ClearOutput: output.GetClear(),
 	}
 	log.Debugw("Clear",
@@ -228,7 +228,7 @@ func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv
 			Lock: request.LockInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Lock",
@@ -237,7 +237,7 @@ func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv
 		return nil, err
 	}
 	response := &mapv1.LockResponse{
-		Headers:    *headers,
+		Headers:    headers,
 		LockOutput: output.GetLock(),
 	}
 	log.Debugw("Lock",
@@ -254,7 +254,7 @@ func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*
 			Unlock: request.UnlockInput,
 		},
 	}
-	output, headers, err := s.protocol.Command(ctx, input, &request.Headers)
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Unlock",
@@ -263,7 +263,7 @@ func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*
 		return nil, err
 	}
 	response := &mapv1.UnlockResponse{
-		Headers:      *headers,
+		Headers:      headers,
 		UnlockOutput: output.GetUnlock(),
 	}
 	log.Debugw("Unlock",
@@ -284,7 +284,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.AtomicMap_
 	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*mapv1.AtomicMapOutput]])
 	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*mapv1.AtomicMapOutput]](ch)
 	go func() {
-		err := s.protocol.StreamCommand(server.Context(), input, &request.Headers, stream)
+		err := s.protocol.StreamCommand(server.Context(), input, request.Headers, stream)
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
@@ -305,7 +305,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.AtomicMap_
 		}
 
 		response := &mapv1.EventsResponse{
-			Headers:      *result.Value.Headers,
+			Headers:      result.Value.Headers,
 			EventsOutput: result.Value.Output.GetEvents(),
 		}
 		log.Debugw("Events",
@@ -333,7 +333,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.AtomicMa
 	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*mapv1.AtomicMapOutput]])
 	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*mapv1.AtomicMapOutput]](ch)
 	go func() {
-		err := s.protocol.StreamQuery(server.Context(), input, &request.Headers, stream)
+		err := s.protocol.StreamQuery(server.Context(), input, request.Headers, stream)
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Entries",
@@ -354,7 +354,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.AtomicMa
 		}
 
 		response := &mapv1.EntriesResponse{
-			Headers:       *result.Value.Headers,
+			Headers:       result.Value.Headers,
 			EntriesOutput: result.Value.Output.GetEntries(),
 		}
 		log.Debugw("Entries",

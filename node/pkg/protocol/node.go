@@ -328,6 +328,8 @@ func (n *Node) CreatePrimitive(ctx context.Context, input *multiraftv1.CreatePri
 					},
 				},
 			},
+			Status:  getHeaderStatus(output.GetSessionCommand().Failure),
+			Message: getHeaderMessage(output.GetSessionCommand().Failure),
 		},
 		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 	}
@@ -365,6 +367,8 @@ func (n *Node) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimi
 					},
 				},
 			},
+			Status:  getHeaderStatus(output.GetSessionCommand().Failure),
+			Message: getHeaderMessage(output.GetSessionCommand().Failure),
 		},
 		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 	}
