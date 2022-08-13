@@ -73,8 +73,7 @@ service AtomicMap {
 
 message SizeRequest {
     atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     SizeInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -84,8 +83,7 @@ message SizeRequest {
 
 message SizeResponse {
     atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     SizeOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -95,8 +93,7 @@ message SizeResponse {
 
 message PutRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     PutInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -106,8 +103,7 @@ message PutRequest {
 
 message PutResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     PutOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -117,8 +113,7 @@ message PutResponse {
 
 message InsertRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     InsertInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -128,8 +123,7 @@ message InsertRequest {
 
 message InsertResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     InsertOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -139,8 +133,7 @@ message InsertResponse {
 
 message UpdateRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     UpdateInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -150,8 +143,7 @@ message UpdateRequest {
 
 message UpdateResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     UpdateOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -161,8 +153,7 @@ message UpdateResponse {
 
 message GetRequest {
     atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     GetInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -172,8 +163,7 @@ message GetRequest {
 
 message GetResponse {
     atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     GetOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -183,8 +173,7 @@ message GetResponse {
 
 message RemoveRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     RemoveInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -194,8 +183,7 @@ message RemoveRequest {
 
 message RemoveResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     RemoveOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -205,8 +193,7 @@ message RemoveResponse {
 
 message ClearRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     ClearInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -216,8 +203,7 @@ message ClearRequest {
 
 message ClearResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     ClearOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -227,8 +213,7 @@ message ClearResponse {
 
 message LockRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     LockInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -238,8 +223,7 @@ message LockRequest {
 
 message LockResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     LockOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -249,8 +233,7 @@ message LockResponse {
 
 message UnlockRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     UnlockInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -260,8 +243,7 @@ message UnlockRequest {
 
 message UnlockResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     UnlockOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -271,8 +253,7 @@ message UnlockResponse {
 
 message EntriesRequest {
     atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     EntriesInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -282,8 +263,7 @@ message EntriesRequest {
 
 message EntriesResponse {
     atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     EntriesOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -293,8 +273,7 @@ message EntriesResponse {
 
 message EventsRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     EventsInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -304,8 +283,7 @@ message EventsRequest {
 
 message EventsResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     EventsOutput output = 2 [
         (atomix.multiraft.v1.output) = true,

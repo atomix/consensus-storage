@@ -28,7 +28,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type CreatePrimitiveRequest struct {
-	Headers              CommandRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
+	Headers              *CommandRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
 	CreatePrimitiveInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
 }
 
@@ -65,16 +65,16 @@ func (m *CreatePrimitiveRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreatePrimitiveRequest proto.InternalMessageInfo
 
-func (m *CreatePrimitiveRequest) GetHeaders() CommandRequestHeaders {
+func (m *CreatePrimitiveRequest) GetHeaders() *CommandRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return CommandRequestHeaders{}
+	return nil
 }
 
 type CreatePrimitiveResponse struct {
-	Headers               CommandResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CreatePrimitiveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+	Headers                *CommandResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*CreatePrimitiveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output,omitempty"`
 }
 
 func (m *CreatePrimitiveResponse) Reset()         { *m = CreatePrimitiveResponse{} }
@@ -110,15 +110,15 @@ func (m *CreatePrimitiveResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreatePrimitiveResponse proto.InternalMessageInfo
 
-func (m *CreatePrimitiveResponse) GetHeaders() CommandResponseHeaders {
+func (m *CreatePrimitiveResponse) GetHeaders() *CommandResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return CommandResponseHeaders{}
+	return nil
 }
 
 type ClosePrimitiveRequest struct {
-	Headers             CommandRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
+	Headers             *CommandRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
 	ClosePrimitiveInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
 }
 
@@ -155,16 +155,16 @@ func (m *ClosePrimitiveRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClosePrimitiveRequest proto.InternalMessageInfo
 
-func (m *ClosePrimitiveRequest) GetHeaders() CommandRequestHeaders {
+func (m *ClosePrimitiveRequest) GetHeaders() *CommandRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return CommandRequestHeaders{}
+	return nil
 }
 
 type ClosePrimitiveResponse struct {
-	Headers              CommandResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	ClosePrimitiveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+	Headers               *CommandResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*ClosePrimitiveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output,omitempty"`
 }
 
 func (m *ClosePrimitiveResponse) Reset()         { *m = ClosePrimitiveResponse{} }
@@ -200,11 +200,11 @@ func (m *ClosePrimitiveResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ClosePrimitiveResponse proto.InternalMessageInfo
 
-func (m *ClosePrimitiveResponse) GetHeaders() CommandResponseHeaders {
+func (m *ClosePrimitiveResponse) GetHeaders() *CommandResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return CommandResponseHeaders{}
+	return nil
 }
 
 func init() {
@@ -217,31 +217,30 @@ func init() {
 func init() { proto.RegisterFile("atomix/multiraft/v1/session.proto", fileDescriptor_1930e3e468dbe539) }
 
 var fileDescriptor_1930e3e468dbe539 = []byte{
-	// 369 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x93, 0xdd, 0x4e, 0xf2, 0x30,
-	0x1c, 0xc6, 0xd7, 0x37, 0xaf, 0x60, 0x6a, 0xa2, 0x49, 0xfd, 0x22, 0x24, 0x16, 0xe5, 0x88, 0x0f,
-	0xb3, 0x05, 0xbc, 0x03, 0x38, 0x01, 0x31, 0xd1, 0xe0, 0x15, 0xcc, 0x50, 0xb0, 0x09, 0x5d, 0x71,
-	0xed, 0x88, 0x97, 0xe1, 0x8d, 0x18, 0x13, 0xe3, 0x45, 0x70, 0xc8, 0xa1, 0x47, 0xc4, 0x8c, 0x1b,
-	0x31, 0x5b, 0x8b, 0xba, 0x39, 0x4c, 0x4f, 0x38, 0x5b, 0xd2, 0xe7, 0xff, 0xeb, 0x6f, 0x4f, 0x5b,
-	0x78, 0xe6, 0x4a, 0xce, 0xe8, 0xa3, 0xc3, 0x82, 0xb1, 0xa4, 0xbe, 0x3b, 0x94, 0xce, 0xb4, 0xe1,
-	0x08, 0x22, 0x04, 0xe5, 0x9e, 0x3d, 0xf1, 0xb9, 0xe4, 0x68, 0x5f, 0x45, 0xec, 0xaf, 0x88, 0x3d,
-	0x6d, 0x14, 0x0f, 0x46, 0x7c, 0xc4, 0xe3, 0x75, 0x27, 0xfa, 0x52, 0xd1, 0x62, 0x26, 0xed, 0x9e,
-	0xb8, 0x03, 0xe2, 0x0b, 0x1d, 0x39, 0xc9, 0x8a, 0x0c, 0x05, 0x53, 0xcb, 0xe5, 0x17, 0x00, 0x8f,
-	0xda, 0x3e, 0x71, 0x25, 0xb9, 0xf1, 0x29, 0xa3, 0x92, 0x4e, 0x49, 0x9f, 0x3c, 0x04, 0x44, 0x48,
-	0x74, 0x09, 0xf3, 0x1a, 0x55, 0x00, 0xa7, 0xa0, 0xb2, 0xd3, 0xac, 0xd9, 0x19, 0x66, 0x76, 0x9b,
-	0x33, 0xe6, 0x7a, 0x03, 0x3d, 0xd5, 0x51, 0x13, 0xad, 0xff, 0xb3, 0x45, 0xc9, 0xea, 0xaf, 0x00,
-	0xa8, 0x0b, 0xb7, 0xa8, 0x37, 0x09, 0x64, 0xe1, 0x5f, 0x4c, 0xaa, 0x66, 0x93, 0x92, 0x1e, 0xdd,
-	0x68, 0xa0, 0xb5, 0x1d, 0x81, 0xe6, 0x8b, 0x12, 0xe8, 0x2b, 0x42, 0xf9, 0x0d, 0xc0, 0xe3, 0x5f,
-	0xc6, 0x62, 0xc2, 0x3d, 0x41, 0x50, 0x2f, 0xad, 0x5c, 0xff, 0x5b, 0x59, 0x8d, 0xad, 0x71, 0xbe,
-	0x82, 0x39, 0x1e, 0xc8, 0x6f, 0xe9, 0x9a, 0x89, 0xf4, 0x75, 0x3c, 0xf1, 0xc3, 0x5a, 0x33, 0xca,
-	0xcf, 0x00, 0x1e, 0xb6, 0xc7, 0x5c, 0x6c, 0xb6, 0xe7, 0x4e, 0xb2, 0xe7, 0x4a, 0x36, 0x29, 0xa1,
-	0xb1, 0xa6, 0xe6, 0xd7, 0xe8, 0x62, 0xa4, 0x7c, 0x37, 0xd1, 0x72, 0x2f, 0xd5, 0x72, 0xd5, 0x40,
-	0x79, 0x5d, 0xc9, 0xcd, 0x10, 0xc0, 0xfc, 0xad, 0x7a, 0x4c, 0x68, 0x0c, 0xf7, 0x52, 0x67, 0x83,
-	0xea, 0x26, 0x27, 0xa8, 0x0b, 0x2e, 0x9e, 0x9b, 0x85, 0x75, 0x27, 0x14, 0xee, 0x26, 0x1d, 0x51,
-	0xcd, 0xe0, 0x47, 0x56, 0x7b, 0xd5, 0x8d, 0xb2, 0x6a, 0xab, 0x56, 0x61, 0x16, 0x62, 0x30, 0x0f,
-	0x31, 0xf8, 0x08, 0x31, 0x78, 0x5a, 0x62, 0x6b, 0xbe, 0xc4, 0xd6, 0xfb, 0x12, 0x5b, 0x77, 0xb9,
-	0xf8, 0x4d, 0x5f, 0x7c, 0x06, 0x00, 0x00, 0xff, 0xff, 0x4f, 0x94, 0xb3, 0xa0, 0x65, 0x04, 0x00,
-	0x00,
+	// 366 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x93, 0xcb, 0x4e, 0x32, 0x31,
+	0x1c, 0xc5, 0xa7, 0x5f, 0x3e, 0xc1, 0xd4, 0x44, 0x93, 0x7a, 0x23, 0x24, 0x16, 0x65, 0xc5, 0xc5,
+	0xcc, 0x04, 0x7c, 0x03, 0xd0, 0x08, 0x2b, 0x0d, 0x3e, 0xc1, 0x18, 0x0a, 0x36, 0xa1, 0x53, 0x9c,
+	0x76, 0x88, 0x8f, 0xe1, 0x5b, 0x78, 0x79, 0x12, 0x96, 0x2c, 0x5d, 0x11, 0x33, 0xbc, 0x88, 0x61,
+	0x5a, 0x34, 0x33, 0x54, 0xd3, 0x85, 0xee, 0x26, 0xe9, 0x39, 0xa7, 0xbf, 0x39, 0xff, 0xfe, 0xe1,
+	0x89, 0x2f, 0x39, 0xa3, 0x0f, 0x1e, 0x8b, 0x46, 0x92, 0x86, 0xfe, 0x40, 0x7a, 0x93, 0x86, 0x27,
+	0x88, 0x10, 0x94, 0x07, 0xee, 0x38, 0xe4, 0x92, 0xa3, 0x5d, 0x25, 0x71, 0x3f, 0x25, 0xee, 0xa4,
+	0x51, 0xdc, 0x1b, 0xf2, 0x21, 0x4f, 0xce, 0xbd, 0xe5, 0x97, 0x92, 0x16, 0x8d, 0x69, 0x77, 0xc4,
+	0xef, 0x93, 0x50, 0x68, 0xc9, 0x91, 0x49, 0x32, 0x10, 0x4c, 0x1d, 0x97, 0x5f, 0x00, 0x3c, 0x68,
+	0x87, 0xc4, 0x97, 0xe4, 0x3a, 0xa4, 0x8c, 0x4a, 0x3a, 0x21, 0x3d, 0x72, 0x1f, 0x11, 0x21, 0xd1,
+	0x39, 0xcc, 0xeb, 0xa8, 0x02, 0x38, 0x06, 0x95, 0xad, 0x66, 0xcd, 0x35, 0x90, 0xb9, 0x6d, 0xce,
+	0x98, 0x1f, 0xf4, 0xb5, 0xab, 0xa3, 0x1c, 0xbd, 0x95, 0x15, 0x75, 0xe1, 0x06, 0x0d, 0xc6, 0x91,
+	0x2c, 0xfc, 0x4b, 0x32, 0xaa, 0xe6, 0x8c, 0x34, 0x41, 0x77, 0x69, 0x68, 0x6d, 0x4e, 0xe7, 0x25,
+	0x67, 0x36, 0x2f, 0x81, 0x9e, 0x4a, 0x28, 0xbf, 0x02, 0x78, 0xb8, 0xc6, 0x2a, 0xc6, 0x3c, 0x10,
+	0x04, 0x5d, 0x64, 0x61, 0xeb, 0x3f, 0xc3, 0x2a, 0xdb, 0x1a, 0x6d, 0x07, 0xe6, 0x78, 0x24, 0xbf,
+	0x70, 0x6b, 0x36, 0xb8, 0x57, 0x89, 0xa3, 0xf5, 0x3f, 0x61, 0xd5, 0xfe, 0xf2, 0x13, 0x80, 0xfb,
+	0xed, 0x11, 0x17, 0x7f, 0xd5, 0x6b, 0x27, 0xdd, 0x6b, 0xc5, 0x9c, 0x91, 0x02, 0xf8, 0xa6, 0xd6,
+	0xe7, 0xe5, 0x13, 0xc8, 0x90, 0xfe, 0x6e, 0xab, 0x97, 0x99, 0x56, 0xab, 0x16, 0xb0, 0xa6, 0x52,
+	0x9b, 0x31, 0x80, 0xf9, 0x1b, 0xb5, 0x2c, 0x68, 0x04, 0x77, 0x32, 0x73, 0x40, 0x75, 0x9b, 0x69,
+	0xe9, 0x42, 0x8b, 0xa7, 0x76, 0x62, 0xdd, 0x04, 0x85, 0xdb, 0x69, 0x3e, 0x54, 0xb3, 0xf8, 0x89,
+	0xd5, 0x5d, 0x75, 0x2b, 0xad, 0xba, 0xaa, 0x55, 0x98, 0xc6, 0x18, 0xcc, 0x62, 0x0c, 0xde, 0x63,
+	0x0c, 0x1e, 0x17, 0xd8, 0x99, 0x2d, 0xb0, 0xf3, 0xb6, 0xc0, 0xce, 0x6d, 0x2e, 0xd9, 0xd9, 0xb3,
+	0x8f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x8d, 0xfb, 0xf7, 0xad, 0x45, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -390,16 +389,18 @@ func (m *CreatePrimitiveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	}
 	i--
 	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSession(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintSession(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -423,26 +424,30 @@ func (m *CreatePrimitiveResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.CreatePrimitiveOutput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.CreatePrimitiveOutput != nil {
+		{
+			size, err := m.CreatePrimitiveOutput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSession(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintSession(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSession(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintSession(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -476,16 +481,18 @@ func (m *ClosePrimitiveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	}
 	i--
 	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSession(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintSession(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -509,26 +516,30 @@ func (m *ClosePrimitiveResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.ClosePrimitiveOutput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.ClosePrimitiveOutput != nil {
+		{
+			size, err := m.ClosePrimitiveOutput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSession(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintSession(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSession(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintSession(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -549,8 +560,10 @@ func (m *CreatePrimitiveRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovSession(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovSession(uint64(l))
+	}
 	l = m.CreatePrimitiveInput.Size()
 	n += 1 + l + sovSession(uint64(l))
 	return n
@@ -562,10 +575,14 @@ func (m *CreatePrimitiveResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovSession(uint64(l))
-	l = m.CreatePrimitiveOutput.Size()
-	n += 1 + l + sovSession(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovSession(uint64(l))
+	}
+	if m.CreatePrimitiveOutput != nil {
+		l = m.CreatePrimitiveOutput.Size()
+		n += 1 + l + sovSession(uint64(l))
+	}
 	return n
 }
 
@@ -575,8 +592,10 @@ func (m *ClosePrimitiveRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovSession(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovSession(uint64(l))
+	}
 	l = m.ClosePrimitiveInput.Size()
 	n += 1 + l + sovSession(uint64(l))
 	return n
@@ -588,10 +607,14 @@ func (m *ClosePrimitiveResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovSession(uint64(l))
-	l = m.ClosePrimitiveOutput.Size()
-	n += 1 + l + sovSession(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovSession(uint64(l))
+	}
+	if m.ClosePrimitiveOutput != nil {
+		l = m.ClosePrimitiveOutput.Size()
+		n += 1 + l + sovSession(uint64(l))
+	}
 	return n
 }
 
@@ -658,6 +681,9 @@ func (m *CreatePrimitiveRequest) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.Headers == nil {
+				m.Headers = &CommandRequestHeaders{}
 			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -775,6 +801,9 @@ func (m *CreatePrimitiveResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &CommandResponseHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -807,6 +836,9 @@ func (m *CreatePrimitiveResponse) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.CreatePrimitiveOutput == nil {
+				m.CreatePrimitiveOutput = &CreatePrimitiveOutput{}
 			}
 			if err := m.CreatePrimitiveOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -890,6 +922,9 @@ func (m *ClosePrimitiveRequest) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.Headers == nil {
+				m.Headers = &CommandRequestHeaders{}
 			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1007,6 +1042,9 @@ func (m *ClosePrimitiveResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &CommandResponseHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1039,6 +1077,9 @@ func (m *ClosePrimitiveResponse) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.ClosePrimitiveOutput == nil {
+				m.ClosePrimitiveOutput = &ClosePrimitiveOutput{}
 			}
 			if err := m.ClosePrimitiveOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

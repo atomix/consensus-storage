@@ -21,61 +21,43 @@ service Partition {
 }
 
 message OpenSessionRequest {
-    PartitionRequestHeaders headers = 1 [
-        (gogoproto.nullable) = false
-    ];
+    PartitionRequestHeaders headers = 1;
     OpenSessionInput input = 2 [
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
 message OpenSessionResponse {
-    PartitionResponseHeaders headers = 1 [
-        (gogoproto.nullable) = false
-    ];
+    PartitionResponseHeaders headers = 1;
     OpenSessionOutput output = 2 [
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
 message KeepAliveRequest {
-    PartitionRequestHeaders headers = 1 [
-        (gogoproto.nullable) = false
-    ];
+    PartitionRequestHeaders headers = 1;
     KeepAliveInput input = 2 [
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
 message KeepAliveResponse {
-    PartitionResponseHeaders headers = 1 [
-        (gogoproto.nullable) = false
-    ];
+    PartitionResponseHeaders headers = 1;
     KeepAliveOutput output = 2 [
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
 message CloseSessionRequest {
-    PartitionRequestHeaders headers = 1 [
-        (gogoproto.nullable) = false
-    ];
+    PartitionRequestHeaders headers = 1;
     CloseSessionInput input = 2 [
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
 message CloseSessionResponse {
-    PartitionResponseHeaders headers = 1 [
-        (gogoproto.nullable) = false
-    ];
+    PartitionResponseHeaders headers = 1;
     CloseSessionOutput output = 2 [
-        (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }

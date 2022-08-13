@@ -29,8 +29,8 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type OpenSessionRequest struct {
-	Headers          PartitionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	OpenSessionInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
+	Headers           *PartitionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*OpenSessionInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input,omitempty"`
 }
 
 func (m *OpenSessionRequest) Reset()         { *m = OpenSessionRequest{} }
@@ -66,16 +66,16 @@ func (m *OpenSessionRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_OpenSessionRequest proto.InternalMessageInfo
 
-func (m *OpenSessionRequest) GetHeaders() PartitionRequestHeaders {
+func (m *OpenSessionRequest) GetHeaders() *PartitionRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return PartitionRequestHeaders{}
+	return nil
 }
 
 type OpenSessionResponse struct {
-	Headers           PartitionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	OpenSessionOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+	Headers            *PartitionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*OpenSessionOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output,omitempty"`
 }
 
 func (m *OpenSessionResponse) Reset()         { *m = OpenSessionResponse{} }
@@ -111,16 +111,16 @@ func (m *OpenSessionResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_OpenSessionResponse proto.InternalMessageInfo
 
-func (m *OpenSessionResponse) GetHeaders() PartitionResponseHeaders {
+func (m *OpenSessionResponse) GetHeaders() *PartitionResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return PartitionResponseHeaders{}
+	return nil
 }
 
 type KeepAliveRequest struct {
-	Headers        PartitionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	KeepAliveInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
+	Headers         *PartitionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*KeepAliveInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input,omitempty"`
 }
 
 func (m *KeepAliveRequest) Reset()         { *m = KeepAliveRequest{} }
@@ -156,16 +156,16 @@ func (m *KeepAliveRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_KeepAliveRequest proto.InternalMessageInfo
 
-func (m *KeepAliveRequest) GetHeaders() PartitionRequestHeaders {
+func (m *KeepAliveRequest) GetHeaders() *PartitionRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return PartitionRequestHeaders{}
+	return nil
 }
 
 type KeepAliveResponse struct {
-	Headers         PartitionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	KeepAliveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+	Headers          *PartitionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*KeepAliveOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output,omitempty"`
 }
 
 func (m *KeepAliveResponse) Reset()         { *m = KeepAliveResponse{} }
@@ -201,16 +201,16 @@ func (m *KeepAliveResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_KeepAliveResponse proto.InternalMessageInfo
 
-func (m *KeepAliveResponse) GetHeaders() PartitionResponseHeaders {
+func (m *KeepAliveResponse) GetHeaders() *PartitionResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return PartitionResponseHeaders{}
+	return nil
 }
 
 type CloseSessionRequest struct {
-	Headers           PartitionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CloseSessionInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input"`
+	Headers            *PartitionRequestHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*CloseSessionInput `protobuf:"bytes,2,opt,name=input,proto3,embedded=input" json:"input,omitempty"`
 }
 
 func (m *CloseSessionRequest) Reset()         { *m = CloseSessionRequest{} }
@@ -246,16 +246,16 @@ func (m *CloseSessionRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CloseSessionRequest proto.InternalMessageInfo
 
-func (m *CloseSessionRequest) GetHeaders() PartitionRequestHeaders {
+func (m *CloseSessionRequest) GetHeaders() *PartitionRequestHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return PartitionRequestHeaders{}
+	return nil
 }
 
 type CloseSessionResponse struct {
-	Headers            PartitionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers"`
-	CloseSessionOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output"`
+	Headers             *PartitionResponseHeaders `protobuf:"bytes,1,opt,name=headers,proto3" json:"headers,omitempty"`
+	*CloseSessionOutput `protobuf:"bytes,2,opt,name=output,proto3,embedded=output" json:"output,omitempty"`
 }
 
 func (m *CloseSessionResponse) Reset()         { *m = CloseSessionResponse{} }
@@ -291,11 +291,11 @@ func (m *CloseSessionResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CloseSessionResponse proto.InternalMessageInfo
 
-func (m *CloseSessionResponse) GetHeaders() PartitionResponseHeaders {
+func (m *CloseSessionResponse) GetHeaders() *PartitionResponseHeaders {
 	if m != nil {
 		return m.Headers
 	}
-	return PartitionResponseHeaders{}
+	return nil
 }
 
 func init() {
@@ -312,36 +312,36 @@ func init() {
 }
 
 var fileDescriptor_abd924888b09c15b = []byte{
-	// 455 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0x4f, 0xee, 0xd2, 0x40,
-	0x18, 0x86, 0x3b, 0xbf, 0x28, 0xca, 0xe0, 0x42, 0x07, 0x16, 0x84, 0xc4, 0x82, 0x20, 0x7f, 0x4c,
-	0xb4, 0x0d, 0x78, 0x02, 0x21, 0x12, 0x88, 0x1a, 0x0c, 0xee, 0x5c, 0x59, 0x70, 0x5a, 0x27, 0x69,
-	0x3b, 0xb5, 0x33, 0x25, 0x1e, 0xc3, 0x4b, 0xb8, 0x50, 0x13, 0xe2, 0x31, 0x58, 0xb2, 0x74, 0x45,
-	0x0c, 0x5c, 0xc4, 0xd0, 0x4e, 0x6b, 0x4b, 0x5a, 0xea, 0xa6, 0xbb, 0x06, 0xde, 0xef, 0x9d, 0x67,
-	0x1e, 0x3e, 0x0a, 0x3b, 0x1a, 0xa7, 0x16, 0xf9, 0xa2, 0x5a, 0x9e, 0xc9, 0x89, 0xab, 0xe9, 0x5c,
-	0xdd, 0x0c, 0x55, 0x47, 0x73, 0x39, 0xe1, 0x84, 0xda, 0x8a, 0xe3, 0x52, 0x4e, 0x51, 0x35, 0x08,
-	0x29, 0x51, 0x48, 0xd9, 0x0c, 0x1b, 0x4d, 0x83, 0x52, 0xc3, 0xc4, 0xaa, 0x1f, 0x59, 0x79, 0xba,
-	0xca, 0x89, 0x85, 0x19, 0xd7, 0x2c, 0x27, 0x98, 0x6a, 0xd4, 0x0c, 0x6a, 0x50, 0xff, 0x51, 0x3d,
-	0x3f, 0x89, 0x4f, 0x5b, 0x69, 0x07, 0xae, 0xa9, 0xad, 0x13, 0x43, 0x24, 0x1e, 0xa5, 0x25, 0x3e,
-	0x61, 0xed, 0x23, 0x76, 0x99, 0x88, 0x3c, 0x4c, 0x8b, 0xe8, 0xcc, 0x0a, 0xbe, 0x6e, 0x7f, 0x07,
-	0x10, 0x2d, 0x1c, 0x6c, 0xbf, 0xc3, 0x8c, 0x11, 0x6a, 0x2f, 0xf1, 0x67, 0x0f, 0x33, 0x8e, 0x5e,
-	0xc3, 0x3b, 0xa2, 0xa6, 0x0e, 0x5a, 0x60, 0x50, 0x19, 0x3d, 0x55, 0x52, 0x2e, 0xa6, 0xbc, 0x0d,
-	0x6f, 0x2f, 0xe6, 0x66, 0xc1, 0xcc, 0xf8, 0xd6, 0xee, 0xd0, 0x94, 0x96, 0x61, 0x05, 0x7a, 0x09,
-	0x6f, 0x13, 0xdb, 0xf1, 0x78, 0xfd, 0xc6, 0xef, 0xea, 0xa6, 0x76, 0xc5, 0x28, 0xe6, 0xe7, 0xf0,
-	0xf8, 0xee, 0xb9, 0x64, 0x7f, 0x68, 0x82, 0x65, 0x30, 0xdd, 0xde, 0x02, 0x58, 0x4d, 0xb0, 0x32,
-	0x87, 0xda, 0x0c, 0xa3, 0x37, 0x97, 0xb0, 0xcf, 0xf2, 0x60, 0x83, 0xc1, 0x0c, 0xda, 0x19, 0x2c,
-	0x51, 0x8f, 0xff, 0xc3, 0xed, 0xe5, 0xe1, 0x2e, 0xfc, 0x74, 0x8c, 0x57, 0xcc, 0xb7, 0xbf, 0x01,
-	0x78, 0xff, 0x15, 0xc6, 0xce, 0x0b, 0x93, 0x6c, 0x70, 0x31, 0x6a, 0x27, 0x49, 0xb5, 0x9d, 0xd4,
-	0xae, 0x88, 0x21, 0x43, 0xec, 0x0f, 0x00, 0x1f, 0xc4, 0x38, 0x8b, 0xd1, 0x3a, 0xbd, 0xd0, 0xfa,
-	0xf8, 0x3a, 0x6a, 0xa6, 0xd4, 0x9f, 0x00, 0x56, 0x27, 0x26, 0x65, 0xb8, 0xd0, 0x95, 0x9d, 0x26,
-	0xbd, 0xa6, 0xef, 0x40, 0x1c, 0x23, 0x43, 0xed, 0x2f, 0x00, 0x6b, 0x49, 0xda, 0x62, 0xec, 0xce,
-	0x2f, 0xec, 0xf6, 0x73, 0x81, 0xb3, 0x04, 0x8f, 0xb6, 0x37, 0xb0, 0x1c, 0x1d, 0x8b, 0x3e, 0xc0,
-	0x4a, 0x6c, 0xd5, 0x51, 0x3f, 0xef, 0xcf, 0x20, 0xb4, 0x36, 0x06, 0xf9, 0x41, 0x61, 0xe2, 0x3d,
-	0x2c, 0x47, 0xbf, 0x3a, 0xea, 0x5e, 0xdf, 0x8a, 0xb0, 0xbd, 0x97, 0x17, 0x13, 0xdd, 0x6b, 0x78,
-	0x2f, 0x7e, 0x67, 0x34, 0xc8, 0xd5, 0x12, 0x9e, 0xf0, 0xe4, 0x3f, 0x92, 0xc1, 0x21, 0xe3, 0xfa,
-	0xee, 0x28, 0x83, 0xfd, 0x51, 0x06, 0x7f, 0x8e, 0x32, 0xf8, 0x7a, 0x92, 0xa5, 0xfd, 0x49, 0x96,
-	0x7e, 0x9f, 0x64, 0x69, 0x55, 0xf2, 0x5f, 0xb2, 0xcf, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff, 0x0f,
-	0xb9, 0x6e, 0x41, 0x3b, 0x06, 0x00, 0x00,
+	// 452 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x94, 0x3d, 0x6f, 0xda, 0x40,
+	0x1c, 0xc6, 0x39, 0xd4, 0x52, 0x71, 0x74, 0x68, 0x0f, 0x06, 0x84, 0x54, 0x43, 0xa1, 0xbc, 0x54,
+	0x6a, 0x6d, 0x41, 0x3f, 0x40, 0x85, 0xfb, 0xae, 0x0e, 0x54, 0x74, 0xeb, 0x54, 0x43, 0xcf, 0xee,
+	0x49, 0xb6, 0xcf, 0xf5, 0x9d, 0x51, 0x3f, 0x46, 0xf6, 0x0c, 0x49, 0xa4, 0x28, 0x63, 0x3e, 0x47,
+	0x46, 0xc6, 0x4c, 0x51, 0x04, 0x5f, 0x24, 0xc2, 0x3e, 0x3b, 0x36, 0x39, 0xe1, 0x0c, 0x64, 0x3b,
+	0xc1, 0xf3, 0xfc, 0x9f, 0xe7, 0xff, 0xbb, 0x93, 0x61, 0xc7, 0xe0, 0xd4, 0x21, 0xff, 0x35, 0x27,
+	0xb0, 0x39, 0xf1, 0x0d, 0x93, 0x6b, 0x8b, 0xa1, 0xe6, 0x19, 0x3e, 0x27, 0x9c, 0x50, 0x57, 0xf5,
+	0x7c, 0xca, 0x29, 0xaa, 0x46, 0x22, 0x35, 0x11, 0xa9, 0x8b, 0x61, 0xa3, 0x69, 0x51, 0x6a, 0xd9,
+	0x58, 0x0b, 0x25, 0xb3, 0xc0, 0xd4, 0x38, 0x71, 0x30, 0xe3, 0x86, 0xe3, 0x45, 0xae, 0x46, 0xcd,
+	0xa2, 0x16, 0x0d, 0x8f, 0xda, 0xe6, 0x24, 0x7e, 0x6d, 0xc9, 0x02, 0xe7, 0xd4, 0x35, 0x89, 0x25,
+	0x14, 0x2f, 0x65, 0x8a, 0xbf, 0xd8, 0xf8, 0x83, 0x7d, 0x26, 0x24, 0x2f, 0x64, 0x12, 0x93, 0x39,
+	0xd1, 0xdf, 0xed, 0x23, 0x00, 0xd1, 0xc4, 0xc3, 0xee, 0x4f, 0xcc, 0x18, 0xa1, 0xee, 0x14, 0xff,
+	0x0b, 0x30, 0xe3, 0xe8, 0x33, 0x7c, 0x22, 0xc6, 0xd4, 0x41, 0x0b, 0x0c, 0x2a, 0xa3, 0x37, 0xaa,
+	0x64, 0x31, 0xf5, 0x47, 0xbc, 0xbd, 0xf0, 0x7d, 0x8d, 0x3c, 0xd3, 0xd8, 0x8c, 0xc6, 0xf0, 0x31,
+	0x71, 0xbd, 0x80, 0xd7, 0x8b, 0xe1, 0x94, 0xae, 0x74, 0x4a, 0x2a, 0xff, 0xdb, 0x46, 0xac, 0x3f,
+	0x5a, 0x5e, 0x35, 0xc1, 0x34, 0x72, 0xb6, 0x4f, 0x01, 0xac, 0x66, 0x1a, 0x32, 0x8f, 0xba, 0x0c,
+	0xa3, 0x2f, 0xdb, 0x15, 0xdf, 0xe6, 0x55, 0x8c, 0x8c, 0x77, 0x3a, 0x7e, 0x84, 0x25, 0x1a, 0xf0,
+	0xdb, 0x92, 0xbd, 0xbc, 0x92, 0x93, 0x50, 0x2d, 0x5a, 0x0a, 0x6f, 0xfb, 0x10, 0xc0, 0x67, 0xdf,
+	0x31, 0xf6, 0xc6, 0x36, 0x59, 0xe0, 0x7d, 0x63, 0x7c, 0x9f, 0xc5, 0xd8, 0x91, 0x4e, 0x49, 0xd2,
+	0x25, 0x10, 0x8f, 0x01, 0x7c, 0x9e, 0x6a, 0xb7, 0x6f, 0x84, 0xfa, 0x16, 0xc2, 0x57, 0xbb, 0x0b,
+	0x4a, 0x01, 0x9e, 0x00, 0x58, 0xfd, 0x60, 0x53, 0x86, 0x1f, 0xe8, 0x29, 0xea, 0x59, 0x86, 0xf2,
+	0x5b, 0x4e, 0x17, 0x90, 0x60, 0x3c, 0x03, 0xb0, 0x96, 0xed, 0xb8, 0x6f, 0x92, 0x9f, 0xb6, 0x48,
+	0xf6, 0x73, 0x6b, 0xca, 0x60, 0x8e, 0xce, 0x8b, 0xb0, 0x9c, 0x84, 0xa1, 0xdf, 0xb0, 0x92, 0x7a,
+	0xbe, 0xa8, 0x9f, 0xf7, 0xc0, 0x05, 0xc2, 0xc6, 0x20, 0x5f, 0x28, 0xf6, 0xff, 0x05, 0xcb, 0xc9,
+	0xed, 0xa2, 0xee, 0xee, 0xdb, 0x8f, 0xa7, 0xf7, 0xf2, 0x64, 0x62, 0xf6, 0x1c, 0x3e, 0x4d, 0xef,
+	0x8b, 0x06, 0xb9, 0x48, 0xe2, 0x84, 0xd7, 0xf7, 0x50, 0x46, 0x21, 0x7a, 0xfd, 0x62, 0xa5, 0x80,
+	0xe5, 0x4a, 0x01, 0xd7, 0x2b, 0x05, 0x1c, 0xac, 0x95, 0xc2, 0x72, 0xad, 0x14, 0x2e, 0xd7, 0x4a,
+	0x61, 0x56, 0x0a, 0x3f, 0x94, 0xef, 0x6e, 0x02, 0x00, 0x00, 0xff, 0xff, 0x7e, 0x0d, 0x99, 0xdf,
+	0xff, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -516,26 +516,30 @@ func (m *OpenSessionRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.OpenSessionInput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.OpenSessionInput != nil {
+		{
+			size, err := m.OpenSessionInput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -559,26 +563,30 @@ func (m *OpenSessionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.OpenSessionOutput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.OpenSessionOutput != nil {
+		{
+			size, err := m.OpenSessionOutput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -602,26 +610,30 @@ func (m *KeepAliveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.KeepAliveInput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.KeepAliveInput != nil {
+		{
+			size, err := m.KeepAliveInput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -645,26 +657,30 @@ func (m *KeepAliveResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.KeepAliveOutput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.KeepAliveOutput != nil {
+		{
+			size, err := m.KeepAliveOutput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -688,26 +704,30 @@ func (m *CloseSessionRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.CloseSessionInput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.CloseSessionInput != nil {
+		{
+			size, err := m.CloseSessionInput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -731,26 +751,30 @@ func (m *CloseSessionResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.CloseSessionOutput.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.CloseSessionOutput != nil {
+		{
+			size, err := m.CloseSessionOutput.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0x12
 	}
-	i--
-	dAtA[i] = 0x12
-	{
-		size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Headers != nil {
+		{
+			size, err := m.Headers.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintPartition(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintPartition(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -771,10 +795,14 @@ func (m *OpenSessionRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovPartition(uint64(l))
-	l = m.OpenSessionInput.Size()
-	n += 1 + l + sovPartition(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.OpenSessionInput != nil {
+		l = m.OpenSessionInput.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
 	return n
 }
 
@@ -784,10 +812,14 @@ func (m *OpenSessionResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovPartition(uint64(l))
-	l = m.OpenSessionOutput.Size()
-	n += 1 + l + sovPartition(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.OpenSessionOutput != nil {
+		l = m.OpenSessionOutput.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
 	return n
 }
 
@@ -797,10 +829,14 @@ func (m *KeepAliveRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovPartition(uint64(l))
-	l = m.KeepAliveInput.Size()
-	n += 1 + l + sovPartition(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.KeepAliveInput != nil {
+		l = m.KeepAliveInput.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
 	return n
 }
 
@@ -810,10 +846,14 @@ func (m *KeepAliveResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovPartition(uint64(l))
-	l = m.KeepAliveOutput.Size()
-	n += 1 + l + sovPartition(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.KeepAliveOutput != nil {
+		l = m.KeepAliveOutput.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
 	return n
 }
 
@@ -823,10 +863,14 @@ func (m *CloseSessionRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovPartition(uint64(l))
-	l = m.CloseSessionInput.Size()
-	n += 1 + l + sovPartition(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.CloseSessionInput != nil {
+		l = m.CloseSessionInput.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
 	return n
 }
 
@@ -836,10 +880,14 @@ func (m *CloseSessionResponse) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Headers.Size()
-	n += 1 + l + sovPartition(uint64(l))
-	l = m.CloseSessionOutput.Size()
-	n += 1 + l + sovPartition(uint64(l))
+	if m.Headers != nil {
+		l = m.Headers.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
+	if m.CloseSessionOutput != nil {
+		l = m.CloseSessionOutput.Size()
+		n += 1 + l + sovPartition(uint64(l))
+	}
 	return n
 }
 
@@ -907,6 +955,9 @@ func (m *OpenSessionRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &PartitionRequestHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -939,6 +990,9 @@ func (m *OpenSessionRequest) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.OpenSessionInput == nil {
+				m.OpenSessionInput = &OpenSessionInput{}
 			}
 			if err := m.OpenSessionInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1023,6 +1077,9 @@ func (m *OpenSessionResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &PartitionResponseHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1055,6 +1112,9 @@ func (m *OpenSessionResponse) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.OpenSessionOutput == nil {
+				m.OpenSessionOutput = &OpenSessionOutput{}
 			}
 			if err := m.OpenSessionOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1139,6 +1199,9 @@ func (m *KeepAliveRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &PartitionRequestHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1171,6 +1234,9 @@ func (m *KeepAliveRequest) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.KeepAliveInput == nil {
+				m.KeepAliveInput = &KeepAliveInput{}
 			}
 			if err := m.KeepAliveInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1255,6 +1321,9 @@ func (m *KeepAliveResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &PartitionResponseHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1287,6 +1356,9 @@ func (m *KeepAliveResponse) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.KeepAliveOutput == nil {
+				m.KeepAliveOutput = &KeepAliveOutput{}
 			}
 			if err := m.KeepAliveOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1371,6 +1443,9 @@ func (m *CloseSessionRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &PartitionRequestHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1403,6 +1478,9 @@ func (m *CloseSessionRequest) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.CloseSessionInput == nil {
+				m.CloseSessionInput = &CloseSessionInput{}
 			}
 			if err := m.CloseSessionInput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1487,6 +1565,9 @@ func (m *CloseSessionResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Headers == nil {
+				m.Headers = &PartitionResponseHeaders{}
+			}
 			if err := m.Headers.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1519,6 +1600,9 @@ func (m *CloseSessionResponse) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
+			}
+			if m.CloseSessionOutput == nil {
+				m.CloseSessionOutput = &CloseSessionOutput{}
 			}
 			if err := m.CloseSessionOutput.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err

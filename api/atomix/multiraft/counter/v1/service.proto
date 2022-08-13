@@ -33,8 +33,7 @@ service Counter {
 
 message IncrementRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     IncrementInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -44,8 +43,7 @@ message IncrementRequest {
 
 message IncrementResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     IncrementOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -55,8 +53,7 @@ message IncrementResponse {
 
 message DecrementRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     DecrementInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -66,8 +63,7 @@ message DecrementRequest {
 
 message DecrementResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     DecrementOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
@@ -77,8 +73,7 @@ message DecrementResponse {
 
 message GetRequest {
     atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     GetInput input = 2 [
         (atomix.multiraft.v1.input) = true,
@@ -88,8 +83,7 @@ message GetRequest {
 
 message GetResponse {
     atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
+        (atomix.multiraft.v1.headers) = true
     ];
     GetOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
