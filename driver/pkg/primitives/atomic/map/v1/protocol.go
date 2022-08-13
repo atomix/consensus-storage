@@ -368,8 +368,9 @@ func (s *multiRaftAtomicMapServer) Remove(ctx context.Context, request *atomicma
 	}
 	response := &atomicmapv1.RemoveResponse{
 		Value: atomicmapv1.Value{
-			Value: output.Value.Value,
-			TTL:   output.Value.TTL,
+			Value:   output.Value.Value,
+			Version: uint64(output.Value.Index),
+			TTL:     output.Value.TTL,
 		},
 	}
 	log.Debugw("Remove",
