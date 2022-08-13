@@ -176,7 +176,7 @@ func (s *multiRaftAtomicMapServer) Put(ctx context.Context, request *atomicmapv1
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.PutResponse{
-		NewVersion: uint64(output.Index),
+		Version: uint64(output.Index),
 	}
 	if output.PrevValue != nil {
 		response.PrevValue = &atomicmapv1.Value{
@@ -229,7 +229,7 @@ func (s *multiRaftAtomicMapServer) Insert(ctx context.Context, request *atomicma
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.InsertResponse{
-		NewVersion: uint64(output.Index),
+		Version: uint64(output.Index),
 	}
 	log.Debugw("Insert",
 		logging.Stringer("InsertRequest", request),
@@ -277,7 +277,7 @@ func (s *multiRaftAtomicMapServer) Update(ctx context.Context, request *atomicma
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.UpdateResponse{
-		NewVersion: uint64(output.Index),
+		Version: uint64(output.Index),
 	}
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", request),
@@ -607,7 +607,7 @@ func (s *multiRaftAtomicMapServer) Events(request *atomicmapv1.EventsRequest, se
 						Key: output.Event.Key,
 						Event: &atomicmapv1.Event_Updated_{
 							Updated: &atomicmapv1.Event_Updated{
-								NewValue: atomicmapv1.Value{
+								Value: atomicmapv1.Value{
 									Value:   e.Updated.NewValue.Value,
 									Version: uint64(e.Updated.NewValue.Index),
 									TTL:     e.Updated.NewValue.TTL,

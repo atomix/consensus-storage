@@ -157,7 +157,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.PutResponse](primitive)
-	_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.PutResponse, error) {
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.PutResponse, error) {
 		input := &api.PutRequest{
 			Headers: *headers,
 			PutInput: &api.PutInput{
@@ -179,6 +179,12 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.PutResponse{}
+	if output.PrevValue != nil {
+		response.PrevValue = &mapv1.Value{
+			Value: response.PrevValue.Value,
+			TTL:   response.PrevValue.TTL,
+		}
+	}
 	log.Debugw("Put",
 		logging.Stringer("PutRequest", request),
 		logging.Stringer("PutResponse", response))
@@ -219,12 +225,9 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.GetResponse{
-		Entry: mapv1.Entry{
-			Key: request.Key,
-			Value: &mapv1.Value{
-				Value: output.Value.Value,
-				TTL:   output.Value.TTL,
-			},
+		Value: mapv1.Value{
+			Value: output.Value.Value,
+			TTL:   output.Value.TTL,
 		},
 	}
 	log.Debugw("Get",
@@ -252,7 +255,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.RemoveResponse](primitive)
-	_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveResponse, error) {
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveResponse, error) {
 		input := &api.RemoveRequest{
 			Headers: *headers,
 			RemoveInput: &api.RemoveInput{
@@ -268,6 +271,12 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		return nil, errors.ToProto(err)
 	}
 	response := &mapv1.RemoveResponse{}
+	if output.Value != nil {
+		response.Value = &mapv1.Value{
+			Value: response.Value.Value,
+			TTL:   response.Value.TTL,
+		}
+	}
 	log.Debugw("Remove",
 		logging.Stringer("RemoveRequest", request),
 		logging.Stringer("RemoveResponse", response))
@@ -393,7 +402,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 						Key: output.Event.Key,
 						Event: &mapv1.Event_Updated_{
 							Updated: &mapv1.Event_Updated{
-								NewValue: mapv1.Value{
+								Value: mapv1.Value{
 									Value: e.Updated.NewValue.Value,
 									TTL:   e.Updated.NewValue.TTL,
 								},

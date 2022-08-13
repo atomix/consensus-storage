@@ -65,7 +65,7 @@ func (s *cachingAtomicMapServer) Put(ctx context.Context, request *atomicmapv1.P
 		Key: request.Key,
 		Value: &atomicmapv1.Value{
 			Value:   request.Value,
-			Version: response.NewVersion,
+			Version: response.Version,
 		},
 	})
 	return response, nil
@@ -80,7 +80,7 @@ func (s *cachingAtomicMapServer) Insert(ctx context.Context, request *atomicmapv
 		Key: request.Key,
 		Value: &atomicmapv1.Value{
 			Value:   request.Value,
-			Version: response.NewVersion,
+			Version: response.Version,
 		},
 	})
 	return response, nil
@@ -95,7 +95,7 @@ func (s *cachingAtomicMapServer) Update(ctx context.Context, request *atomicmapv
 		Key: request.Key,
 		Value: &atomicmapv1.Value{
 			Value:   request.Value,
-			Version: response.NewVersion,
+			Version: response.Version,
 		},
 	})
 	return response, nil
@@ -237,8 +237,8 @@ func (s *cachingEventsServer) Send(response *atomicmapv1.EventsResponse) error {
 		s.server.update(&atomicmapv1.Entry{
 			Key: response.Event.Key,
 			Value: &atomicmapv1.Value{
-				Value:   e.Updated.NewValue.Value,
-				Version: e.Updated.NewValue.Version,
+				Value:   e.Updated.Value.Value,
+				Version: e.Updated.Value.Version,
 			},
 		})
 	case *atomicmapv1.Event_Removed_:
