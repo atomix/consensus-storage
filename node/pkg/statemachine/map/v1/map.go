@@ -180,6 +180,13 @@ func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.MapInput, *m
 				},
 			},
 		})
+		proposal.Output(&mapv1.MapOutput{
+			Output: &mapv1.MapOutput_Put{
+				Put: &mapv1.PutOutput{
+					PrevValue: s.newValue(oldEntry.Value),
+				},
+			},
+		})
 	} else {
 		s.notify(newEntry, &mapv1.EventsOutput{
 			Event: mapv1.Event{
@@ -191,13 +198,12 @@ func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.MapInput, *m
 				},
 			},
 		})
+		proposal.Output(&mapv1.MapOutput{
+			Output: &mapv1.MapOutput_Put{
+				Put: &mapv1.PutOutput{},
+			},
+		})
 	}
-
-	proposal.Output(&mapv1.MapOutput{
-		Output: &mapv1.MapOutput_Put{
-			Put: &mapv1.PutOutput{},
-		},
-	})
 }
 
 func (s *MapStateMachine) remove(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
@@ -325,6 +331,21 @@ func (s *MapStateMachine) list(query statemachine.Query[*mapv1.MapInput, *mapv1.
 				},
 			},
 		})
+	}
+
+	if query.Input().GetEntries().Watch {
+		s.mu.Lock()
+		s.watchers[query.ID()] = query
+		s.mu.Unlock()
+		query.Watch(func(state statemachine.OperationState) {
+			if state == statemachine.Complete {
+				s.mu.Lock()
+				delete(s.watchers, query.ID())
+				s.mu.Unlock()
+			}
+		})
+	} else {
+		query.Close()
 	}
 }
 
