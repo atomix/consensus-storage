@@ -3,9 +3,9 @@ module github.com/atomix/multi-raft-storage/controller
 go 1.18
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.2.0
-	github.com/atomix/runtime/controller v0.3.0
-	github.com/atomix/runtime/sdk v0.2.0
+	github.com/atomix/multi-raft-storage/api v0.2.1-0.20220813003348-09126c77d5ab
+	github.com/atomix/runtime/controller v0.3.1-0.20220813003145-2bf60f2e3b92
+	github.com/atomix/runtime/sdk v0.2.1-0.20220813003031-6ee076fb967f
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-logr/logr v1.2.0
 	github.com/gogo/protobuf v1.3.2
