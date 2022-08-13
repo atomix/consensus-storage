@@ -24,7 +24,7 @@ type PrimitiveClient struct {
 
 func (p *PrimitiveClient) close(ctx context.Context) error {
 	request := &multiraftv1.ClosePrimitiveRequest{
-		Headers: multiraftv1.CommandRequestHeaders{
+		Headers: &multiraftv1.CommandRequestHeaders{
 			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
 					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
@@ -43,19 +43,22 @@ func (p *PrimitiveClient) close(ctx context.Context) error {
 		},
 	}
 	client := multiraftv1.NewSessionClient(p.session.partition.conn)
-	_, err := client.ClosePrimitive(ctx, request)
+	response, err := client.ClosePrimitive(ctx, request)
 	if err != nil {
 		return err
+	}
+	if response.Headers.Status != multiraftv1.OperationResponseHeaders_OK {
+		return getErrorFromStatus(response.Headers.Status, response.Headers.Message)
 	}
 	return nil
 }
 
 type CommandResponse interface {
-	GetHeaders() multiraftv1.CommandResponseHeaders
+	GetHeaders() *multiraftv1.CommandResponseHeaders
 }
 
 type QueryResponse interface {
-	GetHeaders() multiraftv1.QueryResponseHeaders
+	GetHeaders() *multiraftv1.QueryResponseHeaders
 }
 
 func Command[T CommandResponse](primitive *PrimitiveClient) *CommandContext[T] {
@@ -149,7 +152,7 @@ func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
 		c.session.lastIndex.Update(headers.Index)
 		if headers.OutputSequenceNum == c.lastResponseSequenceNum+1 {
 			c.lastResponseSequenceNum++
-			c.session.recorder.StreamReceive(c.headers, &headers)
+			c.session.recorder.StreamReceive(c.headers, headers)
 			if headers.Status != multiraftv1.OperationResponseHeaders_OK {
 				return response, getErrorFromStatus(headers.Status, headers.Message)
 			}

@@ -104,7 +104,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	command := client.Query[*api.GetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
 		return api.NewCounterClient(conn).Get(ctx, &api.GetRequest{
-			Headers:  *headers,
+			Headers:  headers,
 			GetInput: &api.GetInput{},
 		})
 	})
@@ -144,7 +144,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	command := client.Command[*api.IncrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.IncrementResponse, error) {
 		return api.NewCounterClient(conn).Increment(ctx, &api.IncrementRequest{
-			Headers: *headers,
+			Headers: headers,
 			IncrementInput: &api.IncrementInput{
 				Delta: request.Delta,
 			},
@@ -186,7 +186,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	command := client.Command[*api.DecrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.DecrementResponse, error) {
 		return api.NewCounterClient(conn).Decrement(ctx, &api.DecrementRequest{
-			Headers: *headers,
+			Headers: headers,
 			DecrementInput: &api.DecrementInput{
 				Delta: request.Delta,
 			},

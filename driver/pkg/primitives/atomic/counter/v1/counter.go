@@ -18,7 +18,7 @@ import (
 
 var log = logging.GetLogger()
 
-const Service = "atomix.multiraft.atomic.counter.v1.Counter"
+const Service = "atomix.multiraft.atomic.counter.v1.AtomicCounter"
 
 func NewAtomicCounterServer(protocol *client.Protocol, config api.AtomicCounterConfig) counterv1.AtomicCounterServer {
 	return &CounterServer{
@@ -104,7 +104,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	command := client.Command[*api.SetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.SetResponse, error) {
 		return api.NewAtomicCounterClient(conn).Set(ctx, &api.SetRequest{
-			Headers: *headers,
+			Headers: headers,
 			SetInput: &api.SetInput{
 				Value: request.Value,
 			},
@@ -146,7 +146,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	command := client.Query[*api.GetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
 		return api.NewAtomicCounterClient(conn).Get(ctx, &api.GetRequest{
-			Headers:  *headers,
+			Headers:  headers,
 			GetInput: &api.GetInput{},
 		})
 	})
@@ -186,7 +186,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	command := client.Command[*api.IncrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.IncrementResponse, error) {
 		return api.NewAtomicCounterClient(conn).Increment(ctx, &api.IncrementRequest{
-			Headers: *headers,
+			Headers: headers,
 			IncrementInput: &api.IncrementInput{
 				Delta: request.Delta,
 			},
@@ -228,7 +228,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	command := client.Command[*api.DecrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.DecrementResponse, error) {
 		return api.NewAtomicCounterClient(conn).Decrement(ctx, &api.DecrementRequest{
-			Headers: *headers,
+			Headers: headers,
 			DecrementInput: &api.DecrementInput{
 				Delta: request.Delta,
 			},
@@ -270,7 +270,7 @@ func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateReq
 	command := client.Command[*api.UpdateResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UpdateResponse, error) {
 		return api.NewAtomicCounterClient(conn).Update(ctx, &api.UpdateRequest{
-			Headers: *headers,
+			Headers: headers,
 			UpdateInput: &api.UpdateInput{
 				Compare: request.Check,
 				Update:  request.Update,

@@ -57,10 +57,10 @@ func (p *PartitionClient) GetSession(ctx context.Context) (*SessionClient, error
 	}
 
 	request := &multiraftv1.OpenSessionRequest{
-		Headers: multiraftv1.PartitionRequestHeaders{
+		Headers: &multiraftv1.PartitionRequestHeaders{
 			PartitionID: p.id,
 		},
-		OpenSessionInput: multiraftv1.OpenSessionInput{
+		OpenSessionInput: &multiraftv1.OpenSessionInput{
 			Timeout: sessionTimeout,
 		},
 	}

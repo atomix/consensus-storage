@@ -59,7 +59,7 @@ func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.Pr
 		return nil
 	}
 	request := &multiraftv1.CreatePrimitiveRequest{
-		Headers: multiraftv1.CommandRequestHeaders{
+		Headers: &multiraftv1.CommandRequestHeaders{
 			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
 				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
 					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
@@ -80,6 +80,9 @@ func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.Pr
 	response, err := client.CreatePrimitive(ctx, request)
 	if err != nil {
 		return err
+	}
+	if response.Headers.Status != multiraftv1.OperationResponseHeaders_OK {
+		return getErrorFromStatus(response.Headers.Status, response.Headers.Message)
 	}
 	primitive = newPrimitiveClient(s, response.PrimitiveID)
 	s.primitives[spec.Name] = primitive
@@ -207,10 +210,10 @@ func (s *SessionClient) keepAliveSessions(ctx context.Context, lastRequestNum mu
 	}
 
 	request := &multiraftv1.KeepAliveRequest{
-		Headers: multiraftv1.PartitionRequestHeaders{
+		Headers: &multiraftv1.PartitionRequestHeaders{
 			PartitionID: s.partition.id,
 		},
-		KeepAliveInput: multiraftv1.KeepAliveInput{
+		KeepAliveInput: &multiraftv1.KeepAliveInput{
 			SessionID:              s.sessionID,
 			LastInputSequenceNum:   lastRequestNum,
 			InputFilter:            openRequestsBytes,
@@ -235,10 +238,10 @@ func (s *SessionClient) keepAliveSessions(ctx context.Context, lastRequestNum mu
 
 func (s *SessionClient) close(ctx context.Context) error {
 	request := &multiraftv1.CloseSessionRequest{
-		Headers: multiraftv1.PartitionRequestHeaders{
+		Headers: &multiraftv1.PartitionRequestHeaders{
 			PartitionID: s.partition.id,
 		},
-		CloseSessionInput: multiraftv1.CloseSessionInput{
+		CloseSessionInput: &multiraftv1.CloseSessionInput{
 			SessionID: s.sessionID,
 		},
 	}

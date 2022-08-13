@@ -108,7 +108,7 @@ func (s *multiRaftAtomicMapServer) Size(ctx context.Context, request *atomicmapv
 		query := client.Query[*api.SizeResponse](primitive)
 		output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.SizeResponse, error) {
 			return api.NewAtomicMapClient(conn).Size(ctx, &api.SizeRequest{
-				Headers:   *headers,
+				Headers:   headers,
 				SizeInput: &api.SizeInput{},
 			})
 		})
@@ -157,7 +157,7 @@ func (s *multiRaftAtomicMapServer) Put(ctx context.Context, request *atomicmapv1
 	command := client.Command[*api.PutResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.PutResponse, error) {
 		input := &api.PutRequest{
-			Headers: *headers,
+			Headers: headers,
 			PutInput: &api.PutInput{
 				Key: request.Key,
 				Value: &api.Value{
@@ -212,7 +212,7 @@ func (s *multiRaftAtomicMapServer) Insert(ctx context.Context, request *atomicma
 	command := client.Command[*api.InsertResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.InsertResponse, error) {
 		return api.NewAtomicMapClient(conn).Insert(ctx, &api.InsertRequest{
-			Headers: *headers,
+			Headers: headers,
 			InsertInput: &api.InsertInput{
 				Key: request.Key,
 				Value: &api.Value{
@@ -258,7 +258,7 @@ func (s *multiRaftAtomicMapServer) Update(ctx context.Context, request *atomicma
 	command := client.Command[*api.UpdateResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UpdateResponse, error) {
 		input := &api.UpdateRequest{
-			Headers: *headers,
+			Headers: headers,
 			UpdateInput: &api.UpdateInput{
 				Key: request.Key,
 				Value: &api.Value{
@@ -306,7 +306,7 @@ func (s *multiRaftAtomicMapServer) Get(ctx context.Context, request *atomicmapv1
 	query := client.Query[*api.GetResponse](primitive)
 	output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
 		return api.NewAtomicMapClient(conn).Get(ctx, &api.GetRequest{
-			Headers: *headers,
+			Headers: headers,
 			GetInput: &api.GetInput{
 				Key: request.Key,
 			},
@@ -352,7 +352,7 @@ func (s *multiRaftAtomicMapServer) Remove(ctx context.Context, request *atomicma
 	command := client.Command[*api.RemoveResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveResponse, error) {
 		input := &api.RemoveRequest{
-			Headers: *headers,
+			Headers: headers,
 			RemoveInput: &api.RemoveInput{
 				Key:   request.Key,
 				Index: multiraftv1.Index(request.PrevVersion),
@@ -402,7 +402,7 @@ func (s *multiRaftAtomicMapServer) Clear(ctx context.Context, request *atomicmap
 		command := client.Command[*api.ClearResponse](primitive)
 		_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.ClearResponse, error) {
 			return api.NewAtomicMapClient(conn).Clear(ctx, &api.ClearRequest{
-				Headers:    *headers,
+				Headers:    headers,
 				ClearInput: &api.ClearInput{},
 			})
 		})
@@ -462,7 +462,7 @@ func (s *multiRaftAtomicMapServer) Lock(ctx context.Context, request *atomicmapv
 		command := client.Command[*api.LockResponse](primitive)
 		_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.LockResponse, error) {
 			return api.NewAtomicMapClient(conn).Lock(ctx, &api.LockRequest{
-				Headers: *headers,
+				Headers: headers,
 				LockInput: &api.LockInput{
 					Keys:    keys,
 					Timeout: request.Timeout,
@@ -510,7 +510,7 @@ func (s *multiRaftAtomicMapServer) Unlock(ctx context.Context, request *atomicma
 		command := client.Command[*api.UnlockResponse](primitive)
 		_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UnlockResponse, error) {
 			return api.NewAtomicMapClient(conn).Unlock(ctx, &api.UnlockRequest{
-				Headers:     *headers,
+				Headers:     headers,
 				UnlockInput: &api.UnlockInput{},
 			})
 		})
@@ -557,7 +557,7 @@ func (s *multiRaftAtomicMapServer) Events(request *atomicmapv1.EventsRequest, se
 		command := client.StreamCommand[api.AtomicMap_EventsClient, *api.EventsResponse](primitive)
 		stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.AtomicMap_EventsClient, error) {
 			return api.NewAtomicMapClient(conn).Events(server.Context(), &api.EventsRequest{
-				Headers: *headers,
+				Headers: headers,
 				EventsInput: &api.EventsInput{
 					Key: request.Key,
 				},
@@ -674,7 +674,7 @@ func (s *multiRaftAtomicMapServer) Entries(request *atomicmapv1.EntriesRequest, 
 		query := client.StreamQuery[api.AtomicMap_EntriesClient, *api.EntriesResponse](primitive)
 		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.AtomicMap_EntriesClient, error) {
 			return api.NewAtomicMapClient(conn).Entries(server.Context(), &api.EntriesRequest{
-				Headers: *headers,
+				Headers: headers,
 				EntriesInput: &api.EntriesInput{
 					Watch: request.Watch,
 				},
