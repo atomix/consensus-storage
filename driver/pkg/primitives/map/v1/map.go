@@ -181,8 +181,8 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 	response := &mapv1.PutResponse{}
 	if output.PrevValue != nil {
 		response.PrevValue = &mapv1.Value{
-			Value: response.PrevValue.Value,
-			TTL:   response.PrevValue.TTL,
+			Value: output.PrevValue.Value,
+			TTL:   output.PrevValue.TTL,
 		}
 	}
 	log.Debugw("Put",
@@ -273,8 +273,8 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 	response := &mapv1.RemoveResponse{}
 	if output.Value != nil {
 		response.Value = &mapv1.Value{
-			Value: response.Value.Value,
-			TTL:   response.Value.TTL,
+			Value: output.Value.Value,
+			TTL:   output.Value.TTL,
 		}
 	}
 	log.Debugw("Remove",

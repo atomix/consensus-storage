@@ -278,6 +278,11 @@ func (s *multiRaftAtomicMapServer) Update(ctx context.Context, request *atomicma
 	}
 	response := &atomicmapv1.UpdateResponse{
 		Version: uint64(output.Index),
+		PrevValue: atomicmapv1.Value{
+			Value:   output.PrevValue.Value,
+			Version: uint64(output.PrevValue.Index),
+			TTL:     output.PrevValue.TTL,
+		},
 	}
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", request),
