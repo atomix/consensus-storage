@@ -58,8 +58,6 @@ func (s *CounterStateMachine) Recover(reader *snapshot.Reader) error {
 
 func (s *CounterStateMachine) Update(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	switch proposal.Input().Input.(type) {
-	case *counterv1.CounterInput_Set:
-		s.set(proposal)
 	case *counterv1.CounterInput_Increment:
 		s.increment(proposal)
 	case *counterv1.CounterInput_Decrement:
@@ -67,18 +65,6 @@ func (s *CounterStateMachine) Update(proposal statemachine.Proposal[*counterv1.C
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
 	}
-}
-
-func (s *CounterStateMachine) set(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
-	defer proposal.Close()
-	s.value = proposal.Input().GetSet().Value
-	proposal.Output(&counterv1.CounterOutput{
-		Output: &counterv1.CounterOutput_Set{
-			Set: &counterv1.SetOutput{
-				Value: s.value,
-			},
-		},
-	})
 }
 
 func (s *CounterStateMachine) increment(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {

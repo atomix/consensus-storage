@@ -164,18 +164,30 @@ func (s *MapStateMachine) proposePut(proposal statemachine.Proposal[*mapv1.MapIn
 	s.scheduleTTL(proposal.Input().GetPut().Entry.Key, newEntry)
 
 	// Publish an event to listener streams.
-	var eventType mapv1.Event_Type
 	if oldEntry != nil {
-		eventType = mapv1.Event_UPDATE
+		s.notify(&mapv1.EventsOutput{
+			Event: mapv1.Event{
+				Key: newEntry.Key,
+				Event: &mapv1.Event_Updated_{
+					Updated: &mapv1.Event_Updated{
+						NewValue:  *s.newValue(newEntry.Value),
+						PrevValue: *s.newValue(oldEntry.Value),
+					},
+				},
+			},
+		})
 	} else {
-		eventType = mapv1.Event_INSERT
+		s.notify(&mapv1.EventsOutput{
+			Event: mapv1.Event{
+				Key: newEntry.Key,
+				Event: &mapv1.Event_Inserted_{
+					Inserted: &mapv1.Event_Inserted{
+						Value: *s.newValue(newEntry.Value),
+					},
+				},
+			},
+		})
 	}
-	s.notify(&mapv1.EventsOutput{
-		Event: mapv1.Event{
-			Type:  eventType,
-			Entry: s.newEntry(newEntry),
-		},
-	})
 
 	proposal.Output(&mapv1.MapOutput{
 		Output: &mapv1.MapOutput_Put{
@@ -200,8 +212,12 @@ func (s *MapStateMachine) proposeRemove(proposal statemachine.Proposal[*mapv1.Ma
 	// Publish an event to listener streams.
 	s.notify(&mapv1.EventsOutput{
 		Event: mapv1.Event{
-			Type:  mapv1.Event_REMOVE,
-			Entry: s.newEntry(entry),
+			Key: entry.Key,
+			Event: &mapv1.Event_Removed_{
+				Removed: &mapv1.Event_Removed{
+					Value: *s.newValue(entry.Value),
+				},
+			},
 		},
 	})
 
@@ -219,8 +235,12 @@ func (s *MapStateMachine) proposeClear(proposal statemachine.Proposal[*mapv1.Map
 	for key, entry := range s.entries {
 		s.notify(&mapv1.EventsOutput{
 			Event: mapv1.Event{
-				Type:  mapv1.Event_REMOVE,
-				Entry: s.newEntry(entry),
+				Key: entry.Key,
+				Event: &mapv1.Event_Removed_{
+					Removed: &mapv1.Event_Removed{
+						Value: *s.newValue(entry.Value),
+					},
+				},
 			},
 		})
 		s.cancelTTL(key)
@@ -250,23 +270,6 @@ func (s *MapStateMachine) proposeEvents(proposal statemachine.Proposal[*mapv1.Ma
 			delete(s.listeners, proposal.ID())
 		}
 	})
-
-	if proposal.Input().GetEvents().Replay {
-		for _, entry := range s.entries {
-			if listener.Key == "" || listener.Key == entry.Key {
-				proposal.Output(&mapv1.MapOutput{
-					Output: &mapv1.MapOutput_Events{
-						Events: &mapv1.EventsOutput{
-							Event: mapv1.Event{
-								Type:  mapv1.Event_NONE,
-								Entry: s.newEntry(entry),
-							},
-						},
-					},
-				})
-			}
-		}
-	}
 }
 
 func (s *MapStateMachine) Read(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
@@ -321,7 +324,7 @@ func (s *MapStateMachine) queryEntries(query statemachine.Query[*mapv1.MapInput,
 
 func (s *MapStateMachine) notify(event *mapv1.EventsOutput) {
 	for proposalID, listener := range s.listeners {
-		if listener.Key == "" || listener.Key == event.Event.Entry.Key {
+		if listener.Key == "" || listener.Key == event.Event.Key {
 			proposal, ok := s.Proposals().Get(proposalID)
 			if ok {
 				proposal.Output(&mapv1.MapOutput{
@@ -343,8 +346,12 @@ func (s *MapStateMachine) scheduleTTL(key string, entry *mapv1.MapEntry) {
 			delete(s.entries, key)
 			s.notify(&mapv1.EventsOutput{
 				Event: mapv1.Event{
-					Type:  mapv1.Event_REMOVE,
-					Entry: s.newEntry(entry),
+					Key: entry.Key,
+					Event: &mapv1.Event_Removed_{
+						Removed: &mapv1.Event_Removed{
+							Value: *s.newValue(entry.Value),
+						},
+					},
 				},
 			})
 		})
