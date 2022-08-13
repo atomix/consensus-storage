@@ -346,8 +346,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 			return api.NewMapClient(conn).Events(server.Context(), &api.EventsRequest{
 				Headers: *headers,
 				EventsInput: &api.EventsInput{
-					Key:    request.Key,
-					Replay: request.Replay,
+					Key: request.Key,
 				},
 			})
 		})
@@ -372,17 +371,54 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
-			response := &mapv1.EventsResponse{
-				Event: mapv1.Event{
-					Type: mapv1.Event_Type(output.Event.Type),
-					Entry: mapv1.Entry{
-						Key: output.Event.Entry.Key,
-						Value: &mapv1.Value{
-							Value: output.Event.Entry.Value.Value,
-							TTL:   output.Event.Entry.Value.TTL,
+			var response *mapv1.EventsResponse
+			switch e := output.Event.Event.(type) {
+			case *api.Event_Inserted_:
+				response = &mapv1.EventsResponse{
+					Event: mapv1.Event{
+						Key: output.Event.Key,
+						Event: &mapv1.Event_Inserted_{
+							Inserted: &mapv1.Event_Inserted{
+								Value: mapv1.Value{
+									Value: e.Inserted.Value.Value,
+									TTL:   e.Inserted.Value.TTL,
+								},
+							},
 						},
 					},
-				},
+				}
+			case *api.Event_Updated_:
+				response = &mapv1.EventsResponse{
+					Event: mapv1.Event{
+						Key: output.Event.Key,
+						Event: &mapv1.Event_Updated_{
+							Updated: &mapv1.Event_Updated{
+								NewValue: mapv1.Value{
+									Value: e.Updated.NewValue.Value,
+									TTL:   e.Updated.NewValue.TTL,
+								},
+								PrevValue: mapv1.Value{
+									Value: e.Updated.PrevValue.Value,
+									TTL:   e.Updated.PrevValue.TTL,
+								},
+							},
+						},
+					},
+				}
+			case *api.Event_Removed_:
+				response = &mapv1.EventsResponse{
+					Event: mapv1.Event{
+						Key: output.Event.Key,
+						Event: &mapv1.Event_Removed_{
+							Removed: &mapv1.Event_Removed{
+								Value: mapv1.Value{
+									Value: e.Removed.Value.Value,
+									TTL:   e.Removed.Value.TTL,
+								},
+							},
+						},
+					},
+				}
 			}
 			log.Debugw("Events",
 				logging.Stringer("EventsRequest", request),
@@ -421,8 +457,10 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 		query := client.StreamQuery[api.Map_EntriesClient, *api.EntriesResponse](primitive)
 		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.Map_EntriesClient, error) {
 			return api.NewMapClient(conn).Entries(server.Context(), &api.EntriesRequest{
-				Headers:      *headers,
-				EntriesInput: &api.EntriesInput{},
+				Headers: *headers,
+				EntriesInput: &api.EntriesInput{
+					Watch: request.Watch,
+				},
 			})
 		})
 		if err != nil {

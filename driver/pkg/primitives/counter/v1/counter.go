@@ -83,48 +83,6 @@ func (s *CounterServer) Close(ctx context.Context, request *counterv1.CloseReque
 	return response, nil
 }
 
-func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
-	log.Debugw("Set",
-		logging.Stringer("SetRequest", request))
-	partition := s.PartitionBy([]byte(request.ID.Name))
-	session, err := partition.GetSession(ctx)
-	if err != nil {
-		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
-			logging.Error("Error", err))
-		return nil, errors.ToProto(err)
-	}
-	primitive, err := session.GetPrimitive(request.ID.Name)
-	if err != nil {
-		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
-			logging.Error("Error", err))
-		return nil, errors.ToProto(err)
-	}
-	command := client.Command[*api.SetResponse](primitive)
-	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.SetResponse, error) {
-		return api.NewCounterClient(conn).Set(ctx, &api.SetRequest{
-			Headers: *headers,
-			SetInput: &api.SetInput{
-				Value: request.Value,
-			},
-		})
-	})
-	if err != nil {
-		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
-			logging.Error("Error", err))
-		return nil, errors.ToProto(err)
-	}
-	response := &counterv1.SetResponse{
-		Value: output.Value,
-	}
-	log.Debugw("Set",
-		logging.Stringer("SetRequest", request),
-		logging.Stringer("SetResponse", response))
-	return response, nil
-}
-
 func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))

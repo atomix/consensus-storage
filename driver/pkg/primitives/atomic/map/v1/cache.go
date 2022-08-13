@@ -37,8 +37,7 @@ func (s *cachingAtomicMapServer) Create(ctx context.Context, request *atomicmapv
 		return nil, err
 	}
 	err = s.AtomicMapServer.Events(&atomicmapv1.EventsRequest{
-		ID:     request.ID,
-		Replay: true,
+		ID: request.ID,
 	}, newCachingEventsServer(s))
 	go func() {
 		interval := s.config.EvictionInterval
@@ -63,9 +62,11 @@ func (s *cachingAtomicMapServer) Put(ctx context.Context, request *atomicmapv1.P
 		return nil, err
 	}
 	s.update(&atomicmapv1.Entry{
-		Key:     request.Key,
-		Value:   request.Value,
-		Version: response.Version,
+		Key: request.Key,
+		Value: &atomicmapv1.Value{
+			Value:   request.Value,
+			Version: response.NewVersion,
+		},
 	})
 	return response, nil
 }
@@ -76,9 +77,11 @@ func (s *cachingAtomicMapServer) Insert(ctx context.Context, request *atomicmapv
 		return nil, err
 	}
 	s.update(&atomicmapv1.Entry{
-		Key:     request.Key,
-		Value:   request.Value,
-		Version: response.Version,
+		Key: request.Key,
+		Value: &atomicmapv1.Value{
+			Value:   request.Value,
+			Version: response.NewVersion,
+		},
 	})
 	return response, nil
 }
@@ -89,9 +92,11 @@ func (s *cachingAtomicMapServer) Update(ctx context.Context, request *atomicmapv
 		return nil, err
 	}
 	s.update(&atomicmapv1.Entry{
-		Key:     request.Key,
-		Value:   request.Value,
-		Version: response.Version,
+		Key: request.Key,
+		Value: &atomicmapv1.Value{
+			Value:   request.Value,
+			Version: response.NewVersion,
+		},
 	})
 	return response, nil
 }
@@ -102,7 +107,7 @@ func (s *cachingAtomicMapServer) Get(ctx context.Context, request *atomicmapv1.G
 	s.mu.RUnlock()
 	if ok {
 		return &atomicmapv1.GetResponse{
-			Entry: *elem.Value.(*cachedEntry).entry,
+			Value: *elem.Value.(*cachedEntry).entry.Value,
 		}, nil
 	}
 	return s.AtomicMapServer.Get(ctx, request)
@@ -133,14 +138,14 @@ func (s *cachingAtomicMapServer) update(update *atomicmapv1.Entry) {
 	s.mu.RLock()
 	check, ok := s.entries[update.Key]
 	s.mu.RUnlock()
-	if ok && check.Value.(*cachedEntry).entry.Version >= update.Version {
+	if ok && check.Value.(*cachedEntry).entry.Value.Version >= update.Value.Version {
 		return
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	check, ok = s.entries[update.Key]
-	if ok && check.Value.(*cachedEntry).entry.Version >= update.Version {
+	if ok && check.Value.(*cachedEntry).entry.Value.Version >= update.Value.Version {
 		return
 	}
 
@@ -219,10 +224,25 @@ type cachingEventsServer struct {
 }
 
 func (s *cachingEventsServer) Send(response *atomicmapv1.EventsResponse) error {
-	if response.Event.Type == atomicmapv1.Event_REMOVE {
-		s.server.delete(response.Event.Entry.Key)
-	} else {
-		s.server.update(&response.Event.Entry)
+	switch e := response.Event.Event.(type) {
+	case *atomicmapv1.Event_Inserted_:
+		s.server.update(&atomicmapv1.Entry{
+			Key: response.Event.Key,
+			Value: &atomicmapv1.Value{
+				Value:   e.Inserted.Value.Value,
+				Version: e.Inserted.Value.Version,
+			},
+		})
+	case *atomicmapv1.Event_Updated_:
+		s.server.update(&atomicmapv1.Entry{
+			Key: response.Event.Key,
+			Value: &atomicmapv1.Value{
+				Value:   e.Updated.NewValue.Value,
+				Version: e.Updated.NewValue.Version,
+			},
+		})
+	case *atomicmapv1.Event_Removed_:
+		s.server.delete(response.Event.Key)
 	}
 	return nil
 }

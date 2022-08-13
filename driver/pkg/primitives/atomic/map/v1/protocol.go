@@ -161,10 +161,10 @@ func (s *multiRaftAtomicMapServer) Put(ctx context.Context, request *atomicmapv1
 			PutInput: &api.PutInput{
 				Key: request.Key,
 				Value: &api.Value{
-					Value: request.Value.Value,
-					TTL:   request.Value.TTL,
+					Value: request.Value,
+					TTL:   request.TTL,
 				},
-				Index: multiraftv1.Index(request.Version),
+				Index: multiraftv1.Index(request.PrevVersion),
 			},
 		}
 		return api.NewAtomicMapClient(conn).Put(ctx, input)
@@ -176,7 +176,14 @@ func (s *multiRaftAtomicMapServer) Put(ctx context.Context, request *atomicmapv1
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.PutResponse{
-		Version: uint64(output.Index),
+		NewVersion: uint64(output.Index),
+	}
+	if output.PrevValue != nil {
+		response.PrevValue = &atomicmapv1.Value{
+			Value:   output.PrevValue.Value,
+			Version: uint64(output.PrevValue.Index),
+			TTL:     output.PrevValue.TTL,
+		}
 	}
 	log.Debugw("Put",
 		logging.Stringer("PutRequest", request),
@@ -209,8 +216,8 @@ func (s *multiRaftAtomicMapServer) Insert(ctx context.Context, request *atomicma
 			InsertInput: &api.InsertInput{
 				Key: request.Key,
 				Value: &api.Value{
-					Value: request.Value.Value,
-					TTL:   request.Value.TTL,
+					Value: request.Value,
+					TTL:   request.TTL,
 				},
 			},
 		})
@@ -222,7 +229,7 @@ func (s *multiRaftAtomicMapServer) Insert(ctx context.Context, request *atomicma
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.InsertResponse{
-		Version: uint64(output.Index),
+		NewVersion: uint64(output.Index),
 	}
 	log.Debugw("Insert",
 		logging.Stringer("InsertRequest", request),
@@ -255,10 +262,10 @@ func (s *multiRaftAtomicMapServer) Update(ctx context.Context, request *atomicma
 			UpdateInput: &api.UpdateInput{
 				Key: request.Key,
 				Value: &api.Value{
-					Value: request.Value.Value,
-					TTL:   request.Value.TTL,
+					Value: request.Value,
+					TTL:   request.TTL,
 				},
-				Index: multiraftv1.Index(request.Version),
+				Index: multiraftv1.Index(request.PrevVersion),
 			},
 		}
 		return api.NewAtomicMapClient(conn).Update(ctx, input)
@@ -270,7 +277,7 @@ func (s *multiRaftAtomicMapServer) Update(ctx context.Context, request *atomicma
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.UpdateResponse{
-		Version: uint64(output.Index),
+		NewVersion: uint64(output.Index),
 	}
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", request),
@@ -312,13 +319,10 @@ func (s *multiRaftAtomicMapServer) Get(ctx context.Context, request *atomicmapv1
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.GetResponse{
-		Entry: atomicmapv1.Entry{
-			Key: output.Entry.Key,
-			Value: &atomicmapv1.Value{
-				Value: output.Entry.Value.Value,
-				TTL:   output.Entry.Value.TTL,
-			},
-			Version: uint64(output.Entry.Index),
+		Value: atomicmapv1.Value{
+			Value:   output.Value.Value,
+			Version: uint64(output.Value.Index),
+			TTL:     output.Value.TTL,
 		},
 	}
 	log.Debugw("Get",
@@ -351,7 +355,7 @@ func (s *multiRaftAtomicMapServer) Remove(ctx context.Context, request *atomicma
 			Headers: *headers,
 			RemoveInput: &api.RemoveInput{
 				Key:   request.Key,
-				Index: multiraftv1.Index(request.Version),
+				Index: multiraftv1.Index(request.PrevVersion),
 			},
 		}
 		return api.NewAtomicMapClient(conn).Remove(ctx, input)
@@ -554,8 +558,7 @@ func (s *multiRaftAtomicMapServer) Events(request *atomicmapv1.EventsRequest, se
 			return api.NewAtomicMapClient(conn).Events(server.Context(), &api.EventsRequest{
 				Headers: *headers,
 				EventsInput: &api.EventsInput{
-					Key:    request.Key,
-					Replay: request.Replay,
+					Key: request.Key,
 				},
 			})
 		})
@@ -580,18 +583,58 @@ func (s *multiRaftAtomicMapServer) Events(request *atomicmapv1.EventsRequest, se
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
-			response := &atomicmapv1.EventsResponse{
-				Event: atomicmapv1.Event{
-					Type: atomicmapv1.Event_Type(output.Event.Type),
-					Entry: atomicmapv1.Entry{
-						Key: output.Event.Entry.Key,
-						Value: &atomicmapv1.Value{
-							Value: output.Event.Entry.Value.Value,
-							TTL:   output.Event.Entry.Value.TTL,
+			var response *atomicmapv1.EventsResponse
+			switch e := output.Event.Event.(type) {
+			case *api.Event_Inserted_:
+				response = &atomicmapv1.EventsResponse{
+					Event: atomicmapv1.Event{
+						Key: output.Event.Key,
+						Event: &atomicmapv1.Event_Inserted_{
+							Inserted: &atomicmapv1.Event_Inserted{
+								Value: atomicmapv1.Value{
+									Value:   e.Inserted.Value.Value,
+									Version: uint64(e.Inserted.Value.Index),
+									TTL:     e.Inserted.Value.TTL,
+								},
+							},
 						},
-						Version: uint64(output.Event.Entry.Index),
 					},
-				},
+				}
+			case *api.Event_Updated_:
+				response = &atomicmapv1.EventsResponse{
+					Event: atomicmapv1.Event{
+						Key: output.Event.Key,
+						Event: &atomicmapv1.Event_Updated_{
+							Updated: &atomicmapv1.Event_Updated{
+								NewValue: atomicmapv1.Value{
+									Value:   e.Updated.NewValue.Value,
+									Version: uint64(e.Updated.NewValue.Index),
+									TTL:     e.Updated.NewValue.TTL,
+								},
+								PrevValue: atomicmapv1.Value{
+									Value:   e.Updated.PrevValue.Value,
+									Version: uint64(e.Updated.PrevValue.Index),
+									TTL:     e.Updated.PrevValue.TTL,
+								},
+							},
+						},
+					},
+				}
+			case *api.Event_Removed_:
+				response = &atomicmapv1.EventsResponse{
+					Event: atomicmapv1.Event{
+						Key: output.Event.Key,
+						Event: &atomicmapv1.Event_Removed_{
+							Removed: &atomicmapv1.Event_Removed{
+								Value: atomicmapv1.Value{
+									Value:   e.Removed.Value.Value,
+									Version: uint64(e.Removed.Value.Index),
+									TTL:     e.Removed.Value.TTL,
+								},
+							},
+						},
+					},
+				}
 			}
 			log.Debugw("Events",
 				logging.Stringer("EventsRequest", request),
@@ -630,8 +673,10 @@ func (s *multiRaftAtomicMapServer) Entries(request *atomicmapv1.EntriesRequest, 
 		query := client.StreamQuery[api.AtomicMap_EntriesClient, *api.EntriesResponse](primitive)
 		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.AtomicMap_EntriesClient, error) {
 			return api.NewAtomicMapClient(conn).Entries(server.Context(), &api.EntriesRequest{
-				Headers:      *headers,
-				EntriesInput: &api.EntriesInput{},
+				Headers: *headers,
+				EntriesInput: &api.EntriesInput{
+					Watch: request.Watch,
+				},
 			})
 		})
 		if err != nil {
@@ -655,10 +700,10 @@ func (s *multiRaftAtomicMapServer) Entries(request *atomicmapv1.EntriesRequest, 
 				Entry: atomicmapv1.Entry{
 					Key: output.Entry.Key,
 					Value: &atomicmapv1.Value{
-						Value: output.Entry.Value.Value,
-						TTL:   output.Entry.Value.TTL,
+						Value:   output.Entry.Value.Value,
+						Version: uint64(output.Entry.Value.Index),
+						TTL:     output.Entry.Value.TTL,
 					},
-					Version: uint64(output.Entry.Index),
 				},
 			}
 			log.Debugw("Entries",
