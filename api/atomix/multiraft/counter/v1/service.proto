@@ -15,11 +15,6 @@ import "gogoproto/gogo.proto";
 
 // Counter is a service for a counter primitive
 service Counter {
-    // Set sets the counter value
-    rpc Set (SetRequest) returns (SetResponse) {
-        option (atomix.multiraft.v1.operation_type) = COMMAND;
-    }
-
     // Get gets the current counter value
     rpc Get (GetRequest) returns (GetResponse) {
         option (atomix.multiraft.v1.operation_type) = QUERY;
@@ -97,28 +92,6 @@ message GetResponse {
         (gogoproto.nullable) = false
     ];
     GetOutput output = 2 [
-        (atomix.multiraft.v1.output) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message SetRequest {
-    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-    SetInput input = 2 [
-        (atomix.multiraft.v1.input) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message SetResponse {
-    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true,
-        (gogoproto.nullable) = false
-    ];
-    SetOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

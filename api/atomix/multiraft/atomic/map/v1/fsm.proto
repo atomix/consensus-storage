@@ -20,22 +20,16 @@ message AtomicMapListener {
 }
 
 message AtomicMapEntry {
-    AtomicMapKey key = 1 [
-        (gogoproto.nullable) = false
-    ];
+    string key = 1;
     AtomicMapValue value = 2;
-}
-
-message AtomicMapKey {
-    uint64 index = 1 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
-    string key = 2;
 }
 
 message AtomicMapValue {
     bytes value = 1;
-    google.protobuf.Timestamp expire = 2 [
+    uint64 index = 2 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+    google.protobuf.Timestamp expire = 3 [
         (gogoproto.stdtime) = true
     ];
 }
@@ -92,6 +86,7 @@ message PutOutput {
     uint64 index = 1 [
         (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
+    Value prev_value = 2;
 }
 
 message InsertInput {
@@ -117,6 +112,9 @@ message UpdateOutput {
     uint64 index = 1 [
         (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
     ];
+    Value prev_value = 2 [
+        (gogoproto.nullable) = false
+    ];
 }
 
 message GetInput {
@@ -124,7 +122,7 @@ message GetInput {
 }
 
 message GetOutput {
-    Entry entry = 1 [
+    Value value = 1 [
         (gogoproto.nullable) = false
     ];
 }
@@ -170,7 +168,7 @@ message UnlockOutput {
 }
 
 message EntriesInput {
-
+    bool watch = 1;
 }
 
 message EntriesOutput {
@@ -181,7 +179,6 @@ message EntriesOutput {
 
 message EventsInput {
     string key = 1;
-    bool replay = 2;
 }
 
 message EventsOutput {
@@ -191,16 +188,33 @@ message EventsOutput {
 }
 
 message Event {
-    Type type = 1;
-    Entry entry = 2 [
-        (gogoproto.nullable) = false
-    ];
+    string key = 1;
 
-    enum Type {
-        NONE = 0;
-        INSERT = 1;
-        UPDATE = 2;
-        REMOVE = 3;
+    oneof event {
+        Inserted inserted = 2;
+        Updated updated = 3;
+        Removed removed = 4;
+    }
+
+    message Inserted {
+        Value value = 1 [
+            (gogoproto.nullable) = false
+        ];
+    }
+
+    message Updated {
+        Value new_value = 1 [
+            (gogoproto.nullable) = false
+        ];
+        Value prev_value = 2 [
+            (gogoproto.nullable) = false
+        ];
+    }
+
+    message Removed {
+        Value value = 1 [
+            (gogoproto.nullable) = false
+        ];
     }
 }
 
@@ -209,14 +223,14 @@ message Entry {
     Value value = 2 [
         (gogoproto.nullable) = false
     ];
-    uint64 index = 3 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
 }
 
 message Value {
     bytes value = 1;
-    google.protobuf.Duration ttl = 2 [
+    uint64 index = 2 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+    google.protobuf.Duration ttl = 3 [
         (gogoproto.customname) = "TTL",
         (gogoproto.stdduration) = true
     ];

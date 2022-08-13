@@ -10,6 +10,9 @@
     - [EntriesOutput](#atomix-multiraft-map-v1-EntriesOutput)
     - [Entry](#atomix-multiraft-map-v1-Entry)
     - [Event](#atomix-multiraft-map-v1-Event)
+    - [Event.Inserted](#atomix-multiraft-map-v1-Event-Inserted)
+    - [Event.Removed](#atomix-multiraft-map-v1-Event-Removed)
+    - [Event.Updated](#atomix-multiraft-map-v1-Event-Updated)
     - [EventsInput](#atomix-multiraft-map-v1-EventsInput)
     - [EventsOutput](#atomix-multiraft-map-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-map-v1-GetInput)
@@ -26,8 +29,6 @@
     - [SizeInput](#atomix-multiraft-map-v1-SizeInput)
     - [SizeOutput](#atomix-multiraft-map-v1-SizeOutput)
     - [Value](#atomix-multiraft-map-v1-Value)
-  
-    - [Event.Type](#atomix-multiraft-map-v1-Event-Type)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -64,6 +65,11 @@
 
 ### EntriesInput
 
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| watch | [bool](#bool) |  |  |
 
 
 
@@ -109,8 +115,56 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| type | [Event.Type](#atomix-multiraft-map-v1-Event-Type) |  |  |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
+| key | [string](#string) |  |  |
+| inserted | [Event.Inserted](#atomix-multiraft-map-v1-Event-Inserted) |  |  |
+| updated | [Event.Updated](#atomix-multiraft-map-v1-Event-Updated) |  |  |
+| removed | [Event.Removed](#atomix-multiraft-map-v1-Event-Removed) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-Event-Inserted"></a>
+
+### Event.Inserted
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-Event-Removed"></a>
+
+### Event.Removed
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-Event-Updated"></a>
+
+### Event.Updated
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| new_value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| prev_value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
 
 
 
@@ -126,7 +180,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| replay | [bool](#bool) |  |  |
 
 
 
@@ -289,6 +342,11 @@
 
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| prev_value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+
+
 
 
 
@@ -364,20 +422,6 @@
 
 
  
-
-
-<a name="atomix-multiraft-map-v1-Event-Type"></a>
-
-### Event.Type
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| NONE | 0 |  |
-| INSERT | 1 |  |
-| UPDATE | 2 |  |
-| REMOVE | 3 |  |
-
 
  
 

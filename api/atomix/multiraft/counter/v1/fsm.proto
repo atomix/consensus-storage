@@ -13,7 +13,6 @@ message CounterInput {
         IncrementInput increment = 1;
         DecrementInput decrement = 2;
         GetInput get = 3;
-        SetInput set = 4;
     }
 }
 
@@ -22,7 +21,6 @@ message CounterOutput {
         IncrementOutput increment = 1;
         DecrementOutput decrement = 2;
         GetOutput get = 3;
-        SetOutput set = 4;
     }
 }
 
@@ -47,13 +45,5 @@ message GetInput {
 }
 
 message GetOutput {
-    int64 value = 1;
-}
-
-message SetInput {
-    int64 value = 1;
-}
-
-message SetOutput {
     int64 value = 1;
 }

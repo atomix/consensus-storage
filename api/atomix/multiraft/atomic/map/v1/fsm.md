@@ -6,7 +6,6 @@
 - [atomix/multiraft/atomic/map/v1/fsm.proto](#atomix_multiraft_atomic_map_v1_fsm-proto)
     - [AtomicMapEntry](#atomix-multiraft-atomic-map-v1-AtomicMapEntry)
     - [AtomicMapInput](#atomix-multiraft-atomic-map-v1-AtomicMapInput)
-    - [AtomicMapKey](#atomix-multiraft-atomic-map-v1-AtomicMapKey)
     - [AtomicMapListener](#atomix-multiraft-atomic-map-v1-AtomicMapListener)
     - [AtomicMapOutput](#atomix-multiraft-atomic-map-v1-AtomicMapOutput)
     - [AtomicMapValue](#atomix-multiraft-atomic-map-v1-AtomicMapValue)
@@ -16,6 +15,9 @@
     - [EntriesOutput](#atomix-multiraft-atomic-map-v1-EntriesOutput)
     - [Entry](#atomix-multiraft-atomic-map-v1-Entry)
     - [Event](#atomix-multiraft-atomic-map-v1-Event)
+    - [Event.Inserted](#atomix-multiraft-atomic-map-v1-Event-Inserted)
+    - [Event.Removed](#atomix-multiraft-atomic-map-v1-Event-Removed)
+    - [Event.Updated](#atomix-multiraft-atomic-map-v1-Event-Updated)
     - [EventsInput](#atomix-multiraft-atomic-map-v1-EventsInput)
     - [EventsOutput](#atomix-multiraft-atomic-map-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-atomic-map-v1-GetInput)
@@ -36,8 +38,6 @@
     - [UpdateOutput](#atomix-multiraft-atomic-map-v1-UpdateOutput)
     - [Value](#atomix-multiraft-atomic-map-v1-Value)
   
-    - [Event.Type](#atomix-multiraft-atomic-map-v1-Event-Type)
-  
 - [Scalar Value Types](#scalar-value-types)
 
 
@@ -57,7 +57,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| key | [AtomicMapKey](#atomix-multiraft-atomic-map-v1-AtomicMapKey) |  |  |
+| key | [string](#string) |  |  |
 | value | [AtomicMapValue](#atomix-multiraft-atomic-map-v1-AtomicMapValue) |  |  |
 
 
@@ -84,22 +84,6 @@
 | unlock | [UnlockInput](#atomix-multiraft-atomic-map-v1-UnlockInput) |  |  |
 | entries | [EntriesInput](#atomix-multiraft-atomic-map-v1-EntriesInput) |  |  |
 | events | [EventsInput](#atomix-multiraft-atomic-map-v1-EventsInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-atomic-map-v1-AtomicMapKey"></a>
-
-### AtomicMapKey
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| key | [string](#string) |  |  |
 
 
 
@@ -156,6 +140,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
+| index | [uint64](#uint64) |  |  |
 | expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
@@ -189,6 +174,11 @@
 
 
 
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| watch | [bool](#bool) |  |  |
+
+
 
 
 
@@ -218,7 +208,6 @@
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
 | value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
-| index | [uint64](#uint64) |  |  |
 
 
 
@@ -233,8 +222,56 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| type | [Event.Type](#atomix-multiraft-atomic-map-v1-Event-Type) |  |  |
-| entry | [Entry](#atomix-multiraft-atomic-map-v1-Entry) |  |  |
+| key | [string](#string) |  |  |
+| inserted | [Event.Inserted](#atomix-multiraft-atomic-map-v1-Event-Inserted) |  |  |
+| updated | [Event.Updated](#atomix-multiraft-atomic-map-v1-Event-Updated) |  |  |
+| removed | [Event.Removed](#atomix-multiraft-atomic-map-v1-Event-Removed) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-atomic-map-v1-Event-Inserted"></a>
+
+### Event.Inserted
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-atomic-map-v1-Event-Removed"></a>
+
+### Event.Removed
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-atomic-map-v1-Event-Updated"></a>
+
+### Event.Updated
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| new_value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
+| prev_value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
 
 
 
@@ -250,7 +287,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| replay | [bool](#bool) |  |  |
 
 
 
@@ -295,7 +331,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-atomic-map-v1-Entry) |  |  |
+| value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
 
 
 
@@ -385,6 +421,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | index | [uint64](#uint64) |  |  |
+| prev_value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
 
 
 
@@ -498,6 +535,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | index | [uint64](#uint64) |  |  |
+| prev_value | [Value](#atomix-multiraft-atomic-map-v1-Value) |  |  |
 
 
 
@@ -513,6 +551,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
+| index | [uint64](#uint64) |  |  |
 | ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 
 
@@ -520,20 +559,6 @@
 
 
  
-
-
-<a name="atomix-multiraft-atomic-map-v1-Event-Type"></a>
-
-### Event.Type
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| NONE | 0 |  |
-| INSERT | 1 |  |
-| UPDATE | 2 |  |
-| REMOVE | 3 |  |
-
 
  
 
