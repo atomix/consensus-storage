@@ -6,6 +6,7 @@ package statemachine
 
 import (
 	"container/list"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
@@ -13,6 +14,8 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/bits-and-blooms/bloom/v3"
+	"github.com/google/uuid"
+	"sync"
 	"time"
 )
 
@@ -123,7 +126,7 @@ func (m *sessionManager) updateSession(input *multiraftv1.SessionCommandInput, s
 	m.prevTime = m.context.time
 }
 
-func (m *sessionManager) readSession(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+func (m *sessionManager) readSession(ctx context.Context, input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
 	session, ok := m.sessions[input.SessionID]
 	if !ok {
 		stream.Error(errors.NewFault("session not found"))
@@ -131,7 +134,7 @@ func (m *sessionManager) readSession(input *multiraftv1.SessionQueryInput, strea
 		return
 	}
 	query := newSessionQuery(session)
-	query.execute(input, stream)
+	query.execute(ctx, input, stream)
 }
 
 func newSession(manager *sessionManager) *raftSession {
@@ -498,13 +501,47 @@ func (c *raftSessionClosePrimitiveCommand) Output(output *multiraftv1.ClosePrimi
 func newSessionQuery(session *raftSession) *raftSessionQuery {
 	return &raftSessionQuery{
 		session: session,
+		closeCh: make(chan struct{}),
 	}
 }
 
 type raftSessionQuery struct {
-	session *raftSession
-	input   *multiraftv1.SessionQueryInput
-	stream  streams.WriteStream[*multiraftv1.SessionQueryOutput]
+	sequenceNum multiraftv1.SequenceNum
+	session     *raftSession
+	ctx         context.Context
+	input       *multiraftv1.SessionQueryInput
+	stream      streams.WriteStream[*multiraftv1.SessionQueryOutput]
+	state       OperationState
+	watchers    map[string]OperationWatcher
+	watchersMu  sync.RWMutex
+	closeCh     chan struct{}
+}
+
+func (q *raftSessionQuery) ID() QueryID {
+	return QueryID(q.sequenceNum)
+}
+
+func (q *raftSessionQuery) Watch(f OperationWatcher) CancelFunc {
+	q.watchersMu.Lock()
+	defer q.watchersMu.Unlock()
+	if q.watchers == nil {
+		q.watchers = make(map[string]OperationWatcher)
+		go func() {
+			select {
+			case <-q.closeCh:
+				return
+			case <-q.ctx.Done():
+				q.session.manager.context.queriesMu.Lock()
+				q.session.manager.context.canceledQueries = append(q.session.manager.context.canceledQueries, q)
+				q.session.manager.context.queriesMu.Unlock()
+			}
+		}()
+	}
+	id := uuid.New().String()
+	q.watchers[id] = f
+	return func() {
+		delete(q.watchers, id)
+	}
 }
 
 func (q *raftSessionQuery) Operation() *raftSessionOperationQuery {
@@ -525,7 +562,9 @@ func (q *raftSessionQuery) Error(err error) {
 	})
 }
 
-func (q *raftSessionQuery) execute(input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+func (q *raftSessionQuery) execute(ctx context.Context, input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+	q.sequenceNum = multiraftv1.SequenceNum(q.session.manager.context.sequenceNum.Add(1))
+	q.ctx = ctx
 	q.input = input
 	q.stream = stream
 	q.session.manager.primitives.read(q.Operation())
@@ -533,6 +572,14 @@ func (q *raftSessionQuery) execute(input *multiraftv1.SessionQueryInput, stream 
 
 func (q *raftSessionQuery) Close() {
 	q.stream.Close()
+	close(q.closeCh)
+	q.watchersMu.RLock()
+	defer q.watchersMu.RUnlock()
+	if q.watchers != nil {
+		for _, watcher := range q.watchers {
+			watcher(Complete)
+		}
+	}
 }
 
 func newSessionOperationQuery(parent *raftSessionQuery) *raftSessionOperationQuery {

@@ -101,6 +101,7 @@ func (s *CounterStateMachine) Read(query statemachine.Query[*counterv1.CounterIn
 }
 
 func (s *CounterStateMachine) get(query statemachine.Query[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+	defer query.Close()
 	query.Output(&counterv1.CounterOutput{
 		Output: &counterv1.CounterOutput_Get{
 			Get: &counterv1.GetOutput{

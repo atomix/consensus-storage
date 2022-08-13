@@ -11,6 +11,7 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/gogo/protobuf/proto"
+	"sync"
 )
 
 const Service = "atomix.multiraft.map.v1.Map"
@@ -39,6 +40,7 @@ func newMapStateMachine(ctx statemachine.PrimitiveContext[*mapv1.MapInput, *mapv
 		listeners:        make(map[statemachine.ProposalID]*mapv1.MapListener),
 		entries:          make(map[string]*mapv1.MapEntry),
 		timers:           make(map[string]statemachine.Timer),
+		watchers:         make(map[statemachine.QueryID]statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]),
 	}
 }
 
@@ -47,6 +49,8 @@ type MapStateMachine struct {
 	listeners map[statemachine.ProposalID]*mapv1.MapListener
 	entries   map[string]*mapv1.MapEntry
 	timers    map[string]statemachine.Timer
+	watchers  map[statemachine.QueryID]statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]
+	mu        sync.RWMutex
 }
 
 func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
@@ -92,8 +96,8 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 			return err
 		}
 		s.listeners[proposal.ID()] = listener
-		proposal.Watch(func(state statemachine.ProposalState) {
-			if state == statemachine.ProposalComplete {
+		proposal.Watch(func(state statemachine.OperationState) {
+			if state == statemachine.Complete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -117,20 +121,20 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 func (s *MapStateMachine) Update(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *mapv1.MapInput_Put:
-		s.proposePut(proposal)
+		s.put(proposal)
 	case *mapv1.MapInput_Remove:
-		s.proposeRemove(proposal)
+		s.remove(proposal)
 	case *mapv1.MapInput_Clear:
-		s.proposeClear(proposal)
+		s.clear(proposal)
 	case *mapv1.MapInput_Events:
-		s.proposeEvents(proposal)
+		s.events(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
 		proposal.Close()
 	}
 }
 
-func (s *MapStateMachine) proposePut(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
 	defer proposal.Close()
 
 	oldEntry := s.entries[proposal.Input().GetPut().Entry.Key]
@@ -165,7 +169,7 @@ func (s *MapStateMachine) proposePut(proposal statemachine.Proposal[*mapv1.MapIn
 
 	// Publish an event to listener streams.
 	if oldEntry != nil {
-		s.notify(&mapv1.EventsOutput{
+		s.notify(newEntry, &mapv1.EventsOutput{
 			Event: mapv1.Event{
 				Key: newEntry.Key,
 				Event: &mapv1.Event_Updated_{
@@ -177,7 +181,7 @@ func (s *MapStateMachine) proposePut(proposal statemachine.Proposal[*mapv1.MapIn
 			},
 		})
 	} else {
-		s.notify(&mapv1.EventsOutput{
+		s.notify(newEntry, &mapv1.EventsOutput{
 			Event: mapv1.Event{
 				Key: newEntry.Key,
 				Event: &mapv1.Event_Inserted_{
@@ -196,7 +200,7 @@ func (s *MapStateMachine) proposePut(proposal statemachine.Proposal[*mapv1.MapIn
 	})
 }
 
-func (s *MapStateMachine) proposeRemove(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) remove(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
 	defer proposal.Close()
 	entry, ok := s.entries[proposal.Input().GetRemove().Key]
 	if !ok {
@@ -210,7 +214,7 @@ func (s *MapStateMachine) proposeRemove(proposal statemachine.Proposal[*mapv1.Ma
 	s.cancelTTL(entry.Key)
 
 	// Publish an event to listener streams.
-	s.notify(&mapv1.EventsOutput{
+	s.notify(&mapv1.MapEntry{Key: entry.Key}, &mapv1.EventsOutput{
 		Event: mapv1.Event{
 			Key: entry.Key,
 			Event: &mapv1.Event_Removed_{
@@ -230,10 +234,10 @@ func (s *MapStateMachine) proposeRemove(proposal statemachine.Proposal[*mapv1.Ma
 	})
 }
 
-func (s *MapStateMachine) proposeClear(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) clear(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
 	defer proposal.Close()
 	for key, entry := range s.entries {
-		s.notify(&mapv1.EventsOutput{
+		s.notify(&mapv1.MapEntry{Key: entry.Key}, &mapv1.EventsOutput{
 			Event: mapv1.Event{
 				Key: entry.Key,
 				Event: &mapv1.Event_Removed_{
@@ -253,7 +257,7 @@ func (s *MapStateMachine) proposeClear(proposal statemachine.Proposal[*mapv1.Map
 	})
 }
 
-func (s *MapStateMachine) proposeEvents(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) events(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
 	// Output an empty event to ack the request
 	proposal.Output(&mapv1.MapOutput{
 		Output: &mapv1.MapOutput_Events{
@@ -265,8 +269,8 @@ func (s *MapStateMachine) proposeEvents(proposal statemachine.Proposal[*mapv1.Ma
 		Key: proposal.Input().GetEvents().Key,
 	}
 	s.listeners[proposal.ID()] = listener
-	proposal.Watch(func(state statemachine.ProposalState) {
-		if state == statemachine.ProposalComplete {
+	proposal.Watch(func(state statemachine.OperationState) {
+		if state == statemachine.Complete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -275,17 +279,18 @@ func (s *MapStateMachine) proposeEvents(proposal statemachine.Proposal[*mapv1.Ma
 func (s *MapStateMachine) Read(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
 	switch query.Input().Input.(type) {
 	case *mapv1.MapInput_Size_:
-		s.querySize(query)
+		s.size(query)
 	case *mapv1.MapInput_Get:
-		s.queryGet(query)
+		s.get(query)
 	case *mapv1.MapInput_Entries:
-		s.queryEntries(query)
+		s.list(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))
 	}
 }
 
-func (s *MapStateMachine) querySize(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) size(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+	defer query.Close()
 	query.Output(&mapv1.MapOutput{
 		Output: &mapv1.MapOutput_Size_{
 			Size_: &mapv1.SizeOutput{
@@ -295,7 +300,8 @@ func (s *MapStateMachine) querySize(query statemachine.Query[*mapv1.MapInput, *m
 	})
 }
 
-func (s *MapStateMachine) queryGet(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) get(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+	defer query.Close()
 	entry, ok := s.entries[query.Input().GetGet().Key]
 	if !ok {
 		query.Error(errors.NewNotFound("key %s not found", query.Input().GetGet().Key))
@@ -310,7 +316,7 @@ func (s *MapStateMachine) queryGet(query statemachine.Query[*mapv1.MapInput, *ma
 	}
 }
 
-func (s *MapStateMachine) queryEntries(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) list(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
 	for _, entry := range s.entries {
 		query.Output(&mapv1.MapOutput{
 			Output: &mapv1.MapOutput_Entries{
@@ -322,7 +328,7 @@ func (s *MapStateMachine) queryEntries(query statemachine.Query[*mapv1.MapInput,
 	}
 }
 
-func (s *MapStateMachine) notify(event *mapv1.EventsOutput) {
+func (s *MapStateMachine) notify(entry *mapv1.MapEntry, event *mapv1.EventsOutput) {
 	for proposalID, listener := range s.listeners {
 		if listener.Key == "" || listener.Key == event.Event.Key {
 			proposal, ok := s.Proposals().Get(proposalID)
@@ -337,6 +343,18 @@ func (s *MapStateMachine) notify(event *mapv1.EventsOutput) {
 			}
 		}
 	}
+
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, watcher := range s.watchers {
+		watcher.Output(&mapv1.MapOutput{
+			Output: &mapv1.MapOutput_Entries{
+				Entries: &mapv1.EntriesOutput{
+					Entry: s.newEntry(entry),
+				},
+			},
+		})
+	}
 }
 
 func (s *MapStateMachine) scheduleTTL(key string, entry *mapv1.MapEntry) {
@@ -344,7 +362,7 @@ func (s *MapStateMachine) scheduleTTL(key string, entry *mapv1.MapEntry) {
 	if entry.Value.Expire != nil {
 		s.timers[key] = s.Scheduler().RunAt(*entry.Value.Expire, func() {
 			delete(s.entries, key)
-			s.notify(&mapv1.EventsOutput{
+			s.notify(&mapv1.MapEntry{Key: entry.Key}, &mapv1.EventsOutput{
 				Event: mapv1.Event{
 					Key: entry.Key,
 					Event: &mapv1.Event_Removed_{

@@ -38,7 +38,7 @@ func (s *stateMachine) Update(bytes []byte) (dbstatemachine.Result, error) {
 
 func (s *stateMachine) Lookup(value interface{}) (interface{}, error) {
 	query := value.(*stream.Query)
-	s.state.Query(query.Input, query.Stream)
+	s.state.Query(query.Context, query.Input, query.Stream)
 	return nil, nil
 }
 

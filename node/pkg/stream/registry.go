@@ -5,6 +5,7 @@
 package stream
 
 import (
+	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"sync"
@@ -58,6 +59,7 @@ func (r *Registry) Lookup(streamID multiraftv1.StreamId) streams.WriteStream[*mu
 }
 
 type Query struct {
-	Input  *multiraftv1.QueryInput
-	Stream streams.WriteStream[*multiraftv1.QueryOutput]
+	Input   *multiraftv1.QueryInput
+	Stream  streams.WriteStream[*multiraftv1.QueryOutput]
+	Context context.Context
 }

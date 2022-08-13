@@ -185,8 +185,9 @@ func (p *Partition) StreamQuery(ctx context.Context, input *multiraftv1.QueryInp
 
 func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, output streams.WriteStream[*multiraftv1.QueryOutput]) error {
 	query := &stream.Query{
-		Input:  input,
-		Stream: output,
+		Input:   input,
+		Stream:  output,
+		Context: ctx,
 	}
 	md, _ := metadata.FromIncomingContext(ctx)
 	sync := md["Sync"] != nil

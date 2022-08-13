@@ -133,6 +133,7 @@ func (s *CounterStateMachine) Read(query statemachine.Query[*counterv1.AtomicCou
 }
 
 func (s *CounterStateMachine) get(query statemachine.Query[*counterv1.AtomicCounterInput, *counterv1.AtomicCounterOutput]) {
+	defer query.Close()
 	query.Output(&counterv1.AtomicCounterOutput{
 		Output: &counterv1.AtomicCounterOutput_Get{
 			Get: &counterv1.GetOutput{

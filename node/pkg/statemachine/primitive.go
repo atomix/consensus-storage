@@ -307,7 +307,6 @@ func (p *primitiveStateMachineExecutor[I, O]) read(query *raftSessionOperationQu
 		query.Close()
 	} else {
 		p.stateMachine.Read(primitiveQuery)
-		query.Close()
 	}
 }
 
@@ -464,29 +463,16 @@ type primitiveProposal[I, O any] struct {
 	session  *primitiveSession[I, O]
 	command  *raftSessionOperationCommand
 	input    I
-	watchers map[string]ProposalWatcher
+	watchers map[string]OperationWatcher
 }
 
 func (c *primitiveProposal[I, O]) ID() ProposalID {
 	return ProposalID(c.command.index)
 }
 
-func (c *primitiveProposal[I, O]) State() ProposalState {
-	switch c.command.state {
-	case multiraftv1.CommandSnapshot_PENDING:
-		return ProposalPending
-	case multiraftv1.CommandSnapshot_RUNNING:
-		return ProposalRunning
-	case multiraftv1.CommandSnapshot_COMPLETE:
-		return ProposalComplete
-	default:
-		panic("unknown proposal state")
-	}
-}
-
-func (c *primitiveProposal[I, O]) Watch(f ProposalWatcher) CancelFunc {
+func (c *primitiveProposal[I, O]) Watch(f OperationWatcher) CancelFunc {
 	if c.watchers == nil {
-		c.watchers = make(map[string]ProposalWatcher)
+		c.watchers = make(map[string]OperationWatcher)
 	}
 	id := uuid.New().String()
 	c.watchers[id] = f
@@ -530,7 +516,7 @@ func (c *primitiveProposal[I, O]) close() {
 	c.session.primitive.proposals.remove(c.command.index)
 	if c.watchers != nil {
 		for _, watcher := range c.watchers {
-			watcher(ProposalComplete)
+			watcher(Complete)
 		}
 	}
 }
@@ -557,6 +543,14 @@ type primitiveQuery[I, O any] struct {
 	input   I
 }
 
+func (q *primitiveQuery[I, O]) ID() QueryID {
+	return QueryID(q.query.sequenceNum)
+}
+
+func (q *primitiveQuery[I, O]) Watch(f OperationWatcher) CancelFunc {
+	return q.query.Watch(f)
+}
+
 func (q *primitiveQuery[I, O]) Session() Session[I, O] {
 	return q.session
 }
@@ -580,4 +574,8 @@ func (q *primitiveQuery[I, O]) Output(output O) {
 
 func (q *primitiveQuery[I, O]) Error(err error) {
 	q.query.Error(err)
+}
+
+func (q *primitiveQuery[I, O]) Close() {
+	q.query.Close()
 }

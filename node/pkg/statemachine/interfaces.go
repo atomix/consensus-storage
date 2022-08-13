@@ -108,7 +108,17 @@ type Sessions[I, O any] interface {
 	List() []Session[I, O]
 }
 
-// Operation is a proposal or read operation
+type OperationState int
+
+const (
+	Pending OperationState = iota
+	Runnnig
+	Complete
+)
+
+type OperationWatcher func(OperationState)
+
+// Operation is a proposal or query operation
 type Operation[I, O any] interface {
 	// Session returns the session executing the operation
 	Session() Session[I, O]
@@ -118,32 +128,20 @@ type Operation[I, O any] interface {
 	Output(O)
 	// Error returns a failure error
 	Error(error)
+	// Watch watches the operation state
+	Watch(f OperationWatcher) CancelFunc
+	// Close closes the proposal
+	Close()
 }
 
 type ProposalID uint64
-
-type ProposalState int
-
-const (
-	ProposalPending ProposalState = iota
-	ProposalRunning
-	ProposalComplete
-)
 
 // Proposal is a proposal operation
 type Proposal[I, O any] interface {
 	Operation[I, O]
 	// ID returns the proposal ID
 	ID() ProposalID
-	// State returns the current proposal state
-	State() ProposalState
-	// Watch watches the proposal state
-	Watch(f ProposalWatcher) CancelFunc
-	// Close closes the proposal
-	Close()
 }
-
-type ProposalWatcher func(ProposalState)
 
 // Proposals provides access to pending proposals
 type Proposals[I, O any] interface {
@@ -153,7 +151,11 @@ type Proposals[I, O any] interface {
 	List() []Proposal[I, O]
 }
 
+type QueryID uint64
+
 // Query is a read operation
 type Query[I, O any] interface {
 	Operation[I, O]
+	// ID returns the query ID
+	ID() QueryID
 }
