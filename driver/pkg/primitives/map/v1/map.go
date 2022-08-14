@@ -424,20 +424,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 									Value: e.Removed.Value.Value,
 									TTL:   e.Removed.Value.TTL,
 								},
-							},
-						},
-					},
-				}
-			case *api.Event_Expired_:
-				response = &mapv1.EventsResponse{
-					Event: mapv1.Event{
-						Key: output.Event.Key,
-						Event: &mapv1.Event_Expired_{
-							Expired: &mapv1.Event_Expired{
-								Value: mapv1.Value{
-									Value: e.Expired.Value.Value,
-									TTL:   e.Expired.Value.TTL,
-								},
+								Expired: e.Removed.Expired,
 							},
 						},
 					},

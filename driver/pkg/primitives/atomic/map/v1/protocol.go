@@ -637,21 +637,7 @@ func (s *multiRaftAtomicMapServer) Events(request *atomicmapv1.EventsRequest, se
 									Version: uint64(e.Removed.Value.Index),
 									TTL:     e.Removed.Value.TTL,
 								},
-							},
-						},
-					},
-				}
-			case *api.Event_Expired_:
-				response = &atomicmapv1.EventsResponse{
-					Event: atomicmapv1.Event{
-						Key: output.Event.Key,
-						Event: &atomicmapv1.Event_Expired_{
-							Expired: &atomicmapv1.Event_Expired{
-								Value: atomicmapv1.Value{
-									Value:   e.Expired.Value.Value,
-									Version: uint64(e.Expired.Value.Index),
-									TTL:     e.Expired.Value.TTL,
-								},
+								Expired: e.Removed.Expired,
 							},
 						},
 					},
