@@ -386,9 +386,10 @@ func (s *MapStateMachine) scheduleTTL(key string, entry *mapv1.MapEntry) {
 			s.notify(&mapv1.MapEntry{Key: entry.Key}, &mapv1.EventsOutput{
 				Event: mapv1.Event{
 					Key: entry.Key,
-					Event: &mapv1.Event_Expired_{
-						Expired: &mapv1.Event_Expired{
-							Value: *s.newValue(entry.Value),
+					Event: &mapv1.Event_Removed_{
+						Removed: &mapv1.Event_Removed{
+							Value:   *s.newValue(entry.Value),
+							Expired: true,
 						},
 					},
 				},
