@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ifdef TAG
-VERSION := $(word 2, $(subst /, , $(TAG)))
+MAJOR := $(word 1, $(subst ., , $(TAG)))
+MINOR := $(word 2, $(subst ., , $(TAG)))
+PATCH := $(word 3, $(subst ., , $(TAG)))
 endif
 
 .PHONY: build
@@ -14,8 +16,10 @@ build:
 release: build
 	docker push atomix/multi-raft-node:latest
 ifdef TAG
-	docker tag atomix/multi-raft-node:latest atomix/multi-raft-node:$(VERSION)
-	docker push atomix/multi-raft-node:$(VERSION)
+	docker tag atomix/multi-raft-node:latest atomix/multi-raft-node:${MAJOR}.${MINOR}.${PATCH}
+	docker tag atomix/multi-raft-node:latest atomix/multi-raft-node:${MAJOR}.${MINOR}
+	docker push atomix/multi-raft-node:${MAJOR}.${MINOR}.${PATCH}
+	docker push atomix/multi-raft-node:${MAJOR}.${MINOR}
 endif
 
 kind: build
