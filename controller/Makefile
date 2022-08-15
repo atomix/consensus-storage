@@ -3,9 +3,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 ifdef TAG
-MAJOR := $(word 1, $(subst ., , $(TAG)))
-MINOR := $(word 2, $(subst ., , $(TAG)))
-PATCH := $(word 3, $(subst ., , $(TAG)))
+VERSION := $(word 2, $(subst /, , $(TAG)))
+MAJOR := $(word 1, $(subst ., , $(VERSION)))
+MINOR := $(word 2, $(subst ., , $(VERSION)))
+PATCH := $(word 3, $(subst ., , $(VERSION)))
 endif
 
 .PHONY: build
