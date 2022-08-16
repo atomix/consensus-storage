@@ -44,6 +44,10 @@ func (r *partitionResolver) Build(target resolver.Target, cc resolver.ClientConn
 func (r *partitionResolver) update(config *multiraftv1.PartitionConfig) error {
 	r.config = config
 
+	if config.Leader == "" && config.Followers == nil {
+		return nil
+	}
+
 	var addrs []resolver.Address
 	if config.Leader != "" {
 		addrs = append(addrs, resolver.Address{
