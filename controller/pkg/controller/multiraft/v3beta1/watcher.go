@@ -313,9 +313,16 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								e.SendSnapshotAborted.Index, storeName.Name, e.SendSnapshotAborted.GroupID, e.SendSnapshotAborted.To)
 						})
 				case *multiraftv1.Event_SnapshotReceived:
+					index := uint64(e.SnapshotReceived.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotReceived.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
-							return true
+							if status.LastSnapshotIndex == nil || *status.LastSnapshotIndex < index {
+								status.LastUpdated = &timestamp
+								status.LastSnapshotTime = &timestamp
+								status.LastSnapshotIndex = &index
+								return true
+							}
+							return false
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotReceived", "Snapshot received from %s-%d-%d at index %d",
 								storeName.Name, e.SnapshotReceived.GroupID, e.SnapshotReceived.From, e.SnapshotReceived.Index)
@@ -328,9 +335,16 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							r.events.Eventf(member, "Normal", "SnapshotRecovered", "Recovered from snapshot at index %d", e.SnapshotRecovered.Index)
 						})
 				case *multiraftv1.Event_SnapshotCreated:
+					index := uint64(e.SnapshotCreated.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCreated.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
-							return true
+							if status.LastSnapshotIndex == nil || *status.LastSnapshotIndex < index {
+								status.LastUpdated = &timestamp
+								status.LastSnapshotTime = &timestamp
+								status.LastSnapshotIndex = &index
+								return true
+							}
+							return false
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotCreated", "Created snapshot at index %d", e.SnapshotCreated.Index)
 						})
