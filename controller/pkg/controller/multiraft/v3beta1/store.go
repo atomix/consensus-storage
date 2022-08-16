@@ -21,6 +21,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/utils/pointer"
+	"k8s.io/utils/strings/slices"
 	"net"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -198,9 +199,18 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, nil
 	}
 
-	if err := r.reconcileStore(ctx, store); err != nil {
+	if ok, err := r.reconcileStore(ctx, store); err != nil {
 		log.Error(err, "Reconcile MultiRaftStore")
 		return reconcile.Result{}, err
+	} else if ok {
+		return reconcile.Result{}, nil
+	}
+
+	if ok, err := r.reconcileStatus(ctx, store); err != nil {
+		log.Error(err, "Reconcile MultiRaftStore")
+		return reconcile.Result{}, err
+	} else if ok {
+		return reconcile.Result{}, nil
 	}
 	return reconcile.Result{}, nil
 }
@@ -741,21 +751,25 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 	return member, false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
-	partitions, err := r.getPartitions(ctx, store)
+func (r *MultiRaftStoreReconciler) reconcileStatus(ctx context.Context, store *storagev3beta1.MultiRaftStore) (bool, error) {
+	partitions, err := r.getPartitionStatuses(ctx, store)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if store.Status.Partitions != nil && isPartitionsEqual(store.Status.Partitions, partitions) {
-		return nil
+	if !isPartitionStatusesEqual(store.Status.Partitions, partitions) {
+		store.Status.Partitions = partitions
+		if err := r.client.Status().Update(ctx, store); err != nil {
+			return false, err
+		}
+		return true, nil
 	}
+	return false, nil
+}
 
-	config := getConfig(partitions)
-	marshaler := &jsonpb.Marshaler{}
-	configString, err := marshaler.MarshalToString(&config)
-	if err != nil {
-		return err
+func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *storagev3beta1.MultiRaftStore) (bool, error) {
+	if store.Status.Partitions == nil {
+		return false, nil
 	}
 
 	atomixStore := &atomixv3beta1.Store{}
@@ -765,7 +779,14 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 	}
 	if err := r.client.Get(ctx, atomixStoreName, atomixStore); err != nil {
 		if !k8serrors.IsNotFound(err) {
-			return err
+			return false, err
+		}
+
+		config := getDriverConfig(store.Status.Partitions)
+		marshaler := &jsonpb.Marshaler{}
+		configString, err := marshaler.MarshalToString(&config)
+		if err != nil {
+			return false, err
 		}
 
 		atomixStore = &atomixv3beta1.Store{
@@ -785,41 +806,56 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 			},
 		}
 		if err := controllerutil.SetControllerReference(store, atomixStore, r.scheme); err != nil {
-			return err
+			return false, err
 		}
 		if err := r.client.Create(ctx, atomixStore); err != nil {
-			return err
+			return false, err
 		}
-		return nil
+		return false, nil
 	}
 
-	atomixStore.Spec.Config = runtime.RawExtension{
-		Raw: []byte(configString),
-	}
-	if err := r.client.Update(ctx, atomixStore); err != nil {
-		return err
+	var config multiraftv1.DriverConfig
+	if err := jsonpb.UnmarshalString(string(atomixStore.Spec.Config.Raw), &config); err != nil {
+		return false, err
 	}
 
-	store.Status.Partitions = partitions
-	if err := r.client.Status().Update(ctx, store); err != nil {
-		return err
+	newConfig := getDriverConfig(store.Status.Partitions)
+	if !isDriverConfigEqual(config, newConfig) {
+		marshaler := &jsonpb.Marshaler{}
+		configString, err := marshaler.MarshalToString(&newConfig)
+		if err != nil {
+			return false, err
+		}
+
+		atomixStore.Spec.Config = runtime.RawExtension{
+			Raw: []byte(configString),
+		}
+		if err := r.client.Update(ctx, atomixStore); err != nil {
+			return false, err
+		}
+		return true, nil
 	}
-	return nil
+	return false, nil
 }
 
-func isPartitionsEqual(partitions1, partitions2 []storagev3beta1.RaftPartitionStatus) bool {
+func isPartitionStatusesEqual(partitions1, partitions2 []storagev3beta1.RaftPartitionStatus) bool {
 	if len(partitions1) != len(partitions2) {
 		return false
 	}
-	for i := 0; i < len(partitions1); i++ {
-		if !isPartitionEqual(partitions1[i], partitions2[i]) {
-			return false
+	for _, partition1 := range partitions1 {
+		for _, partition2 := range partitions2 {
+			if partition1.PartitionID == partition2.PartitionID && !isPartitionStatusEqual(partition1, partition2) {
+				return false
+			}
 		}
 	}
 	return true
 }
 
-func isPartitionEqual(partition1, partition2 storagev3beta1.RaftPartitionStatus) bool {
+func isPartitionStatusEqual(partition1, partition2 storagev3beta1.RaftPartitionStatus) bool {
+	if partition1.PartitionID != partition2.PartitionID {
+		return false
+	}
 	if partition1.Leader == nil && partition2.Leader != nil {
 		return false
 	}
@@ -832,21 +868,15 @@ func isPartitionEqual(partition1, partition2 storagev3beta1.RaftPartitionStatus)
 	if len(partition1.Followers) != len(partition2.Followers) {
 		return false
 	}
-	for _, follower1 := range partition1.Followers {
-		match := false
-		for _, follower2 := range partition2.Followers {
-			if follower1 == follower2 {
-				match = true
-			}
-		}
-		if !match {
+	for _, follower := range partition1.Followers {
+		if !slices.Contains(partition2.Followers, follower) {
 			return false
 		}
 	}
 	return true
 }
 
-func getConfig(partitions []storagev3beta1.RaftPartitionStatus) multiraftv1.DriverConfig {
+func getDriverConfig(partitions []storagev3beta1.RaftPartitionStatus) multiraftv1.DriverConfig {
 	var config multiraftv1.DriverConfig
 	for _, partition := range partitions {
 		var leader string
@@ -862,7 +892,42 @@ func getConfig(partitions []storagev3beta1.RaftPartitionStatus) multiraftv1.Driv
 	return config
 }
 
-func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *storagev3beta1.MultiRaftStore) ([]storagev3beta1.RaftPartitionStatus, error) {
+func isDriverConfigEqual(config1, config2 multiraftv1.DriverConfig) bool {
+	if len(config1.Partitions) != len(config2.Partitions) {
+		return false
+	}
+	for _, partition1 := range config1.Partitions {
+		for _, partition2 := range config2.Partitions {
+			if partition1.PartitionID == partition2.PartitionID && !isPartitionConfigEqual(partition1, partition2) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func isPartitionConfigEqual(partition1, partition2 multiraftv1.PartitionConfig) bool {
+	if partition1.Leader == "" && partition2.Leader != "" {
+		return false
+	}
+	if partition1.Leader != "" && partition2.Leader == "" {
+		return false
+	}
+	if partition1.Leader != "" && partition2.Leader != "" && partition1.Leader != partition2.Leader {
+		return false
+	}
+	if len(partition1.Followers) != len(partition2.Followers) {
+		return false
+	}
+	for _, follower := range partition1.Followers {
+		if !slices.Contains(partition2.Followers, follower) {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *MultiRaftStoreReconciler) getPartitionStatuses(ctx context.Context, store *storagev3beta1.MultiRaftStore) ([]storagev3beta1.RaftPartitionStatus, error) {
 	numGroups := getNumGroups(store)
 	partitions := make([]storagev3beta1.RaftPartitionStatus, 0, numGroups)
 	for groupID := 1; groupID <= numGroups; groupID++ {
