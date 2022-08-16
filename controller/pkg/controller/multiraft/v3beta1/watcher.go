@@ -316,7 +316,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 					index := uint64(e.SnapshotReceived.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotReceived.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
-							if status.LastSnapshotIndex == nil || *status.LastSnapshotIndex < index {
+							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
 								status.LastUpdated = &timestamp
 								status.LastSnapshotTime = &timestamp
 								status.LastSnapshotIndex = &index
@@ -328,9 +328,16 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								storeName.Name, e.SnapshotReceived.GroupID, e.SnapshotReceived.From, e.SnapshotReceived.Index)
 						})
 				case *multiraftv1.Event_SnapshotRecovered:
+					index := uint64(e.SnapshotRecovered.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotRecovered.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
-							return true
+							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
+								status.LastUpdated = &timestamp
+								status.LastSnapshotTime = &timestamp
+								status.LastSnapshotIndex = &index
+								return true
+							}
+							return false
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotRecovered", "Recovered from snapshot at index %d", e.SnapshotRecovered.Index)
 						})
@@ -338,7 +345,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 					index := uint64(e.SnapshotCreated.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCreated.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
-							if status.LastSnapshotIndex == nil || *status.LastSnapshotIndex < index {
+							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
 								status.LastUpdated = &timestamp
 								status.LastSnapshotTime = &timestamp
 								status.LastSnapshotIndex = &index
@@ -349,9 +356,16 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							r.events.Eventf(member, "Normal", "SnapshotCreated", "Created snapshot at index %d", e.SnapshotCreated.Index)
 						})
 				case *multiraftv1.Event_SnapshotCompacted:
+					index := uint64(e.SnapshotCompacted.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCompacted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
-							return true
+							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
+								status.LastUpdated = &timestamp
+								status.LastSnapshotTime = &timestamp
+								status.LastSnapshotIndex = &index
+								return true
+							}
+							return false
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotCompacted", "Compacted snapshot at index %d", e.SnapshotCompacted.Index)
 						})
