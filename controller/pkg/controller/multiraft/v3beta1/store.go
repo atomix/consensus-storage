@@ -685,6 +685,21 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 		return nil, false, err
 	}
 
+	if member.Status.PodRef == nil || member.Status.PodRef.UID != pod.UID {
+		member.Status.PodRef = &corev1.ObjectReference{
+			APIVersion: pod.APIVersion,
+			Kind:       pod.Kind,
+			Namespace:  pod.Namespace,
+			Name:       pod.Name,
+			UID:        pod.UID,
+		}
+		member.Status.Version = nil
+		if err := r.client.Status().Update(ctx, member); err != nil {
+			return nil, false, err
+		}
+		return member, true, nil
+	}
+
 	var containerVersion int32
 	for _, containerStatus := range pod.Status.ContainerStatuses {
 		if containerStatus.Name == nodeContainerName {

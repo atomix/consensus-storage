@@ -46,6 +46,7 @@ type RaftMemberSpec struct {
 
 // RaftMemberStatus defines the status of a RaftMember
 type RaftMemberStatus struct {
+	PodRef            *corev1.ObjectReference      `json:"podRef"`
 	Version           *int32                       `json:"version"`
 	State             RaftMemberState              `json:"state,omitempty"`
 	Role              *RaftMemberRole              `json:"role,omitempty"`

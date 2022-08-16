@@ -47,6 +47,22 @@ spec:
             status:
               type: object
               properties:
+                podRef:
+                  type: object
+                  required:
+                    - name
+                    - uid
+                  properties:
+                    apiVersion:
+                      type: string
+                    kind:
+                      type: string
+                    namespace:
+                      type: string
+                    name:
+                      type: string
+                    uid:
+                      type: string
                 version:
                   type: integer
                 state:
