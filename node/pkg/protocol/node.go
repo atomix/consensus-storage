@@ -224,8 +224,8 @@ func (n *Node) getRaftConfig(config multiraftv1.GroupConfig) raftconfig.Config {
 		ElectionRTT:        electionRTT,
 		HeartbeatRTT:       1,
 		CheckQuorum:        true,
-		SnapshotEntries:    n.config.SnapshotEntryThreshold,
-		CompactionOverhead: n.config.CompactionRetainEntries,
+		SnapshotEntries:    snapshotEntryThreshold,
+		CompactionOverhead: compactionRetainEntries,
 		IsObserver:         config.Role == multiraftv1.MemberRole_OBSERVER,
 		IsWitness:          config.Role == multiraftv1.MemberRole_WITNESS,
 	}
