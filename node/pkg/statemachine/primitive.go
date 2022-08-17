@@ -158,7 +158,7 @@ func newPrimitiveContext[I, O any](manager *primitiveManager, info primitiveInfo
 		primitiveType: primitiveType,
 		sessions:      newPrimitiveSessions[I, O](),
 		proposals:     newPrimitiveProposals[I, O](),
-		log: logging.GetLogger().WithFields(
+		log: log.WithFields(
 			logging.String("Service", info.spec.Service),
 			logging.String("Namespace", info.spec.Namespace),
 			logging.String("Name", info.spec.Name)),

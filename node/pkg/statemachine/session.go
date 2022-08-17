@@ -319,13 +319,13 @@ func (c *raftSessionCommand) Input() *multiraftv1.SessionCommandInput {
 }
 
 func (c *raftSessionCommand) execute(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
-	log.Debugw("Executing command",
-		logging.Uint64("Session", uint64(c.session.sessionID)),
-		logging.Uint64("Command", uint64(c.input.SequenceNum)))
 	c.stream = stream
 	switch c.state {
 	case multiraftv1.CommandSnapshot_PENDING:
 		c.open(input)
+		log.Debugw("Executing command",
+			logging.Uint64("Session", uint64(c.session.sessionID)),
+			logging.Uint64("Command", uint64(c.input.SequenceNum)))
 		switch input.Input.(type) {
 		case *multiraftv1.SessionCommandInput_Operation:
 			c.session.manager.primitives.update(c.Operation())
