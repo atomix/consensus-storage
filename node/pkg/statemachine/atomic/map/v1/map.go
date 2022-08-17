@@ -592,13 +592,9 @@ func (s *MapStateMachine) doEntries(query statemachine.Query[*mapv1.EntriesInput
 func (s *MapStateMachine) notify(entry *mapv1.AtomicMapEntry, event *mapv1.EventsOutput) {
 	for proposalID, listener := range s.listeners {
 		if listener.Key == "" || listener.Key == event.Event.Key {
-			proposal, ok := s.Proposals().Get(proposalID)
+			proposal, ok := s.events.Proposals().Get(proposalID)
 			if ok {
-				proposal.Output(&mapv1.AtomicMapOutput{
-					Output: &mapv1.AtomicMapOutput_Events{
-						Events: event,
-					},
-				})
+				proposal.Output(event)
 			} else {
 				delete(s.listeners, proposalID)
 			}
