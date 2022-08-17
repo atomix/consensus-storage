@@ -8,6 +8,7 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/google/uuid"
 	"time"
 )
@@ -157,6 +158,10 @@ func newPrimitiveContext[I, O any](manager *primitiveManager, info primitiveInfo
 		primitiveType: primitiveType,
 		sessions:      newPrimitiveSessions[I, O](),
 		proposals:     newPrimitiveProposals[I, O](),
+		log: logging.GetLogger().WithFields(
+			logging.String("Service", info.spec.Service),
+			logging.String("Namespace", info.spec.Namespace),
+			logging.String("Name", info.spec.Name)),
 	}
 }
 
@@ -166,10 +171,15 @@ type primitiveContext[I, O any] struct {
 	sessions      *primitiveSessions[I, O]
 	primitiveType PrimitiveType[I, O]
 	proposals     *primitiveProposals[I, O]
+	log           logging.Logger
 }
 
 func (p *primitiveContext[I, O]) info() primitiveInfo {
 	return p.primitiveInfo
+}
+
+func (p *primitiveContext[I, O]) Log() logging.Logger {
+	return p.log
 }
 
 func (p *primitiveContext[I, O]) PrimitiveID() PrimitiveID {
@@ -253,12 +263,12 @@ func (p *primitiveStateMachineExecutor[I, O]) recover(reader *snapshot.Reader) e
 				continue
 			}
 			operation := parentCommand.Operation()
-			if operation.Input().PrimitiveID == multiraftv1.PrimitiveID(p.id) {
-				command, err := newPrimitiveProposal[I, O](session, operation)
+			if operation.Input().PrimitiveID == p.id {
+				proposal, err := newPrimitiveProposal[I, O](session, operation)
 				if err != nil {
 					return err
 				}
-				command.open()
+				proposal.open()
 			}
 		}
 	}
@@ -337,8 +347,8 @@ func (s *primitiveSessions[I, O]) remove(sessionID multiraftv1.SessionID) {
 	delete(s.sessions, sessionID)
 }
 
-func (s *primitiveSessions[I, O]) Get(id multiraftv1.SessionID) (Session[I, O], bool) {
-	session, ok := s.sessions[id]
+func (s *primitiveSessions[I, O]) Get(id SessionID) (Session[I, O], bool) {
+	session, ok := s.sessions[multiraftv1.SessionID(id)]
 	return session, ok
 }
 
@@ -356,6 +366,7 @@ func newPrimitiveSession[I, O any](context *primitiveStateMachineExecutor[I, O],
 		session:   parent,
 		proposals: newPrimitiveProposals[I, O](),
 		state:     multiraftv1.SessionSnapshot_OPEN,
+		log:       context.log.WithFields(logging.Uint64("Session", uint64(parent.sessionID))),
 	}
 }
 
@@ -365,6 +376,11 @@ type primitiveSession[I, O any] struct {
 	proposals *primitiveProposals[I, O]
 	state     multiraftv1.SessionSnapshot_State
 	watchers  map[string]SessionWatcher
+	log       logging.Logger
+}
+
+func (s *primitiveSession[I, O]) Log() logging.Logger {
+	return s.log
 }
 
 func (s *primitiveSession[I, O]) ID() SessionID {
@@ -399,7 +415,7 @@ func (s *primitiveSession[I, O]) Proposals() Proposals[I, O] {
 
 func (s *primitiveSession[I, O]) open() {
 	s.primitive.sessions.add(s)
-	s.session.closers[multiraftv1.PrimitiveID(s.primitive.id)] = s.close
+	s.session.closers[s.primitive.id] = s.close
 	s.state = multiraftv1.SessionSnapshot_OPEN
 }
 
@@ -454,6 +470,7 @@ func newPrimitiveProposal[I, O any](session *primitiveSession[I, O], command *ra
 		session: session,
 		command: command,
 		input:   input,
+		log:     session.log.WithFields(logging.Uint64("Proposal", uint64(command.index))),
 	}
 	command.closer = proposal.close
 	return proposal, nil
@@ -464,6 +481,11 @@ type primitiveProposal[I, O any] struct {
 	command  *raftSessionOperationCommand
 	input    I
 	watchers map[string]OperationWatcher
+	log      logging.Logger
+}
+
+func (c *primitiveProposal[I, O]) Log() logging.Logger {
+	return c.log
 }
 
 func (c *primitiveProposal[I, O]) ID() ProposalID {
@@ -534,6 +556,7 @@ func newPrimitiveQuery[I, O any](session *primitiveSession[I, O], query *raftSes
 		session: session,
 		query:   query,
 		input:   input,
+		log:     session.log,
 	}, nil
 }
 
@@ -541,6 +564,11 @@ type primitiveQuery[I, O any] struct {
 	session *primitiveSession[I, O]
 	query   *raftSessionOperationQuery
 	input   I
+	log     logging.Logger
+}
+
+func (q *primitiveQuery[I, O]) Log() logging.Logger {
+	return q.log
 }
 
 func (q *primitiveQuery[I, O]) ID() QueryID {

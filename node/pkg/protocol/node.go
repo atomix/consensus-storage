@@ -26,7 +26,7 @@ const (
 	defaultDataDir                 = "/var/lib/atomix/data"
 	defaultSnapshotEntryThreshold  = 10000
 	defaultCompactionRetainEntries = 1000
-	defaultClientTimeout           = 30 * time.Second
+	defaultClientTimeout           = time.Minute
 )
 
 func NewNode(config *multiraftv1.NodeConfig, registry *statemachine.PrimitiveTypeRegistry) *Node {

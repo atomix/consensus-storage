@@ -40,6 +40,9 @@ type stateManager struct {
 }
 
 func (s *stateManager) Snapshot(writer *snapshot.Writer) error {
+	log.Infow("Persisting state to snapshot",
+		logging.Uint64("Index", uint64(s.index)),
+		logging.Time("Time", s.time))
 	snapshot := &multiraftv1.Snapshot{
 		Index:     s.index,
 		Timestamp: s.time,
@@ -55,6 +58,9 @@ func (s *stateManager) Recover(reader *snapshot.Reader) error {
 	if err := reader.ReadMessage(snapshot); err != nil {
 		return err
 	}
+	log.Infow("Recovering state from snapshot",
+		logging.Uint64("Index", uint64(snapshot.Index)),
+		logging.Time("Time", snapshot.Timestamp))
 	s.index = snapshot.Index
 	s.time = snapshot.Timestamp
 	return s.sessions.recover(reader)

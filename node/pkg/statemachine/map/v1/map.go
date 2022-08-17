@@ -35,13 +35,15 @@ var mapCodec = statemachine.NewCodec[*mapv1.MapInput, *mapv1.MapOutput](
 	})
 
 func newMapStateMachine(ctx statemachine.PrimitiveContext[*mapv1.MapInput, *mapv1.MapOutput]) statemachine.Primitive[*mapv1.MapInput, *mapv1.MapOutput] {
-	return &MapStateMachine{
+	sm := &MapStateMachine{
 		PrimitiveContext: ctx,
 		listeners:        make(map[statemachine.ProposalID]*mapv1.MapListener),
 		entries:          make(map[string]*mapv1.MapEntry),
 		timers:           make(map[string]statemachine.Timer),
-		watchers:         make(map[statemachine.QueryID]statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]),
+		watchers:         make(map[statemachine.QueryID]statemachine.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]),
 	}
+	sm.init()
+	return sm
 }
 
 type MapStateMachine struct {
@@ -49,8 +51,130 @@ type MapStateMachine struct {
 	listeners map[statemachine.ProposalID]*mapv1.MapListener
 	entries   map[string]*mapv1.MapEntry
 	timers    map[string]statemachine.Timer
-	watchers  map[statemachine.QueryID]statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]
+	watchers  map[statemachine.QueryID]statemachine.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]
 	mu        sync.RWMutex
+	put       statemachine.Updater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.PutInput, *mapv1.PutOutput]
+	remove    statemachine.Updater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.RemoveInput, *mapv1.RemoveOutput]
+	clear     statemachine.Updater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.ClearInput, *mapv1.ClearOutput]
+	events    statemachine.Updater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.EventsInput, *mapv1.EventsOutput]
+	size      statemachine.Reader[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.SizeInput, *mapv1.SizeOutput]
+	get       statemachine.Reader[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.GetInput, *mapv1.GetOutput]
+	list      statemachine.Reader[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.EntriesInput, *mapv1.EntriesOutput]
+}
+
+func (s *MapStateMachine) init() {
+	s.put = statemachine.NewUpdater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.PutInput, *mapv1.PutOutput](s).
+		Name("Put").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.PutInput, bool) {
+			if put, ok := input.Input.(*mapv1.MapInput_Put); ok {
+				return put.Put, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.PutOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Put{
+					Put: output,
+				},
+			}
+		}).
+		Build(s.doPut)
+	s.remove = statemachine.NewUpdater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.RemoveInput, *mapv1.RemoveOutput](s).
+		Name("Remove").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.RemoveInput, bool) {
+			if remove, ok := input.Input.(*mapv1.MapInput_Remove); ok {
+				return remove.Remove, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.RemoveOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Remove{
+					Remove: output,
+				},
+			}
+		}).
+		Build(s.doRemove)
+	s.clear = statemachine.NewUpdater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.ClearInput, *mapv1.ClearOutput](s).
+		Name("Clear").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.ClearInput, bool) {
+			if clear, ok := input.Input.(*mapv1.MapInput_Clear); ok {
+				return clear.Clear, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.ClearOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Clear{
+					Clear: output,
+				},
+			}
+		}).
+		Build(s.doClear)
+	s.events = statemachine.NewUpdater[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.EventsInput, *mapv1.EventsOutput](s).
+		Name("Events").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.EventsInput, bool) {
+			if events, ok := input.Input.(*mapv1.MapInput_Events); ok {
+				return events.Events, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.EventsOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Events{
+					Events: output,
+				},
+			}
+		}).
+		Build(s.doEvents)
+	s.size = statemachine.NewReader[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.SizeInput, *mapv1.SizeOutput](s).
+		Name("Size").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.SizeInput, bool) {
+			if size, ok := input.Input.(*mapv1.MapInput_Size_); ok {
+				return size.Size_, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.SizeOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Size_{
+					Size_: output,
+				},
+			}
+		}).
+		Build(s.doSize)
+	s.get = statemachine.NewReader[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.GetInput, *mapv1.GetOutput](s).
+		Name("Get").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.GetInput, bool) {
+			if get, ok := input.Input.(*mapv1.MapInput_Get); ok {
+				return get.Get, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.GetOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Get{
+					Get: output,
+				},
+			}
+		}).
+		Build(s.doGet)
+	s.list = statemachine.NewReader[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.EntriesInput, *mapv1.EntriesOutput](s).
+		Name("Entries").
+		Decoder(func(input *mapv1.MapInput) (*mapv1.EntriesInput, bool) {
+			if entries, ok := input.Input.(*mapv1.MapInput_Entries); ok {
+				return entries.Entries, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.EntriesOutput) *mapv1.MapOutput {
+			return &mapv1.MapOutput{
+				Output: &mapv1.MapOutput_Entries{
+					Entries: output,
+				},
+			}
+		}).
+		Build(s.doEntries)
 }
 
 func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
@@ -121,51 +245,47 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 func (s *MapStateMachine) Update(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *mapv1.MapInput_Put:
-		s.put(proposal)
+		s.put.Update(proposal)
 	case *mapv1.MapInput_Remove:
-		s.remove(proposal)
+		s.remove.Update(proposal)
 	case *mapv1.MapInput_Clear:
-		s.clear(proposal)
+		s.clear.Update(proposal)
 	case *mapv1.MapInput_Events:
-		s.events(proposal)
+		s.events.Update(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
 		proposal.Close()
 	}
 }
 
-func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doPut(proposal statemachine.Proposal[*mapv1.PutInput, *mapv1.PutOutput]) {
 	defer proposal.Close()
 
-	oldEntry := s.entries[proposal.Input().GetPut().Entry.Key]
+	oldEntry := s.entries[proposal.Input().Entry.Key]
 
 	// If the value is equal to the current value, return a no-op.
-	if oldEntry != nil && bytes.Equal(oldEntry.Value.Value, proposal.Input().GetPut().Entry.Value.Value) {
-		proposal.Output(&mapv1.MapOutput{
-			Output: &mapv1.MapOutput_Put{
-				Put: &mapv1.PutOutput{},
-			},
-		})
+	if oldEntry != nil && bytes.Equal(oldEntry.Value.Value, proposal.Input().Entry.Value.Value) {
+		proposal.Output(&mapv1.PutOutput{})
 		return
 	}
 
 	// Create a new entry and increment the revision number
 	newEntry := &mapv1.MapEntry{
-		Key: proposal.Input().GetPut().Entry.Key,
+		Key: proposal.Input().Entry.Key,
 		Value: &mapv1.MapValue{
-			Value: proposal.Input().GetPut().Entry.Value.Value,
+			Value: proposal.Input().Entry.Value.Value,
 		},
 	}
-	if proposal.Input().GetPut().Entry.Value.TTL != nil {
-		expire := s.Scheduler().Time().Add(*proposal.Input().GetPut().Entry.Value.TTL)
+	if proposal.Input().Entry.Value.TTL != nil {
+		expire := s.Scheduler().Time().Add(*proposal.Input().Entry.Value.TTL)
 		newEntry.Value.Expire = &expire
 	}
 
 	// Create a new entry value and set it in the map.
-	s.entries[proposal.Input().GetPut().Entry.Key] = newEntry
+	s.entries[proposal.Input().Entry.Key] = newEntry
 
 	// Schedule the timeout for the value if necessary.
-	s.scheduleTTL(proposal.Input().GetPut().Entry.Key, newEntry)
+	s.scheduleTTL(proposal.Input().Entry.Key, newEntry)
 
 	// Publish an event to listener streams.
 	if oldEntry != nil {
@@ -180,12 +300,8 @@ func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.MapInput, *m
 				},
 			},
 		})
-		proposal.Output(&mapv1.MapOutput{
-			Output: &mapv1.MapOutput_Put{
-				Put: &mapv1.PutOutput{
-					PrevValue: s.newValue(oldEntry.Value),
-				},
-			},
+		proposal.Output(&mapv1.PutOutput{
+			PrevValue: s.newValue(oldEntry.Value),
 		})
 	} else {
 		s.notify(newEntry, &mapv1.EventsOutput{
@@ -198,23 +314,19 @@ func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.MapInput, *m
 				},
 			},
 		})
-		proposal.Output(&mapv1.MapOutput{
-			Output: &mapv1.MapOutput_Put{
-				Put: &mapv1.PutOutput{},
-			},
-		})
+		proposal.Output(&mapv1.PutOutput{})
 	}
 }
 
-func (s *MapStateMachine) remove(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doRemove(proposal statemachine.Proposal[*mapv1.RemoveInput, *mapv1.RemoveOutput]) {
 	defer proposal.Close()
-	entry, ok := s.entries[proposal.Input().GetRemove().Key]
+	entry, ok := s.entries[proposal.Input().Key]
 	if !ok {
-		proposal.Error(errors.NewNotFound("key '%s' not found", proposal.Input().GetRemove().Key))
+		proposal.Error(errors.NewNotFound("key '%s' not found", proposal.Input().Key))
 		return
 	}
 
-	delete(s.entries, proposal.Input().GetRemove().Key)
+	delete(s.entries, proposal.Input().Key)
 
 	// Schedule the timeout for the value if necessary.
 	s.cancelTTL(entry.Key)
@@ -231,16 +343,12 @@ func (s *MapStateMachine) remove(proposal statemachine.Proposal[*mapv1.MapInput,
 		},
 	})
 
-	proposal.Output(&mapv1.MapOutput{
-		Output: &mapv1.MapOutput_Remove{
-			Remove: &mapv1.RemoveOutput{
-				Value: s.newValue(entry.Value),
-			},
-		},
+	proposal.Output(&mapv1.RemoveOutput{
+		Value: s.newValue(entry.Value),
 	})
 }
 
-func (s *MapStateMachine) clear(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doClear(proposal statemachine.Proposal[*mapv1.ClearInput, *mapv1.ClearOutput]) {
 	defer proposal.Close()
 	for key, entry := range s.entries {
 		s.notify(&mapv1.MapEntry{Key: entry.Key}, &mapv1.EventsOutput{
@@ -256,23 +364,15 @@ func (s *MapStateMachine) clear(proposal statemachine.Proposal[*mapv1.MapInput, 
 		s.cancelTTL(key)
 		delete(s.entries, key)
 	}
-	proposal.Output(&mapv1.MapOutput{
-		Output: &mapv1.MapOutput_Clear{
-			Clear: &mapv1.ClearOutput{},
-		},
-	})
+	proposal.Output(&mapv1.ClearOutput{})
 }
 
-func (s *MapStateMachine) events(proposal statemachine.Proposal[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*mapv1.EventsInput, *mapv1.EventsOutput]) {
 	// Output an empty event to ack the request
-	proposal.Output(&mapv1.MapOutput{
-		Output: &mapv1.MapOutput_Events{
-			Events: &mapv1.EventsOutput{},
-		},
-	})
+	proposal.Output(&mapv1.EventsOutput{})
 
 	listener := &mapv1.MapListener{
-		Key: proposal.Input().GetEvents().Key,
+		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
 	proposal.Watch(func(state statemachine.OperationState) {
@@ -285,55 +385,43 @@ func (s *MapStateMachine) events(proposal statemachine.Proposal[*mapv1.MapInput,
 func (s *MapStateMachine) Read(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
 	switch query.Input().Input.(type) {
 	case *mapv1.MapInput_Size_:
-		s.size(query)
+		s.size.Read(query)
 	case *mapv1.MapInput_Get:
-		s.get(query)
+		s.get.Read(query)
 	case *mapv1.MapInput_Entries:
-		s.list(query)
+		s.list.Read(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))
 	}
 }
 
-func (s *MapStateMachine) size(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doSize(query statemachine.Query[*mapv1.SizeInput, *mapv1.SizeOutput]) {
 	defer query.Close()
-	query.Output(&mapv1.MapOutput{
-		Output: &mapv1.MapOutput_Size_{
-			Size_: &mapv1.SizeOutput{
-				Size_: uint32(len(s.entries)),
-			},
-		},
+	query.Output(&mapv1.SizeOutput{
+		Size_: uint32(len(s.entries)),
 	})
 }
 
-func (s *MapStateMachine) get(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doGet(query statemachine.Query[*mapv1.GetInput, *mapv1.GetOutput]) {
 	defer query.Close()
-	entry, ok := s.entries[query.Input().GetGet().Key]
+	entry, ok := s.entries[query.Input().Key]
 	if !ok {
-		query.Error(errors.NewNotFound("key %s not found", query.Input().GetGet().Key))
+		query.Error(errors.NewNotFound("key %s not found", query.Input().Key))
 	} else {
-		query.Output(&mapv1.MapOutput{
-			Output: &mapv1.MapOutput_Get{
-				Get: &mapv1.GetOutput{
-					Value: s.newValue(entry.Value),
-				},
-			},
+		query.Output(&mapv1.GetOutput{
+			Value: s.newValue(entry.Value),
 		})
 	}
 }
 
-func (s *MapStateMachine) list(query statemachine.Query[*mapv1.MapInput, *mapv1.MapOutput]) {
+func (s *MapStateMachine) doEntries(query statemachine.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]) {
 	for _, entry := range s.entries {
-		query.Output(&mapv1.MapOutput{
-			Output: &mapv1.MapOutput_Entries{
-				Entries: &mapv1.EntriesOutput{
-					Entry: s.newEntry(entry),
-				},
-			},
+		query.Output(&mapv1.EntriesOutput{
+			Entry: s.newEntry(entry),
 		})
 	}
 
-	if query.Input().GetEntries().Watch {
+	if query.Input().Watch {
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
@@ -368,12 +456,8 @@ func (s *MapStateMachine) notify(entry *mapv1.MapEntry, event *mapv1.EventsOutpu
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for _, watcher := range s.watchers {
-		watcher.Output(&mapv1.MapOutput{
-			Output: &mapv1.MapOutput_Entries{
-				Entries: &mapv1.EntriesOutput{
-					Entry: s.newEntry(entry),
-				},
-			},
+		watcher.Output(&mapv1.EntriesOutput{
+			Entry: s.newEntry(entry),
 		})
 	}
 }

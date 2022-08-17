@@ -36,13 +36,15 @@ var mapCodec = statemachine.NewCodec[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutp
 	})
 
 func newMapStateMachine(ctx statemachine.PrimitiveContext[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) statemachine.Primitive[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput] {
-	return &MapStateMachine{
+	sm := &MapStateMachine{
 		PrimitiveContext: ctx,
 		listeners:        make(map[statemachine.ProposalID]*mapv1.AtomicMapListener),
 		entries:          make(map[string]*mapv1.AtomicMapEntry),
 		timers:           make(map[string]statemachine.Timer),
-		watchers:         make(map[statemachine.QueryID]statemachine.Query[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]),
+		watchers:         make(map[statemachine.QueryID]statemachine.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]),
 	}
+	sm.init()
+	return sm
 }
 
 type MapStateMachine struct {
@@ -50,11 +52,168 @@ type MapStateMachine struct {
 	listeners map[statemachine.ProposalID]*mapv1.AtomicMapListener
 	entries   map[string]*mapv1.AtomicMapEntry
 	timers    map[string]statemachine.Timer
-	watchers  map[statemachine.QueryID]statemachine.Query[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]
+	watchers  map[statemachine.QueryID]statemachine.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]
 	mu        sync.RWMutex
+	put       statemachine.Updater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.PutInput, *mapv1.PutOutput]
+	insert    statemachine.Updater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.InsertInput, *mapv1.InsertOutput]
+	update    statemachine.Updater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.UpdateInput, *mapv1.UpdateOutput]
+	remove    statemachine.Updater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.RemoveInput, *mapv1.RemoveOutput]
+	clear     statemachine.Updater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.ClearInput, *mapv1.ClearOutput]
+	events    statemachine.Updater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.EventsInput, *mapv1.EventsOutput]
+	size      statemachine.Reader[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.SizeInput, *mapv1.SizeOutput]
+	get       statemachine.Reader[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.GetInput, *mapv1.GetOutput]
+	list      statemachine.Reader[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.EntriesInput, *mapv1.EntriesOutput]
+}
+
+func (s *MapStateMachine) init() {
+	s.put = statemachine.NewUpdater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.PutInput, *mapv1.PutOutput](s).
+		Name("Put").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.PutInput, bool) {
+			if put, ok := input.Input.(*mapv1.AtomicMapInput_Put); ok {
+				return put.Put, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.PutOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Put{
+					Put: output,
+				},
+			}
+		}).
+		Build(s.doPut)
+	s.insert = statemachine.NewUpdater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.InsertInput, *mapv1.InsertOutput](s).
+		Name("Insert").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.InsertInput, bool) {
+			if insert, ok := input.Input.(*mapv1.AtomicMapInput_Insert); ok {
+				return insert.Insert, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.InsertOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Insert{
+					Insert: output,
+				},
+			}
+		}).
+		Build(s.doInsert)
+	s.update = statemachine.NewUpdater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.UpdateInput, *mapv1.UpdateOutput](s).
+		Name("Update").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.UpdateInput, bool) {
+			if update, ok := input.Input.(*mapv1.AtomicMapInput_Update); ok {
+				return update.Update, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.UpdateOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Update{
+					Update: output,
+				},
+			}
+		}).
+		Build(s.doUpdate)
+	s.remove = statemachine.NewUpdater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.RemoveInput, *mapv1.RemoveOutput](s).
+		Name("Remove").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.RemoveInput, bool) {
+			if remove, ok := input.Input.(*mapv1.AtomicMapInput_Remove); ok {
+				return remove.Remove, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.RemoveOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Remove{
+					Remove: output,
+				},
+			}
+		}).
+		Build(s.doRemove)
+	s.clear = statemachine.NewUpdater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.ClearInput, *mapv1.ClearOutput](s).
+		Name("Clear").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.ClearInput, bool) {
+			if clear, ok := input.Input.(*mapv1.AtomicMapInput_Clear); ok {
+				return clear.Clear, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.ClearOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Clear{
+					Clear: output,
+				},
+			}
+		}).
+		Build(s.doClear)
+	s.events = statemachine.NewUpdater[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.EventsInput, *mapv1.EventsOutput](s).
+		Name("Events").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.EventsInput, bool) {
+			if events, ok := input.Input.(*mapv1.AtomicMapInput_Events); ok {
+				return events.Events, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.EventsOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Events{
+					Events: output,
+				},
+			}
+		}).
+		Build(s.doEvents)
+	s.size = statemachine.NewReader[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.SizeInput, *mapv1.SizeOutput](s).
+		Name("Size").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.SizeInput, bool) {
+			if size, ok := input.Input.(*mapv1.AtomicMapInput_Size_); ok {
+				return size.Size_, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.SizeOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Size_{
+					Size_: output,
+				},
+			}
+		}).
+		Build(s.doSize)
+	s.get = statemachine.NewReader[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.GetInput, *mapv1.GetOutput](s).
+		Name("Get").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.GetInput, bool) {
+			if get, ok := input.Input.(*mapv1.AtomicMapInput_Get); ok {
+				return get.Get, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.GetOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Get{
+					Get: output,
+				},
+			}
+		}).
+		Build(s.doGet)
+	s.list = statemachine.NewReader[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput, *mapv1.EntriesInput, *mapv1.EntriesOutput](s).
+		Name("Entries").
+		Decoder(func(input *mapv1.AtomicMapInput) (*mapv1.EntriesInput, bool) {
+			if entries, ok := input.Input.(*mapv1.AtomicMapInput_Entries); ok {
+				return entries.Entries, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *mapv1.EntriesOutput) *mapv1.AtomicMapOutput {
+			return &mapv1.AtomicMapOutput{
+				Output: &mapv1.AtomicMapOutput_Entries{
+					Entries: output,
+				},
+			}
+		}).
+		Build(s.doEntries)
 }
 
 func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
+	s.Log().Infow("Persisting AtomicMap to snapshot")
 	if err := writer.WriteVarInt(len(s.listeners)); err != nil {
 		return err
 	}
@@ -79,6 +238,7 @@ func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
 }
 
 func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
+	s.Log().Infow("Recovering AtomicMap from snapshot")
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
@@ -122,58 +282,54 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 func (s *MapStateMachine) Update(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *mapv1.AtomicMapInput_Put:
-		s.put(proposal)
+		s.put.Update(proposal)
 	case *mapv1.AtomicMapInput_Insert:
-		s.insert(proposal)
+		s.insert.Update(proposal)
 	case *mapv1.AtomicMapInput_Update:
-		s.update(proposal)
+		s.update.Update(proposal)
 	case *mapv1.AtomicMapInput_Remove:
-		s.remove(proposal)
+		s.remove.Update(proposal)
 	case *mapv1.AtomicMapInput_Clear:
-		s.clear(proposal)
+		s.clear.Update(proposal)
 	case *mapv1.AtomicMapInput_Events:
-		s.events(proposal)
+		s.events.Update(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
 		proposal.Close()
 	}
 }
 
-func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doPut(proposal statemachine.Proposal[*mapv1.PutInput, *mapv1.PutOutput]) {
 	defer proposal.Close()
 
-	oldEntry := s.entries[proposal.Input().GetPut().Key]
+	oldEntry := s.entries[proposal.Input().Key]
 
 	// If the value is equal to the current value, return a no-op.
-	if oldEntry != nil && bytes.Equal(oldEntry.Value.Value, proposal.Input().GetPut().Value.Value) {
-		proposal.Output(&mapv1.AtomicMapOutput{
-			Output: &mapv1.AtomicMapOutput_Put{
-				Put: &mapv1.PutOutput{
-					Index: oldEntry.Value.Index,
-				},
-			},
+	if oldEntry != nil && bytes.Equal(oldEntry.Value.Value, proposal.Input().Value.Value) {
+		proposal.Output(&mapv1.PutOutput{
+			Index: oldEntry.Value.Index,
 		})
 		return
 	}
 
 	// Create a new entry and increment the revision number
 	newEntry := &mapv1.AtomicMapEntry{
-		Key: proposal.Input().GetPut().Key,
+		Key: proposal.Input().Key,
 		Value: &mapv1.AtomicMapValue{
-			Value: proposal.Input().GetPut().Value.Value,
+			Value: proposal.Input().Value.Value,
 			Index: multiraftv1.Index(s.Index()),
 		},
 	}
-	if proposal.Input().GetPut().Value.TTL != nil {
-		expire := s.Scheduler().Time().Add(*proposal.Input().GetPut().Value.TTL)
+	if proposal.Input().Value.TTL != nil {
+		expire := s.Scheduler().Time().Add(*proposal.Input().Value.TTL)
 		newEntry.Value.Expire = &expire
 	}
 
 	// Create a new entry value and set it in the map.
-	s.entries[proposal.Input().GetPut().Key] = newEntry
+	s.entries[proposal.Input().Key] = newEntry
 
 	// Schedule the timeout for the value if necessary.
-	s.scheduleTTL(proposal.Input().GetPut().Key, newEntry)
+	s.scheduleTTL(proposal.Input().Key, newEntry)
 
 	// Publish an event to listener streams.
 	if oldEntry != nil {
@@ -188,13 +344,9 @@ func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.AtomicMapInp
 				},
 			},
 		})
-		proposal.Output(&mapv1.AtomicMapOutput{
-			Output: &mapv1.AtomicMapOutput_Put{
-				Put: &mapv1.PutOutput{
-					Index:     newEntry.Value.Index,
-					PrevValue: s.newValue(oldEntry.Value),
-				},
-			},
+		proposal.Output(&mapv1.PutOutput{
+			Index:     newEntry.Value.Index,
+			PrevValue: s.newValue(oldEntry.Value),
 		})
 	} else {
 		s.notify(newEntry, &mapv1.EventsOutput{
@@ -207,42 +359,38 @@ func (s *MapStateMachine) put(proposal statemachine.Proposal[*mapv1.AtomicMapInp
 				},
 			},
 		})
-		proposal.Output(&mapv1.AtomicMapOutput{
-			Output: &mapv1.AtomicMapOutput_Put{
-				Put: &mapv1.PutOutput{
-					Index: newEntry.Value.Index,
-				},
-			},
+		proposal.Output(&mapv1.PutOutput{
+			Index: newEntry.Value.Index,
 		})
 	}
 }
 
-func (s *MapStateMachine) insert(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doInsert(proposal statemachine.Proposal[*mapv1.InsertInput, *mapv1.InsertOutput]) {
 	defer proposal.Close()
 
-	if _, ok := s.entries[proposal.Input().GetInsert().Key]; ok {
-		proposal.Error(errors.NewAlreadyExists("key '%s' already exists", proposal.Input().GetInsert().Key))
+	if _, ok := s.entries[proposal.Input().Key]; ok {
+		proposal.Error(errors.NewAlreadyExists("key '%s' already exists", proposal.Input().Key))
 		return
 	}
 
 	// Create a new entry and increment the revision number
 	newEntry := &mapv1.AtomicMapEntry{
-		Key: proposal.Input().GetInsert().Key,
+		Key: proposal.Input().Key,
 		Value: &mapv1.AtomicMapValue{
-			Value: proposal.Input().GetInsert().Value.Value,
+			Value: proposal.Input().Value.Value,
 			Index: multiraftv1.Index(s.Index()),
 		},
 	}
-	if proposal.Input().GetInsert().Value.TTL != nil {
-		expire := s.Scheduler().Time().Add(*proposal.Input().GetInsert().Value.TTL)
+	if proposal.Input().Value.TTL != nil {
+		expire := s.Scheduler().Time().Add(*proposal.Input().Value.TTL)
 		newEntry.Value.Expire = &expire
 	}
 
 	// Create a new entry value and set it in the map.
-	s.entries[proposal.Input().GetInsert().Key] = newEntry
+	s.entries[proposal.Input().Key] = newEntry
 
 	// Schedule the timeout for the value if necessary.
-	s.scheduleTTL(proposal.Input().GetInsert().Key, newEntry)
+	s.scheduleTTL(proposal.Input().Key, newEntry)
 
 	// Publish an event to listener streams.
 	s.notify(newEntry, &mapv1.EventsOutput{
@@ -256,47 +404,43 @@ func (s *MapStateMachine) insert(proposal statemachine.Proposal[*mapv1.AtomicMap
 		},
 	})
 
-	proposal.Output(&mapv1.AtomicMapOutput{
-		Output: &mapv1.AtomicMapOutput_Insert{
-			Insert: &mapv1.InsertOutput{
-				Index: newEntry.Value.Index,
-			},
-		},
+	proposal.Output(&mapv1.InsertOutput{
+		Index: newEntry.Value.Index,
 	})
 }
 
-func (s *MapStateMachine) update(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doUpdate(proposal statemachine.Proposal[*mapv1.UpdateInput, *mapv1.UpdateOutput]) {
 	defer proposal.Close()
 
-	oldEntry, ok := s.entries[proposal.Input().GetUpdate().Key]
+	oldEntry, ok := s.entries[proposal.Input().Key]
 	if !ok {
-		proposal.Error(errors.NewNotFound("key '%s' not found", proposal.Input().GetUpdate().Key))
+		proposal.Error(errors.NewNotFound("key '%s' not found", proposal.Input().Key))
 		return
 	}
 
-	if proposal.Input().GetUpdate().Index > 0 && oldEntry.Value.Index != proposal.Input().GetUpdate().Index {
-		proposal.Error(errors.NewConflict("entry index %d does not match remove index %d", oldEntry.Value.Index, proposal.Input().GetUpdate().Key))
+	if proposal.Input().Index > 0 && oldEntry.Value.Index != proposal.Input().Index {
+		proposal.Error(errors.NewConflict("entry index %d does not match remove index %d", oldEntry.Value.Index, proposal.Input().Key))
 		return
 	}
 
 	// Create a new entry and increment the revision number
 	newEntry := &mapv1.AtomicMapEntry{
-		Key: proposal.Input().GetUpdate().Key,
+		Key: proposal.Input().Key,
 		Value: &mapv1.AtomicMapValue{
-			Value: proposal.Input().GetUpdate().Value.Value,
+			Value: proposal.Input().Value.Value,
 			Index: multiraftv1.Index(s.Index()),
 		},
 	}
-	if proposal.Input().GetUpdate().Value.TTL != nil {
-		expire := s.Scheduler().Time().Add(*proposal.Input().GetUpdate().Value.TTL)
+	if proposal.Input().Value.TTL != nil {
+		expire := s.Scheduler().Time().Add(*proposal.Input().Value.TTL)
 		newEntry.Value.Expire = &expire
 	}
 
 	// Create a new entry value and set it in the map.
-	s.entries[proposal.Input().GetUpdate().Key] = newEntry
+	s.entries[proposal.Input().Key] = newEntry
 
 	// Schedule the timeout for the value if necessary.
-	s.scheduleTTL(proposal.Input().GetUpdate().Key, newEntry)
+	s.scheduleTTL(proposal.Input().Key, newEntry)
 
 	// Publish an event to listener streams.
 	s.notify(newEntry, &mapv1.EventsOutput{
@@ -311,30 +455,26 @@ func (s *MapStateMachine) update(proposal statemachine.Proposal[*mapv1.AtomicMap
 		},
 	})
 
-	proposal.Output(&mapv1.AtomicMapOutput{
-		Output: &mapv1.AtomicMapOutput_Update{
-			Update: &mapv1.UpdateOutput{
-				Index:     newEntry.Value.Index,
-				PrevValue: *s.newValue(oldEntry.Value),
-			},
-		},
+	proposal.Output(&mapv1.UpdateOutput{
+		Index:     newEntry.Value.Index,
+		PrevValue: *s.newValue(oldEntry.Value),
 	})
 }
 
-func (s *MapStateMachine) remove(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doRemove(proposal statemachine.Proposal[*mapv1.RemoveInput, *mapv1.RemoveOutput]) {
 	defer proposal.Close()
-	entry, ok := s.entries[proposal.Input().GetRemove().Key]
+	entry, ok := s.entries[proposal.Input().Key]
 	if !ok {
-		proposal.Error(errors.NewNotFound("key '%s' not found", proposal.Input().GetRemove().Key))
+		proposal.Error(errors.NewNotFound("key '%s' not found", proposal.Input().Key))
 		return
 	}
 
-	if proposal.Input().GetRemove().Index > 0 && entry.Value.Index != proposal.Input().GetRemove().Index {
-		proposal.Error(errors.NewConflict("entry index %d does not match remove index %d", entry.Value.Index, proposal.Input().GetRemove().Key))
+	if proposal.Input().Index > 0 && entry.Value.Index != proposal.Input().Index {
+		proposal.Error(errors.NewConflict("entry index %d does not match remove index %d", entry.Value.Index, proposal.Input().Key))
 		return
 	}
 
-	delete(s.entries, proposal.Input().GetRemove().Key)
+	delete(s.entries, proposal.Input().Key)
 
 	// Schedule the timeout for the value if necessary.
 	s.cancelTTL(entry.Key)
@@ -353,16 +493,12 @@ func (s *MapStateMachine) remove(proposal statemachine.Proposal[*mapv1.AtomicMap
 		},
 	})
 
-	proposal.Output(&mapv1.AtomicMapOutput{
-		Output: &mapv1.AtomicMapOutput_Remove{
-			Remove: &mapv1.RemoveOutput{
-				Value: *s.newValue(entry.Value),
-			},
-		},
+	proposal.Output(&mapv1.RemoveOutput{
+		Value: *s.newValue(entry.Value),
 	})
 }
 
-func (s *MapStateMachine) clear(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doClear(proposal statemachine.Proposal[*mapv1.ClearInput, *mapv1.ClearOutput]) {
 	defer proposal.Close()
 	for key, entry := range s.entries {
 		s.notify(&mapv1.AtomicMapEntry{
@@ -380,23 +516,15 @@ func (s *MapStateMachine) clear(proposal statemachine.Proposal[*mapv1.AtomicMapI
 		s.cancelTTL(key)
 		delete(s.entries, key)
 	}
-	proposal.Output(&mapv1.AtomicMapOutput{
-		Output: &mapv1.AtomicMapOutput_Clear{
-			Clear: &mapv1.ClearOutput{},
-		},
-	})
+	proposal.Output(&mapv1.ClearOutput{})
 }
 
-func (s *MapStateMachine) events(proposal statemachine.Proposal[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*mapv1.EventsInput, *mapv1.EventsOutput]) {
 	// Output an empty event to ack the request
-	proposal.Output(&mapv1.AtomicMapOutput{
-		Output: &mapv1.AtomicMapOutput_Events{
-			Events: &mapv1.EventsOutput{},
-		},
-	})
+	proposal.Output(&mapv1.EventsOutput{})
 
 	listener := &mapv1.AtomicMapListener{
-		Key: proposal.Input().GetEvents().Key,
+		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
 	proposal.Watch(func(state statemachine.OperationState) {
@@ -409,55 +537,43 @@ func (s *MapStateMachine) events(proposal statemachine.Proposal[*mapv1.AtomicMap
 func (s *MapStateMachine) Read(query statemachine.Query[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
 	switch query.Input().Input.(type) {
 	case *mapv1.AtomicMapInput_Size_:
-		s.size(query)
+		s.size.Read(query)
 	case *mapv1.AtomicMapInput_Get:
-		s.get(query)
+		s.get.Read(query)
 	case *mapv1.AtomicMapInput_Entries:
-		s.list(query)
+		s.list.Read(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))
 	}
 }
 
-func (s *MapStateMachine) size(query statemachine.Query[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doSize(query statemachine.Query[*mapv1.SizeInput, *mapv1.SizeOutput]) {
 	defer query.Close()
-	query.Output(&mapv1.AtomicMapOutput{
-		Output: &mapv1.AtomicMapOutput_Size_{
-			Size_: &mapv1.SizeOutput{
-				Size_: uint32(len(s.entries)),
-			},
-		},
+	query.Output(&mapv1.SizeOutput{
+		Size_: uint32(len(s.entries)),
 	})
 }
 
-func (s *MapStateMachine) get(query statemachine.Query[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doGet(query statemachine.Query[*mapv1.GetInput, *mapv1.GetOutput]) {
 	defer query.Close()
-	entry, ok := s.entries[query.Input().GetGet().Key]
+	entry, ok := s.entries[query.Input().Key]
 	if !ok {
-		query.Error(errors.NewNotFound("key %s not found", query.Input().GetGet().Key))
+		query.Error(errors.NewNotFound("key %s not found", query.Input().Key))
 	} else {
-		query.Output(&mapv1.AtomicMapOutput{
-			Output: &mapv1.AtomicMapOutput_Get{
-				Get: &mapv1.GetOutput{
-					Value: *s.newValue(entry.Value),
-				},
-			},
+		query.Output(&mapv1.GetOutput{
+			Value: *s.newValue(entry.Value),
 		})
 	}
 }
 
-func (s *MapStateMachine) list(query statemachine.Query[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]) {
+func (s *MapStateMachine) doEntries(query statemachine.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]) {
 	for _, entry := range s.entries {
-		query.Output(&mapv1.AtomicMapOutput{
-			Output: &mapv1.AtomicMapOutput_Entries{
-				Entries: &mapv1.EntriesOutput{
-					Entry: *s.newEntry(entry),
-				},
-			},
+		query.Output(&mapv1.EntriesOutput{
+			Entry: *s.newEntry(entry),
 		})
 	}
 
-	if query.Input().GetEntries().Watch {
+	if query.Input().Watch {
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
@@ -492,12 +608,8 @@ func (s *MapStateMachine) notify(entry *mapv1.AtomicMapEntry, event *mapv1.Event
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for _, watcher := range s.watchers {
-		watcher.Output(&mapv1.AtomicMapOutput{
-			Output: &mapv1.AtomicMapOutput_Entries{
-				Entries: &mapv1.EntriesOutput{
-					Entry: *s.newEntry(entry),
-				},
-			},
+		watcher.Output(&mapv1.EntriesOutput{
+			Entry: *s.newEntry(entry),
 		})
 	}
 }

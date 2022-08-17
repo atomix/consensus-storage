@@ -12,6 +12,7 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/google/uuid"
@@ -169,6 +170,9 @@ func (s *raftSession) expireTime() time.Time {
 
 func (s *raftSession) open(input *multiraftv1.OpenSessionInput, stream streams.WriteStream[*multiraftv1.OpenSessionOutput]) {
 	s.sessionID = multiraftv1.SessionID(s.manager.context.index)
+	log.Infow("Opened session",
+		logging.Uint64("Session", uint64(s.sessionID)),
+		logging.Duration("Timeout", input.Timeout))
 	s.lastUpdated = s.manager.context.time
 	s.timeout = input.Timeout
 	s.state = multiraftv1.SessionSnapshot_OPEN
@@ -187,7 +191,8 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 		return
 	}
 
-	log.Debugf("Keep-alive %s", s)
+	log.Debugw("Processing keep-alive",
+		logging.Uint64("Session", uint64(s.sessionID)))
 	for _, command := range s.commands {
 		if input.LastInputSequenceNum < command.input.SequenceNum {
 			continue
@@ -195,17 +200,9 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 		sequenceNumBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(sequenceNumBytes, uint64(command.input.SequenceNum))
 		if !openInputs.Test(sequenceNumBytes) {
-			switch command.state {
-			case multiraftv1.CommandSnapshot_RUNNING:
-				log.Debugf("Canceled %s", command)
-				command.Close()
-			case multiraftv1.CommandSnapshot_COMPLETE:
-				log.Debugf("Acked %s", command)
-			}
-			delete(s.commands, command.index)
+			command.cleanup()
 		} else {
 			if outputSequenceNum, ok := input.LastOutputSequenceNums[command.input.SequenceNum]; ok {
-				log.Debugf("Acked %s responses up to %d", command, outputSequenceNum)
 				command.ack(outputSequenceNum)
 			}
 		}
@@ -219,6 +216,8 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 }
 
 func (s *raftSession) close(input *multiraftv1.CloseSessionInput, stream streams.WriteStream[*multiraftv1.CloseSessionOutput]) {
+	log.Infow("Closing session",
+		logging.Uint64("Session", uint64(input.SessionID)))
 	delete(s.manager.sessions, s.sessionID)
 	s.state = multiraftv1.SessionSnapshot_CLOSED
 	for _, closer := range s.closers {
@@ -229,6 +228,9 @@ func (s *raftSession) close(input *multiraftv1.CloseSessionInput, stream streams
 }
 
 func (s *raftSession) expire() {
+	log.Infow("Session expired",
+		logging.Uint64("Session", uint64(s.sessionID)),
+		logging.Duration("Timeout", s.timeout))
 	delete(s.manager.sessions, s.sessionID)
 	s.state = multiraftv1.SessionSnapshot_CLOSED
 	for _, closer := range s.closers {
@@ -237,6 +239,8 @@ func (s *raftSession) expire() {
 }
 
 func (s *raftSession) snapshot(writer *snapshot.Writer) error {
+	log.Debugw("Persisting session to snapshot",
+		logging.Uint64("Session", uint64(s.sessionID)))
 	snapshot := &multiraftv1.SessionSnapshot{
 		SessionID:   s.sessionID,
 		Timeout:     s.timeout,
@@ -261,6 +265,8 @@ func (s *raftSession) recover(reader *snapshot.Reader) error {
 	if err := reader.ReadMessage(snapshot); err != nil {
 		return err
 	}
+	log.Infow("Recovering session from snapshot",
+		logging.Uint64("Session", uint64(snapshot.SessionID)))
 	s.sessionID = snapshot.SessionID
 	s.timeout = snapshot.Timeout
 	s.lastUpdated = snapshot.LastUpdated
@@ -313,6 +319,9 @@ func (c *raftSessionCommand) Input() *multiraftv1.SessionCommandInput {
 }
 
 func (c *raftSessionCommand) execute(input *multiraftv1.SessionCommandInput, stream streams.WriteStream[*multiraftv1.SessionCommandOutput]) {
+	log.Debugw("Executing command",
+		logging.Uint64("Session", uint64(c.session.sessionID)),
+		logging.Uint64("Command", uint64(c.input.SequenceNum)))
 	c.stream = stream
 	switch c.state {
 	case multiraftv1.CommandSnapshot_PENDING:
@@ -340,7 +349,9 @@ func (c *raftSessionCommand) open(input *multiraftv1.SessionCommandInput) {
 
 func (c *raftSessionCommand) replay() {
 	if c.outputs.Len() > 0 {
-		log.Debugf("Replaying %d responses for %s: %.250s", c.outputs.Len(), c, c.input)
+		log.Debugw("Replaying command responses",
+			logging.Uint64("Session", uint64(c.session.sessionID)),
+			logging.Uint64("Command", uint64(c.input.SequenceNum)))
 		elem := c.outputs.Front()
 		for elem != nil {
 			output := elem.Value.(*multiraftv1.SessionCommandOutput)
@@ -354,6 +365,9 @@ func (c *raftSessionCommand) replay() {
 }
 
 func (c *raftSessionCommand) snapshot(writer *snapshot.Writer) error {
+	log.Infow("Persisting command to snapshot",
+		logging.Uint64("Session", uint64(c.session.sessionID)),
+		logging.Uint64("Command", uint64(c.input.SequenceNum)))
 	pendingOutputs := make([]*multiraftv1.SessionCommandOutput, 0, c.outputs.Len())
 	elem := c.outputs.Front()
 	for elem != nil {
@@ -375,6 +389,9 @@ func (c *raftSessionCommand) recover(reader *snapshot.Reader) error {
 	if err := reader.ReadMessage(snapshot); err != nil {
 		return err
 	}
+	log.Infow("Recovering command from snapshot",
+		logging.Uint64("Session", uint64(c.session.sessionID)),
+		logging.Uint64("Command", uint64(c.input.SequenceNum)))
 	c.index = snapshot.Index
 	c.input = snapshot.Input
 	c.outputs = list.New()
@@ -398,6 +415,10 @@ func (c *raftSessionCommand) Output(output *multiraftv1.SessionCommandOutput) {
 	if c.state == multiraftv1.CommandSnapshot_COMPLETE {
 		return
 	}
+	log.Debugw("Cached command output",
+		logging.Uint64("Session", uint64(c.session.sessionID)),
+		logging.Uint64("Command", uint64(c.input.SequenceNum)),
+		logging.Uint64("SequenceNum", uint64(output.SequenceNum)))
 	c.outputs.PushBack(output)
 	c.stream.Value(output)
 }
@@ -413,6 +434,10 @@ func (c *raftSessionCommand) Error(err error) {
 }
 
 func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
+	log.Debugw("Acked command output",
+		logging.Uint64("Session", uint64(c.session.sessionID)),
+		logging.Uint64("Command", uint64(c.input.SequenceNum)),
+		logging.Uint64("SequenceNum", uint64(outputSequenceNum)))
 	elem := c.outputs.Front()
 	for elem != nil && elem.Value.(*multiraftv1.SessionCommandOutput).SequenceNum <= outputSequenceNum {
 		next := elem.Next()
@@ -421,12 +446,30 @@ func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
 	}
 }
 
-func (c *raftSessionCommand) Close() {
+func (c *raftSessionCommand) cleanup() {
+	switch c.state {
+	case multiraftv1.CommandSnapshot_RUNNING:
+		log.Debugw("Canceled command",
+			logging.Uint64("Session", uint64(c.session.sessionID)),
+			logging.Uint64("Command", uint64(c.input.SequenceNum)))
+		c.close()
+	}
+	delete(c.session.commands, c.index)
+}
+
+func (c *raftSessionCommand) close() {
 	c.state = multiraftv1.CommandSnapshot_COMPLETE
 	if c.closer != nil {
 		c.closer()
 	}
 	c.stream.Close()
+}
+
+func (c *raftSessionCommand) Close() {
+	log.Debugw("Closed command",
+		logging.Uint64("Session", uint64(c.session.sessionID)),
+		logging.Uint64("Command", uint64(c.input.SequenceNum)))
+	c.close()
 }
 
 func newSessionOperationCommand(parent *raftSessionCommand) *raftSessionOperationCommand {
@@ -531,6 +574,9 @@ func (q *raftSessionQuery) Watch(f OperationWatcher) CancelFunc {
 			case <-q.closeCh:
 				return
 			case <-q.ctx.Done():
+				log.Debugw("Canceled query",
+					logging.Uint64("Session", uint64(q.session.sessionID)),
+					logging.Uint64("Query", uint64(q.sequenceNum)))
 				q.session.manager.context.queriesMu.Lock()
 				q.session.manager.context.canceledQueries = append(q.session.manager.context.canceledQueries, q)
 				q.session.manager.context.queriesMu.Unlock()
@@ -563,6 +609,9 @@ func (q *raftSessionQuery) Error(err error) {
 }
 
 func (q *raftSessionQuery) execute(ctx context.Context, input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+	log.Debugw("Executing query",
+		logging.Uint64("Session", uint64(q.session.sessionID)),
+		logging.Uint64("Query", uint64(q.sequenceNum)))
 	q.sequenceNum = multiraftv1.SequenceNum(q.session.manager.context.sequenceNum.Add(1))
 	q.ctx = ctx
 	q.input = input
@@ -571,6 +620,9 @@ func (q *raftSessionQuery) execute(ctx context.Context, input *multiraftv1.Sessi
 }
 
 func (q *raftSessionQuery) Close() {
+	log.Debugw("Closed query",
+		logging.Uint64("Session", uint64(q.session.sessionID)),
+		logging.Uint64("Query", uint64(q.sequenceNum)))
 	q.stream.Close()
 	close(q.closeCh)
 	q.watchersMu.RLock()
