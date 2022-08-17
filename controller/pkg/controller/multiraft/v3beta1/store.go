@@ -307,11 +307,6 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *st
 	log.Info("Creating raft replicas", "Name", store.Name, "Namespace", store.Namespace)
 
 	image := getImage(store)
-	pullPolicy := store.Spec.ImagePullPolicy
-	if pullPolicy == "" {
-		pullPolicy = corev1.PullIfNotPresent
-	}
-
 	volumes := []corev1.Volume{
 		{
 			Name: configVolume,
@@ -372,7 +367,7 @@ func (r *MultiRaftStoreReconciler) addStatefulSet(ctx context.Context, store *st
 						{
 							Name:            nodeContainerName,
 							Image:           image,
-							ImagePullPolicy: pullPolicy,
+							ImagePullPolicy: store.Spec.ImagePullPolicy,
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "api",
