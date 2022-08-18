@@ -1,0 +1,113 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.election.v1;
+
+import "gogoproto/gogo.proto";
+
+message LeaderElectionInput {
+    oneof input {
+        EnterInput enter = 1;
+        WithdrawInput withdraw = 2;
+        AnointInput anoint = 3;
+        PromoteInput promote = 4;
+        EvictInput evict = 5;
+        GetTermInput get_term = 6;
+        WatchInput watch = 7;
+    }
+}
+
+message LeaderElectionOutput {
+    oneof output {
+        EnterOutput enter = 1;
+        WithdrawOutput withdraw = 2;
+        AnointOutput anoint = 3;
+        PromoteOutput promote = 4;
+        EvictOutput evict = 5;
+        GetTermOutput get_term = 6;
+        WatchOutput watch = 7;
+    }
+}
+
+message EnterInput {
+    string candidate = 1;
+}
+
+message EnterOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message WithdrawInput {
+    string candidate = 1;
+}
+
+message WithdrawOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message AnointInput {
+    string candidate = 1;
+}
+
+message AnointOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message PromoteInput {
+    string candidate = 2;
+}
+
+message PromoteOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message EvictInput {
+    string candidate = 1;
+}
+
+message EvictOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message GetTermInput {
+    
+}
+
+message GetTermOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message WatchInput {
+    
+}
+
+message WatchOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message Term {
+    string leader = 1;
+    repeated string candidates = 2;
+    uint64 index = 3 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+}
