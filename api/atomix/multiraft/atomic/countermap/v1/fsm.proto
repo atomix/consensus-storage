@@ -18,14 +18,10 @@ message AtomicCounterMapListener {
     string key = 2;
 }
 
-message AtomicCounterMapEntry {
-    string key = 1;
-    int64 value = 2;
-}
-
 message AtomicCounterMapInput {
     oneof input {
         SizeInput size = 1;
+        SetInput set = 2;
         InsertInput insert = 3;
         UpdateInput update = 4;
         IncrementInput increment = 5;
@@ -43,6 +39,7 @@ message AtomicCounterMapInput {
 message AtomicCounterMapOutput {
     oneof output {
         SizeOutput size = 1;
+        SetOutput set = 2;
         InsertOutput insert = 3;
         UpdateOutput update = 4;
         IncrementOutput increment = 5;

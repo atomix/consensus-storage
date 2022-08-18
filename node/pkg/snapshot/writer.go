@@ -76,6 +76,11 @@ func (w *Writer) WriteVarUint(i uint) error {
 	return w.WriteVarUint64(uint64(i))
 }
 
+// WriteString writes a string to the given writer
+func (w *Writer) WriteString(s string) error {
+	return w.WriteBytes([]byte(s))
+}
+
 // WriteBytes writes a byte slice to the given writer
 func (w *Writer) WriteBytes(bytes []byte) error {
 	if err := w.WriteVarInt(len(bytes)); err != nil {

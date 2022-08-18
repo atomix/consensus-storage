@@ -96,6 +96,15 @@ func (r *Reader) ReadVarUint() (uint, error) {
 	return uint(i), nil
 }
 
+// ReadString reads a string from the given reader
+func (r *Reader) ReadString() (string, error) {
+	s, err := r.ReadBytes()
+	if err != nil {
+		return "", err
+	}
+	return string(s), nil
+}
+
 // ReadBytes reads a byte slice from the given reader
 func (r *Reader) ReadBytes() ([]byte, error) {
 	length, err := r.ReadVarInt()

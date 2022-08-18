@@ -7,6 +7,7 @@ package node
 import (
 	"fmt"
 	atomiccounterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/counter/v1"
+	atomiccountermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/countermap/v1"
 	atomicmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/map/v1"
 	atomicvaluev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/value/v1"
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
@@ -15,12 +16,14 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/node/server"
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	atomiccounterv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/atomic/counter/v1"
+	atomiccountermapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/atomic/countermap/v1"
 	atomicmapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/atomic/map/v1"
 	atomicvaluev1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/atomic/value/v1"
 	counterv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/counter/v1"
 	mapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/map/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	atomiccountersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/atomic/counter/v1"
+	atomiccountermapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/atomic/countermap/v1"
 	atomicmapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/atomic/map/v1"
 	atomicvaluesmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/atomic/value/v1"
 	countersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/counter/v1"
@@ -38,6 +41,7 @@ func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 	options.apply(opts...)
 	registry := statemachine.NewPrimitiveTypeRegistry()
 	atomiccountersmv1.Register(registry)
+	atomiccountermapsmv1.Register(registry)
 	atomicmapsmv1.Register(registry)
 	atomicvaluesmv1.Register(registry)
 	countersmv1.Register(registry)
@@ -74,6 +78,7 @@ func (s *MultiRaftNode) Start() error {
 	multiraftv1.RegisterSessionServer(s.server, server.NewSessionServer(s.protocol))
 
 	atomiccounterv1.RegisterAtomicCounterServer(s.server, atomiccounterv1server.NewAtomicCounterServer(s.protocol))
+	atomiccountermapv1.RegisterAtomicCounterMapServer(s.server, atomiccountermapv1server.NewAtomicCounterMapServer(s.protocol))
 	atomicmapv1.RegisterAtomicMapServer(s.server, atomicmapv1server.NewAtomicMapServer(s.protocol))
 	atomicvaluev1.RegisterAtomicValueServer(s.server, atomicvaluev1server.NewAtomicValueServer(s.protocol))
 	counterv1.RegisterCounterServer(s.server, counterv1server.NewCounterServer(s.protocol))

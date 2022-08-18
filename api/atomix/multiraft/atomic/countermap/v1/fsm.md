@@ -4,7 +4,6 @@
 ## Table of Contents
 
 - [atomix/multiraft/atomic/countermap/v1/fsm.proto](#atomix_multiraft_atomic_countermap_v1_fsm-proto)
-    - [AtomicCounterMapEntry](#atomix-multiraft-atomic-countermap-v1-AtomicCounterMapEntry)
     - [AtomicCounterMapInput](#atomix-multiraft-atomic-countermap-v1-AtomicCounterMapInput)
     - [AtomicCounterMapListener](#atomix-multiraft-atomic-countermap-v1-AtomicCounterMapListener)
     - [AtomicCounterMapOutput](#atomix-multiraft-atomic-countermap-v1-AtomicCounterMapOutput)
@@ -51,22 +50,6 @@
 
 
 
-<a name="atomix-multiraft-atomic-countermap-v1-AtomicCounterMapEntry"></a>
-
-### AtomicCounterMapEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [int64](#int64) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-atomic-countermap-v1-AtomicCounterMapInput"></a>
 
 ### AtomicCounterMapInput
@@ -76,6 +59,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | size | [SizeInput](#atomix-multiraft-atomic-countermap-v1-SizeInput) |  |  |
+| set | [SetInput](#atomix-multiraft-atomic-countermap-v1-SetInput) |  |  |
 | insert | [InsertInput](#atomix-multiraft-atomic-countermap-v1-InsertInput) |  |  |
 | update | [UpdateInput](#atomix-multiraft-atomic-countermap-v1-UpdateInput) |  |  |
 | increment | [IncrementInput](#atomix-multiraft-atomic-countermap-v1-IncrementInput) |  |  |
@@ -118,6 +102,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | size | [SizeOutput](#atomix-multiraft-atomic-countermap-v1-SizeOutput) |  |  |
+| set | [SetOutput](#atomix-multiraft-atomic-countermap-v1-SetOutput) |  |  |
 | insert | [InsertOutput](#atomix-multiraft-atomic-countermap-v1-InsertOutput) |  |  |
 | update | [UpdateOutput](#atomix-multiraft-atomic-countermap-v1-UpdateOutput) |  |  |
 | increment | [IncrementOutput](#atomix-multiraft-atomic-countermap-v1-IncrementOutput) |  |  |
