@@ -5,7 +5,6 @@ package v1
 
 import (
 	fmt "fmt"
-	github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	_ "github.com/gogo/protobuf/types"
@@ -28,22 +27,22 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type SetListener struct {
-	Index github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,1,opt,name=index,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"index,omitempty"`
+type SetElement struct {
+	Expire *time.Time `protobuf:"bytes,1,opt,name=expire,proto3,stdtime" json:"expire,omitempty"`
 }
 
-func (m *SetListener) Reset()         { *m = SetListener{} }
-func (m *SetListener) String() string { return proto.CompactTextString(m) }
-func (*SetListener) ProtoMessage()    {}
-func (*SetListener) Descriptor() ([]byte, []int) {
+func (m *SetElement) Reset()         { *m = SetElement{} }
+func (m *SetElement) String() string { return proto.CompactTextString(m) }
+func (*SetElement) ProtoMessage()    {}
+func (*SetElement) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9187450af8b71dff, []int{0}
 }
-func (m *SetListener) XXX_Unmarshal(b []byte) error {
+func (m *SetElement) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SetListener) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SetElement) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SetListener.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SetElement.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -53,71 +52,19 @@ func (m *SetListener) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) 
 		return b[:n], nil
 	}
 }
-func (m *SetListener) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SetListener.Merge(m, src)
+func (m *SetElement) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetElement.Merge(m, src)
 }
-func (m *SetListener) XXX_Size() int {
+func (m *SetElement) XXX_Size() int {
 	return m.Size()
 }
-func (m *SetListener) XXX_DiscardUnknown() {
-	xxx_messageInfo_SetListener.DiscardUnknown(m)
+func (m *SetElement) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetElement.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SetListener proto.InternalMessageInfo
+var xxx_messageInfo_SetElement proto.InternalMessageInfo
 
-func (m *SetListener) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
-	if m != nil {
-		return m.Index
-	}
-	return 0
-}
-
-type SetValue struct {
-	Value  string     `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	Expire *time.Time `protobuf:"bytes,2,opt,name=expire,proto3,stdtime" json:"expire,omitempty"`
-}
-
-func (m *SetValue) Reset()         { *m = SetValue{} }
-func (m *SetValue) String() string { return proto.CompactTextString(m) }
-func (*SetValue) ProtoMessage()    {}
-func (*SetValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{1}
-}
-func (m *SetValue) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *SetValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_SetValue.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *SetValue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SetValue.Merge(m, src)
-}
-func (m *SetValue) XXX_Size() int {
-	return m.Size()
-}
-func (m *SetValue) XXX_DiscardUnknown() {
-	xxx_messageInfo_SetValue.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_SetValue proto.InternalMessageInfo
-
-func (m *SetValue) GetValue() string {
-	if m != nil {
-		return m.Value
-	}
-	return ""
-}
-
-func (m *SetValue) GetExpire() *time.Time {
+func (m *SetElement) GetExpire() *time.Time {
 	if m != nil {
 		return m.Expire
 	}
@@ -140,7 +87,7 @@ func (m *SetInput) Reset()         { *m = SetInput{} }
 func (m *SetInput) String() string { return proto.CompactTextString(m) }
 func (*SetInput) ProtoMessage()    {}
 func (*SetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{2}
+	return fileDescriptor_9187450af8b71dff, []int{1}
 }
 func (m *SetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -290,7 +237,7 @@ func (m *SetOutput) Reset()         { *m = SetOutput{} }
 func (m *SetOutput) String() string { return proto.CompactTextString(m) }
 func (*SetOutput) ProtoMessage()    {}
 func (*SetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{3}
+	return fileDescriptor_9187450af8b71dff, []int{2}
 }
 func (m *SetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -431,7 +378,7 @@ func (m *SizeInput) Reset()         { *m = SizeInput{} }
 func (m *SizeInput) String() string { return proto.CompactTextString(m) }
 func (*SizeInput) ProtoMessage()    {}
 func (*SizeInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{4}
+	return fileDescriptor_9187450af8b71dff, []int{3}
 }
 func (m *SizeInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -468,7 +415,7 @@ func (m *SizeOutput) Reset()         { *m = SizeOutput{} }
 func (m *SizeOutput) String() string { return proto.CompactTextString(m) }
 func (*SizeOutput) ProtoMessage()    {}
 func (*SizeOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{5}
+	return fileDescriptor_9187450af8b71dff, []int{4}
 }
 func (m *SizeOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -512,7 +459,7 @@ func (m *ContainsInput) Reset()         { *m = ContainsInput{} }
 func (m *ContainsInput) String() string { return proto.CompactTextString(m) }
 func (*ContainsInput) ProtoMessage()    {}
 func (*ContainsInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{6}
+	return fileDescriptor_9187450af8b71dff, []int{5}
 }
 func (m *ContainsInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -556,7 +503,7 @@ func (m *ContainsOutput) Reset()         { *m = ContainsOutput{} }
 func (m *ContainsOutput) String() string { return proto.CompactTextString(m) }
 func (*ContainsOutput) ProtoMessage()    {}
 func (*ContainsOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{7}
+	return fileDescriptor_9187450af8b71dff, []int{6}
 }
 func (m *ContainsOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -601,7 +548,7 @@ func (m *AddInput) Reset()         { *m = AddInput{} }
 func (m *AddInput) String() string { return proto.CompactTextString(m) }
 func (*AddInput) ProtoMessage()    {}
 func (*AddInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{8}
+	return fileDescriptor_9187450af8b71dff, []int{7}
 }
 func (m *AddInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -645,14 +592,13 @@ func (m *AddInput) GetTTL() *time.Duration {
 }
 
 type AddOutput struct {
-	Element Element `protobuf:"bytes,1,opt,name=element,proto3" json:"element"`
 }
 
 func (m *AddOutput) Reset()         { *m = AddOutput{} }
 func (m *AddOutput) String() string { return proto.CompactTextString(m) }
 func (*AddOutput) ProtoMessage()    {}
 func (*AddOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{9}
+	return fileDescriptor_9187450af8b71dff, []int{8}
 }
 func (m *AddOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -681,13 +627,6 @@ func (m *AddOutput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AddOutput proto.InternalMessageInfo
 
-func (m *AddOutput) GetElement() Element {
-	if m != nil {
-		return m.Element
-	}
-	return Element{}
-}
-
 type RemoveInput struct {
 	Element Element `protobuf:"bytes,1,opt,name=element,proto3" json:"element"`
 }
@@ -696,7 +635,7 @@ func (m *RemoveInput) Reset()         { *m = RemoveInput{} }
 func (m *RemoveInput) String() string { return proto.CompactTextString(m) }
 func (*RemoveInput) ProtoMessage()    {}
 func (*RemoveInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{10}
+	return fileDescriptor_9187450af8b71dff, []int{9}
 }
 func (m *RemoveInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -733,14 +672,13 @@ func (m *RemoveInput) GetElement() Element {
 }
 
 type RemoveOutput struct {
-	Element Element `protobuf:"bytes,1,opt,name=element,proto3" json:"element"`
 }
 
 func (m *RemoveOutput) Reset()         { *m = RemoveOutput{} }
 func (m *RemoveOutput) String() string { return proto.CompactTextString(m) }
 func (*RemoveOutput) ProtoMessage()    {}
 func (*RemoveOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{11}
+	return fileDescriptor_9187450af8b71dff, []int{10}
 }
 func (m *RemoveOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -769,13 +707,6 @@ func (m *RemoveOutput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_RemoveOutput proto.InternalMessageInfo
 
-func (m *RemoveOutput) GetElement() Element {
-	if m != nil {
-		return m.Element
-	}
-	return Element{}
-}
-
 type ClearInput struct {
 }
 
@@ -783,7 +714,7 @@ func (m *ClearInput) Reset()         { *m = ClearInput{} }
 func (m *ClearInput) String() string { return proto.CompactTextString(m) }
 func (*ClearInput) ProtoMessage()    {}
 func (*ClearInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{12}
+	return fileDescriptor_9187450af8b71dff, []int{11}
 }
 func (m *ClearInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -819,7 +750,7 @@ func (m *ClearOutput) Reset()         { *m = ClearOutput{} }
 func (m *ClearOutput) String() string { return proto.CompactTextString(m) }
 func (*ClearOutput) ProtoMessage()    {}
 func (*ClearOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{13}
+	return fileDescriptor_9187450af8b71dff, []int{12}
 }
 func (m *ClearOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -855,7 +786,7 @@ func (m *EventsInput) Reset()         { *m = EventsInput{} }
 func (m *EventsInput) String() string { return proto.CompactTextString(m) }
 func (*EventsInput) ProtoMessage()    {}
 func (*EventsInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{14}
+	return fileDescriptor_9187450af8b71dff, []int{13}
 }
 func (m *EventsInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -892,7 +823,7 @@ func (m *EventsOutput) Reset()         { *m = EventsOutput{} }
 func (m *EventsOutput) String() string { return proto.CompactTextString(m) }
 func (*EventsOutput) ProtoMessage()    {}
 func (*EventsOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{15}
+	return fileDescriptor_9187450af8b71dff, []int{14}
 }
 func (m *EventsOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -939,7 +870,7 @@ func (m *Event) Reset()         { *m = Event{} }
 func (m *Event) String() string { return proto.CompactTextString(m) }
 func (*Event) ProtoMessage()    {}
 func (*Event) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{16}
+	return fileDescriptor_9187450af8b71dff, []int{15}
 }
 func (m *Event) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1021,7 +952,7 @@ func (m *Event_Added) Reset()         { *m = Event_Added{} }
 func (m *Event_Added) String() string { return proto.CompactTextString(m) }
 func (*Event_Added) ProtoMessage()    {}
 func (*Event_Added) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{16, 0}
+	return fileDescriptor_9187450af8b71dff, []int{15, 0}
 }
 func (m *Event_Added) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1066,7 +997,7 @@ func (m *Event_Removed) Reset()         { *m = Event_Removed{} }
 func (m *Event_Removed) String() string { return proto.CompactTextString(m) }
 func (*Event_Removed) ProtoMessage()    {}
 func (*Event_Removed) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{16, 1}
+	return fileDescriptor_9187450af8b71dff, []int{15, 1}
 }
 func (m *Event_Removed) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1117,7 +1048,7 @@ func (m *ElementsInput) Reset()         { *m = ElementsInput{} }
 func (m *ElementsInput) String() string { return proto.CompactTextString(m) }
 func (*ElementsInput) ProtoMessage()    {}
 func (*ElementsInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{17}
+	return fileDescriptor_9187450af8b71dff, []int{16}
 }
 func (m *ElementsInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1161,7 +1092,7 @@ func (m *ElementsOutput) Reset()         { *m = ElementsOutput{} }
 func (m *ElementsOutput) String() string { return proto.CompactTextString(m) }
 func (*ElementsOutput) ProtoMessage()    {}
 func (*ElementsOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{18}
+	return fileDescriptor_9187450af8b71dff, []int{17}
 }
 func (m *ElementsOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1205,7 +1136,7 @@ func (m *Element) Reset()         { *m = Element{} }
 func (m *Element) String() string { return proto.CompactTextString(m) }
 func (*Element) ProtoMessage()    {}
 func (*Element) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9187450af8b71dff, []int{19}
+	return fileDescriptor_9187450af8b71dff, []int{18}
 }
 func (m *Element) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1242,8 +1173,7 @@ func (m *Element) GetValue() string {
 }
 
 func init() {
-	proto.RegisterType((*SetListener)(nil), "atomix.multiraft.set.v1.SetListener")
-	proto.RegisterType((*SetValue)(nil), "atomix.multiraft.set.v1.SetValue")
+	proto.RegisterType((*SetElement)(nil), "atomix.multiraft.set.v1.SetElement")
 	proto.RegisterType((*SetInput)(nil), "atomix.multiraft.set.v1.SetInput")
 	proto.RegisterType((*SetOutput)(nil), "atomix.multiraft.set.v1.SetOutput")
 	proto.RegisterType((*SizeInput)(nil), "atomix.multiraft.set.v1.SizeInput")
@@ -1269,61 +1199,56 @@ func init() {
 func init() { proto.RegisterFile("atomix/multiraft/set/v1/fsm.proto", fileDescriptor_9187450af8b71dff) }
 
 var fileDescriptor_9187450af8b71dff = []byte{
-	// 809 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0xcf, 0x4f, 0xe3, 0x46,
-	0x14, 0xc7, 0x63, 0xf2, 0xfb, 0x85, 0x70, 0x18, 0x21, 0xd5, 0xcd, 0xc1, 0x09, 0x03, 0x14, 0x0e,
-	0xc5, 0x16, 0x54, 0xad, 0xe8, 0x0f, 0x95, 0xd6, 0x25, 0x55, 0xa9, 0xa8, 0x68, 0x1d, 0xd4, 0x43,
-	0xd5, 0x8b, 0x89, 0x87, 0x60, 0x35, 0x8e, 0x23, 0x7b, 0x9c, 0x22, 0xfe, 0x80, 0x3d, 0x73, 0xdc,
-	0x3f, 0x68, 0x0f, 0x5c, 0x56, 0xe2, 0xb4, 0xda, 0x13, 0xbb, 0x0a, 0xff, 0xc5, 0x9e, 0x56, 0xf3,
-	0xc3, 0x8e, 0x43, 0x36, 0xf1, 0x81, 0xdc, 0x6c, 0xe7, 0x7d, 0xbf, 0x33, 0x6f, 0x3e, 0xef, 0xbd,
-	0x09, 0x6c, 0xd8, 0xd4, 0xf7, 0xdc, 0x6b, 0xc3, 0x8b, 0xfa, 0xd4, 0x0d, 0xec, 0x4b, 0x6a, 0x84,
-	0x84, 0x1a, 0xa3, 0x7d, 0xe3, 0x32, 0xf4, 0xf4, 0x61, 0xe0, 0x53, 0x1f, 0x7d, 0x26, 0x42, 0xf4,
-	0x24, 0x44, 0x0f, 0x09, 0xd5, 0x47, 0xfb, 0x0d, 0xad, 0xe7, 0xfb, 0xbd, 0x3e, 0x31, 0x78, 0xd8,
-	0x45, 0x74, 0x69, 0x38, 0x51, 0x60, 0x53, 0xd7, 0x1f, 0x08, 0x61, 0xa3, 0xf9, 0xf4, 0x77, 0xea,
-	0x7a, 0x24, 0xa4, 0xb6, 0x37, 0x94, 0x01, 0xeb, 0x3d, 0xbf, 0xe7, 0xf3, 0x47, 0x83, 0x3d, 0x89,
-	0xaf, 0xf8, 0x3f, 0xa8, 0x75, 0x08, 0x3d, 0x75, 0x43, 0x4a, 0x06, 0x24, 0x40, 0xff, 0x42, 0xd1,
-	0x1d, 0x38, 0xe4, 0x5a, 0x55, 0x5a, 0xca, 0x6e, 0xc1, 0xfc, 0xf5, 0xc3, 0x43, 0xd3, 0xec, 0xb9,
-	0xf4, 0x2a, 0xba, 0xd0, 0xbb, 0xbe, 0x67, 0xa4, 0xf7, 0xbf, 0xc7, 0x76, 0xb7, 0x17, 0x52, 0x3f,
-	0xb0, 0x7b, 0xc4, 0xb0, 0x87, 0xae, 0x31, 0x93, 0xdd, 0x68, 0x5f, 0x3f, 0x61, 0x6e, 0x96, 0x30,
-	0xc5, 0xff, 0x40, 0xa5, 0x43, 0xe8, 0xdf, 0x76, 0x3f, 0x22, 0x68, 0x1d, 0x8a, 0x23, 0xf6, 0xc0,
-	0x57, 0xaa, 0x5a, 0xe2, 0x05, 0x1d, 0x42, 0x89, 0x5c, 0x0f, 0xdd, 0x80, 0xa8, 0x2b, 0x2d, 0x65,
-	0xb7, 0x76, 0xd0, 0xd0, 0x45, 0x5a, 0x7a, 0x9c, 0x96, 0x7e, 0x1e, 0xa7, 0x65, 0x16, 0x6e, 0xdf,
-	0x35, 0x15, 0x4b, 0xc6, 0xe3, 0xd7, 0x79, 0x6e, 0x7e, 0x32, 0x18, 0x46, 0x14, 0x1d, 0x42, 0x21,
-	0x74, 0x6f, 0x84, 0x77, 0xed, 0x00, 0xeb, 0x73, 0x0e, 0x55, 0xef, 0xb8, 0x37, 0x84, 0x2b, 0x7e,
-	0xcb, 0x59, 0x5c, 0x81, 0x8e, 0xa1, 0xd2, 0xf5, 0x07, 0xd4, 0x76, 0x07, 0xa1, 0xdc, 0xc2, 0x17,
-	0x73, 0xd5, 0xbf, 0xc8, 0xc0, 0xd8, 0x21, 0x51, 0xa2, 0xaf, 0x21, 0x6f, 0x3b, 0x8e, 0x9a, 0xe7,
-	0x06, 0x1b, 0x73, 0x0d, 0x7e, 0x76, 0x9c, 0x58, 0xcb, 0xe2, 0xd1, 0x8f, 0x50, 0x0a, 0x88, 0xe7,
-	0x8f, 0x88, 0x5a, 0xe0, 0xca, 0xad, 0xb9, 0x4a, 0x8b, 0x87, 0xc5, 0x62, 0xa9, 0x42, 0xdf, 0x43,
-	0xb1, 0xdb, 0x27, 0x76, 0xa0, 0x16, 0xb9, 0x7c, 0x73, 0xfe, 0xce, 0x59, 0x54, 0xac, 0x16, 0x1a,
-	0x96, 0x39, 0xe9, 0x13, 0x8f, 0x0c, 0x68, 0xa8, 0x96, 0x32, 0x32, 0x6f, 0xcb, 0xc0, 0x24, 0xf3,
-	0x58, 0xc9, 0x52, 0x20, 0x23, 0xee, 0x51, 0xce, 0x48, 0xa1, 0x3d, 0x4a, 0x3b, 0x48, 0x95, 0x59,
-	0x66, 0x05, 0x38, 0x8c, 0x28, 0x7e, 0x93, 0x87, 0x6a, 0x87, 0xd0, 0xb3, 0x88, 0x32, 0xa0, 0xdf,
-	0x4e, 0x01, 0xdd, 0x5c, 0x08, 0x54, 0x48, 0x12, 0xa2, 0xed, 0x19, 0xa2, 0x3b, 0x99, 0x44, 0x13,
-	0x8b, 0x09, 0xd2, 0x6f, 0xd2, 0x48, 0xf1, 0x22, 0xa4, 0x89, 0x98, 0x33, 0x3d, 0x7a, 0xc2, 0x74,
-	0x3b, 0x83, 0x69, 0xa2, 0x8e, 0xa1, 0xfe, 0x30, 0x0d, 0x75, 0x6b, 0x31, 0xd4, 0x44, 0x2e, 0xa9,
-	0xb6, 0x67, 0xa8, 0xee, 0x64, 0x52, 0x9d, 0x64, 0x9f, 0x60, 0x3d, 0x7a, 0x82, 0x75, 0x3b, 0x03,
-	0xeb, 0x24, 0x0b, 0xc9, 0xb5, 0x02, 0x25, 0x9f, 0x7f, 0xc3, 0x35, 0xa8, 0x26, 0x6d, 0x87, 0x5b,
-	0x00, 0x13, 0x64, 0x08, 0xa5, 0x28, 0xd7, 0x05, 0x3e, 0xfc, 0x17, 0xd4, 0xa7, 0xfa, 0x0c, 0xfd,
-	0x04, 0x65, 0xb9, 0x2d, 0x59, 0x0d, 0xad, 0xac, 0x84, 0xcc, 0xc2, 0xdd, 0x43, 0x33, 0x67, 0xc5,
-	0x32, 0xfc, 0x25, 0xac, 0x4d, 0x83, 0x46, 0x8d, 0x54, 0x8d, 0x30, 0xd3, 0xca, 0x04, 0x3c, 0x7e,
-	0xa1, 0x40, 0x25, 0x6e, 0xd4, 0xe7, 0x2f, 0x8e, 0x0e, 0x21, 0x4f, 0x69, 0x5f, 0x56, 0xe2, 0xe7,
-	0x33, 0xe3, 0xed, 0x58, 0x4e, 0x75, 0xb3, 0x36, 0x7e, 0x68, 0xe6, 0xcf, 0xcf, 0x4f, 0x5f, 0xb2,
-	0x21, 0xc7, 0x24, 0xf8, 0x0f, 0xa8, 0x26, 0xd5, 0xb5, 0x84, 0x53, 0x38, 0x83, 0x5a, 0x6a, 0x8a,
-	0x2c, 0xc1, 0xf0, 0x4f, 0x58, 0x4d, 0x97, 0xf0, 0x12, 0x1c, 0x57, 0x01, 0x26, 0x93, 0x0a, 0xd7,
-	0xa1, 0x96, 0x2a, 0x71, 0xf6, 0x9a, 0x1a, 0x21, 0xf8, 0x77, 0x58, 0x4d, 0x97, 0x1e, 0xfa, 0x0e,
-	0x8a, 0xbc, 0xf4, 0xe4, 0xda, 0xda, 0xe2, 0x82, 0x95, 0x2b, 0x0b, 0x09, 0x7e, 0xb5, 0x02, 0x45,
-	0xfe, 0x99, 0x35, 0x9f, 0xed, 0x38, 0xc4, 0x91, 0x2e, 0x19, 0xd3, 0x8c, 0x75, 0x3f, 0x71, 0x58,
-	0xf3, 0x71, 0x11, 0x32, 0xa1, 0x2c, 0x9a, 0xd8, 0xc9, 0xbc, 0x4b, 0x84, 0x5e, 0x9c, 0x1f, 0x73,
-	0x88, 0x85, 0x8d, 0x13, 0x28, 0x72, 0xd7, 0xe7, 0x1f, 0x67, 0x83, 0x40, 0x59, 0x2e, 0xb0, 0x84,
-	0x3a, 0x56, 0xa1, 0x2c, 0x6e, 0x5e, 0x91, 0x5b, 0xc5, 0x8a, 0x5f, 0xd9, 0x08, 0x17, 0xc7, 0xb8,
-	0x0d, 0xf5, 0xa9, 0x8b, 0x82, 0xdd, 0xf9, 0xff, 0xdb, 0xb4, 0x7b, 0x25, 0x7b, 0x4c, 0xbc, 0x60,
-	0x0b, 0xd6, 0xa6, 0x27, 0xcf, 0x12, 0x2a, 0xa7, 0x09, 0x65, 0xf9, 0xcb, 0xa7, 0xff, 0x68, 0x98,
-	0xea, 0xdd, 0x58, 0x53, 0xee, 0xc7, 0x9a, 0xf2, 0x7e, 0xac, 0x29, 0xb7, 0x8f, 0x5a, 0xee, 0xfe,
-	0x51, 0xcb, 0xbd, 0x7d, 0xd4, 0x72, 0x17, 0x25, 0xde, 0x8b, 0x5f, 0x7d, 0x0c, 0x00, 0x00, 0xff,
-	0xff, 0x25, 0xe0, 0x65, 0x9e, 0xad, 0x09, 0x00, 0x00,
+	// 725 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x95, 0xcb, 0x4e, 0xdb, 0x4c,
+	0x14, 0xc7, 0x63, 0x12, 0xc7, 0xe1, 0x84, 0xb0, 0x18, 0x21, 0x7d, 0xfe, 0xb2, 0x70, 0x60, 0x80,
+	0xd2, 0x45, 0x65, 0x8b, 0x56, 0xad, 0xe8, 0x45, 0xa5, 0x4d, 0x49, 0x55, 0xaa, 0x4a, 0xa8, 0x0e,
+	0x2f, 0x60, 0xf0, 0x90, 0x5a, 0x8a, 0xe3, 0x28, 0x9e, 0xa4, 0x88, 0x07, 0xe8, 0x9a, 0x65, 0x1f,
+	0xa8, 0x0b, 0x36, 0x95, 0x58, 0x55, 0x5d, 0xd1, 0x2a, 0xbc, 0x48, 0x35, 0x37, 0x5f, 0x40, 0x89,
+	0x17, 0xb0, 0xf3, 0x8c, 0xcf, 0xff, 0xef, 0x39, 0xf3, 0x3b, 0xe7, 0x18, 0xd6, 0x3c, 0x1a, 0x85,
+	0xc1, 0xa9, 0x13, 0x8e, 0xfb, 0x34, 0x18, 0x79, 0x27, 0xd4, 0x89, 0x09, 0x75, 0x26, 0xdb, 0xce,
+	0x49, 0x1c, 0xda, 0xc3, 0x51, 0x44, 0x23, 0xf4, 0x9f, 0x08, 0xb1, 0x93, 0x10, 0x3b, 0x26, 0xd4,
+	0x9e, 0x6c, 0x37, 0xad, 0x5e, 0x14, 0xf5, 0xfa, 0xc4, 0xe1, 0x61, 0x47, 0xe3, 0x13, 0xc7, 0x1f,
+	0x8f, 0x3c, 0x1a, 0x44, 0x03, 0x21, 0x6c, 0xb6, 0x6e, 0xbe, 0xa7, 0x41, 0x48, 0x62, 0xea, 0x85,
+	0x43, 0x19, 0xb0, 0xd2, 0x8b, 0x7a, 0x11, 0x7f, 0x74, 0xd8, 0x93, 0xd8, 0xc5, 0xef, 0x01, 0xba,
+	0x84, 0x76, 0xfa, 0x24, 0x24, 0x03, 0x8a, 0x76, 0xa0, 0x4a, 0x4e, 0x87, 0xc1, 0x88, 0x98, 0xda,
+	0xaa, 0xf6, 0xb0, 0xfe, 0xb8, 0x69, 0x0b, 0x57, 0x5b, 0xb9, 0xda, 0x87, 0xca, 0xb5, 0x5d, 0x39,
+	0xff, 0xd3, 0xd2, 0x5c, 0x19, 0x8f, 0x7f, 0x96, 0xa1, 0xd6, 0x25, 0x74, 0x7f, 0x30, 0x1c, 0x33,
+	0x9b, 0x4a, 0x1c, 0x9c, 0x29, 0x13, 0x6c, 0xcf, 0xc8, 0xc9, 0xee, 0x06, 0x67, 0x84, 0x2b, 0x3e,
+	0x94, 0x5c, 0xae, 0x40, 0x7b, 0x50, 0x3b, 0x8e, 0x06, 0xd4, 0x0b, 0x06, 0xb1, 0xb9, 0xc0, 0xd5,
+	0x0f, 0x66, 0xaa, 0xdf, 0xc9, 0x40, 0xe5, 0x90, 0x28, 0xd1, 0x53, 0x28, 0x7b, 0xbe, 0x6f, 0x96,
+	0xb9, 0xc1, 0xda, 0x4c, 0x83, 0xb7, 0xbe, 0xaf, 0xb4, 0x2c, 0x1e, 0xbd, 0x86, 0xea, 0x88, 0x84,
+	0xd1, 0x84, 0x98, 0x15, 0xae, 0xdc, 0x98, 0xa9, 0x74, 0x79, 0x98, 0x12, 0x4b, 0x15, 0x7a, 0x09,
+	0xfa, 0x71, 0x9f, 0x78, 0x23, 0x53, 0xe7, 0xf2, 0xf5, 0xd9, 0x27, 0x67, 0x51, 0x4a, 0x2d, 0x34,
+	0x2c, 0x73, 0x22, 0x28, 0xc4, 0x66, 0xb5, 0x20, 0x73, 0x89, 0x2b, 0xcd, 0x5c, 0x29, 0x59, 0x0a,
+	0x64, 0xc2, 0x3d, 0x8c, 0x82, 0x14, 0x3a, 0x93, 0xac, 0x83, 0x54, 0xb5, 0x0d, 0xd0, 0x03, 0xb6,
+	0x85, 0x7f, 0x95, 0x61, 0xb1, 0x4b, 0xe8, 0xc1, 0x98, 0x32, 0xa0, 0xcf, 0x73, 0x40, 0xd7, 0xe7,
+	0x02, 0x15, 0x92, 0x84, 0x68, 0xe7, 0x16, 0xd1, 0xad, 0x42, 0xa2, 0x89, 0x45, 0x8a, 0xf4, 0x59,
+	0x16, 0x29, 0x9e, 0x87, 0x34, 0x11, 0x73, 0xa6, 0xbb, 0x37, 0x98, 0x6e, 0x16, 0x30, 0x4d, 0xd4,
+	0x0a, 0xea, 0xab, 0x3c, 0xd4, 0x8d, 0xf9, 0x50, 0x13, 0xb9, 0xa4, 0xda, 0xb9, 0x45, 0x75, 0xab,
+	0x90, 0x6a, 0x9a, 0x7d, 0x82, 0x75, 0xf7, 0x06, 0xd6, 0xcd, 0x02, 0xac, 0x69, 0x16, 0x92, 0x6b,
+	0x0d, 0xaa, 0x11, 0xdf, 0xc3, 0x75, 0x58, 0x4c, 0xda, 0x0e, 0xaf, 0x02, 0xa4, 0xc8, 0x10, 0xca,
+	0x50, 0x6e, 0x08, 0x7c, 0xf8, 0x33, 0x34, 0x72, 0x7d, 0x86, 0xde, 0x80, 0x21, 0x8f, 0x25, 0xab,
+	0x61, 0xb5, 0x28, 0xa1, 0x76, 0xe5, 0xe2, 0xaa, 0x55, 0x72, 0x95, 0x0c, 0x3f, 0x82, 0xe5, 0x3c,
+	0x68, 0xd4, 0xcc, 0xd4, 0x08, 0x33, 0xad, 0xa5, 0xe0, 0xf1, 0x37, 0x0d, 0x6a, 0xaa, 0x51, 0xef,
+	0xfe, 0x71, 0xb4, 0x03, 0x65, 0x4a, 0xfb, 0xb2, 0x12, 0xff, 0xbf, 0x35, 0xde, 0xf6, 0xe4, 0x50,
+	0x6d, 0xd7, 0xa7, 0x57, 0xad, 0xf2, 0xe1, 0xe1, 0xa7, 0xef, 0x6c, 0xc8, 0x31, 0x09, 0xbb, 0xb8,
+	0xa4, 0xba, 0xf0, 0x01, 0xd4, 0x33, 0x33, 0xe0, 0x1e, 0x2e, 0x65, 0x19, 0x96, 0xb2, 0x05, 0x88,
+	0x97, 0x00, 0xd2, 0x29, 0x81, 0x1b, 0x50, 0xcf, 0x94, 0x17, 0x5b, 0x66, 0xda, 0x17, 0x7f, 0x84,
+	0xa5, 0x2c, 0x76, 0xf4, 0x02, 0x74, 0x8e, 0x5d, 0x9e, 0xc5, 0x9a, 0x5f, 0x2c, 0xf2, 0x24, 0x42,
+	0x82, 0x7f, 0x2c, 0x80, 0xce, 0xb7, 0x59, 0xe1, 0x7b, 0xbe, 0x4f, 0x7c, 0xe9, 0x52, 0x30, 0x49,
+	0x58, 0xe7, 0x11, 0x9f, 0x15, 0x3e, 0x17, 0xa1, 0x36, 0x18, 0xa2, 0x81, 0xfc, 0xc2, 0x39, 0x2e,
+	0xf4, 0x22, 0x7b, 0xe6, 0xa0, 0x84, 0xcd, 0x7d, 0xd0, 0xb9, 0xeb, 0xdd, 0xaf, 0xb7, 0x49, 0xc0,
+	0x90, 0x1f, 0xb8, 0x87, 0x1a, 0x32, 0xc1, 0x10, 0x7f, 0x3d, 0x91, 0x5b, 0xcd, 0x55, 0x4b, 0x36,
+	0x3e, 0xc5, 0x35, 0x6e, 0x42, 0x23, 0x37, 0xa4, 0xd1, 0x0a, 0xe8, 0x5f, 0x3d, 0x7a, 0xfc, 0x45,
+	0xd6, 0xb7, 0x58, 0x60, 0x17, 0x96, 0xf3, 0x5d, 0x7f, 0x0f, 0x95, 0xd4, 0x02, 0x43, 0xfd, 0xce,
+	0x57, 0x40, 0x9f, 0x78, 0xfd, 0xb1, 0xe8, 0xe8, 0x45, 0x57, 0x2c, 0xda, 0xe6, 0xc5, 0xd4, 0xd2,
+	0x2e, 0xa7, 0x96, 0xf6, 0x77, 0x6a, 0x69, 0xe7, 0xd7, 0x56, 0xe9, 0xf2, 0xda, 0x2a, 0xfd, 0xbe,
+	0xb6, 0x4a, 0x47, 0x55, 0xde, 0x07, 0x4f, 0xfe, 0x05, 0x00, 0x00, 0xff, 0xff, 0x07, 0xca, 0x58,
+	0x71, 0xa8, 0x08, 0x00, 0x00,
 }
 
-func (m *SetListener) Marshal() (dAtA []byte, err error) {
+func (m *SetElement) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1333,40 +1258,12 @@ func (m *SetListener) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *SetListener) MarshalTo(dAtA []byte) (int, error) {
+func (m *SetElement) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *SetListener) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Index != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.Index))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *SetValue) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *SetValue) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *SetValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SetElement) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1378,13 +1275,6 @@ func (m *SetValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i -= n1
 		i = encodeVarintFsm(dAtA, i, uint64(n1))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Value) > 0 {
-		i -= len(m.Value)
-		copy(dAtA[i:], m.Value)
-		i = encodeVarintFsm(dAtA, i, uint64(len(m.Value)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1929,16 +1819,6 @@ func (m *AddOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.Element.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintFsm(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1995,16 +1875,6 @@ func (m *RemoveOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.Element.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintFsm(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2367,28 +2237,12 @@ func encodeVarintFsm(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *SetListener) Size() (n int) {
+func (m *SetElement) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Index != 0 {
-		n += 1 + sovFsm(uint64(m.Index))
-	}
-	return n
-}
-
-func (m *SetValue) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Value)
-	if l > 0 {
-		n += 1 + l + sovFsm(uint64(l))
-	}
 	if m.Expire != nil {
 		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.Expire)
 		n += 1 + l + sovFsm(uint64(l))
@@ -2653,8 +2507,6 @@ func (m *AddOutput) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Element.Size()
-	n += 1 + l + sovFsm(uint64(l))
 	return n
 }
 
@@ -2675,8 +2527,6 @@ func (m *RemoveOutput) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = m.Element.Size()
-	n += 1 + l + sovFsm(uint64(l))
 	return n
 }
 
@@ -2821,7 +2671,7 @@ func sovFsm(x uint64) (n int) {
 func sozFsm(x uint64) (n int) {
 	return sovFsm(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *SetListener) Unmarshal(dAtA []byte) error {
+func (m *SetElement) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2844,114 +2694,13 @@ func (m *SetListener) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: SetListener: wiretype end group for non-group")
+			return fmt.Errorf("proto: SetElement: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SetListener: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SetElement: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
-			}
-			m.Index = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Index |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFsm(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SetValue) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFsm
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SetValue: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SetValue: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Value = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Expire", wireType)
 			}
@@ -4018,39 +3767,6 @@ func (m *AddOutput) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: AddOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Element", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Element.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFsm(dAtA[iNdEx:])
@@ -4184,39 +3900,6 @@ func (m *RemoveOutput) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: RemoveOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Element", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.Element.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFsm(dAtA[iNdEx:])

@@ -12,15 +12,8 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
-message SetListener {
-    uint64 index = 1 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
-}
-
-message SetValue {
-    string value = 1;
-    google.protobuf.Timestamp expire = 2 [
+message SetElement {
+    google.protobuf.Timestamp expire = 1 [
         (gogoproto.stdtime) = true
     ];
 }
@@ -78,9 +71,7 @@ message AddInput {
 }
 
 message AddOutput {
-    Element element = 1 [
-        (gogoproto.nullable) = false
-    ];
+
 }
 
 message RemoveInput {
@@ -90,9 +81,7 @@ message RemoveInput {
 }
 
 message RemoveOutput {
-    Element element = 1 [
-        (gogoproto.nullable) = false
-    ];
+
 }
 
 message ClearInput {

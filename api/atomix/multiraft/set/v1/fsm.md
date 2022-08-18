@@ -20,10 +20,9 @@
     - [EventsOutput](#atomix-multiraft-set-v1-EventsOutput)
     - [RemoveInput](#atomix-multiraft-set-v1-RemoveInput)
     - [RemoveOutput](#atomix-multiraft-set-v1-RemoveOutput)
+    - [SetElement](#atomix-multiraft-set-v1-SetElement)
     - [SetInput](#atomix-multiraft-set-v1-SetInput)
-    - [SetListener](#atomix-multiraft-set-v1-SetListener)
     - [SetOutput](#atomix-multiraft-set-v1-SetOutput)
-    - [SetValue](#atomix-multiraft-set-v1-SetValue)
     - [SizeInput](#atomix-multiraft-set-v1-SizeInput)
     - [SizeOutput](#atomix-multiraft-set-v1-SizeOutput)
   
@@ -58,11 +57,6 @@
 
 ### AddOutput
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| element | [Element](#atomix-multiraft-set-v1-Element) |  |  |
 
 
 
@@ -257,9 +251,19 @@
 
 
 
+
+
+
+
+<a name="atomix-multiraft-set-v1-SetElement"></a>
+
+### SetElement
+
+
+
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| element | [Element](#atomix-multiraft-set-v1-Element) |  |  |
+| expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
@@ -287,21 +291,6 @@
 
 
 
-<a name="atomix-multiraft-set-v1-SetListener"></a>
-
-### SetListener
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-set-v1-SetOutput"></a>
 
 ### SetOutput
@@ -317,22 +306,6 @@
 | clear | [ClearOutput](#atomix-multiraft-set-v1-ClearOutput) |  |  |
 | elements | [ElementsOutput](#atomix-multiraft-set-v1-ElementsOutput) |  |  |
 | events | [EventsOutput](#atomix-multiraft-set-v1-EventsOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-set-v1-SetValue"></a>
-
-### SetValue
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| value | [string](#string) |  |  |
-| expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
