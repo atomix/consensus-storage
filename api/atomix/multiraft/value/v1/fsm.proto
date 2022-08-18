@@ -1,0 +1,49 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.value.v1;
+
+message ValueInput {
+    oneof input {
+        GetInput get = 1;
+        SetInput set = 2;
+        WatchInput watch = 3;
+    }
+}
+
+message ValueOutput {
+    oneof output {
+        GetOutput get = 1;
+        SetOutput set = 2;
+        WatchOutput watch = 3;
+    }
+}
+
+message GetInput {
+
+}
+
+message GetOutput {
+    bytes value = 1;
+}
+
+message SetInput {
+    bytes value = 1;
+}
+
+message SetOutput {
+    bytes value = 1;
+}
+
+message WatchInput {
+
+}
+
+message WatchOutput {
+    bytes value = 1;
+}
