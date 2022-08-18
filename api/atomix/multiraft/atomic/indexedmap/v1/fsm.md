@@ -498,7 +498,7 @@
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
 | index | [uint64](#uint64) |  |  |
-| prev_version | [uint64](#uint64) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
 
 
 
@@ -557,7 +557,7 @@
 | index | [uint64](#uint64) |  |  |
 | value | [bytes](#bytes) |  |  |
 | ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
-| prev_version | [uint64](#uint64) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
 
 
 
@@ -588,7 +588,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
-| version | [uint64](#uint64) |  |  |
+| index | [uint64](#uint64) |  |  |
 | ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 
 
