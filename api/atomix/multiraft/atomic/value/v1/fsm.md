@@ -4,11 +4,9 @@
 ## Table of Contents
 
 - [atomix/multiraft/atomic/value/v1/fsm.proto](#atomix_multiraft_atomic_value_v1_fsm-proto)
-    - [AtomicValueEntry](#atomix-multiraft-atomic-value-v1-AtomicValueEntry)
     - [AtomicValueInput](#atomix-multiraft-atomic-value-v1-AtomicValueInput)
-    - [AtomicValueListener](#atomix-multiraft-atomic-value-v1-AtomicValueListener)
     - [AtomicValueOutput](#atomix-multiraft-atomic-value-v1-AtomicValueOutput)
-    - [AtomicValueValue](#atomix-multiraft-atomic-value-v1-AtomicValueValue)
+    - [AtomicValueState](#atomix-multiraft-atomic-value-v1-AtomicValueState)
     - [DeleteInput](#atomix-multiraft-atomic-value-v1-DeleteInput)
     - [DeleteOutput](#atomix-multiraft-atomic-value-v1-DeleteOutput)
     - [Event](#atomix-multiraft-atomic-value-v1-Event)
@@ -38,22 +36,6 @@
 
 
 
-<a name="atomix-multiraft-atomic-value-v1-AtomicValueEntry"></a>
-
-### AtomicValueEntry
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| value | [AtomicValueValue](#atomix-multiraft-atomic-value-v1-AtomicValueValue) |  |  |
-
-
-
-
-
-
 <a name="atomix-multiraft-atomic-value-v1-AtomicValueInput"></a>
 
 ### AtomicValueInput
@@ -68,22 +50,6 @@
 | delete | [DeleteInput](#atomix-multiraft-atomic-value-v1-DeleteInput) |  |  |
 | watch | [WatchInput](#atomix-multiraft-atomic-value-v1-WatchInput) |  |  |
 | events | [EventsInput](#atomix-multiraft-atomic-value-v1-EventsInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-atomic-value-v1-AtomicValueListener"></a>
-
-### AtomicValueListener
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| key | [string](#string) |  |  |
 
 
 
@@ -110,16 +76,15 @@
 
 
 
-<a name="atomix-multiraft-atomic-value-v1-AtomicValueValue"></a>
+<a name="atomix-multiraft-atomic-value-v1-AtomicValueState"></a>
 
-### AtomicValueValue
+### AtomicValueState
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [bytes](#bytes) |  |  |
-| index | [uint64](#uint64) |  |  |
+| value | [Value](#atomix-multiraft-atomic-value-v1-Value) |  |  |
 | expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
@@ -135,7 +100,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| prev_version | [uint64](#uint64) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
 
 
 
@@ -146,6 +111,11 @@
 
 ### DeleteOutput
 
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [Value](#atomix-multiraft-atomic-value-v1-Value) |  |  |
 
 
 
@@ -290,7 +260,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| version | [uint64](#uint64) |  |  |
+| index | [uint64](#uint64) |  |  |
 
 
 
@@ -306,7 +276,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
-| prev_version | [uint64](#uint64) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
 | ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 
 
@@ -322,7 +292,8 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| version | [uint64](#uint64) |  |  |
+| index | [uint64](#uint64) |  |  |
+| prev_value | [Value](#atomix-multiraft-atomic-value-v1-Value) |  |  |
 
 
 
@@ -338,7 +309,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
-| version | [uint64](#uint64) |  |  |
+| index | [uint64](#uint64) |  |  |
 
 
 

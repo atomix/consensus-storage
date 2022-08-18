@@ -28,23 +28,23 @@ var _ = time.Kitchen
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type AtomicValueListener struct {
-	Index github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,1,opt,name=index,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"index,omitempty"`
-	Key   string                                                             `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
+type AtomicValueState struct {
+	Value  *Value     `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Expire *time.Time `protobuf:"bytes,2,opt,name=expire,proto3,stdtime" json:"expire,omitempty"`
 }
 
-func (m *AtomicValueListener) Reset()         { *m = AtomicValueListener{} }
-func (m *AtomicValueListener) String() string { return proto.CompactTextString(m) }
-func (*AtomicValueListener) ProtoMessage()    {}
-func (*AtomicValueListener) Descriptor() ([]byte, []int) {
+func (m *AtomicValueState) Reset()         { *m = AtomicValueState{} }
+func (m *AtomicValueState) String() string { return proto.CompactTextString(m) }
+func (*AtomicValueState) ProtoMessage()    {}
+func (*AtomicValueState) Descriptor() ([]byte, []int) {
 	return fileDescriptor_773e0cea356866c7, []int{0}
 }
-func (m *AtomicValueListener) XXX_Unmarshal(b []byte) error {
+func (m *AtomicValueState) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AtomicValueListener) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *AtomicValueState) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AtomicValueListener.Marshal(b, m, deterministic)
+		return xxx_messageInfo_AtomicValueState.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -54,138 +54,26 @@ func (m *AtomicValueListener) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *AtomicValueListener) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AtomicValueListener.Merge(m, src)
+func (m *AtomicValueState) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AtomicValueState.Merge(m, src)
 }
-func (m *AtomicValueListener) XXX_Size() int {
+func (m *AtomicValueState) XXX_Size() int {
 	return m.Size()
 }
-func (m *AtomicValueListener) XXX_DiscardUnknown() {
-	xxx_messageInfo_AtomicValueListener.DiscardUnknown(m)
+func (m *AtomicValueState) XXX_DiscardUnknown() {
+	xxx_messageInfo_AtomicValueState.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AtomicValueListener proto.InternalMessageInfo
+var xxx_messageInfo_AtomicValueState proto.InternalMessageInfo
 
-func (m *AtomicValueListener) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
-	if m != nil {
-		return m.Index
-	}
-	return 0
-}
-
-func (m *AtomicValueListener) GetKey() string {
-	if m != nil {
-		return m.Key
-	}
-	return ""
-}
-
-type AtomicValueEntry struct {
-	Key   string            `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	Value *AtomicValueValue `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-}
-
-func (m *AtomicValueEntry) Reset()         { *m = AtomicValueEntry{} }
-func (m *AtomicValueEntry) String() string { return proto.CompactTextString(m) }
-func (*AtomicValueEntry) ProtoMessage()    {}
-func (*AtomicValueEntry) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{1}
-}
-func (m *AtomicValueEntry) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *AtomicValueEntry) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_AtomicValueEntry.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *AtomicValueEntry) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AtomicValueEntry.Merge(m, src)
-}
-func (m *AtomicValueEntry) XXX_Size() int {
-	return m.Size()
-}
-func (m *AtomicValueEntry) XXX_DiscardUnknown() {
-	xxx_messageInfo_AtomicValueEntry.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AtomicValueEntry proto.InternalMessageInfo
-
-func (m *AtomicValueEntry) GetKey() string {
-	if m != nil {
-		return m.Key
-	}
-	return ""
-}
-
-func (m *AtomicValueEntry) GetValue() *AtomicValueValue {
+func (m *AtomicValueState) GetValue() *Value {
 	if m != nil {
 		return m.Value
 	}
 	return nil
 }
 
-type AtomicValueValue struct {
-	Value  []byte                                                             `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	Index  github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,2,opt,name=index,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"index,omitempty"`
-	Expire *time.Time                                                         `protobuf:"bytes,3,opt,name=expire,proto3,stdtime" json:"expire,omitempty"`
-}
-
-func (m *AtomicValueValue) Reset()         { *m = AtomicValueValue{} }
-func (m *AtomicValueValue) String() string { return proto.CompactTextString(m) }
-func (*AtomicValueValue) ProtoMessage()    {}
-func (*AtomicValueValue) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{2}
-}
-func (m *AtomicValueValue) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *AtomicValueValue) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_AtomicValueValue.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *AtomicValueValue) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AtomicValueValue.Merge(m, src)
-}
-func (m *AtomicValueValue) XXX_Size() int {
-	return m.Size()
-}
-func (m *AtomicValueValue) XXX_DiscardUnknown() {
-	xxx_messageInfo_AtomicValueValue.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_AtomicValueValue proto.InternalMessageInfo
-
-func (m *AtomicValueValue) GetValue() []byte {
-	if m != nil {
-		return m.Value
-	}
-	return nil
-}
-
-func (m *AtomicValueValue) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
-	if m != nil {
-		return m.Index
-	}
-	return 0
-}
-
-func (m *AtomicValueValue) GetExpire() *time.Time {
+func (m *AtomicValueState) GetExpire() *time.Time {
 	if m != nil {
 		return m.Expire
 	}
@@ -207,7 +95,7 @@ func (m *AtomicValueInput) Reset()         { *m = AtomicValueInput{} }
 func (m *AtomicValueInput) String() string { return proto.CompactTextString(m) }
 func (*AtomicValueInput) ProtoMessage()    {}
 func (*AtomicValueInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{3}
+	return fileDescriptor_773e0cea356866c7, []int{1}
 }
 func (m *AtomicValueInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -344,7 +232,7 @@ func (m *AtomicValueOutput) Reset()         { *m = AtomicValueOutput{} }
 func (m *AtomicValueOutput) String() string { return proto.CompactTextString(m) }
 func (*AtomicValueOutput) ProtoMessage()    {}
 func (*AtomicValueOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{4}
+	return fileDescriptor_773e0cea356866c7, []int{2}
 }
 func (m *AtomicValueOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -473,7 +361,7 @@ func (m *GetInput) Reset()         { *m = GetInput{} }
 func (m *GetInput) String() string { return proto.CompactTextString(m) }
 func (*GetInput) ProtoMessage()    {}
 func (*GetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{5}
+	return fileDescriptor_773e0cea356866c7, []int{3}
 }
 func (m *GetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -510,7 +398,7 @@ func (m *GetOutput) Reset()         { *m = GetOutput{} }
 func (m *GetOutput) String() string { return proto.CompactTextString(m) }
 func (*GetOutput) ProtoMessage()    {}
 func (*GetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{6}
+	return fileDescriptor_773e0cea356866c7, []int{4}
 }
 func (m *GetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -555,7 +443,7 @@ func (m *SetInput) Reset()         { *m = SetInput{} }
 func (m *SetInput) String() string { return proto.CompactTextString(m) }
 func (*SetInput) ProtoMessage()    {}
 func (*SetInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{7}
+	return fileDescriptor_773e0cea356866c7, []int{5}
 }
 func (m *SetInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -599,14 +487,14 @@ func (m *SetInput) GetTTL() *time.Duration {
 }
 
 type SetOutput struct {
-	Version uint64 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	Index github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,1,opt,name=index,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"index,omitempty"`
 }
 
 func (m *SetOutput) Reset()         { *m = SetOutput{} }
 func (m *SetOutput) String() string { return proto.CompactTextString(m) }
 func (*SetOutput) ProtoMessage()    {}
 func (*SetOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{8}
+	return fileDescriptor_773e0cea356866c7, []int{6}
 }
 func (m *SetOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -635,24 +523,24 @@ func (m *SetOutput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SetOutput proto.InternalMessageInfo
 
-func (m *SetOutput) GetVersion() uint64 {
+func (m *SetOutput) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
 	if m != nil {
-		return m.Version
+		return m.Index
 	}
 	return 0
 }
 
 type UpdateInput struct {
-	Value       []byte         `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	PrevVersion uint64         `protobuf:"varint,2,opt,name=prev_version,json=prevVersion,proto3" json:"prev_version,omitempty"`
-	TTL         *time.Duration `protobuf:"bytes,3,opt,name=ttl,proto3,stdduration" json:"ttl,omitempty"`
+	Value     []byte                                                             `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	PrevIndex github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,2,opt,name=prev_index,json=prevIndex,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"prev_index,omitempty"`
+	TTL       *time.Duration                                                     `protobuf:"bytes,3,opt,name=ttl,proto3,stdduration" json:"ttl,omitempty"`
 }
 
 func (m *UpdateInput) Reset()         { *m = UpdateInput{} }
 func (m *UpdateInput) String() string { return proto.CompactTextString(m) }
 func (*UpdateInput) ProtoMessage()    {}
 func (*UpdateInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{9}
+	return fileDescriptor_773e0cea356866c7, []int{7}
 }
 func (m *UpdateInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -688,9 +576,9 @@ func (m *UpdateInput) GetValue() []byte {
 	return nil
 }
 
-func (m *UpdateInput) GetPrevVersion() uint64 {
+func (m *UpdateInput) GetPrevIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
 	if m != nil {
-		return m.PrevVersion
+		return m.PrevIndex
 	}
 	return 0
 }
@@ -703,14 +591,15 @@ func (m *UpdateInput) GetTTL() *time.Duration {
 }
 
 type UpdateOutput struct {
-	Version uint64 `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	Index     github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,1,opt,name=index,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"index,omitempty"`
+	PrevValue Value                                                              `protobuf:"bytes,2,opt,name=prev_value,json=prevValue,proto3" json:"prev_value"`
 }
 
 func (m *UpdateOutput) Reset()         { *m = UpdateOutput{} }
 func (m *UpdateOutput) String() string { return proto.CompactTextString(m) }
 func (*UpdateOutput) ProtoMessage()    {}
 func (*UpdateOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{10}
+	return fileDescriptor_773e0cea356866c7, []int{8}
 }
 func (m *UpdateOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -739,22 +628,29 @@ func (m *UpdateOutput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_UpdateOutput proto.InternalMessageInfo
 
-func (m *UpdateOutput) GetVersion() uint64 {
+func (m *UpdateOutput) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
 	if m != nil {
-		return m.Version
+		return m.Index
 	}
 	return 0
 }
 
+func (m *UpdateOutput) GetPrevValue() Value {
+	if m != nil {
+		return m.PrevValue
+	}
+	return Value{}
+}
+
 type DeleteInput struct {
-	PrevVersion uint64 `protobuf:"varint,1,opt,name=prev_version,json=prevVersion,proto3" json:"prev_version,omitempty"`
+	PrevIndex github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,1,opt,name=prev_index,json=prevIndex,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"prev_index,omitempty"`
 }
 
 func (m *DeleteInput) Reset()         { *m = DeleteInput{} }
 func (m *DeleteInput) String() string { return proto.CompactTextString(m) }
 func (*DeleteInput) ProtoMessage()    {}
 func (*DeleteInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{11}
+	return fileDescriptor_773e0cea356866c7, []int{9}
 }
 func (m *DeleteInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -783,21 +679,22 @@ func (m *DeleteInput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteInput proto.InternalMessageInfo
 
-func (m *DeleteInput) GetPrevVersion() uint64 {
+func (m *DeleteInput) GetPrevIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
 	if m != nil {
-		return m.PrevVersion
+		return m.PrevIndex
 	}
 	return 0
 }
 
 type DeleteOutput struct {
+	Value Value `protobuf:"bytes,1,opt,name=value,proto3" json:"value"`
 }
 
 func (m *DeleteOutput) Reset()         { *m = DeleteOutput{} }
 func (m *DeleteOutput) String() string { return proto.CompactTextString(m) }
 func (*DeleteOutput) ProtoMessage()    {}
 func (*DeleteOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{12}
+	return fileDescriptor_773e0cea356866c7, []int{10}
 }
 func (m *DeleteOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -826,6 +723,13 @@ func (m *DeleteOutput) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteOutput proto.InternalMessageInfo
 
+func (m *DeleteOutput) GetValue() Value {
+	if m != nil {
+		return m.Value
+	}
+	return Value{}
+}
+
 type WatchInput struct {
 }
 
@@ -833,7 +737,7 @@ func (m *WatchInput) Reset()         { *m = WatchInput{} }
 func (m *WatchInput) String() string { return proto.CompactTextString(m) }
 func (*WatchInput) ProtoMessage()    {}
 func (*WatchInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{13}
+	return fileDescriptor_773e0cea356866c7, []int{11}
 }
 func (m *WatchInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -870,7 +774,7 @@ func (m *WatchOutput) Reset()         { *m = WatchOutput{} }
 func (m *WatchOutput) String() string { return proto.CompactTextString(m) }
 func (*WatchOutput) ProtoMessage()    {}
 func (*WatchOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{14}
+	return fileDescriptor_773e0cea356866c7, []int{12}
 }
 func (m *WatchOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -913,7 +817,7 @@ func (m *EventsInput) Reset()         { *m = EventsInput{} }
 func (m *EventsInput) String() string { return proto.CompactTextString(m) }
 func (*EventsInput) ProtoMessage()    {}
 func (*EventsInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{15}
+	return fileDescriptor_773e0cea356866c7, []int{13}
 }
 func (m *EventsInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -950,7 +854,7 @@ func (m *EventsOutput) Reset()         { *m = EventsOutput{} }
 func (m *EventsOutput) String() string { return proto.CompactTextString(m) }
 func (*EventsOutput) ProtoMessage()    {}
 func (*EventsOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{16}
+	return fileDescriptor_773e0cea356866c7, []int{14}
 }
 func (m *EventsOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -987,15 +891,15 @@ func (m *EventsOutput) GetEvent() Event {
 }
 
 type Value struct {
-	Value   []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
-	Version uint64 `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Value []byte                                                             `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Index github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,2,opt,name=index,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"index,omitempty"`
 }
 
 func (m *Value) Reset()         { *m = Value{} }
 func (m *Value) String() string { return proto.CompactTextString(m) }
 func (*Value) ProtoMessage()    {}
 func (*Value) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{17}
+	return fileDescriptor_773e0cea356866c7, []int{15}
 }
 func (m *Value) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1031,9 +935,9 @@ func (m *Value) GetValue() []byte {
 	return nil
 }
 
-func (m *Value) GetVersion() uint64 {
+func (m *Value) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
 	if m != nil {
-		return m.Version
+		return m.Index
 	}
 	return 0
 }
@@ -1050,7 +954,7 @@ func (m *Event) Reset()         { *m = Event{} }
 func (m *Event) String() string { return proto.CompactTextString(m) }
 func (*Event) ProtoMessage()    {}
 func (*Event) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{18}
+	return fileDescriptor_773e0cea356866c7, []int{16}
 }
 func (m *Event) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1144,7 +1048,7 @@ func (m *Event_Created) Reset()         { *m = Event_Created{} }
 func (m *Event_Created) String() string { return proto.CompactTextString(m) }
 func (*Event_Created) ProtoMessage()    {}
 func (*Event_Created) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{18, 0}
+	return fileDescriptor_773e0cea356866c7, []int{16, 0}
 }
 func (m *Event_Created) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1189,7 +1093,7 @@ func (m *Event_Updated) Reset()         { *m = Event_Updated{} }
 func (m *Event_Updated) String() string { return proto.CompactTextString(m) }
 func (*Event_Updated) ProtoMessage()    {}
 func (*Event_Updated) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{18, 1}
+	return fileDescriptor_773e0cea356866c7, []int{16, 1}
 }
 func (m *Event_Updated) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1241,7 +1145,7 @@ func (m *Event_Deleted) Reset()         { *m = Event_Deleted{} }
 func (m *Event_Deleted) String() string { return proto.CompactTextString(m) }
 func (*Event_Deleted) ProtoMessage()    {}
 func (*Event_Deleted) Descriptor() ([]byte, []int) {
-	return fileDescriptor_773e0cea356866c7, []int{18, 2}
+	return fileDescriptor_773e0cea356866c7, []int{16, 2}
 }
 func (m *Event_Deleted) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1285,9 +1189,7 @@ func (m *Event_Deleted) GetExpired() bool {
 }
 
 func init() {
-	proto.RegisterType((*AtomicValueListener)(nil), "atomix.multiraft.atomic.value.v1.AtomicValueListener")
-	proto.RegisterType((*AtomicValueEntry)(nil), "atomix.multiraft.atomic.value.v1.AtomicValueEntry")
-	proto.RegisterType((*AtomicValueValue)(nil), "atomix.multiraft.atomic.value.v1.AtomicValueValue")
+	proto.RegisterType((*AtomicValueState)(nil), "atomix.multiraft.atomic.value.v1.AtomicValueState")
 	proto.RegisterType((*AtomicValueInput)(nil), "atomix.multiraft.atomic.value.v1.AtomicValueInput")
 	proto.RegisterType((*AtomicValueOutput)(nil), "atomix.multiraft.atomic.value.v1.AtomicValueOutput")
 	proto.RegisterType((*GetInput)(nil), "atomix.multiraft.atomic.value.v1.GetInput")
@@ -1314,65 +1216,61 @@ func init() {
 }
 
 var fileDescriptor_773e0cea356866c7 = []byte{
-	// 874 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x96, 0xbf, 0x6f, 0xeb, 0x54,
-	0x14, 0xc7, 0xe3, 0x3a, 0x3f, 0x8f, 0x03, 0x7a, 0x98, 0x37, 0x98, 0x0c, 0x49, 0xb1, 0x84, 0xa8,
-	0xde, 0x23, 0xd7, 0x34, 0x0c, 0xbc, 0x05, 0x2a, 0xd2, 0x96, 0xa6, 0x10, 0x81, 0xe4, 0x96, 0x22,
-	0x21, 0x24, 0xe4, 0x26, 0xb7, 0xa9, 0x45, 0x62, 0x5b, 0xf6, 0x75, 0x68, 0x37, 0x16, 0xf6, 0x8e,
-	0x0c, 0xfc, 0x29, 0x0c, 0x0c, 0x0c, 0x1d, 0x3b, 0x32, 0x15, 0x94, 0xfe, 0x17, 0x4c, 0xe8, 0xfe,
-	0x72, 0x6e, 0x12, 0xb5, 0x71, 0xa1, 0x2c, 0x91, 0x73, 0x73, 0xce, 0xe7, 0x7e, 0xef, 0xf9, 0x9e,
-	0x7b, 0x1c, 0x78, 0xe1, 0x91, 0x70, 0xe2, 0x5f, 0x38, 0x93, 0x74, 0x4c, 0xfc, 0xd8, 0x3b, 0x23,
-	0x0e, 0x5b, 0x18, 0x38, 0x53, 0x6f, 0x9c, 0x62, 0x67, 0xba, 0xed, 0x9c, 0x25, 0x13, 0x14, 0xc5,
-	0x21, 0x09, 0xcd, 0x4d, 0x1e, 0x8b, 0xb2, 0x58, 0xc4, 0x63, 0x11, 0x8b, 0x45, 0xd3, 0xed, 0x46,
-	0x73, 0x14, 0x86, 0xa3, 0x31, 0x76, 0x58, 0xfc, 0x69, 0x7a, 0xe6, 0x0c, 0xd3, 0xd8, 0x23, 0x7e,
-	0x18, 0x70, 0x42, 0xa3, 0xb5, 0xfc, 0x3b, 0xf1, 0x27, 0x38, 0x21, 0xde, 0x24, 0x12, 0x01, 0xcf,
-	0x47, 0xe1, 0x28, 0x64, 0x8f, 0x0e, 0x7d, 0xe2, 0xab, 0xf6, 0x4f, 0x1a, 0xbc, 0xf9, 0x09, 0xdb,
-	0xea, 0x84, 0xee, 0xd4, 0xf7, 0x13, 0x82, 0x03, 0x1c, 0x9b, 0xdf, 0x42, 0xc9, 0x0f, 0x86, 0xf8,
-	0xc2, 0xd2, 0x36, 0xb5, 0xad, 0x62, 0xf7, 0xd3, 0xbf, 0x6f, 0x5b, 0xdd, 0x91, 0x4f, 0xce, 0xd3,
-	0x53, 0x34, 0x08, 0x27, 0x8e, 0x7a, 0xb4, 0x36, 0xd5, 0xdb, 0x4e, 0x48, 0x18, 0x7b, 0x23, 0xec,
-	0x78, 0x91, 0xef, 0xac, 0x1c, 0x7c, 0xba, 0x8d, 0x0e, 0x29, 0xcd, 0xe5, 0x50, 0xf3, 0x19, 0xe8,
-	0xdf, 0xe3, 0x4b, 0x6b, 0x63, 0x53, 0xdb, 0xaa, 0xb9, 0xf4, 0xd1, 0x0e, 0xe0, 0x99, 0x22, 0x63,
-	0x3f, 0x20, 0xf1, 0xa5, 0x8c, 0xd2, 0xb2, 0x28, 0xb3, 0x07, 0x25, 0x56, 0x10, 0x96, 0x69, 0x74,
-	0x3a, 0x68, 0x5d, 0xd9, 0x90, 0x02, 0x65, 0x1f, 0x2e, 0x07, 0xd8, 0xbf, 0x69, 0x0b, 0x1b, 0xb2,
-	0x0f, 0xf3, 0xb9, 0xc4, 0xd3, 0x2d, 0xeb, 0x22, 0x74, 0x5e, 0x8a, 0x8d, 0xff, 0xa3, 0x14, 0xaf,
-	0xa0, 0x8c, 0x2f, 0x22, 0x3f, 0xc6, 0x96, 0xce, 0xce, 0xd4, 0x40, 0xdc, 0x48, 0x24, 0x8d, 0x44,
-	0xc7, 0xd2, 0xc8, 0x6e, 0xf1, 0xea, 0xcf, 0x96, 0xe6, 0x8a, 0x78, 0xfb, 0x57, 0x7d, 0xe1, 0x08,
-	0x87, 0x41, 0x94, 0x12, 0xf3, 0x63, 0xd0, 0x47, 0x98, 0xb0, 0x03, 0x18, 0x9d, 0x17, 0xeb, 0xeb,
-	0x73, 0x80, 0x09, 0x4b, 0xec, 0x15, 0x5c, 0x9a, 0x48, 0xf3, 0x13, 0x4c, 0x44, 0x7d, 0x73, 0xe4,
-	0x1f, 0x29, 0xf9, 0x09, 0x26, 0xe6, 0x01, 0x94, 0xd3, 0x68, 0xe8, 0x11, 0x79, 0x9c, 0xf6, 0x7a,
-	0xc4, 0x57, 0x2c, 0x5e, 0x52, 0x44, 0x3a, 0x05, 0x0d, 0xf1, 0x18, 0x13, 0x6c, 0x15, 0xf3, 0x82,
-	0xf6, 0x58, 0x7c, 0x06, 0xe2, 0xe9, 0xe6, 0x1e, 0x94, 0x7e, 0xf0, 0xc8, 0xe0, 0xdc, 0x2a, 0x31,
-	0xce, 0x7b, 0xeb, 0x39, 0x5f, 0xd3, 0x70, 0x89, 0xe1, 0xc9, 0x54, 0x0e, 0x9e, 0xe2, 0x80, 0x24,
-	0x56, 0x39, 0xaf, 0x9c, 0x7d, 0x16, 0x9f, 0xc9, 0xe1, 0xe9, 0xdd, 0x0a, 0xed, 0xa6, 0x28, 0x25,
-	0xf6, 0xef, 0x3a, 0xbc, 0xa1, 0xd8, 0xf7, 0x65, 0x4a, 0xa8, 0x7f, 0x3b, 0xaa, 0x7f, 0x2f, 0x73,
-	0xf9, 0xc7, 0x33, 0xa5, 0x81, 0x3b, 0xaa, 0x81, 0x2f, 0x73, 0x19, 0x38, 0x07, 0x50, 0x07, 0x7b,
-	0x4b, 0x0e, 0xa2, 0xbc, 0x0e, 0x66, 0x18, 0x69, 0x61, 0x6f, 0xc9, 0x42, 0x94, 0xd7, 0xc2, 0x39,
-	0x49, 0x78, 0xb8, 0xbf, 0xe8, 0x61, 0x3b, 0xa7, 0x87, 0x19, 0x47, 0x98, 0xd8, 0x5b, 0x32, 0x11,
-	0xe5, 0x35, 0x71, 0x2e, 0x48, 0xb8, 0x58, 0x85, 0x72, 0xc8, 0xd6, 0x6c, 0x80, 0xaa, 0xbc, 0x43,
-	0xf6, 0x67, 0x50, 0xcb, 0xfc, 0x30, 0x3f, 0x52, 0x87, 0x89, 0xd1, 0x79, 0x77, 0xfd, 0x5e, 0x0b,
-	0x03, 0xea, 0x1b, 0xa8, 0xca, 0xbb, 0x75, 0xcf, 0x5c, 0x7a, 0x05, 0x3a, 0x21, 0x63, 0xe1, 0xf4,
-	0x5b, 0x2b, 0x63, 0x63, 0x4f, 0xbc, 0x1f, 0xba, 0xc6, 0xec, 0xb6, 0xa5, 0x1f, 0x1f, 0xf7, 0x7f,
-	0xa6, 0xc3, 0x83, 0xa6, 0xd8, 0xef, 0x40, 0x2d, 0xb3, 0xdd, 0xb4, 0xa0, 0x32, 0xc5, 0x71, 0xe2,
-	0x87, 0x01, 0x9f, 0xf5, 0xae, 0xfc, 0x6a, 0xff, 0xa8, 0x81, 0xa1, 0x5c, 0xce, 0x7b, 0x64, 0xbc,
-	0x0d, 0xf5, 0x28, 0xc6, 0xd3, 0xef, 0x24, 0x84, 0x4d, 0x49, 0xd7, 0xa0, 0x6b, 0x27, 0x7c, 0x49,
-	0x2a, 0xd5, 0x1f, 0xaf, 0x74, 0x0b, 0xea, 0x6a, 0x73, 0x3d, 0x20, 0xf6, 0x7d, 0x30, 0x94, 0xfb,
-	0xbf, 0xa2, 0x4a, 0x5b, 0x51, 0x65, 0xbf, 0x0e, 0x75, 0xb5, 0xdd, 0xec, 0x3a, 0xc0, 0xfc, 0xe6,
-	0xdb, 0x7d, 0x30, 0x94, 0x1e, 0xfa, 0xaf, 0x6e, 0xbe, 0x06, 0x86, 0x32, 0x0e, 0xec, 0x23, 0xa8,
-	0xab, 0x8d, 0x65, 0xee, 0x42, 0x89, 0x35, 0x56, 0x7e, 0x3a, 0x4b, 0xef, 0x16, 0xaf, 0x6f, 0x5b,
-	0x05, 0x97, 0xe7, 0xda, 0x1f, 0x42, 0xe9, 0xa1, 0xd7, 0x98, 0x52, 0xba, 0x8d, 0xc5, 0xd2, 0xdd,
-	0x14, 0xa1, 0xc4, 0x78, 0xe6, 0xe7, 0x50, 0x19, 0xc4, 0xd8, 0x23, 0x78, 0x28, 0x94, 0x38, 0x39,
-	0x95, 0xa0, 0x5d, 0x9e, 0xd6, 0x2b, 0xb8, 0x92, 0x40, 0x61, 0x7c, 0x10, 0x0c, 0x45, 0x8f, 0xe6,
-	0x86, 0x71, 0xcb, 0x19, 0x4c, 0x10, 0x28, 0x8c, 0xcf, 0x82, 0xa1, 0x68, 0xa3, 0xdc, 0x30, 0xee,
-	0x31, 0x83, 0x09, 0x42, 0xe3, 0x0b, 0xa8, 0x08, 0xbd, 0xb4, 0xf2, 0xff, 0xc6, 0x57, 0x59, 0x79,
-	0xb6, 0xda, 0xf8, 0x45, 0x83, 0x8a, 0xd0, 0xfc, 0x24, 0x40, 0xb3, 0x0f, 0xc0, 0xbb, 0x57, 0xf9,
-	0xb3, 0xf3, 0x48, 0x52, 0x8d, 0xb5, 0x3a, 0x93, 0x77, 0x0e, 0x15, 0x51, 0x84, 0xa7, 0x51, 0x67,
-	0x41, 0x85, 0xff, 0x05, 0xe1, 0xc6, 0x56, 0x5d, 0xf9, 0x95, 0xbe, 0xdc, 0x58, 0x2f, 0x76, 0xad,
-	0xeb, 0x59, 0x53, 0xbb, 0x99, 0x35, 0xb5, 0xbf, 0x66, 0x4d, 0xed, 0xea, 0xae, 0x59, 0xb8, 0xb9,
-	0x6b, 0x16, 0xfe, 0xb8, 0x6b, 0x16, 0x4e, 0xcb, 0xec, 0xda, 0x7f, 0xf0, 0x4f, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x93, 0xe3, 0x61, 0xcd, 0x1e, 0x0b, 0x00, 0x00,
+	// 803 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x3f, 0x6f, 0xd3, 0x5e,
+	0x14, 0x8d, 0xf3, 0xbf, 0x37, 0xf9, 0x49, 0x3f, 0xac, 0x0e, 0x26, 0x83, 0x53, 0x79, 0x01, 0xb5,
+	0xe4, 0x59, 0x85, 0x85, 0x05, 0x2a, 0xdc, 0x96, 0xa6, 0x50, 0x81, 0x94, 0x16, 0x90, 0x10, 0x12,
+	0x72, 0xe3, 0x57, 0xd7, 0x52, 0x52, 0x5b, 0xce, 0x73, 0xa8, 0xc4, 0x47, 0x60, 0xe9, 0xc8, 0xc0,
+	0x27, 0x41, 0x8c, 0x1d, 0x3a, 0x76, 0x64, 0x2a, 0x28, 0xfd, 0x16, 0x4c, 0xe8, 0xdd, 0xf7, 0xec,
+	0xb8, 0xa9, 0xaa, 0xb8, 0x34, 0xdd, 0xdc, 0xd7, 0x7b, 0xce, 0x3b, 0xef, 0x9e, 0x7b, 0xae, 0x02,
+	0x8b, 0x36, 0xf3, 0xfb, 0xde, 0xa1, 0xd9, 0x8f, 0x7a, 0xcc, 0x0b, 0xed, 0x3d, 0x66, 0xe2, 0x41,
+	0xd7, 0x1c, 0xda, 0xbd, 0x88, 0x9a, 0xc3, 0x65, 0x73, 0x6f, 0xd0, 0x27, 0x41, 0xe8, 0x33, 0x5f,
+	0x5d, 0x10, 0xb5, 0x24, 0xa9, 0x25, 0xa2, 0x96, 0x60, 0x2d, 0x19, 0x2e, 0x37, 0x74, 0xd7, 0xf7,
+	0xdd, 0x1e, 0x35, 0xb1, 0x7e, 0x37, 0xda, 0x33, 0x9d, 0x28, 0xb4, 0x99, 0xe7, 0x1f, 0x08, 0x86,
+	0x46, 0x73, 0xf2, 0xff, 0xcc, 0xeb, 0xd3, 0x01, 0xb3, 0xfb, 0x81, 0x2c, 0x98, 0x77, 0x7d, 0xd7,
+	0xc7, 0x4f, 0x93, 0x7f, 0x89, 0x53, 0xe3, 0x8b, 0x02, 0xff, 0x3f, 0xc3, 0xab, 0xde, 0xf2, 0x9b,
+	0xb6, 0x99, 0xcd, 0xa8, 0xfa, 0x04, 0x4a, 0x78, 0xaf, 0xa6, 0x2c, 0x28, 0xf7, 0x6b, 0x0f, 0xef,
+	0x91, 0x69, 0xea, 0x08, 0x82, 0x3b, 0x02, 0xa5, 0x3e, 0x86, 0x32, 0x3d, 0x0c, 0xbc, 0x90, 0x6a,
+	0x79, 0xc4, 0x37, 0x88, 0xd0, 0x46, 0x62, 0x6d, 0x64, 0x27, 0xd6, 0x66, 0x15, 0x8f, 0x7e, 0x35,
+	0x95, 0x8e, 0xac, 0x37, 0x7e, 0x14, 0x2e, 0xa8, 0xd9, 0x3c, 0x08, 0x22, 0xa6, 0x3e, 0x85, 0x82,
+	0x4b, 0x99, 0xd4, 0xb2, 0x38, 0x5d, 0xcb, 0x06, 0x65, 0x08, 0x6c, 0xe7, 0x3a, 0x1c, 0xc8, 0xf1,
+	0x03, 0xca, 0xa4, 0x96, 0x0c, 0xf8, 0xed, 0x14, 0x7e, 0x40, 0x99, 0xba, 0x01, 0xe5, 0x28, 0x70,
+	0x6c, 0x46, 0xb5, 0x02, 0x52, 0xb4, 0xa6, 0x53, 0xbc, 0xc1, 0xfa, 0x98, 0x45, 0xc2, 0x39, 0x91,
+	0x43, 0x7b, 0x94, 0x51, 0xad, 0x98, 0x95, 0x68, 0x0d, 0xeb, 0x13, 0x22, 0x01, 0x57, 0xd7, 0xa0,
+	0xf4, 0xc9, 0x66, 0xdd, 0x7d, 0xad, 0x84, 0x3c, 0x0f, 0xa6, 0xf3, 0xbc, 0xe3, 0xe5, 0x31, 0x8d,
+	0x00, 0x73, 0x39, 0x74, 0x48, 0x0f, 0xd8, 0x40, 0x2b, 0x67, 0x95, 0xb3, 0x8e, 0xf5, 0x89, 0x1c,
+	0x01, 0xb7, 0x2a, 0x50, 0xf2, 0xf8, 0x91, 0x71, 0x5c, 0x80, 0x3b, 0x29, 0xfb, 0x5e, 0x47, 0x8c,
+	0xfb, 0xb7, 0x92, 0xf6, 0x6f, 0x29, 0x93, 0x7f, 0x02, 0x19, 0x1b, 0xb8, 0x92, 0x36, 0x70, 0x29,
+	0x93, 0x81, 0x63, 0x02, 0xee, 0x60, 0x7b, 0xc2, 0x41, 0x92, 0xd5, 0xc1, 0x84, 0x26, 0xb6, 0xb0,
+	0x3d, 0x61, 0x21, 0xc9, 0x6a, 0xe1, 0x98, 0x49, 0x7a, 0xb8, 0x7e, 0xd1, 0xc3, 0x56, 0x46, 0x0f,
+	0x13, 0x1e, 0x69, 0x62, 0x7b, 0xc2, 0x44, 0x92, 0xd5, 0xc4, 0xb1, 0x20, 0xe9, 0x62, 0x15, 0xca,
+	0x3e, 0x9e, 0x19, 0x00, 0xd5, 0x38, 0x43, 0xc6, 0x0b, 0x98, 0x4b, 0xfc, 0xb8, 0xe1, 0x5e, 0x30,
+	0xde, 0x43, 0x35, 0xce, 0x96, 0x3a, 0x9f, 0xa6, 0xaa, 0x8f, 0x37, 0x47, 0x81, 0xb1, 0x9e, 0x74,
+	0xfa, 0xee, 0xa5, 0xb5, 0xb1, 0x26, 0x57, 0x9e, 0x55, 0x1b, 0x9d, 0x35, 0x0b, 0x3b, 0x3b, 0x5b,
+	0x5f, 0xf9, 0xf2, 0xe0, 0x10, 0xc3, 0x83, 0xb9, 0xc4, 0x76, 0xf5, 0x03, 0x1f, 0x48, 0x87, 0x1e,
+	0x22, 0x79, 0xd1, 0x7a, 0xfe, 0xe7, 0xac, 0x69, 0xb9, 0x1e, 0xdb, 0x8f, 0x76, 0x49, 0xd7, 0xef,
+	0x9b, 0xe9, 0xbd, 0xdc, 0xe2, 0xb2, 0x5b, 0x03, 0xe6, 0x87, 0xb6, 0x4b, 0x4d, 0x3b, 0xf0, 0xcc,
+	0x4b, 0x5b, 0x7b, 0xb8, 0x4c, 0x36, 0x39, 0x5b, 0x47, 0x90, 0x1a, 0xc7, 0x0a, 0xd4, 0x52, 0x01,
+	0xbf, 0xe2, 0x29, 0x14, 0x20, 0x08, 0xe9, 0xf0, 0xa3, 0x10, 0x92, 0x9f, 0xa9, 0x90, 0x39, 0xce,
+	0x8c, 0x9f, 0x71, 0xc7, 0x0a, 0xd7, 0xef, 0xd8, 0x77, 0x05, 0xea, 0xe9, 0x29, 0xbf, 0xdd, 0xae,
+	0xa9, 0x5b, 0xb2, 0x1f, 0xa2, 0x55, 0xf9, 0x6b, 0x0d, 0x90, 0x55, 0x3c, 0x39, 0x6b, 0xe6, 0xc4,
+	0xb3, 0xf1, 0xc0, 0x60, 0x50, 0x4b, 0xad, 0xc6, 0x89, 0x66, 0x2b, 0xb7, 0xd4, 0x6c, 0x63, 0x1b,
+	0xea, 0xe9, 0x34, 0xab, 0xab, 0xff, 0x96, 0x07, 0xf9, 0x1c, 0x99, 0x8a, 0x3a, 0xc0, 0x78, 0x3b,
+	0x1b, 0x5b, 0x50, 0x4b, 0xe5, 0xfc, 0xa6, 0x89, 0xfb, 0x0f, 0x6a, 0xa9, 0x95, 0xcd, 0xf5, 0xa7,
+	0xc3, 0xcf, 0xf5, 0x63, 0xf8, 0xb3, 0xb3, 0x23, 0x3c, 0xd6, 0x8f, 0x58, 0xe3, 0x33, 0x94, 0xf0,
+	0xce, 0x2b, 0x72, 0x90, 0x4c, 0x55, 0xfe, 0x36, 0xb2, 0x78, 0x5a, 0x84, 0x12, 0x6a, 0x52, 0x5f,
+	0x42, 0xa5, 0x1b, 0x52, 0x9b, 0x51, 0x47, 0xbe, 0xc6, 0xcc, 0xf8, 0x1a, 0xb2, 0x2a, 0x60, 0xed,
+	0x5c, 0x27, 0x66, 0xe0, 0x64, 0x62, 0xe1, 0x3b, 0x72, 0x52, 0x33, 0x93, 0x89, 0x44, 0x21, 0x99,
+	0x64, 0xe0, 0x64, 0x62, 0xe7, 0x3b, 0x32, 0xa6, 0x99, 0xc9, 0xc4, 0xb0, 0x21, 0x99, 0x64, 0x68,
+	0xbc, 0x82, 0x8a, 0xd4, 0x3b, 0x93, 0xe9, 0x6b, 0x7c, 0x53, 0xa0, 0x22, 0x35, 0xcf, 0x84, 0x70,
+	0xb6, 0x39, 0x6f, 0xec, 0x43, 0x45, 0x36, 0x61, 0x36, 0xea, 0x34, 0xa8, 0x88, 0x9f, 0x9a, 0xc2,
+	0xd8, 0x6a, 0x27, 0xfe, 0x93, 0xff, 0x88, 0xc1, 0x79, 0xb6, 0xb4, 0x93, 0x91, 0xae, 0x9c, 0x8e,
+	0x74, 0xe5, 0xf7, 0x48, 0x57, 0x8e, 0xce, 0xf5, 0xdc, 0xe9, 0xb9, 0x9e, 0xfb, 0x79, 0xae, 0xe7,
+	0x76, 0xcb, 0xb8, 0x56, 0x1f, 0xfd, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x06, 0x23, 0x45, 0x72, 0xd9,
+	0x0b, 0x00, 0x00,
 }
 
-func (m *AtomicValueListener) Marshal() (dAtA []byte, err error) {
+func (m *AtomicValueState) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1382,51 +1280,26 @@ func (m *AtomicValueListener) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AtomicValueListener) MarshalTo(dAtA []byte) (int, error) {
+func (m *AtomicValueState) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *AtomicValueListener) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *AtomicValueState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Key) > 0 {
-		i -= len(m.Key)
-		copy(dAtA[i:], m.Key)
-		i = encodeVarintFsm(dAtA, i, uint64(len(m.Key)))
+	if m.Expire != nil {
+		n1, err1 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Expire, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.Expire):])
+		if err1 != nil {
+			return 0, err1
+		}
+		i -= n1
+		i = encodeVarintFsm(dAtA, i, uint64(n1))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Index != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.Index))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *AtomicValueEntry) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *AtomicValueEntry) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *AtomicValueEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
 	if m.Value != nil {
 		{
 			size, err := m.Value.MarshalToSizedBuffer(dAtA[:i])
@@ -1436,58 +1309,6 @@ func (m *AtomicValueEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i -= size
 			i = encodeVarintFsm(dAtA, i, uint64(size))
 		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Key) > 0 {
-		i -= len(m.Key)
-		copy(dAtA[i:], m.Key)
-		i = encodeVarintFsm(dAtA, i, uint64(len(m.Key)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *AtomicValueValue) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *AtomicValueValue) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *AtomicValueValue) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Expire != nil {
-		n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.Expire, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.Expire):])
-		if err2 != nil {
-			return 0, err2
-		}
-		i -= n2
-		i = encodeVarintFsm(dAtA, i, uint64(n2))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Index != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.Index))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Value) > 0 {
-		i -= len(m.Value)
-		copy(dAtA[i:], m.Value)
-		i = encodeVarintFsm(dAtA, i, uint64(len(m.Value)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1928,8 +1749,8 @@ func (m *SetOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Version != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.Version))
+	if m.Index != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.Index))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -1966,8 +1787,8 @@ func (m *UpdateInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if m.PrevVersion != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.PrevVersion))
+	if m.PrevIndex != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrevIndex))
 		i--
 		dAtA[i] = 0x10
 	}
@@ -2001,8 +1822,18 @@ func (m *UpdateOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Version != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.Version))
+	{
+		size, err := m.PrevValue.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintFsm(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if m.Index != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.Index))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -2029,8 +1860,8 @@ func (m *DeleteInput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.PrevVersion != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.PrevVersion))
+	if m.PrevIndex != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.PrevIndex))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -2057,6 +1888,16 @@ func (m *DeleteOutput) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.Value.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintFsm(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -2194,8 +2035,8 @@ func (m *Value) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Version != 0 {
-		i = encodeVarintFsm(dAtA, i, uint64(m.Version))
+	if m.Index != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.Index))
 		i--
 		dAtA[i] = 0x10
 	}
@@ -2434,51 +2275,15 @@ func encodeVarintFsm(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *AtomicValueListener) Size() (n int) {
+func (m *AtomicValueState) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Index != 0 {
-		n += 1 + sovFsm(uint64(m.Index))
-	}
-	l = len(m.Key)
-	if l > 0 {
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-
-func (m *AtomicValueEntry) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Key)
-	if l > 0 {
-		n += 1 + l + sovFsm(uint64(l))
-	}
 	if m.Value != nil {
 		l = m.Value.Size()
 		n += 1 + l + sovFsm(uint64(l))
-	}
-	return n
-}
-
-func (m *AtomicValueValue) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Value)
-	if l > 0 {
-		n += 1 + l + sovFsm(uint64(l))
-	}
-	if m.Index != 0 {
-		n += 1 + sovFsm(uint64(m.Index))
 	}
 	if m.Expire != nil {
 		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.Expire)
@@ -2700,8 +2505,8 @@ func (m *SetOutput) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Version != 0 {
-		n += 1 + sovFsm(uint64(m.Version))
+	if m.Index != 0 {
+		n += 1 + sovFsm(uint64(m.Index))
 	}
 	return n
 }
@@ -2716,8 +2521,8 @@ func (m *UpdateInput) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFsm(uint64(l))
 	}
-	if m.PrevVersion != 0 {
-		n += 1 + sovFsm(uint64(m.PrevVersion))
+	if m.PrevIndex != 0 {
+		n += 1 + sovFsm(uint64(m.PrevIndex))
 	}
 	if m.TTL != nil {
 		l = github_com_gogo_protobuf_types.SizeOfStdDuration(*m.TTL)
@@ -2732,9 +2537,11 @@ func (m *UpdateOutput) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Version != 0 {
-		n += 1 + sovFsm(uint64(m.Version))
+	if m.Index != 0 {
+		n += 1 + sovFsm(uint64(m.Index))
 	}
+	l = m.PrevValue.Size()
+	n += 1 + l + sovFsm(uint64(l))
 	return n
 }
 
@@ -2744,8 +2551,8 @@ func (m *DeleteInput) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.PrevVersion != 0 {
-		n += 1 + sovFsm(uint64(m.PrevVersion))
+	if m.PrevIndex != 0 {
+		n += 1 + sovFsm(uint64(m.PrevIndex))
 	}
 	return n
 }
@@ -2756,6 +2563,8 @@ func (m *DeleteOutput) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = m.Value.Size()
+	n += 1 + l + sovFsm(uint64(l))
 	return n
 }
 
@@ -2811,8 +2620,8 @@ func (m *Value) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovFsm(uint64(l))
 	}
-	if m.Version != 0 {
-		n += 1 + sovFsm(uint64(m.Version))
+	if m.Index != 0 {
+		n += 1 + sovFsm(uint64(m.Index))
 	}
 	return n
 }
@@ -2909,7 +2718,7 @@ func sovFsm(x uint64) (n int) {
 func sozFsm(x uint64) (n int) {
 	return sovFsm(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *AtomicValueListener) Unmarshal(dAtA []byte) error {
+func (m *AtomicValueState) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2932,146 +2741,13 @@ func (m *AtomicValueListener) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AtomicValueListener: wiretype end group for non-group")
+			return fmt.Errorf("proto: AtomicValueState: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AtomicValueListener: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: AtomicValueState: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
-			}
-			m.Index = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Index |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Key = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFsm(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *AtomicValueEntry) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFsm
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: AtomicValueEntry: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AtomicValueEntry: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Key", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Key = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
 			}
@@ -3101,116 +2777,13 @@ func (m *AtomicValueEntry) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Value == nil {
-				m.Value = &AtomicValueValue{}
+				m.Value = &Value{}
 			}
 			if err := m.Value.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipFsm(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *AtomicValueValue) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowFsm
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: AtomicValueValue: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AtomicValueValue: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthFsm
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthFsm
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Value = append(m.Value[:0], dAtA[iNdEx:postIndex]...)
-			if m.Value == nil {
-				m.Value = []byte{}
-			}
-			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
-			}
-			m.Index = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowFsm
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Index |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Expire", wireType)
 			}
@@ -4074,9 +3647,9 @@ func (m *SetOutput) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
 			}
-			m.Version = 0
+			m.Index = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -4086,7 +3659,7 @@ func (m *SetOutput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Version |= uint64(b&0x7F) << shift
+				m.Index |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -4177,9 +3750,9 @@ func (m *UpdateInput) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrevVersion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrevIndex", wireType)
 			}
-			m.PrevVersion = 0
+			m.PrevIndex = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -4189,7 +3762,7 @@ func (m *UpdateInput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.PrevVersion |= uint64(b&0x7F) << shift
+				m.PrevIndex |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -4282,9 +3855,9 @@ func (m *UpdateOutput) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
 			}
-			m.Version = 0
+			m.Index = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -4294,11 +3867,44 @@ func (m *UpdateOutput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Version |= uint64(b&0x7F) << shift
+				m.Index |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrevValue", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.PrevValue.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFsm(dAtA[iNdEx:])
@@ -4351,9 +3957,9 @@ func (m *DeleteInput) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrevVersion", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PrevIndex", wireType)
 			}
-			m.PrevVersion = 0
+			m.PrevIndex = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -4363,7 +3969,7 @@ func (m *DeleteInput) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.PrevVersion |= uint64(b&0x7F) << shift
+				m.PrevIndex |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -4418,6 +4024,39 @@ func (m *DeleteOutput) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: DeleteOutput: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Value.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipFsm(dAtA[iNdEx:])
@@ -4773,9 +4412,9 @@ func (m *Value) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
 			}
-			m.Version = 0
+			m.Index = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowFsm
@@ -4785,7 +4424,7 @@ func (m *Value) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Version |= uint64(b&0x7F) << shift
+				m.Index |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
