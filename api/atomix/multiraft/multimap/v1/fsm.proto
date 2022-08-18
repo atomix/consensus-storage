@@ -1,0 +1,158 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.multimap.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+message MultiMapListener {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+    string key = 2;
+}
+
+message MultiMapEntry {
+    string key = 1;
+    repeated string values = 2;
+}
+
+message MultiMapInput {
+    oneof input {
+        SizeInput size = 1;
+        AddInput add = 2;
+        GetInput get = 3;
+        RemoveInput remove = 4;
+        ClearInput clear = 5;
+        EntriesInput entries = 6;
+        EventsInput events = 7;
+    }
+}
+
+message MultiMapOutput {
+    oneof output {
+        SizeOutput size = 1;
+        AddOutput add = 2;
+        GetOutput get = 3;
+        RemoveOutput remove = 4;
+        ClearOutput clear = 5;
+        EntriesOutput entries = 6;
+        EventsOutput events = 7;
+    }
+}
+
+message SizeInput {
+
+}
+
+message SizeOutput {
+    uint32 size = 1;
+}
+
+message AddInput {
+    string key = 1;
+    repeated string values = 2;
+}
+
+message AddOutput {
+    bool added = 1;
+}
+
+message GetInput {
+    string key = 1;
+}
+
+message GetOutput {
+    repeated string values = 1;
+}
+
+message RemoveInput {
+    string key = 1;
+    repeated string values = 2;
+}
+
+message RemoveOutput {
+    bool removed = 1;
+}
+
+message ClearInput {
+    
+}
+
+message ClearOutput {
+
+}
+
+message LockInput {
+    repeated string keys = 1;
+    google.protobuf.Duration timeout = 2 [
+        (gogoproto.stdduration) = true
+    ];
+}
+
+message LockOutput {
+
+}
+
+message UnlockInput {
+    repeated string keys = 1;
+}
+
+message UnlockOutput {
+
+}
+
+message EntriesInput {
+    bool watch = 1;
+}
+
+message EntriesOutput {
+    Entry entry = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message EventsInput {
+    string key = 1;
+}
+
+message EventsOutput {
+    Event event = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message Event {
+    string key = 1;
+
+    oneof event {
+        Inserted inserted = 2;
+        Updated updated = 3;
+        Removed removed = 4;
+    }
+
+    message Inserted {
+        repeated string values = 1;
+    }
+
+    message Updated {
+        repeated string values = 1;
+        repeated string prev_values = 2;
+    }
+
+    message Removed {
+        repeated string values = 1;
+    }
+}
+
+message Entry {
+    string key = 1;
+    repeated string values = 2;
+}
