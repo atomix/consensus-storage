@@ -1,0 +1,146 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.set.v1;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+message SetListener {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message SetValue {
+    string value = 1;
+    google.protobuf.Timestamp expire = 2 [
+        (gogoproto.stdtime) = true
+    ];
+}
+
+message SetInput {
+    oneof input {
+        SizeInput size = 1;
+        ContainsInput contains = 2;
+        AddInput add = 3;
+        RemoveInput remove = 4;
+        ClearInput clear = 5;
+        ElementsInput elements = 6;
+        EventsInput events = 7;
+    }
+}
+
+message SetOutput {
+    oneof output {
+        SizeOutput size = 1;
+        ContainsOutput contains = 2;
+        AddOutput add = 3;
+        RemoveOutput remove = 4;
+        ClearOutput clear = 5;
+        ElementsOutput elements = 6;
+        EventsOutput events = 7;
+    }
+}
+
+message SizeInput {
+    
+}
+
+message SizeOutput {
+    uint32 size = 1;
+}
+
+message ContainsInput {
+    Element element = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message ContainsOutput {
+    bool contains = 1;
+}
+
+message AddInput {
+    Element element = 1 [
+        (gogoproto.nullable) = false
+    ];
+    google.protobuf.Duration ttl = 2 [
+        (gogoproto.customname) = "TTL",
+        (gogoproto.stdduration) = true
+    ];
+}
+
+message AddOutput {
+    Element element = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message RemoveInput {
+    Element element = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message RemoveOutput {
+    Element element = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message ClearInput {
+}
+
+message ClearOutput {
+
+}
+
+message EventsInput {
+}
+
+message EventsOutput {
+    Event event = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message Event {
+    oneof event {
+        Added added = 1;
+        Removed removed = 2;
+    }
+
+    message Added {
+        Element element = 1 [
+            (gogoproto.nullable) = false
+        ];
+    }
+
+    message Removed {
+        Element element = 1 [
+            (gogoproto.nullable) = false
+        ];
+        bool expired = 2;
+    }
+}
+
+message ElementsInput {
+    bool watch = 1;
+}
+
+message ElementsOutput {
+    Element element = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message Element {
+    string value = 1;
+}
