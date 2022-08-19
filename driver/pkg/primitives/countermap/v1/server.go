@@ -20,7 +20,7 @@ import (
 
 var log = logging.GetLogger()
 
-const Service = "atomix.multiraft.countermap.v1.CounterMap"
+const Service = "atomix.runtime.countermap.v1.CounterMap"
 
 func NewCounterMapServer(protocol *client.Protocol) atomiccountermapv1.CounterMapServer {
 	return &multiRaftCounterMapServer{

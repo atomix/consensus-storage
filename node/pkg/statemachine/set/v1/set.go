@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-const Service = "atomix.multiraft.set.v1.Set"
+const Service = "atomix.runtime.set.v1.Set"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
 	statemachine.RegisterPrimitiveType[*setv1.SetInput, *setv1.SetOutput](registry)(SetType)

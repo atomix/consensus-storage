@@ -20,7 +20,7 @@ import (
 
 var log = logging.GetLogger()
 
-const Service = "atomix.multiraft.set.v1.Set"
+const Service = "atomix.runtime.set.v1.Set"
 
 func NewSetServer(protocol *client.Protocol, config api.SetConfig) atomicsetv1.SetServer {
 	return &multiRaftSetServer{

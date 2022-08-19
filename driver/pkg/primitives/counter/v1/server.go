@@ -18,7 +18,7 @@ import (
 
 var log = logging.GetLogger()
 
-const Service = "atomix.multiraft.counter.v1.Counter"
+const Service = "atomix.runtime.counter.v1.Counter"
 
 func NewCounterServer(protocol *client.Protocol, config api.CounterConfig) counterv1.CounterServer {
 	return &multiRaftCounterServer{

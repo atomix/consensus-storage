@@ -19,7 +19,7 @@ import (
 
 var log = logging.GetLogger()
 
-const Service = "atomix.multiraft.value.v1.Value"
+const Service = "atomix.runtime.value.v1.Value"
 
 func NewValueServer(protocol *client.Protocol, config api.ValueConfig) valuev1.ValueServer {
 	return &multiRaftValueServer{

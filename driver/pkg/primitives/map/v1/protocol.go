@@ -18,7 +18,7 @@ import (
 	"io"
 )
 
-const Service = "atomix.multiraft.map.v1.Map"
+const Service = "atomix.runtime.map.v1.Map"
 
 func newMultiRaftMapServer(protocol *client.Protocol) atomicmapv1.MapServer {
 	return &multiRaftMapServer{

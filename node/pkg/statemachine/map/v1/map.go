@@ -15,7 +15,7 @@ import (
 	"sync"
 )
 
-const Service = "atomix.multiraft.map.v1.Map"
+const Service = "atomix.runtime.map.v1.Map"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
 	statemachine.RegisterPrimitiveType[*mapv1.MapInput, *mapv1.MapOutput](registry)(MapType)
