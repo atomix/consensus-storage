@@ -25,8 +25,8 @@ service Lock {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
-    // GetLock gets the lock state
-    rpc GetLock (GetLockRequest) returns (GetLockResponse) {
+    // Get gets the lock state
+    rpc Get (GetRequest) returns (GetResponse) {
         option (atomix.multiraft.v1.operation_type) = QUERY;
     }
 }
@@ -71,21 +71,21 @@ message ReleaseResponse {
     ];
 }
 
-message GetLockRequest {
+message GetRequest {
     atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true
     ];
-    GetLockInput input = 2 [
+    GetInput input = 2 [
         (atomix.multiraft.v1.input) = true,
         (gogoproto.embed) = true
     ];
 }
 
-message GetLockResponse {
+message GetResponse {
     atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true
     ];
-    GetLockOutput output = 2 [
+    GetOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

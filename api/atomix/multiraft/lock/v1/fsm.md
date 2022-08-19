@@ -6,10 +6,12 @@
 - [atomix/multiraft/lock/v1/fsm.proto](#atomix_multiraft_lock_v1_fsm-proto)
     - [AcquireInput](#atomix-multiraft-lock-v1-AcquireInput)
     - [AcquireOutput](#atomix-multiraft-lock-v1-AcquireOutput)
-    - [GetLockInput](#atomix-multiraft-lock-v1-GetLockInput)
-    - [GetLockOutput](#atomix-multiraft-lock-v1-GetLockOutput)
+    - [GetInput](#atomix-multiraft-lock-v1-GetInput)
+    - [GetOutput](#atomix-multiraft-lock-v1-GetOutput)
     - [LockInput](#atomix-multiraft-lock-v1-LockInput)
     - [LockOutput](#atomix-multiraft-lock-v1-LockOutput)
+    - [LockState](#atomix-multiraft-lock-v1-LockState)
+    - [LockState.Request](#atomix-multiraft-lock-v1-LockState-Request)
     - [ReleaseInput](#atomix-multiraft-lock-v1-ReleaseInput)
     - [ReleaseOutput](#atomix-multiraft-lock-v1-ReleaseOutput)
   
@@ -54,19 +56,19 @@
 
 
 
-<a name="atomix-multiraft-lock-v1-GetLockInput"></a>
+<a name="atomix-multiraft-lock-v1-GetInput"></a>
 
-### GetLockInput
-
-
+### GetInput
 
 
 
 
 
-<a name="atomix-multiraft-lock-v1-GetLockOutput"></a>
 
-### GetLockOutput
+
+<a name="atomix-multiraft-lock-v1-GetOutput"></a>
+
+### GetOutput
 
 
 
@@ -89,7 +91,7 @@
 | ----- | ---- | ----- | ----------- |
 | acquire | [AcquireInput](#atomix-multiraft-lock-v1-AcquireInput) |  |  |
 | release | [ReleaseInput](#atomix-multiraft-lock-v1-ReleaseInput) |  |  |
-| get_lock | [GetLockInput](#atomix-multiraft-lock-v1-GetLockInput) |  |  |
+| get | [GetInput](#atomix-multiraft-lock-v1-GetInput) |  |  |
 
 
 
@@ -106,7 +108,39 @@
 | ----- | ---- | ----- | ----------- |
 | acquire | [AcquireOutput](#atomix-multiraft-lock-v1-AcquireOutput) |  |  |
 | release | [ReleaseOutput](#atomix-multiraft-lock-v1-ReleaseOutput) |  |  |
-| get_lock | [GetLockOutput](#atomix-multiraft-lock-v1-GetLockOutput) |  |  |
+| get | [GetOutput](#atomix-multiraft-lock-v1-GetOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-LockState"></a>
+
+### LockState
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| queue | [LockState.Request](#atomix-multiraft-lock-v1-LockState-Request) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-LockState-Request"></a>
+
+### LockState.Request
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 

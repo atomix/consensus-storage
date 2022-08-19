@@ -6,8 +6,8 @@
 - [atomix/multiraft/lock/v1/service.proto](#atomix_multiraft_lock_v1_service-proto)
     - [AcquireRequest](#atomix-multiraft-lock-v1-AcquireRequest)
     - [AcquireResponse](#atomix-multiraft-lock-v1-AcquireResponse)
-    - [GetLockRequest](#atomix-multiraft-lock-v1-GetLockRequest)
-    - [GetLockResponse](#atomix-multiraft-lock-v1-GetLockResponse)
+    - [GetRequest](#atomix-multiraft-lock-v1-GetRequest)
+    - [GetResponse](#atomix-multiraft-lock-v1-GetResponse)
     - [ReleaseRequest](#atomix-multiraft-lock-v1-ReleaseRequest)
     - [ReleaseResponse](#atomix-multiraft-lock-v1-ReleaseResponse)
   
@@ -56,32 +56,32 @@
 
 
 
-<a name="atomix-multiraft-lock-v1-GetLockRequest"></a>
+<a name="atomix-multiraft-lock-v1-GetRequest"></a>
 
-### GetLockRequest
+### GetRequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.QueryRequestHeaders](#atomix-multiraft-v1-QueryRequestHeaders) |  |  |
-| input | [GetLockInput](#atomix-multiraft-lock-v1-GetLockInput) |  |  |
+| input | [GetInput](#atomix-multiraft-lock-v1-GetInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-lock-v1-GetLockResponse"></a>
+<a name="atomix-multiraft-lock-v1-GetResponse"></a>
 
-### GetLockResponse
+### GetResponse
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.QueryResponseHeaders](#atomix-multiraft-v1-QueryResponseHeaders) |  |  |
-| output | [GetLockOutput](#atomix-multiraft-lock-v1-GetLockOutput) |  |  |
+| output | [GetOutput](#atomix-multiraft-lock-v1-GetOutput) |  |  |
 
 
 
@@ -135,7 +135,7 @@ Lock is a service for a counter primitive
 | ----------- | ------------ | ------------- | ------------|
 | Acquire | [AcquireRequest](#atomix-multiraft-lock-v1-AcquireRequest) | [AcquireResponse](#atomix-multiraft-lock-v1-AcquireResponse) | Acquire attempts to acquire the lock |
 | Release | [ReleaseRequest](#atomix-multiraft-lock-v1-ReleaseRequest) | [ReleaseResponse](#atomix-multiraft-lock-v1-ReleaseResponse) | Release releases the lock |
-| GetLock | [GetLockRequest](#atomix-multiraft-lock-v1-GetLockRequest) | [GetLockResponse](#atomix-multiraft-lock-v1-GetLockResponse) | GetLock gets the lock state |
+| Get | [GetRequest](#atomix-multiraft-lock-v1-GetRequest) | [GetResponse](#atomix-multiraft-lock-v1-GetResponse) | Get gets the lock state |
 
  
 
