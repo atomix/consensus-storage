@@ -10,7 +10,7 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/driver/pkg/client"
 	"github.com/atomix/multi-raft-storage/driver/pkg/util/async"
-	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
+	atomicmapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
@@ -18,21 +18,19 @@ import (
 	"io"
 )
 
-var log = logging.GetLogger()
-
 const Service = "atomix.multiraft.map.v1.Map"
 
-func NewMapServer(protocol *client.Protocol, config api.MapConfig) mapv1.MapServer {
-	return &MapServer{
+func newMultiRaftMapServer(protocol *client.Protocol) atomicmapv1.MapServer {
+	return &multiRaftMapServer{
 		Protocol: protocol,
 	}
 }
 
-type MapServer struct {
+type multiRaftMapServer struct {
 	*client.Protocol
 }
 
-func (s *MapServer) Create(ctx context.Context, request *mapv1.CreateRequest) (*mapv1.CreateResponse, error) {
+func (s *multiRaftMapServer) Create(ctx context.Context, request *atomicmapv1.CreateRequest) (*atomicmapv1.CreateResponse, error) {
 	log.Debugw("Create",
 		logging.Stringer("CreateRequest", request))
 	partitions := s.Partitions()
@@ -55,14 +53,14 @@ func (s *MapServer) Create(ctx context.Context, request *mapv1.CreateRequest) (*
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &mapv1.CreateResponse{}
+	response := &atomicmapv1.CreateResponse{}
 	log.Debugw("Create",
 		logging.Stringer("CreateRequest", request),
 		logging.Stringer("CreateResponse", response))
 	return response, nil
 }
 
-func (s *MapServer) Close(ctx context.Context, request *mapv1.CloseRequest) (*mapv1.CloseResponse, error) {
+func (s *multiRaftMapServer) Close(ctx context.Context, request *atomicmapv1.CloseRequest) (*atomicmapv1.CloseResponse, error) {
 	log.Debugw("Close",
 		logging.Stringer("CloseRequest", request))
 	partitions := s.Partitions()
@@ -80,14 +78,14 @@ func (s *MapServer) Close(ctx context.Context, request *mapv1.CloseRequest) (*ma
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &mapv1.CloseResponse{}
+	response := &atomicmapv1.CloseResponse{}
 	log.Debugw("Close",
 		logging.Stringer("CloseRequest", request),
 		logging.Stringer("CloseResponse", response))
 	return response, nil
 }
 
-func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv1.SizeResponse, error) {
+func (s *multiRaftMapServer) Size(ctx context.Context, request *atomicmapv1.SizeRequest) (*atomicmapv1.SizeResponse, error) {
 	log.Debugw("Size",
 		logging.Stringer("SizeRequest", request))
 	partitions := s.Partitions()
@@ -129,7 +127,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	for _, s := range sizes {
 		size += s
 	}
-	response := &mapv1.SizeResponse{
+	response := &atomicmapv1.SizeResponse{
 		Size_: uint32(size),
 	}
 	log.Debugw("Size",
@@ -138,7 +136,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	return response, nil
 }
 
-func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.PutResponse, error) {
+func (s *multiRaftMapServer) Put(ctx context.Context, request *atomicmapv1.PutRequest) (*atomicmapv1.PutResponse, error) {
 	log.Debugw("Put",
 		logging.Stringer("PutRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
@@ -161,13 +159,10 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		input := &api.PutRequest{
 			Headers: headers,
 			PutInput: &api.PutInput{
-				Entry: &api.Entry{
-					Key: request.Key,
-					Value: api.Value{
-						Value: request.Value.Value,
-						TTL:   request.Value.TTL,
-					},
-				},
+				Key:       request.Key,
+				Value:     request.Value,
+				TTL:       request.TTL,
+				PrevIndex: multiraftv1.Index(request.PrevVersion),
 			},
 		}
 		return api.NewMapClient(conn).Put(ctx, input)
@@ -178,11 +173,13 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &mapv1.PutResponse{}
+	response := &atomicmapv1.PutResponse{
+		Version: uint64(output.Index),
+	}
 	if output.PrevValue != nil {
-		response.PrevValue = &mapv1.Value{
-			Value: output.PrevValue.Value,
-			TTL:   output.PrevValue.TTL,
+		response.PrevValue = &atomicmapv1.VersionedValue{
+			Value:   output.PrevValue.Value,
+			Version: uint64(output.PrevValue.Index),
 		}
 	}
 	log.Debugw("Put",
@@ -191,7 +188,101 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 	return response, nil
 }
 
-func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.GetResponse, error) {
+func (s *multiRaftMapServer) Insert(ctx context.Context, request *atomicmapv1.InsertRequest) (*atomicmapv1.InsertResponse, error) {
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request))
+	partition := s.PartitionBy([]byte(request.Key))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	command := client.Command[*api.InsertResponse](primitive)
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.InsertResponse, error) {
+		return api.NewMapClient(conn).Insert(ctx, &api.InsertRequest{
+			Headers: headers,
+			InsertInput: &api.InsertInput{
+				Key:   request.Key,
+				Value: request.Value,
+				TTL:   request.TTL,
+			},
+		})
+	})
+	if err != nil {
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	response := &atomicmapv1.InsertResponse{
+		Version: uint64(output.Index),
+	}
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request),
+		logging.Stringer("InsertResponse", response))
+	return response, nil
+}
+
+func (s *multiRaftMapServer) Update(ctx context.Context, request *atomicmapv1.UpdateRequest) (*atomicmapv1.UpdateResponse, error) {
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request))
+	partition := s.PartitionBy([]byte(request.Key))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	command := client.Command[*api.UpdateResponse](primitive)
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UpdateResponse, error) {
+		input := &api.UpdateRequest{
+			Headers: headers,
+			UpdateInput: &api.UpdateInput{
+				Key:       request.Key,
+				Value:     request.Value,
+				TTL:       request.TTL,
+				PrevIndex: multiraftv1.Index(request.PrevVersion),
+			},
+		}
+		return api.NewMapClient(conn).Update(ctx, input)
+	})
+	if err != nil {
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	response := &atomicmapv1.UpdateResponse{
+		Version: uint64(output.Index),
+		PrevValue: atomicmapv1.VersionedValue{
+			Value:   output.PrevValue.Value,
+			Version: uint64(output.PrevValue.Index),
+		},
+	}
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request),
+		logging.Stringer("UpdateResponse", response))
+	return response, nil
+}
+
+func (s *multiRaftMapServer) Get(ctx context.Context, request *atomicmapv1.GetRequest) (*atomicmapv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
@@ -224,10 +315,10 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &mapv1.GetResponse{
-		Value: mapv1.Value{
-			Value: output.Value.Value,
-			TTL:   output.Value.TTL,
+	response := &atomicmapv1.GetResponse{
+		Value: atomicmapv1.VersionedValue{
+			Value:   output.Value.Value,
+			Version: uint64(output.Value.Index),
 		},
 	}
 	log.Debugw("Get",
@@ -236,7 +327,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 	return response, nil
 }
 
-func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*mapv1.RemoveResponse, error) {
+func (s *multiRaftMapServer) Remove(ctx context.Context, request *atomicmapv1.RemoveRequest) (*atomicmapv1.RemoveResponse, error) {
 	log.Debugw("Remove",
 		logging.Stringer("RemoveRequest", request))
 	partition := s.PartitionBy([]byte(request.Key))
@@ -259,7 +350,8 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		input := &api.RemoveRequest{
 			Headers: headers,
 			RemoveInput: &api.RemoveInput{
-				Key: request.Key,
+				Key:       request.Key,
+				PrevIndex: multiraftv1.Index(request.PrevVersion),
 			},
 		}
 		return api.NewMapClient(conn).Remove(ctx, input)
@@ -270,12 +362,11 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &mapv1.RemoveResponse{}
-	if output.Value != nil {
-		response.Value = &mapv1.Value{
-			Value: output.Value.Value,
-			TTL:   output.Value.TTL,
-		}
+	response := &atomicmapv1.RemoveResponse{
+		Value: atomicmapv1.VersionedValue{
+			Value:   output.Value.Value,
+			Version: uint64(output.Value.Index),
+		},
 	}
 	log.Debugw("Remove",
 		logging.Stringer("RemoveRequest", request),
@@ -283,7 +374,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 	return response, nil
 }
 
-func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*mapv1.ClearResponse, error) {
+func (s *multiRaftMapServer) Clear(ctx context.Context, request *atomicmapv1.ClearRequest) (*atomicmapv1.ClearResponse, error) {
 	log.Debugw("Clear",
 		logging.Stringer("ClearRequest", request))
 	partitions := s.Partitions()
@@ -321,14 +412,122 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 	if err != nil {
 		return nil, errors.ToProto(err)
 	}
-	response := &mapv1.ClearResponse{}
+	response := &atomicmapv1.ClearResponse{}
 	log.Debugw("Clear",
 		logging.Stringer("ClearRequest", request),
 		logging.Stringer("ClearResponse", response))
 	return response, nil
 }
 
-func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_EventsServer) error {
+func (s *multiRaftMapServer) Lock(ctx context.Context, request *atomicmapv1.LockRequest) (*atomicmapv1.LockResponse, error) {
+	log.Debugw("Lock",
+		logging.Stringer("LockRequest", request))
+
+	partitions := s.Partitions()
+	indexKeys := make(map[int][]string)
+	for _, key := range request.Keys {
+		index := s.PartitionIndex([]byte(key))
+		indexKeys[index] = append(indexKeys[index], key)
+	}
+
+	partitionIndexes := make([]int, 0, len(indexKeys))
+	for index := range indexKeys {
+		partitionIndexes = append(partitionIndexes, index)
+	}
+
+	err := async.IterAsync(len(partitionIndexes), func(i int) error {
+		index := partitionIndexes[i]
+		partition := partitions[index]
+		keys := indexKeys[index]
+
+		session, err := partition.GetSession(ctx)
+		if err != nil {
+			log.Warnw("Lock",
+				logging.Stringer("LockRequest", request),
+				logging.Error("Error", err))
+			return err
+		}
+		primitive, err := session.GetPrimitive(request.ID.Name)
+		if err != nil {
+			log.Warnw("Lock",
+				logging.Stringer("LockRequest", request),
+				logging.Error("Error", err))
+			return err
+		}
+		command := client.Command[*api.LockResponse](primitive)
+		_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.LockResponse, error) {
+			return api.NewMapClient(conn).Lock(ctx, &api.LockRequest{
+				Headers: headers,
+				LockInput: &api.LockInput{
+					Keys:    keys,
+					Timeout: request.Timeout,
+				},
+			})
+		})
+		if err != nil {
+			log.Warnw("Lock",
+				logging.Stringer("LockRequest", request),
+				logging.Error("Error", err))
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, errors.ToProto(err)
+	}
+	response := &atomicmapv1.LockResponse{}
+	log.Debugw("Lock",
+		logging.Stringer("LockRequest", request),
+		logging.Stringer("LockResponse", response))
+	return response, nil
+}
+
+func (s *multiRaftMapServer) Unlock(ctx context.Context, request *atomicmapv1.UnlockRequest) (*atomicmapv1.UnlockResponse, error) {
+	log.Debugw("Unlock",
+		logging.Stringer("UnlockRequest", request))
+	partitions := s.Partitions()
+	err := async.IterAsync(len(partitions), func(i int) error {
+		partition := partitions[i]
+		session, err := partition.GetSession(ctx)
+		if err != nil {
+			log.Warnw("Unlock",
+				logging.Stringer("UnlockRequest", request),
+				logging.Error("Error", err))
+			return err
+		}
+		primitive, err := session.GetPrimitive(request.ID.Name)
+		if err != nil {
+			log.Warnw("Unlock",
+				logging.Stringer("UnlockRequest", request),
+				logging.Error("Error", err))
+			return err
+		}
+		command := client.Command[*api.UnlockResponse](primitive)
+		_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UnlockResponse, error) {
+			return api.NewMapClient(conn).Unlock(ctx, &api.UnlockRequest{
+				Headers:     headers,
+				UnlockInput: &api.UnlockInput{},
+			})
+		})
+		if err != nil {
+			log.Warnw("Unlock",
+				logging.Stringer("UnlockRequest", request),
+				logging.Error("Error", err))
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, errors.ToProto(err)
+	}
+	response := &atomicmapv1.UnlockResponse{}
+	log.Debugw("Unlock",
+		logging.Stringer("UnlockRequest", request),
+		logging.Stringer("UnlockResponse", response))
+	return response, nil
+}
+
+func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server atomicmapv1.Map_EventsServer) error {
 	log.Debugw("Events",
 		logging.Stringer("EventsRequest", request))
 	partitions := s.Partitions()
@@ -380,49 +579,49 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
-			var response *mapv1.EventsResponse
+			var response *atomicmapv1.EventsResponse
 			switch e := output.Event.Event.(type) {
 			case *api.Event_Inserted_:
-				response = &mapv1.EventsResponse{
-					Event: mapv1.Event{
+				response = &atomicmapv1.EventsResponse{
+					Event: atomicmapv1.Event{
 						Key: output.Event.Key,
-						Event: &mapv1.Event_Inserted_{
-							Inserted: &mapv1.Event_Inserted{
-								Value: mapv1.Value{
-									Value: e.Inserted.Value.Value,
-									TTL:   e.Inserted.Value.TTL,
+						Event: &atomicmapv1.Event_Inserted_{
+							Inserted: &atomicmapv1.Event_Inserted{
+								Value: atomicmapv1.VersionedValue{
+									Value:   e.Inserted.Value.Value,
+									Version: uint64(e.Inserted.Value.Index),
 								},
 							},
 						},
 					},
 				}
 			case *api.Event_Updated_:
-				response = &mapv1.EventsResponse{
-					Event: mapv1.Event{
+				response = &atomicmapv1.EventsResponse{
+					Event: atomicmapv1.Event{
 						Key: output.Event.Key,
-						Event: &mapv1.Event_Updated_{
-							Updated: &mapv1.Event_Updated{
-								Value: mapv1.Value{
-									Value: e.Updated.NewValue.Value,
-									TTL:   e.Updated.NewValue.TTL,
+						Event: &atomicmapv1.Event_Updated_{
+							Updated: &atomicmapv1.Event_Updated{
+								Value: atomicmapv1.VersionedValue{
+									Value:   e.Updated.Value.Value,
+									Version: uint64(e.Updated.Value.Index),
 								},
-								PrevValue: mapv1.Value{
-									Value: e.Updated.PrevValue.Value,
-									TTL:   e.Updated.PrevValue.TTL,
+								PrevValue: atomicmapv1.VersionedValue{
+									Value:   e.Updated.PrevValue.Value,
+									Version: uint64(e.Updated.PrevValue.Index),
 								},
 							},
 						},
 					},
 				}
 			case *api.Event_Removed_:
-				response = &mapv1.EventsResponse{
-					Event: mapv1.Event{
+				response = &atomicmapv1.EventsResponse{
+					Event: atomicmapv1.Event{
 						Key: output.Event.Key,
-						Event: &mapv1.Event_Removed_{
-							Removed: &mapv1.Event_Removed{
-								Value: mapv1.Value{
-									Value: e.Removed.Value.Value,
-									TTL:   e.Removed.Value.TTL,
+						Event: &atomicmapv1.Event_Removed_{
+							Removed: &atomicmapv1.Event_Removed{
+								Value: atomicmapv1.VersionedValue{
+									Value:   e.Removed.Value.Value,
+									Version: uint64(e.Removed.Value.Index),
 								},
 								Expired: e.Removed.Expired,
 							},
@@ -444,7 +643,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 	})
 }
 
-func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_EntriesServer) error {
+func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server atomicmapv1.Map_EntriesServer) error {
 	log.Debugw("Entries",
 		logging.Stringer("EntriesRequest", request))
 	partitions := s.Partitions()
@@ -490,12 +689,12 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
-			response := &mapv1.EntriesResponse{
-				Entry: mapv1.Entry{
+			response := &atomicmapv1.EntriesResponse{
+				Entry: atomicmapv1.Entry{
 					Key: output.Entry.Key,
-					Value: &mapv1.Value{
-						Value: output.Entry.Value.Value,
-						TTL:   output.Entry.Value.TTL,
+					Value: &atomicmapv1.VersionedValue{
+						Value:   output.Entry.Value.Value,
+						Version: uint64(output.Entry.Value.Index),
 					},
 				},
 			}
@@ -513,4 +712,4 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 	})
 }
 
-var _ mapv1.MapServer = (*MapServer)(nil)
+var _ atomicmapv1.MapServer = (*multiRaftMapServer)(nil)

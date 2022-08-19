@@ -6,29 +6,23 @@ package driver
 
 import (
 	"context"
-	multiraftatomiccounterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/counter/v1"
-	multiraftatomiccountermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/countermap/v1"
-	multiraftatomicmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/map/v1"
-	multiraftatomicvaluev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/value/v1"
 	multiraftcounterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
+	multiraftcountermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/countermap/v1"
 	multiraftmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
 	multiraftsetv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/set/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	multiraftvaluev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/value/v1"
 	"github.com/atomix/multi-raft-storage/driver/pkg/client"
-	atomiccounterv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/atomic/counter/v1"
-	atomiccountermapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/atomic/countermap/v1"
-	atomicmapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/atomic/map/v1"
-	atomicvaluev1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/atomic/value/v1"
 	counterv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/counter/v1"
+	countermapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/countermap/v1"
 	mapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/map/v1"
 	setv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/set/v1"
-	atomiccounterv1 "github.com/atomix/runtime/api/atomix/runtime/atomic/counter/v1"
-	atomiccountermapv1 "github.com/atomix/runtime/api/atomix/runtime/atomic/countermap/v1"
-	atomicmapv1 "github.com/atomix/runtime/api/atomix/runtime/atomic/map/v1"
-	atomicvaluev1 "github.com/atomix/runtime/api/atomix/runtime/atomic/value/v1"
+	valuev1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/value/v1"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
+	countermapv1 "github.com/atomix/runtime/api/atomix/runtime/countermap/v1"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	setv1 "github.com/atomix/runtime/api/atomix/runtime/set/v1"
+	valuev1 "github.com/atomix/runtime/api/atomix/runtime/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 )
 
@@ -44,26 +38,20 @@ func New(network runtime.Network) runtime.Driver {
 			return nil, err
 		}
 		return runtime.NewConn[multiraftv1.DriverConfig](client,
-			runtime.WithAtomicCounterFactory[multiraftatomiccounterv1.AtomicCounterConfig](func(config multiraftatomiccounterv1.AtomicCounterConfig) (atomiccounterv1.AtomicCounterServer, error) {
-				return atomiccounterv1server.NewAtomicCounterServer(client.Protocol, config), nil
-			}),
-			runtime.WithAtomicCounterMapFactory[multiraftatomiccountermapv1.AtomicCounterMapConfig](func(config multiraftatomiccountermapv1.AtomicCounterMapConfig) (atomiccountermapv1.AtomicCounterMapServer, error) {
-				return atomiccountermapv1server.NewAtomicCounterMapServer(client.Protocol), nil
-			}),
-			runtime.WithAtomicMapFactory[multiraftatomicmapv1.AtomicMapConfig](func(config multiraftatomicmapv1.AtomicMapConfig) (atomicmapv1.AtomicMapServer, error) {
-				return atomicmapv1server.NewAtomicMapServer(client.Protocol, config), nil
-			}),
-			runtime.WithAtomicValueFactory[multiraftatomicvaluev1.AtomicValueConfig](func(config multiraftatomicvaluev1.AtomicValueConfig) (atomicvaluev1.AtomicValueServer, error) {
-				return atomicvaluev1server.NewAtomicValueServer(client.Protocol, config), nil
-			}),
 			runtime.WithCounterFactory[multiraftcounterv1.CounterConfig](func(config multiraftcounterv1.CounterConfig) (counterv1.CounterServer, error) {
 				return counterv1server.NewCounterServer(client.Protocol, config), nil
+			}),
+			runtime.WithCounterMapFactory[multiraftcountermapv1.CounterMapConfig](func(config multiraftcountermapv1.CounterMapConfig) (countermapv1.CounterMapServer, error) {
+				return countermapv1server.NewCounterMapServer(client.Protocol), nil
 			}),
 			runtime.WithMapFactory[multiraftmapv1.MapConfig](func(config multiraftmapv1.MapConfig) (mapv1.MapServer, error) {
 				return mapv1server.NewMapServer(client.Protocol, config), nil
 			}),
 			runtime.WithSetFactory[multiraftsetv1.SetConfig](func(config multiraftsetv1.SetConfig) (setv1.SetServer, error) {
 				return setv1server.NewSetServer(client.Protocol, config), nil
+			}),
+			runtime.WithValueFactory[multiraftvaluev1.ValueConfig](func(config multiraftvaluev1.ValueConfig) (valuev1.ValueServer, error) {
+				return valuev1server.NewValueServer(client.Protocol, config), nil
 			})), nil
 	})
 }

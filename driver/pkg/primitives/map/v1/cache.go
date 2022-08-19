@@ -7,36 +7,36 @@ package v1
 import (
 	"container/list"
 	"context"
-	api "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/map/v1"
-	atomicmapv1 "github.com/atomix/runtime/api/atomix/runtime/atomic/map/v1"
+	api "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
+	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"google.golang.org/grpc"
 	"sync"
 	"time"
 )
 
-func newCachingAtomicMapServer(m atomicmapv1.AtomicMapServer, config api.CacheConfig) atomicmapv1.AtomicMapServer {
-	return &cachingAtomicMapServer{
-		AtomicMapServer: m,
-		config:          config,
-		entries:         make(map[string]*list.Element),
-		aged:            list.New(),
+func newCachingMapServer(m mapv1.MapServer, config api.CacheConfig) mapv1.MapServer {
+	return &cachingMapServer{
+		MapServer: m,
+		config:    config,
+		entries:   make(map[string]*list.Element),
+		aged:      list.New(),
 	}
 }
 
-type cachingAtomicMapServer struct {
-	atomicmapv1.AtomicMapServer
+type cachingMapServer struct {
+	mapv1.MapServer
 	config  api.CacheConfig
 	entries map[string]*list.Element
 	aged    *list.List
 	mu      sync.RWMutex
 }
 
-func (s *cachingAtomicMapServer) Create(ctx context.Context, request *atomicmapv1.CreateRequest) (*atomicmapv1.CreateResponse, error) {
-	response, err := s.AtomicMapServer.Create(ctx, request)
+func (s *cachingMapServer) Create(ctx context.Context, request *mapv1.CreateRequest) (*mapv1.CreateResponse, error) {
+	response, err := s.MapServer.Create(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	err = s.AtomicMapServer.Events(&atomicmapv1.EventsRequest{
+	err = s.MapServer.Events(&mapv1.EventsRequest{
 		ID: request.ID,
 	}, newCachingEventsServer(s))
 	go func() {
@@ -56,14 +56,14 @@ func (s *cachingAtomicMapServer) Create(ctx context.Context, request *atomicmapv
 	return response, nil
 }
 
-func (s *cachingAtomicMapServer) Put(ctx context.Context, request *atomicmapv1.PutRequest) (*atomicmapv1.PutResponse, error) {
-	response, err := s.AtomicMapServer.Put(ctx, request)
+func (s *cachingMapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.PutResponse, error) {
+	response, err := s.MapServer.Put(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	s.update(&atomicmapv1.Entry{
+	s.update(&mapv1.Entry{
 		Key: request.Key,
-		Value: &atomicmapv1.Value{
+		Value: &mapv1.VersionedValue{
 			Value:   request.Value,
 			Version: response.Version,
 		},
@@ -71,14 +71,14 @@ func (s *cachingAtomicMapServer) Put(ctx context.Context, request *atomicmapv1.P
 	return response, nil
 }
 
-func (s *cachingAtomicMapServer) Insert(ctx context.Context, request *atomicmapv1.InsertRequest) (*atomicmapv1.InsertResponse, error) {
-	response, err := s.AtomicMapServer.Insert(ctx, request)
+func (s *cachingMapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*mapv1.InsertResponse, error) {
+	response, err := s.MapServer.Insert(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	s.update(&atomicmapv1.Entry{
+	s.update(&mapv1.Entry{
 		Key: request.Key,
-		Value: &atomicmapv1.Value{
+		Value: &mapv1.VersionedValue{
 			Value:   request.Value,
 			Version: response.Version,
 		},
@@ -86,14 +86,14 @@ func (s *cachingAtomicMapServer) Insert(ctx context.Context, request *atomicmapv
 	return response, nil
 }
 
-func (s *cachingAtomicMapServer) Update(ctx context.Context, request *atomicmapv1.UpdateRequest) (*atomicmapv1.UpdateResponse, error) {
-	response, err := s.AtomicMapServer.Update(ctx, request)
+func (s *cachingMapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*mapv1.UpdateResponse, error) {
+	response, err := s.MapServer.Update(ctx, request)
 	if err != nil {
 		return nil, err
 	}
-	s.update(&atomicmapv1.Entry{
+	s.update(&mapv1.Entry{
 		Key: request.Key,
-		Value: &atomicmapv1.Value{
+		Value: &mapv1.VersionedValue{
 			Value:   request.Value,
 			Version: response.Version,
 		},
@@ -101,20 +101,20 @@ func (s *cachingAtomicMapServer) Update(ctx context.Context, request *atomicmapv
 	return response, nil
 }
 
-func (s *cachingAtomicMapServer) Get(ctx context.Context, request *atomicmapv1.GetRequest) (*atomicmapv1.GetResponse, error) {
+func (s *cachingMapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.GetResponse, error) {
 	s.mu.RLock()
 	elem, ok := s.entries[request.Key]
 	s.mu.RUnlock()
 	if ok {
-		return &atomicmapv1.GetResponse{
+		return &mapv1.GetResponse{
 			Value: *elem.Value.(*cachedEntry).entry.Value,
 		}, nil
 	}
-	return s.AtomicMapServer.Get(ctx, request)
+	return s.MapServer.Get(ctx, request)
 }
 
-func (s *cachingAtomicMapServer) Remove(ctx context.Context, request *atomicmapv1.RemoveRequest) (*atomicmapv1.RemoveResponse, error) {
-	response, err := s.AtomicMapServer.Remove(ctx, request)
+func (s *cachingMapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*mapv1.RemoveResponse, error) {
+	response, err := s.MapServer.Remove(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -122,8 +122,8 @@ func (s *cachingAtomicMapServer) Remove(ctx context.Context, request *atomicmapv
 	return response, nil
 }
 
-func (s *cachingAtomicMapServer) Clear(ctx context.Context, request *atomicmapv1.ClearRequest) (*atomicmapv1.ClearResponse, error) {
-	response, err := s.AtomicMapServer.Clear(ctx, request)
+func (s *cachingMapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*mapv1.ClearResponse, error) {
+	response, err := s.MapServer.Clear(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +134,7 @@ func (s *cachingAtomicMapServer) Clear(ctx context.Context, request *atomicmapv1
 	return response, nil
 }
 
-func (s *cachingAtomicMapServer) update(update *atomicmapv1.Entry) {
+func (s *cachingMapServer) update(update *mapv1.Entry) {
 	s.mu.RLock()
 	check, ok := s.entries[update.Key]
 	s.mu.RUnlock()
@@ -156,7 +156,7 @@ func (s *cachingAtomicMapServer) update(update *atomicmapv1.Entry) {
 	s.entries[update.Key] = s.aged.PushBack(entry)
 }
 
-func (s *cachingAtomicMapServer) delete(key string) {
+func (s *cachingMapServer) delete(key string) {
 	s.mu.RLock()
 	_, ok := s.entries[key]
 	s.mu.RUnlock()
@@ -171,7 +171,7 @@ func (s *cachingAtomicMapServer) delete(key string) {
 	}
 }
 
-func (s *cachingAtomicMapServer) evict() {
+func (s *cachingMapServer) evict() {
 	t := time.Now()
 	evictionDuration := time.Hour
 	if s.config.EvictAfter != nil {
@@ -210,9 +210,9 @@ func (s *cachingAtomicMapServer) evict() {
 	}
 }
 
-var _ atomicmapv1.AtomicMapServer = (*cachingAtomicMapServer)(nil)
+var _ mapv1.MapServer = (*cachingMapServer)(nil)
 
-func newCachingEventsServer(server *cachingAtomicMapServer) atomicmapv1.AtomicMap_EventsServer {
+func newCachingEventsServer(server *cachingMapServer) mapv1.Map_EventsServer {
 	return &cachingEventsServer{
 		server: server,
 	}
@@ -220,34 +220,34 @@ func newCachingEventsServer(server *cachingAtomicMapServer) atomicmapv1.AtomicMa
 
 type cachingEventsServer struct {
 	grpc.ServerStream
-	server *cachingAtomicMapServer
+	server *cachingMapServer
 }
 
-func (s *cachingEventsServer) Send(response *atomicmapv1.EventsResponse) error {
+func (s *cachingEventsServer) Send(response *mapv1.EventsResponse) error {
 	switch e := response.Event.Event.(type) {
-	case *atomicmapv1.Event_Inserted_:
-		s.server.update(&atomicmapv1.Entry{
+	case *mapv1.Event_Inserted_:
+		s.server.update(&mapv1.Entry{
 			Key: response.Event.Key,
-			Value: &atomicmapv1.Value{
+			Value: &mapv1.VersionedValue{
 				Value:   e.Inserted.Value.Value,
 				Version: e.Inserted.Value.Version,
 			},
 		})
-	case *atomicmapv1.Event_Updated_:
-		s.server.update(&atomicmapv1.Entry{
+	case *mapv1.Event_Updated_:
+		s.server.update(&mapv1.Entry{
 			Key: response.Event.Key,
-			Value: &atomicmapv1.Value{
+			Value: &mapv1.VersionedValue{
 				Value:   e.Updated.Value.Value,
 				Version: e.Updated.Value.Version,
 			},
 		})
-	case *atomicmapv1.Event_Removed_:
+	case *mapv1.Event_Removed_:
 		s.server.delete(response.Event.Key)
 	}
 	return nil
 }
 
-func newCachedEntry(entry *atomicmapv1.Entry) *cachedEntry {
+func newCachedEntry(entry *mapv1.Entry) *cachedEntry {
 	return &cachedEntry{
 		entry:     entry,
 		timestamp: time.Now(),
@@ -255,6 +255,6 @@ func newCachedEntry(entry *atomicmapv1.Entry) *cachedEntry {
 }
 
 type cachedEntry struct {
-	entry     *atomicmapv1.Entry
+	entry     *mapv1.Entry
 	timestamp time.Time
 }

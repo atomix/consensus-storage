@@ -6,10 +6,10 @@ package v1
 
 import (
 	"context"
-	api "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/counter/v1"
+	api "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/driver/pkg/client"
-	counterv1 "github.com/atomix/runtime/api/atomix/runtime/atomic/counter/v1"
+	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
@@ -18,19 +18,19 @@ import (
 
 var log = logging.GetLogger()
 
-const Service = "atomix.multiraft.atomic.counter.v1.AtomicCounter"
+const Service = "atomix.multiraft.counter.v1.Counter"
 
-func NewAtomicCounterServer(protocol *client.Protocol, config api.AtomicCounterConfig) counterv1.AtomicCounterServer {
-	return &CounterServer{
+func NewCounterServer(protocol *client.Protocol, config api.CounterConfig) counterv1.CounterServer {
+	return &multiRaftCounterServer{
 		Protocol: protocol,
 	}
 }
 
-type CounterServer struct {
+type multiRaftCounterServer struct {
 	*client.Protocol
 }
 
-func (s *CounterServer) Create(ctx context.Context, request *counterv1.CreateRequest) (*counterv1.CreateResponse, error) {
+func (s *multiRaftCounterServer) Create(ctx context.Context, request *counterv1.CreateRequest) (*counterv1.CreateResponse, error) {
 	log.Debugw("Create",
 		logging.Stringer("CreateRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -59,7 +59,7 @@ func (s *CounterServer) Create(ctx context.Context, request *counterv1.CreateReq
 	return response, nil
 }
 
-func (s *CounterServer) Close(ctx context.Context, request *counterv1.CloseRequest) (*counterv1.CloseResponse, error) {
+func (s *multiRaftCounterServer) Close(ctx context.Context, request *counterv1.CloseRequest) (*counterv1.CloseResponse, error) {
 	log.Debugw("Close",
 		logging.Stringer("CloseRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -83,7 +83,7 @@ func (s *CounterServer) Close(ctx context.Context, request *counterv1.CloseReque
 	return response, nil
 }
 
-func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
+func (s *multiRaftCounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
 	log.Debugw("Set",
 		logging.Stringer("SetRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -103,7 +103,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	}
 	command := client.Command[*api.SetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.SetResponse, error) {
-		return api.NewAtomicCounterClient(conn).Set(ctx, &api.SetRequest{
+		return api.NewCounterClient(conn).Set(ctx, &api.SetRequest{
 			Headers: headers,
 			SetInput: &api.SetInput{
 				Value: request.Value,
@@ -125,7 +125,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	return response, nil
 }
 
-func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
+func (s *multiRaftCounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -145,7 +145,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	}
 	command := client.Query[*api.GetResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
-		return api.NewAtomicCounterClient(conn).Get(ctx, &api.GetRequest{
+		return api.NewCounterClient(conn).Get(ctx, &api.GetRequest{
 			Headers:  headers,
 			GetInput: &api.GetInput{},
 		})
@@ -165,7 +165,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	return response, nil
 }
 
-func (s *CounterServer) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
+func (s *multiRaftCounterServer) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
 	log.Debugw("Increment",
 		logging.Stringer("IncrementRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -185,7 +185,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	}
 	command := client.Command[*api.IncrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.IncrementResponse, error) {
-		return api.NewAtomicCounterClient(conn).Increment(ctx, &api.IncrementRequest{
+		return api.NewCounterClient(conn).Increment(ctx, &api.IncrementRequest{
 			Headers: headers,
 			IncrementInput: &api.IncrementInput{
 				Delta: request.Delta,
@@ -207,7 +207,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	return response, nil
 }
 
-func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
+func (s *multiRaftCounterServer) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
 	log.Debugw("Decrement",
 		logging.Stringer("DecrementRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -227,7 +227,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	}
 	command := client.Command[*api.DecrementResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.DecrementResponse, error) {
-		return api.NewAtomicCounterClient(conn).Decrement(ctx, &api.DecrementRequest{
+		return api.NewCounterClient(conn).Decrement(ctx, &api.DecrementRequest{
 			Headers: headers,
 			DecrementInput: &api.DecrementInput{
 				Delta: request.Delta,
@@ -249,7 +249,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	return response, nil
 }
 
-func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateRequest) (*counterv1.UpdateResponse, error) {
+func (s *multiRaftCounterServer) Update(ctx context.Context, request *counterv1.UpdateRequest) (*counterv1.UpdateResponse, error) {
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", request))
 	partition := s.PartitionBy([]byte(request.ID.Name))
@@ -269,7 +269,7 @@ func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateReq
 	}
 	command := client.Command[*api.UpdateResponse](primitive)
 	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.UpdateResponse, error) {
-		return api.NewAtomicCounterClient(conn).Update(ctx, &api.UpdateRequest{
+		return api.NewCounterClient(conn).Update(ctx, &api.UpdateRequest{
 			Headers: headers,
 			UpdateInput: &api.UpdateInput{
 				Compare: request.Check,
@@ -292,4 +292,4 @@ func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateReq
 	return response, nil
 }
 
-var _ counterv1.AtomicCounterServer = (*CounterServer)(nil)
+var _ counterv1.CounterServer = (*multiRaftCounterServer)(nil)
