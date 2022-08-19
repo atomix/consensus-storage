@@ -17,12 +17,12 @@ import (
 const Service = "atomix.runtime.value.v1.Value"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*valuev1.ValueInput, *valuev1.ValueOutput](registry)(MapType)
+	statemachine.RegisterPrimitiveType[*valuev1.ValueInput, *valuev1.ValueOutput](registry)(Type)
 }
 
-var MapType = statemachine.NewPrimitiveType[*valuev1.ValueInput, *valuev1.ValueOutput](Service, mapCodec, newMapStateMachine)
+var Type = statemachine.NewPrimitiveType[*valuev1.ValueInput, *valuev1.ValueOutput](Service, valueCodec, newMapStateMachine)
 
-var mapCodec = statemachine.NewCodec[*valuev1.ValueInput, *valuev1.ValueOutput](
+var valueCodec = statemachine.NewCodec[*valuev1.ValueInput, *valuev1.ValueOutput](
 	func(bytes []byte) (*valuev1.ValueInput, error) {
 		input := &valuev1.ValueInput{}
 		if err := proto.Unmarshal(bytes, input); err != nil {

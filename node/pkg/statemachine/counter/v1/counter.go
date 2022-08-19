@@ -15,10 +15,10 @@ import (
 const Service = "atomix.runtime.counter.v1.Counter"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(CounterType)
+	statemachine.RegisterPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(Type)
 }
 
-var CounterType = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](Service, counterCodec, newCounterStateMachine)
+var Type = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](Service, counterCodec, newCounterStateMachine)
 
 var counterCodec = statemachine.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
 	func(bytes []byte) (*counterv1.CounterInput, error) {

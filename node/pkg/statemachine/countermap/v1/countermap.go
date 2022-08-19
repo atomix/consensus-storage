@@ -16,12 +16,12 @@ import (
 const Service = "atomix.runtime.map.v1.CounterMap"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](registry)(MapType)
+	statemachine.RegisterPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](registry)(Type)
 }
 
-var MapType = statemachine.NewPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](Service, mapCodec, newMapStateMachine)
+var Type = statemachine.NewPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](Service, counterMapCodec, newMapStateMachine)
 
-var mapCodec = statemachine.NewCodec[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](
+var counterMapCodec = statemachine.NewCodec[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](
 	func(bytes []byte) (*countermapv1.CounterMapInput, error) {
 		input := &countermapv1.CounterMapInput{}
 		if err := proto.Unmarshal(bytes, input); err != nil {

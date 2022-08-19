@@ -16,10 +16,10 @@ import (
 const Service = "atomix.runtime.set.v1.Set"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*setv1.SetInput, *setv1.SetOutput](registry)(SetType)
+	statemachine.RegisterPrimitiveType[*setv1.SetInput, *setv1.SetOutput](registry)(Type)
 }
 
-var SetType = statemachine.NewPrimitiveType[*setv1.SetInput, *setv1.SetOutput](Service, setCodec, newSetStateMachine)
+var Type = statemachine.NewPrimitiveType[*setv1.SetInput, *setv1.SetOutput](Service, setCodec, newSetStateMachine)
 
 var setCodec = statemachine.NewCodec[*setv1.SetInput, *setv1.SetOutput](
 	func(bytes []byte) (*setv1.SetInput, error) {

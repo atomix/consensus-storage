@@ -18,10 +18,10 @@ import (
 const Service = "atomix.runtime.map.v1.Map"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*mapv1.MapInput, *mapv1.MapOutput](registry)(MapType)
+	statemachine.RegisterPrimitiveType[*mapv1.MapInput, *mapv1.MapOutput](registry)(Type)
 }
 
-var MapType = statemachine.NewPrimitiveType[*mapv1.MapInput, *mapv1.MapOutput](Service, mapCodec, newMapStateMachine)
+var Type = statemachine.NewPrimitiveType[*mapv1.MapInput, *mapv1.MapOutput](Service, mapCodec, newMapStateMachine)
 
 var mapCodec = statemachine.NewCodec[*mapv1.MapInput, *mapv1.MapOutput](
 	func(bytes []byte) (*mapv1.MapInput, error) {
