@@ -62,7 +62,7 @@ message AddInput {
 }
 
 message AddOutput {
-    bool added = 1;
+
 }
 
 message GetInput {
@@ -79,7 +79,7 @@ message RemoveInput {
 }
 
 message RemoveOutput {
-    bool removed = 1;
+
 }
 
 message ClearInput {
@@ -87,25 +87,6 @@ message ClearInput {
 }
 
 message ClearOutput {
-
-}
-
-message LockInput {
-    repeated string keys = 1;
-    google.protobuf.Duration timeout = 2 [
-        (gogoproto.stdduration) = true
-    ];
-}
-
-message LockOutput {
-
-}
-
-message UnlockInput {
-    repeated string keys = 1;
-}
-
-message UnlockOutput {
 
 }
 

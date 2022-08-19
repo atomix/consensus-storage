@@ -3,48 +3,24 @@
 
 ## Table of Contents
 
-- [atomix/multiraft/map/v1/config.proto](#atomix_multiraft_map_v1_config-proto)
-    - [CacheConfig](#atomix-multiraft-map-v1-CacheConfig)
-    - [MapConfig](#atomix-multiraft-map-v1-MapConfig)
+- [atomix/multiraft/countermap/v1/config.proto](#atomix_multiraft_countermap_v1_config-proto)
+    - [CounterMapConfig](#atomix-multiraft-countermap-v1-CounterMapConfig)
   
 - [Scalar Value Types](#scalar-value-types)
 
 
 
-<a name="atomix_multiraft_map_v1_config-proto"></a>
+<a name="atomix_multiraft_countermap_v1_config-proto"></a>
 <p align="right"><a href="#top">Top</a></p>
 
-## atomix/multiraft/map/v1/config.proto
+## atomix/multiraft/countermap/v1/config.proto
 
 
 
-<a name="atomix-multiraft-map-v1-CacheConfig"></a>
+<a name="atomix-multiraft-countermap-v1-CounterMapConfig"></a>
 
-### CacheConfig
+### CounterMapConfig
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| enabled | [bool](#bool) |  |  |
-| size | [uint64](#uint64) |  |  |
-| evict_after | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
-| eviction_interval | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-map-v1-MapConfig"></a>
-
-### MapConfig
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| cache | [CacheConfig](#atomix-multiraft-map-v1-CacheConfig) |  |  |
 
 
 

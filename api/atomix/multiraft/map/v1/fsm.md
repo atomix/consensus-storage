@@ -17,6 +17,11 @@
     - [EventsOutput](#atomix-multiraft-map-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-map-v1-GetInput)
     - [GetOutput](#atomix-multiraft-map-v1-GetOutput)
+    - [IndexedValue](#atomix-multiraft-map-v1-IndexedValue)
+    - [InsertInput](#atomix-multiraft-map-v1-InsertInput)
+    - [InsertOutput](#atomix-multiraft-map-v1-InsertOutput)
+    - [LockInput](#atomix-multiraft-map-v1-LockInput)
+    - [LockOutput](#atomix-multiraft-map-v1-LockOutput)
     - [MapEntry](#atomix-multiraft-map-v1-MapEntry)
     - [MapInput](#atomix-multiraft-map-v1-MapInput)
     - [MapListener](#atomix-multiraft-map-v1-MapListener)
@@ -28,7 +33,10 @@
     - [RemoveOutput](#atomix-multiraft-map-v1-RemoveOutput)
     - [SizeInput](#atomix-multiraft-map-v1-SizeInput)
     - [SizeOutput](#atomix-multiraft-map-v1-SizeOutput)
-    - [Value](#atomix-multiraft-map-v1-Value)
+    - [UnlockInput](#atomix-multiraft-map-v1-UnlockInput)
+    - [UnlockOutput](#atomix-multiraft-map-v1-UnlockOutput)
+    - [UpdateInput](#atomix-multiraft-map-v1-UpdateInput)
+    - [UpdateOutput](#atomix-multiraft-map-v1-UpdateOutput)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -100,7 +108,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 
 
 
@@ -133,7 +141,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 
 
 
@@ -148,7 +156,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 | expired | [bool](#bool) |  |  |
 
 
@@ -164,8 +172,8 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| new_value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
-| prev_value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
+| prev_value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 
 
 
@@ -225,7 +233,81 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-IndexedValue"></a>
+
+### IndexedValue
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [bytes](#bytes) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-InsertInput"></a>
+
+### InsertInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| value | [bytes](#bytes) |  |  |
+| ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-InsertOutput"></a>
+
+### InsertOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-LockInput"></a>
+
+### LockInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| keys | [string](#string) | repeated |  |
+| timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-LockOutput"></a>
+
+### LockOutput
+
 
 
 
@@ -258,9 +340,13 @@
 | ----- | ---- | ----- | ----------- |
 | size | [SizeInput](#atomix-multiraft-map-v1-SizeInput) |  |  |
 | put | [PutInput](#atomix-multiraft-map-v1-PutInput) |  |  |
+| insert | [InsertInput](#atomix-multiraft-map-v1-InsertInput) |  |  |
+| update | [UpdateInput](#atomix-multiraft-map-v1-UpdateInput) |  |  |
 | get | [GetInput](#atomix-multiraft-map-v1-GetInput) |  |  |
 | remove | [RemoveInput](#atomix-multiraft-map-v1-RemoveInput) |  |  |
 | clear | [ClearInput](#atomix-multiraft-map-v1-ClearInput) |  |  |
+| lock | [LockInput](#atomix-multiraft-map-v1-LockInput) |  |  |
+| unlock | [UnlockInput](#atomix-multiraft-map-v1-UnlockInput) |  |  |
 | entries | [EntriesInput](#atomix-multiraft-map-v1-EntriesInput) |  |  |
 | events | [EventsInput](#atomix-multiraft-map-v1-EventsInput) |  |  |
 
@@ -295,9 +381,13 @@
 | ----- | ---- | ----- | ----------- |
 | size | [SizeOutput](#atomix-multiraft-map-v1-SizeOutput) |  |  |
 | put | [PutOutput](#atomix-multiraft-map-v1-PutOutput) |  |  |
+| insert | [InsertOutput](#atomix-multiraft-map-v1-InsertOutput) |  |  |
+| update | [UpdateOutput](#atomix-multiraft-map-v1-UpdateOutput) |  |  |
 | get | [GetOutput](#atomix-multiraft-map-v1-GetOutput) |  |  |
 | remove | [RemoveOutput](#atomix-multiraft-map-v1-RemoveOutput) |  |  |
 | clear | [ClearOutput](#atomix-multiraft-map-v1-ClearOutput) |  |  |
+| lock | [LockOutput](#atomix-multiraft-map-v1-LockOutput) |  |  |
+| unlock | [UnlockOutput](#atomix-multiraft-map-v1-UnlockOutput) |  |  |
 | entries | [EntriesOutput](#atomix-multiraft-map-v1-EntriesOutput) |  |  |
 | events | [EventsOutput](#atomix-multiraft-map-v1-EventsOutput) |  |  |
 
@@ -315,6 +405,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
+| index | [uint64](#uint64) |  |  |
 | expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
@@ -330,7 +421,10 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| entry | [Entry](#atomix-multiraft-map-v1-Entry) |  |  |
+| key | [string](#string) |  |  |
+| value | [bytes](#bytes) |  |  |
+| ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
 
 
 
@@ -345,7 +439,8 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| prev_value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| index | [uint64](#uint64) |  |  |
+| prev_value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 
 
 
@@ -361,6 +456,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
 
 
 
@@ -375,7 +471,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [Value](#atomix-multiraft-map-v1-Value) |  |  |
+| value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 
 
 
@@ -407,16 +503,59 @@
 
 
 
-<a name="atomix-multiraft-map-v1-Value"></a>
+<a name="atomix-multiraft-map-v1-UnlockInput"></a>
 
-### Value
+### UnlockInput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| keys | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-UnlockOutput"></a>
+
+### UnlockOutput
+
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-UpdateInput"></a>
+
+### UpdateInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
 | value | [bytes](#bytes) |  |  |
 | ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-map-v1-UpdateOutput"></a>
+
+### UpdateOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| prev_value | [IndexedValue](#atomix-multiraft-map-v1-IndexedValue) |  |  |
 
 
 

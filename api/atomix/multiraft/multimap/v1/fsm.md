@@ -19,8 +19,6 @@
     - [EventsOutput](#atomix-multiraft-multimap-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-multimap-v1-GetInput)
     - [GetOutput](#atomix-multiraft-multimap-v1-GetOutput)
-    - [LockInput](#atomix-multiraft-multimap-v1-LockInput)
-    - [LockOutput](#atomix-multiraft-multimap-v1-LockOutput)
     - [MultiMapEntry](#atomix-multiraft-multimap-v1-MultiMapEntry)
     - [MultiMapInput](#atomix-multiraft-multimap-v1-MultiMapInput)
     - [MultiMapListener](#atomix-multiraft-multimap-v1-MultiMapListener)
@@ -29,8 +27,6 @@
     - [RemoveOutput](#atomix-multiraft-multimap-v1-RemoveOutput)
     - [SizeInput](#atomix-multiraft-multimap-v1-SizeInput)
     - [SizeOutput](#atomix-multiraft-multimap-v1-SizeOutput)
-    - [UnlockInput](#atomix-multiraft-multimap-v1-UnlockInput)
-    - [UnlockOutput](#atomix-multiraft-multimap-v1-UnlockOutput)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -63,11 +59,6 @@
 
 ### AddOutput
 
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| added | [bool](#bool) |  |  |
 
 
 
@@ -264,32 +255,6 @@
 
 
 
-<a name="atomix-multiraft-multimap-v1-LockInput"></a>
-
-### LockInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| keys | [string](#string) | repeated |  |
-| timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-multimap-v1-LockOutput"></a>
-
-### LockOutput
-
-
-
-
-
-
-
 <a name="atomix-multiraft-multimap-v1-MultiMapEntry"></a>
 
 ### MultiMapEntry
@@ -386,11 +351,6 @@
 
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| removed | [bool](#bool) |  |  |
-
-
 
 
 
@@ -414,31 +374,6 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | size | [uint32](#uint32) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-multimap-v1-UnlockInput"></a>
-
-### UnlockInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| keys | [string](#string) | repeated |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-multimap-v1-UnlockOutput"></a>
-
-### UnlockOutput
-
 
 
 

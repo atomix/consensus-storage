@@ -4,10 +4,18 @@
 ## Table of Contents
 
 - [atomix/multiraft/value/v1/service.proto](#atomix_multiraft_value_v1_service-proto)
+    - [DeleteRequest](#atomix-multiraft-value-v1-DeleteRequest)
+    - [DeleteResponse](#atomix-multiraft-value-v1-DeleteResponse)
+    - [EventsRequest](#atomix-multiraft-value-v1-EventsRequest)
+    - [EventsResponse](#atomix-multiraft-value-v1-EventsResponse)
     - [GetRequest](#atomix-multiraft-value-v1-GetRequest)
     - [GetResponse](#atomix-multiraft-value-v1-GetResponse)
+    - [InsertRequest](#atomix-multiraft-value-v1-InsertRequest)
+    - [InsertResponse](#atomix-multiraft-value-v1-InsertResponse)
     - [SetRequest](#atomix-multiraft-value-v1-SetRequest)
     - [SetResponse](#atomix-multiraft-value-v1-SetResponse)
+    - [UpdateRequest](#atomix-multiraft-value-v1-UpdateRequest)
+    - [UpdateResponse](#atomix-multiraft-value-v1-UpdateResponse)
     - [WatchRequest](#atomix-multiraft-value-v1-WatchRequest)
     - [WatchResponse](#atomix-multiraft-value-v1-WatchResponse)
   
@@ -21,6 +29,70 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## atomix/multiraft/value/v1/service.proto
+
+
+
+<a name="atomix-multiraft-value-v1-DeleteRequest"></a>
+
+### DeleteRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [DeleteInput](#atomix-multiraft-value-v1-DeleteInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-DeleteResponse"></a>
+
+### DeleteResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [DeleteOutput](#atomix-multiraft-value-v1-DeleteOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-EventsRequest"></a>
+
+### EventsRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [EventsInput](#atomix-multiraft-value-v1-EventsInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-EventsResponse"></a>
+
+### EventsResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [EventsOutput](#atomix-multiraft-value-v1-EventsOutput) |  |  |
+
+
+
 
 
 
@@ -56,6 +128,38 @@
 
 
 
+<a name="atomix-multiraft-value-v1-InsertRequest"></a>
+
+### InsertRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [InsertInput](#atomix-multiraft-value-v1-InsertInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-InsertResponse"></a>
+
+### InsertResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [InsertOutput](#atomix-multiraft-value-v1-InsertOutput) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-value-v1-SetRequest"></a>
 
 ### SetRequest
@@ -82,6 +186,38 @@
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
 | output | [SetOutput](#atomix-multiraft-value-v1-SetOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-UpdateRequest"></a>
+
+### UpdateRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [UpdateInput](#atomix-multiraft-value-v1-UpdateInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-UpdateResponse"></a>
+
+### UpdateResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [UpdateOutput](#atomix-multiraft-value-v1-UpdateOutput) |  |  |
 
 
 
@@ -129,13 +265,17 @@
 <a name="atomix-multiraft-value-v1-Value"></a>
 
 ### Value
-Value is a service for a value primitive
+Value is a service for a map primitive
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
 | Set | [SetRequest](#atomix-multiraft-value-v1-SetRequest) | [SetResponse](#atomix-multiraft-value-v1-SetResponse) | Set sets the value |
+| Insert | [InsertRequest](#atomix-multiraft-value-v1-InsertRequest) | [InsertResponse](#atomix-multiraft-value-v1-InsertResponse) | Insert inserts the value |
+| Update | [UpdateRequest](#atomix-multiraft-value-v1-UpdateRequest) | [UpdateResponse](#atomix-multiraft-value-v1-UpdateResponse) | Update updates the value |
 | Get | [GetRequest](#atomix-multiraft-value-v1-GetRequest) | [GetResponse](#atomix-multiraft-value-v1-GetResponse) | Get gets the value |
+| Delete | [DeleteRequest](#atomix-multiraft-value-v1-DeleteRequest) | [DeleteResponse](#atomix-multiraft-value-v1-DeleteResponse) | Delete deletes the value |
 | Watch | [WatchRequest](#atomix-multiraft-value-v1-WatchRequest) | [WatchResponse](#atomix-multiraft-value-v1-WatchResponse) stream | Watch watches the value |
+| Events | [EventsRequest](#atomix-multiraft-value-v1-EventsRequest) | [EventsResponse](#atomix-multiraft-value-v1-EventsResponse) stream | Events watches for value change events |
 
  
 

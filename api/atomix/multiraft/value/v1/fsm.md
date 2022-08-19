@@ -4,12 +4,26 @@
 ## Table of Contents
 
 - [atomix/multiraft/value/v1/fsm.proto](#atomix_multiraft_value_v1_fsm-proto)
+    - [DeleteInput](#atomix-multiraft-value-v1-DeleteInput)
+    - [DeleteOutput](#atomix-multiraft-value-v1-DeleteOutput)
+    - [Event](#atomix-multiraft-value-v1-Event)
+    - [Event.Created](#atomix-multiraft-value-v1-Event-Created)
+    - [Event.Deleted](#atomix-multiraft-value-v1-Event-Deleted)
+    - [Event.Updated](#atomix-multiraft-value-v1-Event-Updated)
+    - [EventsInput](#atomix-multiraft-value-v1-EventsInput)
+    - [EventsOutput](#atomix-multiraft-value-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-value-v1-GetInput)
     - [GetOutput](#atomix-multiraft-value-v1-GetOutput)
+    - [IndexedValue](#atomix-multiraft-value-v1-IndexedValue)
+    - [InsertInput](#atomix-multiraft-value-v1-InsertInput)
+    - [InsertOutput](#atomix-multiraft-value-v1-InsertOutput)
     - [SetInput](#atomix-multiraft-value-v1-SetInput)
     - [SetOutput](#atomix-multiraft-value-v1-SetOutput)
+    - [UpdateInput](#atomix-multiraft-value-v1-UpdateInput)
+    - [UpdateOutput](#atomix-multiraft-value-v1-UpdateOutput)
     - [ValueInput](#atomix-multiraft-value-v1-ValueInput)
     - [ValueOutput](#atomix-multiraft-value-v1-ValueOutput)
+    - [ValueState](#atomix-multiraft-value-v1-ValueState)
     - [WatchInput](#atomix-multiraft-value-v1-WatchInput)
     - [WatchOutput](#atomix-multiraft-value-v1-WatchOutput)
   
@@ -21,6 +35,125 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## atomix/multiraft/value/v1/fsm.proto
+
+
+
+<a name="atomix-multiraft-value-v1-DeleteInput"></a>
+
+### DeleteInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| prev_index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-DeleteOutput"></a>
+
+### DeleteOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-Event"></a>
+
+### Event
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| created | [Event.Created](#atomix-multiraft-value-v1-Event-Created) |  |  |
+| updated | [Event.Updated](#atomix-multiraft-value-v1-Event-Updated) |  |  |
+| deleted | [Event.Deleted](#atomix-multiraft-value-v1-Event-Deleted) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-Event-Created"></a>
+
+### Event.Created
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-Event-Deleted"></a>
+
+### Event.Deleted
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+| expired | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-Event-Updated"></a>
+
+### Event.Updated
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+| prev_value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-EventsInput"></a>
+
+### EventsInput
+
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-EventsOutput"></a>
+
+### EventsOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| event | [Event](#atomix-multiraft-value-v1-Event) |  |  |
+
+
+
 
 
 
@@ -42,7 +175,54 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-IndexedValue"></a>
+
+### IndexedValue
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-InsertInput"></a>
+
+### InsertInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [bytes](#bytes) |  |  |
+| ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-InsertOutput"></a>
+
+### InsertOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
 
 
 
@@ -58,6 +238,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
+| ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 
 
 
@@ -72,7 +253,41 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| prev_value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-UpdateInput"></a>
+
+### UpdateInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
+| prev_index | [uint64](#uint64) |  |  |
+| ttl | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-UpdateOutput"></a>
+
+### UpdateOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| prev_value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
 
 
 
@@ -89,7 +304,11 @@
 | ----- | ---- | ----- | ----------- |
 | get | [GetInput](#atomix-multiraft-value-v1-GetInput) |  |  |
 | set | [SetInput](#atomix-multiraft-value-v1-SetInput) |  |  |
+| insert | [InsertInput](#atomix-multiraft-value-v1-InsertInput) |  |  |
+| update | [UpdateInput](#atomix-multiraft-value-v1-UpdateInput) |  |  |
+| delete | [DeleteInput](#atomix-multiraft-value-v1-DeleteInput) |  |  |
 | watch | [WatchInput](#atomix-multiraft-value-v1-WatchInput) |  |  |
+| events | [EventsInput](#atomix-multiraft-value-v1-EventsInput) |  |  |
 
 
 
@@ -106,7 +325,27 @@
 | ----- | ---- | ----- | ----------- |
 | get | [GetOutput](#atomix-multiraft-value-v1-GetOutput) |  |  |
 | set | [SetOutput](#atomix-multiraft-value-v1-SetOutput) |  |  |
+| insert | [InsertOutput](#atomix-multiraft-value-v1-InsertOutput) |  |  |
+| update | [UpdateOutput](#atomix-multiraft-value-v1-UpdateOutput) |  |  |
+| delete | [DeleteOutput](#atomix-multiraft-value-v1-DeleteOutput) |  |  |
 | watch | [WatchOutput](#atomix-multiraft-value-v1-WatchOutput) |  |  |
+| events | [EventsOutput](#atomix-multiraft-value-v1-EventsOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-value-v1-ValueState"></a>
+
+### ValueState
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
+| expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
@@ -131,7 +370,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [bytes](#bytes) |  |  |
+| value | [IndexedValue](#atomix-multiraft-value-v1-IndexedValue) |  |  |
 
 
 

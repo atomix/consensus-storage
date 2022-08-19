@@ -6,27 +6,22 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-package atomix.multiraft.map.v1;
+package atomix.multiraft.indexedmap.v1;
 
-import "atomix/multiraft/map/v1/fsm.proto";
+import "atomix/multiraft/indexedmap/v1/fsm.proto";
 import "atomix/multiraft/v1/descriptor.proto";
 import "atomix/multiraft/v1/headers.proto";
 import "gogoproto/gogo.proto";
 
-// Map is a service for a map primitive
-service Map {
+// IndexedMap is a service for an indexed map primitive
+service IndexedMap {
     // Size returns the size of the map
     rpc Size (SizeRequest) returns (SizeResponse) {
         option (atomix.multiraft.v1.operation_type) = QUERY;
     }
 
-    // Put puts an entry into the map
-    rpc Put (PutRequest) returns (PutResponse) {
-        option (atomix.multiraft.v1.operation_type) = COMMAND;
-    }
-
-    // Insert inserts an entry into the map
-    rpc Insert (InsertRequest) returns (InsertResponse) {
+    // Append appends an entry to the map
+    rpc Append (AppendRequest) returns (AppendResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
@@ -40,23 +35,28 @@ service Map {
         option (atomix.multiraft.v1.operation_type) = QUERY;
     }
 
-    // Remove removes an entry from the map
-    rpc Remove (RemoveRequest) returns (RemoveResponse) {
-        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    // FirstEntry gets the first entry in the map
+    rpc FirstEntry (FirstEntryRequest) returns (FirstEntryResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
+
+    // LastEntry gets the last entry in the map
+    rpc LastEntry (LastEntryRequest) returns (LastEntryResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
+
+    // PrevEntry gets the previous entry in the map
+    rpc PrevEntry (PrevEntryRequest) returns (PrevEntryResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
+
+    // NextEntry gets the next entry in the map
+    rpc NextEntry (NextEntryRequest) returns (NextEntryResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
     }
 
     // Clear removes all entries from the map
     rpc Clear (ClearRequest) returns (ClearResponse) {
-        option (atomix.multiraft.v1.operation_type) = COMMAND;
-    }
-
-    // Lock locks a key in the map
-    rpc Lock(LockRequest) returns (LockResponse) {
-        option (atomix.multiraft.v1.operation_type) = COMMAND;
-    }
-
-    // Unlock unlocks a key in the map
-    rpc Unlock(UnlockRequest) returns (UnlockResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
@@ -91,41 +91,21 @@ message SizeResponse {
     ];
 }
 
-message PutRequest {
+message AppendRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true
     ];
-    PutInput input = 2 [
+    AppendInput input = 2 [
         (atomix.multiraft.v1.input) = true,
         (gogoproto.embed) = true
     ];
 }
 
-message PutResponse {
+message AppendResponse {
     atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true
     ];
-    PutOutput output = 2 [
-        (atomix.multiraft.v1.output) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message InsertRequest {
-    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true
-    ];
-    InsertInput input = 2 [
-        (atomix.multiraft.v1.input) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message InsertResponse {
-    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true
-    ];
-    InsertOutput output = 2 [
+    AppendOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];
@@ -171,6 +151,86 @@ message GetResponse {
     ];
 }
 
+message FirstEntryRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    FirstEntryInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message FirstEntryResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    FirstEntryOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LastEntryRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    LastEntryInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message LastEntryResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    LastEntryOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message PrevEntryRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    PrevEntryInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message PrevEntryResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    PrevEntryOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message NextEntryRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    NextEntryInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message NextEntryResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    NextEntryOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
 message RemoveRequest {
     atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
         (atomix.multiraft.v1.headers) = true
@@ -206,46 +266,6 @@ message ClearResponse {
         (atomix.multiraft.v1.headers) = true
     ];
     ClearOutput output = 2 [
-        (atomix.multiraft.v1.output) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message LockRequest {
-    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true
-    ];
-    LockInput input = 2 [
-        (atomix.multiraft.v1.input) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message LockResponse {
-    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true
-    ];
-    LockOutput output = 2 [
-        (atomix.multiraft.v1.output) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message UnlockRequest {
-    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true
-    ];
-    UnlockInput input = 2 [
-        (atomix.multiraft.v1.input) = true,
-        (gogoproto.embed) = true
-    ];
-}
-
-message UnlockResponse {
-    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
-        (atomix.multiraft.v1.headers) = true
-    ];
-    UnlockOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

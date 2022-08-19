@@ -12,6 +12,10 @@
     - [GetOutput](#atomix-multiraft-counter-v1-GetOutput)
     - [IncrementInput](#atomix-multiraft-counter-v1-IncrementInput)
     - [IncrementOutput](#atomix-multiraft-counter-v1-IncrementOutput)
+    - [SetInput](#atomix-multiraft-counter-v1-SetInput)
+    - [SetOutput](#atomix-multiraft-counter-v1-SetOutput)
+    - [UpdateInput](#atomix-multiraft-counter-v1-UpdateInput)
+    - [UpdateOutput](#atomix-multiraft-counter-v1-UpdateOutput)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -35,6 +39,8 @@
 | increment | [IncrementInput](#atomix-multiraft-counter-v1-IncrementInput) |  |  |
 | decrement | [DecrementInput](#atomix-multiraft-counter-v1-DecrementInput) |  |  |
 | get | [GetInput](#atomix-multiraft-counter-v1-GetInput) |  |  |
+| set | [SetInput](#atomix-multiraft-counter-v1-SetInput) |  |  |
+| update | [UpdateInput](#atomix-multiraft-counter-v1-UpdateInput) |  |  |
 
 
 
@@ -52,6 +58,8 @@
 | increment | [IncrementOutput](#atomix-multiraft-counter-v1-IncrementOutput) |  |  |
 | decrement | [DecrementOutput](#atomix-multiraft-counter-v1-DecrementOutput) |  |  |
 | get | [GetOutput](#atomix-multiraft-counter-v1-GetOutput) |  |  |
+| set | [SetOutput](#atomix-multiraft-counter-v1-SetOutput) |  |  |
+| update | [UpdateOutput](#atomix-multiraft-counter-v1-UpdateOutput) |  |  |
 
 
 
@@ -131,6 +139,67 @@
 <a name="atomix-multiraft-counter-v1-IncrementOutput"></a>
 
 ### IncrementOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-counter-v1-SetInput"></a>
+
+### SetInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-counter-v1-SetOutput"></a>
+
+### SetOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-counter-v1-UpdateInput"></a>
+
+### UpdateInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| compare | [int64](#int64) |  |  |
+| update | [int64](#int64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-counter-v1-UpdateOutput"></a>
+
+### UpdateOutput
 
 
 
