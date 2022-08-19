@@ -200,7 +200,7 @@ func (s *raftSession) keepAlive(input *multiraftv1.KeepAliveInput, stream stream
 		sequenceNumBytes := make([]byte, 8)
 		binary.BigEndian.PutUint64(sequenceNumBytes, uint64(command.input.SequenceNum))
 		if !openInputs.Test(sequenceNumBytes) {
-			command.cleanup()
+			command.cancel()
 		} else {
 			if outputSequenceNum, ok := input.LastOutputSequenceNums[command.input.SequenceNum]; ok {
 				command.ack(outputSequenceNum)
@@ -298,8 +298,10 @@ type raftSessionCommand struct {
 	input        *multiraftv1.SessionCommandInput
 	outputs      *list.List
 	outputSeqNum multiraftv1.SequenceNum
+	deadline     *time.Time
+	timer        Timer
 	stream       streams.WriteStream[*multiraftv1.SessionCommandOutput]
-	closer       func()
+	closer       func(OperationState)
 }
 
 func (c *raftSessionCommand) Operation() *raftSessionOperationCommand {
@@ -345,6 +347,12 @@ func (c *raftSessionCommand) open(input *multiraftv1.SessionCommandInput) {
 	c.outputs = list.New()
 	c.session.commands[c.index] = c
 	c.state = multiraftv1.CommandSnapshot_RUNNING
+	c.deadline = input.Deadline
+	if c.deadline != nil {
+		c.timer = c.session.manager.context.scheduler.RunAt(*c.deadline, func() {
+			c.cancel()
+		})
+	}
 }
 
 func (c *raftSessionCommand) replay() {
@@ -380,6 +388,7 @@ func (c *raftSessionCommand) snapshot(writer *snapshot.Writer) error {
 		Input:                 c.input,
 		PendingOutputs:        pendingOutputs,
 		LastOutputSequenceNum: c.outputSeqNum,
+		Deadline:              c.deadline,
 	}
 	return writer.WriteMessage(snapshot)
 }
@@ -402,7 +411,13 @@ func (c *raftSessionCommand) recover(reader *snapshot.Reader) error {
 	c.outputSeqNum = snapshot.LastOutputSequenceNum
 	c.stream = streams.NewNilStream[*multiraftv1.SessionCommandOutput]()
 	c.state = snapshot.State
+	c.deadline = snapshot.Deadline
 	c.session.commands[c.index] = c
+	if c.deadline != nil {
+		c.timer = c.session.manager.context.scheduler.RunAt(*c.deadline, func() {
+			c.cancel()
+		})
+	}
 	return nil
 }
 
@@ -446,30 +461,30 @@ func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
 	}
 }
 
-func (c *raftSessionCommand) cleanup() {
+func (c *raftSessionCommand) cancel() {
 	switch c.state {
 	case multiraftv1.CommandSnapshot_RUNNING:
 		log.Debugw("Canceled command",
 			logging.Uint64("Session", uint64(c.session.sessionID)),
 			logging.Uint64("Command", uint64(c.input.SequenceNum)))
-		c.close()
+		c.state = multiraftv1.CommandSnapshot_COMPLETE
+		if c.closer != nil {
+			c.closer(Canceled)
+		}
+		c.stream.Close()
 	}
 	delete(c.session.commands, c.index)
-}
-
-func (c *raftSessionCommand) close() {
-	c.state = multiraftv1.CommandSnapshot_COMPLETE
-	if c.closer != nil {
-		c.closer()
-	}
-	c.stream.Close()
 }
 
 func (c *raftSessionCommand) Close() {
 	log.Debugw("Closed command",
 		logging.Uint64("Session", uint64(c.session.sessionID)),
 		logging.Uint64("Command", uint64(c.input.SequenceNum)))
-	c.close()
+	c.state = multiraftv1.CommandSnapshot_COMPLETE
+	if c.closer != nil {
+		c.closer(Complete)
+	}
+	c.stream.Close()
 }
 
 func newSessionOperationCommand(parent *raftSessionCommand) *raftSessionOperationCommand {
@@ -617,6 +632,18 @@ func (q *raftSessionQuery) execute(ctx context.Context, input *multiraftv1.Sessi
 	q.input = input
 	q.stream = stream
 	q.session.manager.primitives.read(q.Operation())
+}
+
+func (q *raftSessionQuery) cancel() {
+	q.stream.Close()
+	close(q.closeCh)
+	q.watchersMu.RLock()
+	defer q.watchersMu.RUnlock()
+	if q.watchers != nil {
+		for _, watcher := range q.watchers {
+			watcher(Canceled)
+		}
+	}
 }
 
 func (q *raftSessionQuery) Close() {

@@ -119,6 +119,7 @@ const (
 	Pending OperationState = iota
 	Runnnig
 	Complete
+	Canceled
 )
 
 type OperationWatcher func(OperationState)

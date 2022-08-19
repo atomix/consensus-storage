@@ -381,12 +381,18 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
+	var deadline *time.Time
+	if t, ok := ctx.Deadline(); ok {
+		deadline = &t
+	}
+
 	command := &multiraftv1.CommandInput{
 		Timestamp: time.Now(),
 		Input: &multiraftv1.CommandInput_SessionCommand{
 			SessionCommand: &multiraftv1.SessionCommandInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
+				Deadline:    deadline,
 				Input: &multiraftv1.SessionCommandInput_Operation{
 					Operation: &multiraftv1.PrimitiveOperationInput{
 						PrimitiveID: requestHeaders.PrimitiveID,

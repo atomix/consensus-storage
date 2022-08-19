@@ -533,12 +533,12 @@ func (c *primitiveProposal[I, O]) open() {
 	c.session.proposals.add(c)
 }
 
-func (c *primitiveProposal[I, O]) close() {
+func (c *primitiveProposal[I, O]) close(state OperationState) {
 	c.session.proposals.remove(c.command.index)
 	c.session.primitive.proposals.remove(c.command.index)
 	if c.watchers != nil {
 		for _, watcher := range c.watchers {
-			watcher(Complete)
+			watcher(state)
 		}
 	}
 }

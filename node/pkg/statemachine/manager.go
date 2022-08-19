@@ -73,7 +73,7 @@ func (s *stateManager) Command(input *multiraftv1.CommandInput, stream streams.W
 	if canceledQueries != nil {
 		s.queriesMu.Lock()
 		for _, query := range s.canceledQueries {
-			query.Close()
+			query.cancel()
 		}
 		s.canceledQueries = nil
 		s.queriesMu.Unlock()
