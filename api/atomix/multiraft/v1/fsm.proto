@@ -89,10 +89,13 @@ message SessionCommandInput {
     uint64 sequence_num = 2 [
         (gogoproto.casttype) = "SequenceNum"
     ];
+    google.protobuf.Duration deadline = 3 [
+        (gogoproto.stdduration) = true
+    ];
     oneof input {
-        CreatePrimitiveInput create_primitive = 3;
-        ClosePrimitiveInput close_primitive = 4;
-        PrimitiveOperationInput operation = 5;
+        CreatePrimitiveInput create_primitive = 4;
+        ClosePrimitiveInput close_primitive = 5;
+        PrimitiveOperationInput operation = 6;
     }
 }
 
@@ -288,6 +291,9 @@ message CommandSnapshot {
     repeated SessionCommandOutput pending_outputs = 4;
     uint64 last_output_sequence_num = 5 [
         (gogoproto.casttype) = "SequenceNum"
+    ];
+    google.protobuf.Timestamp deadline = 6 [
+        (gogoproto.stdtime) = true
     ];
 
     enum State {

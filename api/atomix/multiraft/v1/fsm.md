@@ -152,6 +152,7 @@
 | input | [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput) |  |  |
 | pending_outputs | [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput) | repeated |  |
 | last_output_sequence_num | [uint64](#uint64) |  |  |
+| deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
@@ -446,6 +447,7 @@
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
 | sequence_num | [uint64](#uint64) |  |  |
+| deadline | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 | create_primitive | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
 | close_primitive | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
 | operation | [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput) |  |  |
