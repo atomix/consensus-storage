@@ -529,9 +529,7 @@ func (s *MapStateMachine) doRemove(proposal statemachine.Proposal[*mapv1.RemoveI
 func (s *MapStateMachine) doClear(proposal statemachine.Proposal[*mapv1.ClearInput, *mapv1.ClearOutput]) {
 	defer proposal.Close()
 	for key, entry := range s.entries {
-		s.notify(&mapv1.MapEntry{
-			Key: entry.Key,
-		}, &mapv1.EventsOutput{
+		s.notify(entry, &mapv1.EventsOutput{
 			Event: mapv1.Event{
 				Key: entry.Key,
 				Event: &mapv1.Event_Removed_{
@@ -615,7 +613,7 @@ func (s *MapStateMachine) doEntries(query statemachine.Query[*mapv1.EntriesInput
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
 		query.Watch(func(state statemachine.OperationState) {
-			if state == statemachine.Complete {
+			if state == statemachine.Canceled {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()

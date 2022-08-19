@@ -640,10 +640,10 @@ func (q *raftSessionQuery) Error(err error) {
 }
 
 func (q *raftSessionQuery) execute(ctx context.Context, input *multiraftv1.SessionQueryInput, stream streams.WriteStream[*multiraftv1.SessionQueryOutput]) {
+	q.sequenceNum = multiraftv1.SequenceNum(q.session.manager.context.sequenceNum.Add(1))
 	log.Debugw("Executing query",
 		logging.Uint64("Session", uint64(q.session.sessionID)),
 		logging.Uint64("Query", uint64(q.sequenceNum)))
-	q.sequenceNum = multiraftv1.SequenceNum(q.session.manager.context.sequenceNum.Add(1))
 	q.ctx = ctx
 	q.input = input
 	q.stream = stream
