@@ -1,0 +1,60 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.lock.v1;
+
+import "google/protobuf/duration.proto";
+import "gogoproto/gogo.proto";
+
+message LockInput {
+    oneof input {
+        AcquireInput acquire = 1;
+        ReleaseInput release = 2;
+        GetLockInput get_lock = 3;
+    }
+}
+
+message LockOutput {
+    oneof output {
+        AcquireOutput acquire = 1;
+        ReleaseOutput release = 2;
+        GetLockOutput get_lock = 3;
+    }
+}
+
+message AcquireInput {
+    google.protobuf.Duration timeout = 1 [
+        (gogoproto.stdduration) = true
+    ];
+}
+
+message AcquireOutput {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message ReleaseInput {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+}
+
+message ReleaseOutput {
+
+}
+
+message GetLockInput {
+    
+}
+
+message GetLockOutput {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+}

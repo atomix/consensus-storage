@@ -1,0 +1,169 @@
+# Protocol Documentation
+<a name="top"></a>
+
+## Table of Contents
+
+- [atomix/multiraft/lock/v1/fsm.proto](#atomix_multiraft_lock_v1_fsm-proto)
+    - [AcquireInput](#atomix-multiraft-lock-v1-AcquireInput)
+    - [AcquireOutput](#atomix-multiraft-lock-v1-AcquireOutput)
+    - [GetLockInput](#atomix-multiraft-lock-v1-GetLockInput)
+    - [GetLockOutput](#atomix-multiraft-lock-v1-GetLockOutput)
+    - [LockInput](#atomix-multiraft-lock-v1-LockInput)
+    - [LockOutput](#atomix-multiraft-lock-v1-LockOutput)
+    - [ReleaseInput](#atomix-multiraft-lock-v1-ReleaseInput)
+    - [ReleaseOutput](#atomix-multiraft-lock-v1-ReleaseOutput)
+  
+- [Scalar Value Types](#scalar-value-types)
+
+
+
+<a name="atomix_multiraft_lock_v1_fsm-proto"></a>
+<p align="right"><a href="#top">Top</a></p>
+
+## atomix/multiraft/lock/v1/fsm.proto
+
+
+
+<a name="atomix-multiraft-lock-v1-AcquireInput"></a>
+
+### AcquireInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-AcquireOutput"></a>
+
+### AcquireOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-GetLockInput"></a>
+
+### GetLockInput
+
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-GetLockOutput"></a>
+
+### GetLockOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-LockInput"></a>
+
+### LockInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| acquire | [AcquireInput](#atomix-multiraft-lock-v1-AcquireInput) |  |  |
+| release | [ReleaseInput](#atomix-multiraft-lock-v1-ReleaseInput) |  |  |
+| get_lock | [GetLockInput](#atomix-multiraft-lock-v1-GetLockInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-LockOutput"></a>
+
+### LockOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| acquire | [AcquireOutput](#atomix-multiraft-lock-v1-AcquireOutput) |  |  |
+| release | [ReleaseOutput](#atomix-multiraft-lock-v1-ReleaseOutput) |  |  |
+| get_lock | [GetLockOutput](#atomix-multiraft-lock-v1-GetLockOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-ReleaseInput"></a>
+
+### ReleaseInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-lock-v1-ReleaseOutput"></a>
+
+### ReleaseOutput
+
+
+
+
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+
+## Scalar Value Types
+
+| .proto Type | Notes | C++ | Java | Python | Go | C# | PHP | Ruby |
+| ----------- | ----- | --- | ---- | ------ | -- | -- | --- | ---- |
+| <a name="double" /> double |  | double | double | float | float64 | double | float | Float |
+| <a name="float" /> float |  | float | float | float | float32 | float | float | Float |
+| <a name="int32" /> int32 | Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint32 instead. | int32 | int | int | int32 | int | integer | Bignum or Fixnum (as required) |
+| <a name="int64" /> int64 | Uses variable-length encoding. Inefficient for encoding negative numbers – if your field is likely to have negative values, use sint64 instead. | int64 | long | int/long | int64 | long | integer/string | Bignum |
+| <a name="uint32" /> uint32 | Uses variable-length encoding. | uint32 | int | int/long | uint32 | uint | integer | Bignum or Fixnum (as required) |
+| <a name="uint64" /> uint64 | Uses variable-length encoding. | uint64 | long | int/long | uint64 | ulong | integer/string | Bignum or Fixnum (as required) |
+| <a name="sint32" /> sint32 | Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int32s. | int32 | int | int | int32 | int | integer | Bignum or Fixnum (as required) |
+| <a name="sint64" /> sint64 | Uses variable-length encoding. Signed int value. These more efficiently encode negative numbers than regular int64s. | int64 | long | int/long | int64 | long | integer/string | Bignum |
+| <a name="fixed32" /> fixed32 | Always four bytes. More efficient than uint32 if values are often greater than 2^28. | uint32 | int | int | uint32 | uint | integer | Bignum or Fixnum (as required) |
+| <a name="fixed64" /> fixed64 | Always eight bytes. More efficient than uint64 if values are often greater than 2^56. | uint64 | long | int/long | uint64 | ulong | integer/string | Bignum |
+| <a name="sfixed32" /> sfixed32 | Always four bytes. | int32 | int | int | int32 | int | integer | Bignum or Fixnum (as required) |
+| <a name="sfixed64" /> sfixed64 | Always eight bytes. | int64 | long | int/long | int64 | long | integer/string | Bignum |
+| <a name="bool" /> bool |  | bool | boolean | boolean | bool | bool | boolean | TrueClass/FalseClass |
+| <a name="string" /> string | A string must always contain UTF-8 encoded or 7-bit ASCII text. | string | String | str/unicode | string | string | string | String (UTF-8) |
+| <a name="bytes" /> bytes | May contain any arbitrary sequence of bytes. | string | ByteString | str | []byte | ByteString | string | String (ASCII-8BIT) |
+

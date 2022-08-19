@@ -1,0 +1,92 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.lock.v1;
+
+import "atomix/multiraft/lock/v1/fsm.proto";
+import "atomix/multiraft/v1/descriptor.proto";
+import "atomix/multiraft/v1/headers.proto";
+import "gogoproto/gogo.proto";
+
+// Lock is a service for a counter primitive
+service Lock {
+    // Acquire attempts to acquire the lock
+    rpc Acquire (AcquireRequest) returns (AcquireResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // Release releases the lock
+    rpc Release (ReleaseRequest) returns (ReleaseResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // GetLock gets the lock state
+    rpc GetLock (GetLockRequest) returns (GetLockResponse) {
+        option (atomix.multiraft.v1.operation_type) = QUERY;
+    }
+}
+
+message AcquireRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    AcquireInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message AcquireResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    AcquireOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ReleaseRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    ReleaseInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message ReleaseResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    ReleaseOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message GetLockRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    GetLockInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message GetLockResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    GetLockOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
