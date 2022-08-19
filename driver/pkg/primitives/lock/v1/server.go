@@ -182,11 +182,11 @@ func (s *multiRaftLockServer) GetLock(ctx context.Context, request *lockv1.GetLo
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	query := client.Query[*api.GetLockResponse](primitive)
-	output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetLockResponse, error) {
-		return api.NewLockClient(conn).GetLock(ctx, &api.GetLockRequest{
-			Headers:      headers,
-			GetLockInput: &api.GetLockInput{},
+	query := client.Query[*api.GetResponse](primitive)
+	output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*api.GetResponse, error) {
+		return api.NewLockClient(conn).Get(ctx, &api.GetRequest{
+			Headers:  headers,
+			GetInput: &api.GetInput{},
 		})
 	})
 	if err != nil {
