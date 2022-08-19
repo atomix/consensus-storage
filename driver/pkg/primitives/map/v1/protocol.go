@@ -692,11 +692,13 @@ func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server
 			response := &atomicmapv1.EntriesResponse{
 				Entry: atomicmapv1.Entry{
 					Key: output.Entry.Key,
-					Value: &atomicmapv1.VersionedValue{
-						Value:   output.Entry.Value.Value,
-						Version: uint64(output.Entry.Value.Index),
-					},
 				},
+			}
+			if output.Entry.Value != nil {
+				response.Entry.Value = &atomicmapv1.VersionedValue{
+					Value:   output.Entry.Value.Value,
+					Version: uint64(output.Entry.Value.Index),
+				}
 			}
 			log.Debugw("Entries",
 				logging.Stringer("EntriesRequest", request),

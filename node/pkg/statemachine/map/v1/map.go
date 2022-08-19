@@ -643,15 +643,23 @@ func (s *MapStateMachine) notify(entry *mapv1.MapEntry, event *mapv1.EventsOutpu
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for _, watcher := range s.watchers {
-		watcher.Output(&mapv1.EntriesOutput{
-			Entry: mapv1.Entry{
-				Key: entry.Key,
-				Value: &mapv1.IndexedValue{
-					Value: entry.Value.Value,
-					Index: entry.Value.Index,
+		if entry.Value != nil {
+			watcher.Output(&mapv1.EntriesOutput{
+				Entry: mapv1.Entry{
+					Key: entry.Key,
+					Value: &mapv1.IndexedValue{
+						Value: entry.Value.Value,
+						Index: entry.Value.Index,
+					},
 				},
-			},
-		})
+			})
+		} else {
+			watcher.Output(&mapv1.EntriesOutput{
+				Entry: mapv1.Entry{
+					Key: entry.Key,
+				},
+			})
+		}
 	}
 }
 
