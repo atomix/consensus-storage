@@ -447,7 +447,7 @@
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
 | sequence_num | [uint64](#uint64) |  |  |
-| deadline | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
+| deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | create_primitive | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
 | close_primitive | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
 | operation | [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput) |  |  |

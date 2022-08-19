@@ -89,8 +89,8 @@ message SessionCommandInput {
     uint64 sequence_num = 2 [
         (gogoproto.casttype) = "SequenceNum"
     ];
-    google.protobuf.Duration deadline = 3 [
-        (gogoproto.stdduration) = true
+    google.protobuf.Timestamp deadline = 3 [
+        (gogoproto.stdtime) = true
     ];
     oneof input {
         CreatePrimitiveInput create_primitive = 4;
