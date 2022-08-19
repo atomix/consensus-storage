@@ -6,7 +6,7 @@ package v1
 
 import (
 	"context"
-	mapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/map/v1"
+	countermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/countermap/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
@@ -16,33 +16,33 @@ import (
 
 var log = logging.GetLogger()
 
-var mapCodec = protocol.NewCodec[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput](
-	func(input *mapv1.AtomicMapInput) ([]byte, error) {
+var counterMapCodec = protocol.NewCodec[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](
+	func(input *countermapv1.CounterMapInput) ([]byte, error) {
 		return proto.Marshal(input)
 	},
-	func(bytes []byte) (*mapv1.AtomicMapOutput, error) {
-		output := &mapv1.AtomicMapOutput{}
+	func(bytes []byte) (*countermapv1.CounterMapOutput, error) {
+		output := &countermapv1.CounterMapOutput{}
 		if err := proto.Unmarshal(bytes, output); err != nil {
 			return nil, err
 		}
 		return output, nil
 	})
 
-func NewAtomicMapServer(node *protocol.Node) mapv1.AtomicMapServer {
-	return &MapServer{
-		protocol: protocol.NewProtocol[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput](node, mapCodec),
+func NewCounterMapServer(node *protocol.Node) countermapv1.CounterMapServer {
+	return &CounterMapServer{
+		protocol: protocol.NewProtocol[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](node, counterMapCodec),
 	}
 }
 
-type MapServer struct {
-	protocol protocol.Protocol[*mapv1.AtomicMapInput, *mapv1.AtomicMapOutput]
+type CounterMapServer struct {
+	protocol protocol.Protocol[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]
 }
 
-func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv1.SizeResponse, error) {
+func (s *CounterMapServer) Size(ctx context.Context, request *countermapv1.SizeRequest) (*countermapv1.SizeResponse, error) {
 	log.Debugw("Size",
 		logging.Stringer("SizeRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Size_{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Size_{
 			Size_: request.SizeInput,
 		},
 	}
@@ -54,7 +54,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.SizeResponse{
+	response := &countermapv1.SizeResponse{
 		Headers:    headers,
 		SizeOutput: output.GetSize_(),
 	}
@@ -64,37 +64,37 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	return response, nil
 }
 
-func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.PutResponse, error) {
-	log.Debugw("Put",
-		logging.Stringer("PutRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Put{
-			Put: request.PutInput,
+func (s *CounterMapServer) Set(ctx context.Context, request *countermapv1.SetRequest) (*countermapv1.SetResponse, error) {
+	log.Debugw("Set",
+		logging.Stringer("SetRequest", request))
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Set{
+			Set: request.SetInput,
 		},
 	}
 	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
 	if err != nil {
 		err = errors.ToProto(err)
-		log.Warnw("Put",
-			logging.Stringer("PutRequest", request),
+		log.Warnw("Set",
+			logging.Stringer("SetRequest", request),
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.PutResponse{
+	response := &countermapv1.SetResponse{
 		Headers:   headers,
-		PutOutput: output.GetPut(),
+		SetOutput: output.GetSet(),
 	}
-	log.Debugw("Put",
-		logging.Stringer("PutRequest", request),
-		logging.Stringer("PutResponse", response))
+	log.Debugw("Set",
+		logging.Stringer("SetRequest", request),
+		logging.Stringer("SetResponse", response))
 	return response, nil
 }
 
-func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*mapv1.InsertResponse, error) {
+func (s *CounterMapServer) Insert(ctx context.Context, request *countermapv1.InsertRequest) (*countermapv1.InsertResponse, error) {
 	log.Debugw("Insert",
 		logging.Stringer("InsertRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Insert{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Insert{
 			Insert: request.InsertInput,
 		},
 	}
@@ -106,7 +106,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.InsertResponse{
+	response := &countermapv1.InsertResponse{
 		Headers:      headers,
 		InsertOutput: output.GetInsert(),
 	}
@@ -116,11 +116,11 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 	return response, nil
 }
 
-func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*mapv1.UpdateResponse, error) {
+func (s *CounterMapServer) Update(ctx context.Context, request *countermapv1.UpdateRequest) (*countermapv1.UpdateResponse, error) {
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Update{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Update{
 			Update: request.UpdateInput,
 		},
 	}
@@ -132,7 +132,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.UpdateResponse{
+	response := &countermapv1.UpdateResponse{
 		Headers:      headers,
 		UpdateOutput: output.GetUpdate(),
 	}
@@ -142,11 +142,63 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 	return response, nil
 }
 
-func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.GetResponse, error) {
+func (s *CounterMapServer) Increment(ctx context.Context, request *countermapv1.IncrementRequest) (*countermapv1.IncrementResponse, error) {
+	log.Debugw("Increment",
+		logging.Stringer("IncrementRequest", request))
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Increment{
+			Increment: request.IncrementInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Increment",
+			logging.Stringer("IncrementRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &countermapv1.IncrementResponse{
+		Headers:         headers,
+		IncrementOutput: output.GetIncrement(),
+	}
+	log.Debugw("Increment",
+		logging.Stringer("IncrementRequest", request),
+		logging.Stringer("IncrementResponse", response))
+	return response, nil
+}
+
+func (s *CounterMapServer) Decrement(ctx context.Context, request *countermapv1.DecrementRequest) (*countermapv1.DecrementResponse, error) {
+	log.Debugw("Decrement",
+		logging.Stringer("DecrementRequest", request))
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Decrement{
+			Decrement: request.DecrementInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Decrement",
+			logging.Stringer("DecrementRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &countermapv1.DecrementResponse{
+		Headers:         headers,
+		DecrementOutput: output.GetDecrement(),
+	}
+	log.Debugw("Decrement",
+		logging.Stringer("DecrementRequest", request),
+		logging.Stringer("DecrementResponse", response))
+	return response, nil
+}
+
+func (s *CounterMapServer) Get(ctx context.Context, request *countermapv1.GetRequest) (*countermapv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Get{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Get{
 			Get: request.GetInput,
 		},
 	}
@@ -158,7 +210,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.GetResponse{
+	response := &countermapv1.GetResponse{
 		Headers:   headers,
 		GetOutput: output.GetGet(),
 	}
@@ -168,11 +220,11 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 	return response, nil
 }
 
-func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*mapv1.RemoveResponse, error) {
+func (s *CounterMapServer) Remove(ctx context.Context, request *countermapv1.RemoveRequest) (*countermapv1.RemoveResponse, error) {
 	log.Debugw("Remove",
 		logging.Stringer("RemoveRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Remove{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Remove{
 			Remove: request.RemoveInput,
 		},
 	}
@@ -184,7 +236,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.RemoveResponse{
+	response := &countermapv1.RemoveResponse{
 		Headers:      headers,
 		RemoveOutput: output.GetRemove(),
 	}
@@ -194,11 +246,11 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 	return response, nil
 }
 
-func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*mapv1.ClearResponse, error) {
+func (s *CounterMapServer) Clear(ctx context.Context, request *countermapv1.ClearRequest) (*countermapv1.ClearResponse, error) {
 	log.Debugw("Clear",
 		logging.Stringer("ClearRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Clear{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Clear{
 			Clear: request.ClearInput,
 		},
 	}
@@ -210,7 +262,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.ClearResponse{
+	response := &countermapv1.ClearResponse{
 		Headers:     headers,
 		ClearOutput: output.GetClear(),
 	}
@@ -220,11 +272,11 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 	return response, nil
 }
 
-func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv1.LockResponse, error) {
+func (s *CounterMapServer) Lock(ctx context.Context, request *countermapv1.LockRequest) (*countermapv1.LockResponse, error) {
 	log.Debugw("Lock",
 		logging.Stringer("LockRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Lock{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Lock{
 			Lock: request.LockInput,
 		},
 	}
@@ -236,7 +288,7 @@ func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.LockResponse{
+	response := &countermapv1.LockResponse{
 		Headers:    headers,
 		LockOutput: output.GetLock(),
 	}
@@ -246,11 +298,11 @@ func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv
 	return response, nil
 }
 
-func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*mapv1.UnlockResponse, error) {
+func (s *CounterMapServer) Unlock(ctx context.Context, request *countermapv1.UnlockRequest) (*countermapv1.UnlockResponse, error) {
 	log.Debugw("Unlock",
 		logging.Stringer("UnlockRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Unlock{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Unlock{
 			Unlock: request.UnlockInput,
 		},
 	}
@@ -262,7 +314,7 @@ func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*
 			logging.Error("Error", err))
 		return nil, err
 	}
-	response := &mapv1.UnlockResponse{
+	response := &countermapv1.UnlockResponse{
 		Headers:      headers,
 		UnlockOutput: output.GetUnlock(),
 	}
@@ -272,17 +324,17 @@ func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*
 	return response, nil
 }
 
-func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.AtomicMap_EventsServer) error {
+func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server countermapv1.CounterMap_EventsServer) error {
 	log.Debugw("Events",
 		logging.Stringer("EventsRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Events{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Events{
 			Events: request.EventsInput,
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*mapv1.AtomicMapOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*mapv1.AtomicMapOutput]](ch)
+	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*countermapv1.CounterMapOutput]])
+	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*countermapv1.CounterMapOutput]](ch)
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -304,7 +356,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.AtomicMap_
 			return err
 		}
 
-		response := &mapv1.EventsResponse{
+		response := &countermapv1.EventsResponse{
 			Headers:      result.Value.Headers,
 			EventsOutput: result.Value.Output.GetEvents(),
 		}
@@ -321,17 +373,17 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.AtomicMap_
 	return nil
 }
 
-func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.AtomicMap_EntriesServer) error {
+func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server countermapv1.CounterMap_EntriesServer) error {
 	log.Debugw("Entries",
 		logging.Stringer("EntriesRequest", request))
-	input := &mapv1.AtomicMapInput{
-		Input: &mapv1.AtomicMapInput_Entries{
+	input := &countermapv1.CounterMapInput{
+		Input: &countermapv1.CounterMapInput_Entries{
 			Entries: request.EntriesInput,
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*mapv1.AtomicMapOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*mapv1.AtomicMapOutput]](ch)
+	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*countermapv1.CounterMapOutput]])
+	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*countermapv1.CounterMapOutput]](ch)
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -353,7 +405,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.AtomicMa
 			return err
 		}
 
-		response := &mapv1.EntriesResponse{
+		response := &countermapv1.EntriesResponse{
 			Headers:       result.Value.Headers,
 			EntriesOutput: result.Value.Output.GetEntries(),
 		}
@@ -370,4 +422,4 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.AtomicMa
 	return nil
 }
 
-var _ mapv1.AtomicMapServer = (*MapServer)(nil)
+var _ countermapv1.CounterMapServer = (*CounterMapServer)(nil)

@@ -37,6 +37,58 @@ type CounterServer struct {
 	protocol protocol.Protocol[*counterv1.CounterInput, *counterv1.CounterOutput]
 }
 
+func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
+	log.Debugw("Set",
+		logging.Stringer("SetRequest", request))
+	input := &counterv1.CounterInput{
+		Input: &counterv1.CounterInput_Set{
+			Set: request.SetInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Set",
+			logging.Stringer("SetRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &counterv1.SetResponse{
+		Headers:   headers,
+		SetOutput: output.GetSet(),
+	}
+	log.Debugw("Set",
+		logging.Stringer("SetRequest", request),
+		logging.Stringer("SetResponse", response))
+	return response, nil
+}
+
+func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateRequest) (*counterv1.UpdateResponse, error) {
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request))
+	input := &counterv1.CounterInput{
+		Input: &counterv1.CounterInput_Update{
+			Update: request.UpdateInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &counterv1.UpdateResponse{
+		Headers:      headers,
+		UpdateOutput: output.GetUpdate(),
+	}
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request),
+		logging.Stringer("UpdateResponse", response))
+	return response, nil
+}
+
 func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))

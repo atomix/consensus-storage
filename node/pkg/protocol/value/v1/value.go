@@ -6,7 +6,7 @@ package v1
 
 import (
 	"context"
-	valuev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/value/v1"
+	valuev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/value/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
@@ -16,33 +16,33 @@ import (
 
 var log = logging.GetLogger()
 
-var atomicValueCodec = protocol.NewCodec[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput](
-	func(input *valuev1.AtomicValueInput) ([]byte, error) {
+var atomicValueCodec = protocol.NewCodec[*valuev1.ValueInput, *valuev1.ValueOutput](
+	func(input *valuev1.ValueInput) ([]byte, error) {
 		return proto.Marshal(input)
 	},
-	func(bytes []byte) (*valuev1.AtomicValueOutput, error) {
-		output := &valuev1.AtomicValueOutput{}
+	func(bytes []byte) (*valuev1.ValueOutput, error) {
+		output := &valuev1.ValueOutput{}
 		if err := proto.Unmarshal(bytes, output); err != nil {
 			return nil, err
 		}
 		return output, nil
 	})
 
-func NewAtomicValueServer(node *protocol.Node) valuev1.AtomicValueServer {
-	return &AtomicValueServer{
-		protocol: protocol.NewProtocol[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput](node, atomicValueCodec),
+func NewValueServer(node *protocol.Node) valuev1.ValueServer {
+	return &ValueServer{
+		protocol: protocol.NewProtocol[*valuev1.ValueInput, *valuev1.ValueOutput](node, atomicValueCodec),
 	}
 }
 
-type AtomicValueServer struct {
-	protocol protocol.Protocol[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput]
+type ValueServer struct {
+	protocol protocol.Protocol[*valuev1.ValueInput, *valuev1.ValueOutput]
 }
 
-func (s *AtomicValueServer) Update(ctx context.Context, request *valuev1.UpdateRequest) (*valuev1.UpdateResponse, error) {
+func (s *ValueServer) Update(ctx context.Context, request *valuev1.UpdateRequest) (*valuev1.UpdateResponse, error) {
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", request))
-	input := &valuev1.AtomicValueInput{
-		Input: &valuev1.AtomicValueInput_Update{
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Update{
 			Update: request.UpdateInput,
 		},
 	}
@@ -64,11 +64,11 @@ func (s *AtomicValueServer) Update(ctx context.Context, request *valuev1.UpdateR
 	return response, nil
 }
 
-func (s *AtomicValueServer) Set(ctx context.Context, request *valuev1.SetRequest) (*valuev1.SetResponse, error) {
+func (s *ValueServer) Set(ctx context.Context, request *valuev1.SetRequest) (*valuev1.SetResponse, error) {
 	log.Debugw("Set",
 		logging.Stringer("SetRequest", request))
-	input := &valuev1.AtomicValueInput{
-		Input: &valuev1.AtomicValueInput_Set{
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Set{
 			Set: request.SetInput,
 		},
 	}
@@ -90,11 +90,37 @@ func (s *AtomicValueServer) Set(ctx context.Context, request *valuev1.SetRequest
 	return response, nil
 }
 
-func (s *AtomicValueServer) Delete(ctx context.Context, request *valuev1.DeleteRequest) (*valuev1.DeleteResponse, error) {
+func (s *ValueServer) Insert(ctx context.Context, request *valuev1.InsertRequest) (*valuev1.InsertResponse, error) {
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request))
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Insert{
+			Insert: request.InsertInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &valuev1.InsertResponse{
+		Headers:      headers,
+		InsertOutput: output.GetInsert(),
+	}
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request),
+		logging.Stringer("InsertResponse", response))
+	return response, nil
+}
+
+func (s *ValueServer) Delete(ctx context.Context, request *valuev1.DeleteRequest) (*valuev1.DeleteResponse, error) {
 	log.Debugw("Delete",
 		logging.Stringer("DeleteRequest", request))
-	input := &valuev1.AtomicValueInput{
-		Input: &valuev1.AtomicValueInput_Delete{
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Delete{
 			Delete: request.DeleteInput,
 		},
 	}
@@ -116,11 +142,11 @@ func (s *AtomicValueServer) Delete(ctx context.Context, request *valuev1.DeleteR
 	return response, nil
 }
 
-func (s *AtomicValueServer) Get(ctx context.Context, request *valuev1.GetRequest) (*valuev1.GetResponse, error) {
+func (s *ValueServer) Get(ctx context.Context, request *valuev1.GetRequest) (*valuev1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
-	input := &valuev1.AtomicValueInput{
-		Input: &valuev1.AtomicValueInput_Get{
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Get{
 			Get: request.GetInput,
 		},
 	}
@@ -142,17 +168,17 @@ func (s *AtomicValueServer) Get(ctx context.Context, request *valuev1.GetRequest
 	return response, nil
 }
 
-func (s *AtomicValueServer) Events(request *valuev1.EventsRequest, server valuev1.AtomicValue_EventsServer) error {
+func (s *ValueServer) Events(request *valuev1.EventsRequest, server valuev1.Value_EventsServer) error {
 	log.Debugw("Events",
 		logging.Stringer("EventsRequest", request))
-	input := &valuev1.AtomicValueInput{
-		Input: &valuev1.AtomicValueInput_Events{
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Events{
 			Events: request.EventsInput,
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*valuev1.AtomicValueOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*valuev1.AtomicValueOutput]](ch)
+	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*valuev1.ValueOutput]])
+	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*valuev1.ValueOutput]](ch)
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -191,17 +217,17 @@ func (s *AtomicValueServer) Events(request *valuev1.EventsRequest, server valuev
 	return nil
 }
 
-func (s *AtomicValueServer) Watch(request *valuev1.WatchRequest, server valuev1.AtomicValue_WatchServer) error {
+func (s *ValueServer) Watch(request *valuev1.WatchRequest, server valuev1.Value_WatchServer) error {
 	log.Debugw("Watch",
 		logging.Stringer("WatchRequest", request))
-	input := &valuev1.AtomicValueInput{
-		Input: &valuev1.AtomicValueInput_Watch{
+	input := &valuev1.ValueInput{
+		Input: &valuev1.ValueInput_Watch{
 			Watch: request.WatchInput,
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*valuev1.AtomicValueOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*valuev1.AtomicValueOutput]](ch)
+	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*valuev1.ValueOutput]])
+	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*valuev1.ValueOutput]](ch)
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -240,4 +266,4 @@ func (s *AtomicValueServer) Watch(request *valuev1.WatchRequest, server valuev1.
 	return nil
 }
 
-var _ valuev1.AtomicValueServer = (*AtomicValueServer)(nil)
+var _ valuev1.ValueServer = (*ValueServer)(nil)

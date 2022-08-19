@@ -90,6 +90,58 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 	return response, nil
 }
 
+func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*mapv1.InsertResponse, error) {
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request))
+	input := &mapv1.MapInput{
+		Input: &mapv1.MapInput_Insert{
+			Insert: request.InsertInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Insert",
+			logging.Stringer("InsertRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &mapv1.InsertResponse{
+		Headers:      headers,
+		InsertOutput: output.GetInsert(),
+	}
+	log.Debugw("Insert",
+		logging.Stringer("InsertRequest", request),
+		logging.Stringer("InsertResponse", response))
+	return response, nil
+}
+
+func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*mapv1.UpdateResponse, error) {
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request))
+	input := &mapv1.MapInput{
+		Input: &mapv1.MapInput_Update{
+			Update: request.UpdateInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Update",
+			logging.Stringer("UpdateRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &mapv1.UpdateResponse{
+		Headers:      headers,
+		UpdateOutput: output.GetUpdate(),
+	}
+	log.Debugw("Update",
+		logging.Stringer("UpdateRequest", request),
+		logging.Stringer("UpdateResponse", response))
+	return response, nil
+}
+
 func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.GetResponse, error) {
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", request))
@@ -165,6 +217,58 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 	log.Debugw("Clear",
 		logging.Stringer("ClearRequest", request),
 		logging.Stringer("ClearResponse", response))
+	return response, nil
+}
+
+func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv1.LockResponse, error) {
+	log.Debugw("Lock",
+		logging.Stringer("LockRequest", request))
+	input := &mapv1.MapInput{
+		Input: &mapv1.MapInput_Lock{
+			Lock: request.LockInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Lock",
+			logging.Stringer("LockRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &mapv1.LockResponse{
+		Headers:    headers,
+		LockOutput: output.GetLock(),
+	}
+	log.Debugw("Lock",
+		logging.Stringer("LockRequest", request),
+		logging.Stringer("LockResponse", response))
+	return response, nil
+}
+
+func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*mapv1.UnlockResponse, error) {
+	log.Debugw("Unlock",
+		logging.Stringer("UnlockRequest", request))
+	input := &mapv1.MapInput{
+		Input: &mapv1.MapInput_Unlock{
+			Unlock: request.UnlockInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Unlock",
+			logging.Stringer("UnlockRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &mapv1.UnlockResponse{
+		Headers:      headers,
+		UnlockOutput: output.GetUnlock(),
+	}
+	log.Debugw("Unlock",
+		logging.Stringer("UnlockRequest", request),
+		logging.Stringer("UnlockResponse", response))
 	return response, nil
 }
 

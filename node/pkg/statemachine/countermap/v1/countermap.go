@@ -5,7 +5,7 @@
 package v1
 
 import (
-	countermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/countermap/v1"
+	countermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/countermap/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -13,30 +13,30 @@ import (
 	"sync"
 )
 
-const Service = "atomix.multiraft.atomic.map.v1.AtomicCounterMap"
+const Service = "atomix.multiraft.atomic.map.v1.CounterMap"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput](registry)(MapType)
+	statemachine.RegisterPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](registry)(MapType)
 }
 
-var MapType = statemachine.NewPrimitiveType[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput](Service, mapCodec, newMapStateMachine)
+var MapType = statemachine.NewPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](Service, mapCodec, newMapStateMachine)
 
-var mapCodec = statemachine.NewCodec[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput](
-	func(bytes []byte) (*countermapv1.AtomicCounterMapInput, error) {
-		input := &countermapv1.AtomicCounterMapInput{}
+var mapCodec = statemachine.NewCodec[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](
+	func(bytes []byte) (*countermapv1.CounterMapInput, error) {
+		input := &countermapv1.CounterMapInput{}
 		if err := proto.Unmarshal(bytes, input); err != nil {
 			return nil, err
 		}
 		return input, nil
 	},
-	func(output *countermapv1.AtomicCounterMapOutput) ([]byte, error) {
+	func(output *countermapv1.CounterMapOutput) ([]byte, error) {
 		return proto.Marshal(output)
 	})
 
-func newMapStateMachine(ctx statemachine.PrimitiveContext[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput]) statemachine.Primitive[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput] {
+func newMapStateMachine(ctx statemachine.PrimitiveContext[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) statemachine.Primitive[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput] {
 	sm := &MapStateMachine{
 		PrimitiveContext: ctx,
-		listeners:        make(map[statemachine.ProposalID]*countermapv1.AtomicCounterMapListener),
+		listeners:        make(map[statemachine.ProposalID]*countermapv1.CounterMapListener),
 		entries:          make(map[string]int64),
 		watchers:         make(map[statemachine.QueryID]statemachine.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]),
 	}
@@ -45,196 +45,196 @@ func newMapStateMachine(ctx statemachine.PrimitiveContext[*countermapv1.AtomicCo
 }
 
 type MapStateMachine struct {
-	statemachine.PrimitiveContext[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput]
-	listeners map[statemachine.ProposalID]*countermapv1.AtomicCounterMapListener
+	statemachine.PrimitiveContext[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]
+	listeners map[statemachine.ProposalID]*countermapv1.CounterMapListener
 	entries   map[string]int64
 	watchers  map[statemachine.QueryID]statemachine.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]
 	mu        sync.RWMutex
-	put       statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput]
-	insert    statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.InsertInput, *countermapv1.InsertOutput]
-	update    statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.UpdateInput, *countermapv1.UpdateOutput]
-	remove    statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.RemoveInput, *countermapv1.RemoveOutput]
-	increment statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.IncrementInput, *countermapv1.IncrementOutput]
-	decrement statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.DecrementInput, *countermapv1.DecrementOutput]
-	clear     statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.ClearInput, *countermapv1.ClearOutput]
-	events    statemachine.Updater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.EventsInput, *countermapv1.EventsOutput]
-	size      statemachine.Reader[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.SizeInput, *countermapv1.SizeOutput]
-	get       statemachine.Reader[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.GetInput, *countermapv1.GetOutput]
-	list      statemachine.Reader[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.EntriesInput, *countermapv1.EntriesOutput]
+	put       statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput]
+	insert    statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.InsertInput, *countermapv1.InsertOutput]
+	update    statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.UpdateInput, *countermapv1.UpdateOutput]
+	remove    statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.RemoveInput, *countermapv1.RemoveOutput]
+	increment statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.IncrementInput, *countermapv1.IncrementOutput]
+	decrement statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.DecrementInput, *countermapv1.DecrementOutput]
+	clear     statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.ClearInput, *countermapv1.ClearOutput]
+	events    statemachine.Updater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.EventsInput, *countermapv1.EventsOutput]
+	size      statemachine.Reader[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SizeInput, *countermapv1.SizeOutput]
+	get       statemachine.Reader[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.GetInput, *countermapv1.GetOutput]
+	list      statemachine.Reader[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.EntriesInput, *countermapv1.EntriesOutput]
 }
 
 func (s *MapStateMachine) init() {
-	s.put = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput](s).
+	s.put = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput](s).
 		Name("Set").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.SetInput, bool) {
-			if put, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Set); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.SetInput, bool) {
+			if put, ok := input.Input.(*countermapv1.CounterMapInput_Set); ok {
 				return put.Set, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.SetOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Set{
+		Encoder(func(output *countermapv1.SetOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Set{
 					Set: output,
 				},
 			}
 		}).
 		Build(s.doSet)
-	s.insert = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.InsertInput, *countermapv1.InsertOutput](s).
+	s.insert = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.InsertInput, *countermapv1.InsertOutput](s).
 		Name("Insert").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.InsertInput, bool) {
-			if insert, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Insert); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.InsertInput, bool) {
+			if insert, ok := input.Input.(*countermapv1.CounterMapInput_Insert); ok {
 				return insert.Insert, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.InsertOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Insert{
+		Encoder(func(output *countermapv1.InsertOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Insert{
 					Insert: output,
 				},
 			}
 		}).
 		Build(s.doInsert)
-	s.update = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.UpdateInput, *countermapv1.UpdateOutput](s).
+	s.update = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.UpdateInput, *countermapv1.UpdateOutput](s).
 		Name("Update").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.UpdateInput, bool) {
-			if update, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Update); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.UpdateInput, bool) {
+			if update, ok := input.Input.(*countermapv1.CounterMapInput_Update); ok {
 				return update.Update, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.UpdateOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Update{
+		Encoder(func(output *countermapv1.UpdateOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Update{
 					Update: output,
 				},
 			}
 		}).
 		Build(s.doUpdate)
-	s.remove = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.RemoveInput, *countermapv1.RemoveOutput](s).
+	s.remove = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.RemoveInput, *countermapv1.RemoveOutput](s).
 		Name("Remove").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.RemoveInput, bool) {
-			if remove, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Remove); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.RemoveInput, bool) {
+			if remove, ok := input.Input.(*countermapv1.CounterMapInput_Remove); ok {
 				return remove.Remove, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.RemoveOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Remove{
+		Encoder(func(output *countermapv1.RemoveOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Remove{
 					Remove: output,
 				},
 			}
 		}).
 		Build(s.doRemove)
-	s.increment = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.IncrementInput, *countermapv1.IncrementOutput](s).
+	s.increment = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.IncrementInput, *countermapv1.IncrementOutput](s).
 		Name("Increment").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.IncrementInput, bool) {
-			if remove, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Increment); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.IncrementInput, bool) {
+			if remove, ok := input.Input.(*countermapv1.CounterMapInput_Increment); ok {
 				return remove.Increment, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.IncrementOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Increment{
+		Encoder(func(output *countermapv1.IncrementOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Increment{
 					Increment: output,
 				},
 			}
 		}).
 		Build(s.doIncrement)
-	s.decrement = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.DecrementInput, *countermapv1.DecrementOutput](s).
+	s.decrement = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.DecrementInput, *countermapv1.DecrementOutput](s).
 		Name("Decrement").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.DecrementInput, bool) {
-			if remove, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Decrement); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.DecrementInput, bool) {
+			if remove, ok := input.Input.(*countermapv1.CounterMapInput_Decrement); ok {
 				return remove.Decrement, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.DecrementOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Decrement{
+		Encoder(func(output *countermapv1.DecrementOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Decrement{
 					Decrement: output,
 				},
 			}
 		}).
 		Build(s.doDecrement)
-	s.clear = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.ClearInput, *countermapv1.ClearOutput](s).
+	s.clear = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.ClearInput, *countermapv1.ClearOutput](s).
 		Name("Clear").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.ClearInput, bool) {
-			if clear, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Clear); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.ClearInput, bool) {
+			if clear, ok := input.Input.(*countermapv1.CounterMapInput_Clear); ok {
 				return clear.Clear, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.ClearOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Clear{
+		Encoder(func(output *countermapv1.ClearOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Clear{
 					Clear: output,
 				},
 			}
 		}).
 		Build(s.doClear)
-	s.events = statemachine.NewUpdater[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.EventsInput, *countermapv1.EventsOutput](s).
+	s.events = statemachine.NewUpdater[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.EventsInput, *countermapv1.EventsOutput](s).
 		Name("Events").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.EventsInput, bool) {
-			if events, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Events); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.EventsInput, bool) {
+			if events, ok := input.Input.(*countermapv1.CounterMapInput_Events); ok {
 				return events.Events, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.EventsOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Events{
+		Encoder(func(output *countermapv1.EventsOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Events{
 					Events: output,
 				},
 			}
 		}).
 		Build(s.doEvents)
-	s.size = statemachine.NewReader[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.SizeInput, *countermapv1.SizeOutput](s).
+	s.size = statemachine.NewReader[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SizeInput, *countermapv1.SizeOutput](s).
 		Name("Size").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.SizeInput, bool) {
-			if size, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Size_); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.SizeInput, bool) {
+			if size, ok := input.Input.(*countermapv1.CounterMapInput_Size_); ok {
 				return size.Size_, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.SizeOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Size_{
+		Encoder(func(output *countermapv1.SizeOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Size_{
 					Size_: output,
 				},
 			}
 		}).
 		Build(s.doSize)
-	s.get = statemachine.NewReader[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.GetInput, *countermapv1.GetOutput](s).
+	s.get = statemachine.NewReader[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.GetInput, *countermapv1.GetOutput](s).
 		Name("Get").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.GetInput, bool) {
-			if get, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Get); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.GetInput, bool) {
+			if get, ok := input.Input.(*countermapv1.CounterMapInput_Get); ok {
 				return get.Get, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.GetOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Get{
+		Encoder(func(output *countermapv1.GetOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Get{
 					Get: output,
 				},
 			}
 		}).
 		Build(s.doGet)
-	s.list = statemachine.NewReader[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput, *countermapv1.EntriesInput, *countermapv1.EntriesOutput](s).
+	s.list = statemachine.NewReader[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.EntriesInput, *countermapv1.EntriesOutput](s).
 		Name("Entries").
-		Decoder(func(input *countermapv1.AtomicCounterMapInput) (*countermapv1.EntriesInput, bool) {
-			if entries, ok := input.Input.(*countermapv1.AtomicCounterMapInput_Entries); ok {
+		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.EntriesInput, bool) {
+			if entries, ok := input.Input.(*countermapv1.CounterMapInput_Entries); ok {
 				return entries.Entries, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *countermapv1.EntriesOutput) *countermapv1.AtomicCounterMapOutput {
-			return &countermapv1.AtomicCounterMapOutput{
-				Output: &countermapv1.AtomicCounterMapOutput_Entries{
+		Encoder(func(output *countermapv1.EntriesOutput) *countermapv1.CounterMapOutput {
+			return &countermapv1.CounterMapOutput{
+				Output: &countermapv1.CounterMapOutput_Entries{
 					Entries: output,
 				},
 			}
@@ -243,7 +243,7 @@ func (s *MapStateMachine) init() {
 }
 
 func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
-	s.Log().Infow("Persisting AtomicCounterMap to snapshot")
+	s.Log().Infow("Persisting CounterMap to snapshot")
 	if err := writer.WriteVarInt(len(s.listeners)); err != nil {
 		return err
 	}
@@ -271,7 +271,7 @@ func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
 }
 
 func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
-	s.Log().Infow("Recovering AtomicCounterMap from snapshot")
+	s.Log().Infow("Recovering CounterMap from snapshot")
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
@@ -285,7 +285,7 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 		if !ok {
 			return errors.NewFault("cannot find proposal %d", proposalID)
 		}
-		listener := &countermapv1.AtomicCounterMapListener{}
+		listener := &countermapv1.CounterMapListener{}
 		if err := reader.ReadMessage(listener); err != nil {
 			return err
 		}
@@ -315,19 +315,19 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *MapStateMachine) Update(proposal statemachine.Proposal[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput]) {
+func (s *MapStateMachine) Update(proposal statemachine.Proposal[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) {
 	switch proposal.Input().Input.(type) {
-	case *countermapv1.AtomicCounterMapInput_Set:
+	case *countermapv1.CounterMapInput_Set:
 		s.put.Update(proposal)
-	case *countermapv1.AtomicCounterMapInput_Insert:
+	case *countermapv1.CounterMapInput_Insert:
 		s.insert.Update(proposal)
-	case *countermapv1.AtomicCounterMapInput_Update:
+	case *countermapv1.CounterMapInput_Update:
 		s.update.Update(proposal)
-	case *countermapv1.AtomicCounterMapInput_Remove:
+	case *countermapv1.CounterMapInput_Remove:
 		s.remove.Update(proposal)
-	case *countermapv1.AtomicCounterMapInput_Clear:
+	case *countermapv1.CounterMapInput_Clear:
 		s.clear.Update(proposal)
-	case *countermapv1.AtomicCounterMapInput_Events:
+	case *countermapv1.CounterMapInput_Events:
 		s.events.Update(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
@@ -584,7 +584,7 @@ func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*countermapv1.
 	// Output an empty event to ack the request
 	proposal.Output(&countermapv1.EventsOutput{})
 
-	listener := &countermapv1.AtomicCounterMapListener{
+	listener := &countermapv1.CounterMapListener{
 		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
@@ -595,13 +595,13 @@ func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*countermapv1.
 	})
 }
 
-func (s *MapStateMachine) Read(query statemachine.Query[*countermapv1.AtomicCounterMapInput, *countermapv1.AtomicCounterMapOutput]) {
+func (s *MapStateMachine) Read(query statemachine.Query[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) {
 	switch query.Input().Input.(type) {
-	case *countermapv1.AtomicCounterMapInput_Size_:
+	case *countermapv1.CounterMapInput_Size_:
 		s.size.Read(query)
-	case *countermapv1.AtomicCounterMapInput_Get:
+	case *countermapv1.CounterMapInput_Get:
 		s.get.Read(query)
-	case *countermapv1.AtomicCounterMapInput_Entries:
+	case *countermapv1.CounterMapInput_Entries:
 		s.list.Read(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))

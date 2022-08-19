@@ -5,8 +5,8 @@
 package v1
 
 import (
-	valuev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/atomic/value/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	valuev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/value/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -14,27 +14,27 @@ import (
 	"sync"
 )
 
-const Service = "atomix.multiraft.atomic.value.v1.AtomicValue"
+const Service = "atomix.multiraft.atomic.value.v1.Value"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput](registry)(MapType)
+	statemachine.RegisterPrimitiveType[*valuev1.ValueInput, *valuev1.ValueOutput](registry)(MapType)
 }
 
-var MapType = statemachine.NewPrimitiveType[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput](Service, mapCodec, newMapStateMachine)
+var MapType = statemachine.NewPrimitiveType[*valuev1.ValueInput, *valuev1.ValueOutput](Service, mapCodec, newMapStateMachine)
 
-var mapCodec = statemachine.NewCodec[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput](
-	func(bytes []byte) (*valuev1.AtomicValueInput, error) {
-		input := &valuev1.AtomicValueInput{}
+var mapCodec = statemachine.NewCodec[*valuev1.ValueInput, *valuev1.ValueOutput](
+	func(bytes []byte) (*valuev1.ValueInput, error) {
+		input := &valuev1.ValueInput{}
 		if err := proto.Unmarshal(bytes, input); err != nil {
 			return nil, err
 		}
 		return input, nil
 	},
-	func(output *valuev1.AtomicValueOutput) ([]byte, error) {
+	func(output *valuev1.ValueOutput) ([]byte, error) {
 		return proto.Marshal(output)
 	})
 
-func newMapStateMachine(ctx statemachine.PrimitiveContext[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput]) statemachine.Primitive[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput] {
+func newMapStateMachine(ctx statemachine.PrimitiveContext[*valuev1.ValueInput, *valuev1.ValueOutput]) statemachine.Primitive[*valuev1.ValueInput, *valuev1.ValueOutput] {
 	sm := &MapStateMachine{
 		PrimitiveContext: ctx,
 		listeners:        make(map[statemachine.ProposalID]bool),
@@ -45,112 +45,129 @@ func newMapStateMachine(ctx statemachine.PrimitiveContext[*valuev1.AtomicValueIn
 }
 
 type MapStateMachine struct {
-	statemachine.PrimitiveContext[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput]
-	value     *valuev1.AtomicValueState
+	statemachine.PrimitiveContext[*valuev1.ValueInput, *valuev1.ValueOutput]
+	value     *valuev1.ValueState
 	listeners map[statemachine.ProposalID]bool
 	timer     statemachine.Timer
 	watchers  map[statemachine.QueryID]statemachine.Query[*valuev1.WatchInput, *valuev1.WatchOutput]
 	mu        sync.RWMutex
-	set       statemachine.Updater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.SetInput, *valuev1.SetOutput]
-	update    statemachine.Updater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.UpdateInput, *valuev1.UpdateOutput]
-	delete    statemachine.Updater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.DeleteInput, *valuev1.DeleteOutput]
-	events    statemachine.Updater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.EventsInput, *valuev1.EventsOutput]
-	get       statemachine.Reader[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.GetInput, *valuev1.GetOutput]
-	watch     statemachine.Reader[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.WatchInput, *valuev1.WatchOutput]
+	set       statemachine.Updater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.SetInput, *valuev1.SetOutput]
+	insert    statemachine.Updater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.InsertInput, *valuev1.InsertOutput]
+	update    statemachine.Updater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.UpdateInput, *valuev1.UpdateOutput]
+	delete    statemachine.Updater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.DeleteInput, *valuev1.DeleteOutput]
+	events    statemachine.Updater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.EventsInput, *valuev1.EventsOutput]
+	get       statemachine.Reader[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.GetInput, *valuev1.GetOutput]
+	watch     statemachine.Reader[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.WatchInput, *valuev1.WatchOutput]
 }
 
 func (s *MapStateMachine) init() {
-	s.set = statemachine.NewUpdater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.SetInput, *valuev1.SetOutput](s).
+	s.set = statemachine.NewUpdater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.SetInput, *valuev1.SetOutput](s).
 		Name("Set").
-		Decoder(func(input *valuev1.AtomicValueInput) (*valuev1.SetInput, bool) {
-			if put, ok := input.Input.(*valuev1.AtomicValueInput_Set); ok {
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.SetInput, bool) {
+			if put, ok := input.Input.(*valuev1.ValueInput_Set); ok {
 				return put.Set, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *valuev1.SetOutput) *valuev1.AtomicValueOutput {
-			return &valuev1.AtomicValueOutput{
-				Output: &valuev1.AtomicValueOutput_Set{
+		Encoder(func(output *valuev1.SetOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Set{
 					Set: output,
 				},
 			}
 		}).
 		Build(s.doSet)
-	s.update = statemachine.NewUpdater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.UpdateInput, *valuev1.UpdateOutput](s).
+	s.insert = statemachine.NewUpdater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.InsertInput, *valuev1.InsertOutput](s).
+		Name("Insert").
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.InsertInput, bool) {
+			if put, ok := input.Input.(*valuev1.ValueInput_Insert); ok {
+				return put.Insert, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *valuev1.InsertOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Insert{
+					Insert: output,
+				},
+			}
+		}).
+		Build(s.doInsert)
+	s.update = statemachine.NewUpdater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.UpdateInput, *valuev1.UpdateOutput](s).
 		Name("Update").
-		Decoder(func(input *valuev1.AtomicValueInput) (*valuev1.UpdateInput, bool) {
-			if update, ok := input.Input.(*valuev1.AtomicValueInput_Update); ok {
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.UpdateInput, bool) {
+			if update, ok := input.Input.(*valuev1.ValueInput_Update); ok {
 				return update.Update, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *valuev1.UpdateOutput) *valuev1.AtomicValueOutput {
-			return &valuev1.AtomicValueOutput{
-				Output: &valuev1.AtomicValueOutput_Update{
+		Encoder(func(output *valuev1.UpdateOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Update{
 					Update: output,
 				},
 			}
 		}).
 		Build(s.doUpdate)
-	s.delete = statemachine.NewUpdater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.DeleteInput, *valuev1.DeleteOutput](s).
+	s.delete = statemachine.NewUpdater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.DeleteInput, *valuev1.DeleteOutput](s).
 		Name("Delete").
-		Decoder(func(input *valuev1.AtomicValueInput) (*valuev1.DeleteInput, bool) {
-			if remove, ok := input.Input.(*valuev1.AtomicValueInput_Delete); ok {
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.DeleteInput, bool) {
+			if remove, ok := input.Input.(*valuev1.ValueInput_Delete); ok {
 				return remove.Delete, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *valuev1.DeleteOutput) *valuev1.AtomicValueOutput {
-			return &valuev1.AtomicValueOutput{
-				Output: &valuev1.AtomicValueOutput_Delete{
+		Encoder(func(output *valuev1.DeleteOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Delete{
 					Delete: output,
 				},
 			}
 		}).
 		Build(s.doDelete)
-	s.events = statemachine.NewUpdater[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.EventsInput, *valuev1.EventsOutput](s).
+	s.events = statemachine.NewUpdater[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.EventsInput, *valuev1.EventsOutput](s).
 		Name("Events").
-		Decoder(func(input *valuev1.AtomicValueInput) (*valuev1.EventsInput, bool) {
-			if events, ok := input.Input.(*valuev1.AtomicValueInput_Events); ok {
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.EventsInput, bool) {
+			if events, ok := input.Input.(*valuev1.ValueInput_Events); ok {
 				return events.Events, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *valuev1.EventsOutput) *valuev1.AtomicValueOutput {
-			return &valuev1.AtomicValueOutput{
-				Output: &valuev1.AtomicValueOutput_Events{
+		Encoder(func(output *valuev1.EventsOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Events{
 					Events: output,
 				},
 			}
 		}).
 		Build(s.doEvents)
-	s.get = statemachine.NewReader[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.GetInput, *valuev1.GetOutput](s).
+	s.get = statemachine.NewReader[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.GetInput, *valuev1.GetOutput](s).
 		Name("Get").
-		Decoder(func(input *valuev1.AtomicValueInput) (*valuev1.GetInput, bool) {
-			if get, ok := input.Input.(*valuev1.AtomicValueInput_Get); ok {
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.GetInput, bool) {
+			if get, ok := input.Input.(*valuev1.ValueInput_Get); ok {
 				return get.Get, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *valuev1.GetOutput) *valuev1.AtomicValueOutput {
-			return &valuev1.AtomicValueOutput{
-				Output: &valuev1.AtomicValueOutput_Get{
+		Encoder(func(output *valuev1.GetOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Get{
 					Get: output,
 				},
 			}
 		}).
 		Build(s.doGet)
-	s.watch = statemachine.NewReader[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput, *valuev1.WatchInput, *valuev1.WatchOutput](s).
+	s.watch = statemachine.NewReader[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.WatchInput, *valuev1.WatchOutput](s).
 		Name("Watch").
-		Decoder(func(input *valuev1.AtomicValueInput) (*valuev1.WatchInput, bool) {
-			if entries, ok := input.Input.(*valuev1.AtomicValueInput_Watch); ok {
+		Decoder(func(input *valuev1.ValueInput) (*valuev1.WatchInput, bool) {
+			if entries, ok := input.Input.(*valuev1.ValueInput_Watch); ok {
 				return entries.Watch, true
 			}
 			return nil, false
 		}).
-		Encoder(func(output *valuev1.WatchOutput) *valuev1.AtomicValueOutput {
-			return &valuev1.AtomicValueOutput{
-				Output: &valuev1.AtomicValueOutput_Watch{
+		Encoder(func(output *valuev1.WatchOutput) *valuev1.ValueOutput {
+			return &valuev1.ValueOutput{
+				Output: &valuev1.ValueOutput_Watch{
 					Watch: output,
 				},
 			}
@@ -159,7 +176,7 @@ func (s *MapStateMachine) init() {
 }
 
 func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
-	s.Log().Infow("Persisting AtomicValue to snapshot")
+	s.Log().Infow("Persisting Value to snapshot")
 	if err := writer.WriteVarInt(len(s.listeners)); err != nil {
 		return err
 	}
@@ -184,7 +201,7 @@ func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
 }
 
 func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
-	s.Log().Infow("Recovering AtomicValue from snapshot")
+	s.Log().Infow("Recovering Value from snapshot")
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
@@ -206,7 +223,7 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 		})
 	}
 
-	exists, err := reader.ReadBool();
+	exists, err := reader.ReadBool()
 	if err != nil {
 		return err
 	}
@@ -215,7 +232,7 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 		return nil
 	}
 
-	state := &valuev1.AtomicValueState{}
+	state := &valuev1.ValueState{}
 	if err := reader.ReadMessage(state); err != nil {
 		return err
 	}
@@ -224,15 +241,17 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *MapStateMachine) Update(proposal statemachine.Proposal[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput]) {
+func (s *MapStateMachine) Update(proposal statemachine.Proposal[*valuev1.ValueInput, *valuev1.ValueOutput]) {
 	switch proposal.Input().Input.(type) {
-	case *valuev1.AtomicValueInput_Set:
+	case *valuev1.ValueInput_Set:
 		s.set.Update(proposal)
-	case *valuev1.AtomicValueInput_Update:
+	case *valuev1.ValueInput_Insert:
+		s.insert.Update(proposal)
+	case *valuev1.ValueInput_Update:
 		s.update.Update(proposal)
-	case *valuev1.AtomicValueInput_Delete:
+	case *valuev1.ValueInput_Delete:
 		s.delete.Update(proposal)
-	case *valuev1.AtomicValueInput_Events:
+	case *valuev1.ValueInput_Events:
 		s.events.Update(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
@@ -243,14 +262,64 @@ func (s *MapStateMachine) Update(proposal statemachine.Proposal[*valuev1.AtomicV
 func (s *MapStateMachine) doSet(proposal statemachine.Proposal[*valuev1.SetInput, *valuev1.SetOutput]) {
 	defer proposal.Close()
 
+	oldValue := s.value
+	newValue := &valuev1.ValueState{
+		Value: &valuev1.IndexedValue{
+			Value: proposal.Input().Value,
+			Index: multiraftv1.Index(s.Index()),
+		},
+	}
+	if proposal.Input().TTL != nil {
+		expire := s.Scheduler().Time().Add(*proposal.Input().TTL)
+		newValue.Expire = &expire
+	}
+
+	// Schedule the timeout for the value if necessary.
+	s.scheduleTTL(newValue)
+	s.value = newValue
+
+	// Publish an event to listener streams.
+	if oldValue == nil {
+		s.notify(newValue.Value, &valuev1.EventsOutput{
+			Event: valuev1.Event{
+				Event: &valuev1.Event_Created_{
+					Created: &valuev1.Event_Created{
+						Value: *newValue.Value,
+					},
+				},
+			},
+		})
+		proposal.Output(&valuev1.SetOutput{
+			Index: newValue.Value.Index,
+		})
+	} else {
+		s.notify(newValue.Value, &valuev1.EventsOutput{
+			Event: valuev1.Event{
+				Event: &valuev1.Event_Updated_{
+					Updated: &valuev1.Event_Updated{
+						Value:     *newValue.Value,
+						PrevValue: *oldValue.Value,
+					},
+				},
+			},
+		})
+		proposal.Output(&valuev1.SetOutput{
+			Index:     newValue.Value.Index,
+			PrevValue: oldValue.Value,
+		})
+	}
+}
+
+func (s *MapStateMachine) doInsert(proposal statemachine.Proposal[*valuev1.InsertInput, *valuev1.InsertOutput]) {
+	defer proposal.Close()
+
 	if s.value != nil {
 		proposal.Error(errors.NewAlreadyExists("value already set"))
 		return
 	}
 
-	oldValue := s.value
-	newValue := &valuev1.AtomicValueState{
-		Value: &valuev1.Value{
+	newValue := &valuev1.ValueState{
+		Value: &valuev1.IndexedValue{
 			Value: proposal.Input().Value,
 			Index: multiraftv1.Index(s.Index()),
 		},
@@ -267,16 +336,15 @@ func (s *MapStateMachine) doSet(proposal statemachine.Proposal[*valuev1.SetInput
 	// Publish an event to listener streams.
 	s.notify(newValue.Value, &valuev1.EventsOutput{
 		Event: valuev1.Event{
-			Event: &valuev1.Event_Updated_{
-				Updated: &valuev1.Event_Updated{
-					Value:     *newValue.Value,
-					PrevValue: *oldValue.Value,
+			Event: &valuev1.Event_Created_{
+				Created: &valuev1.Event_Created{
+					Value: *newValue.Value,
 				},
 			},
 		},
 	})
 
-	proposal.Output(&valuev1.SetOutput{
+	proposal.Output(&valuev1.InsertOutput{
 		Index: newValue.Value.Index,
 	})
 }
@@ -294,8 +362,8 @@ func (s *MapStateMachine) doUpdate(proposal statemachine.Proposal[*valuev1.Updat
 	}
 
 	oldValue := s.value
-	newValue := &valuev1.AtomicValueState{
-		Value: &valuev1.Value{
+	newValue := &valuev1.ValueState{
+		Value: &valuev1.IndexedValue{
 			Value: proposal.Input().Value,
 			Index: multiraftv1.Index(s.Index()),
 		},
@@ -370,11 +438,11 @@ func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*valuev1.Event
 	})
 }
 
-func (s *MapStateMachine) Read(query statemachine.Query[*valuev1.AtomicValueInput, *valuev1.AtomicValueOutput]) {
+func (s *MapStateMachine) Read(query statemachine.Query[*valuev1.ValueInput, *valuev1.ValueOutput]) {
 	switch query.Input().Input.(type) {
-	case *valuev1.AtomicValueInput_Get:
+	case *valuev1.ValueInput_Get:
 		s.get.Read(query)
-	case *valuev1.AtomicValueInput_Watch:
+	case *valuev1.ValueInput_Watch:
 		s.watch.Read(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))
@@ -411,7 +479,7 @@ func (s *MapStateMachine) doWatch(query statemachine.Query[*valuev1.WatchInput, 
 	})
 }
 
-func (s *MapStateMachine) notify(value *valuev1.Value, event *valuev1.EventsOutput) {
+func (s *MapStateMachine) notify(value *valuev1.IndexedValue, event *valuev1.EventsOutput) {
 	for proposalID := range s.listeners {
 		proposal, ok := s.events.Proposals().Get(proposalID)
 		if ok {
@@ -430,7 +498,7 @@ func (s *MapStateMachine) notify(value *valuev1.Value, event *valuev1.EventsOutp
 	}
 }
 
-func (s *MapStateMachine) scheduleTTL(state *valuev1.AtomicValueState) {
+func (s *MapStateMachine) scheduleTTL(state *valuev1.ValueState) {
 	s.cancelTTL()
 	if state.Expire != nil {
 		s.timer = s.Scheduler().RunAt(*state.Expire, func() {
