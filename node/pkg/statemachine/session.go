@@ -336,6 +336,7 @@ func (c *raftSessionCommand) execute(input *multiraftv1.SessionCommandInput, str
 		case *multiraftv1.SessionCommandInput_ClosePrimitive:
 			c.session.manager.primitives.close(c.ClosePrimitive())
 		}
+		c.schedule()
 	default:
 		c.replay()
 	}
@@ -348,11 +349,6 @@ func (c *raftSessionCommand) open(input *multiraftv1.SessionCommandInput) {
 	c.session.commands[c.index] = c
 	c.state = multiraftv1.CommandSnapshot_RUNNING
 	c.deadline = input.Deadline
-	if c.deadline != nil {
-		c.timer = c.session.manager.context.scheduler.RunAt(*c.deadline, func() {
-			c.cancel()
-		})
-	}
 }
 
 func (c *raftSessionCommand) replay() {
@@ -412,12 +408,8 @@ func (c *raftSessionCommand) recover(reader *snapshot.Reader) error {
 	c.stream = streams.NewNilStream[*multiraftv1.SessionCommandOutput]()
 	c.state = snapshot.State
 	c.deadline = snapshot.Deadline
+	c.schedule()
 	c.session.commands[c.index] = c
-	if c.deadline != nil {
-		c.timer = c.session.manager.context.scheduler.RunAt(*c.deadline, func() {
-			c.cancel()
-		})
-	}
 	return nil
 }
 
@@ -461,6 +453,22 @@ func (c *raftSessionCommand) ack(outputSequenceNum multiraftv1.SequenceNum) {
 	}
 }
 
+func (c *raftSessionCommand) schedule() {
+	if c.state == multiraftv1.CommandSnapshot_RUNNING && c.deadline != nil {
+		c.timer = c.session.manager.context.scheduler.RunAt(*c.deadline, func() {
+			log.Debugw("Command deadline exceeded",
+				logging.Uint64("Session", uint64(c.session.sessionID)),
+				logging.Uint64("Command", uint64(c.input.SequenceNum)))
+			c.state = multiraftv1.CommandSnapshot_COMPLETE
+			if c.closer != nil {
+				c.closer(Canceled)
+			}
+			c.stream.Close()
+			c.cleanup()
+		})
+	}
+}
+
 func (c *raftSessionCommand) cancel() {
 	switch c.state {
 	case multiraftv1.CommandSnapshot_RUNNING:
@@ -472,6 +480,7 @@ func (c *raftSessionCommand) cancel() {
 			c.closer(Canceled)
 		}
 		c.stream.Close()
+		c.cleanup()
 	}
 	delete(c.session.commands, c.index)
 }
@@ -485,6 +494,13 @@ func (c *raftSessionCommand) Close() {
 		c.closer(Complete)
 	}
 	c.stream.Close()
+	c.cleanup()
+}
+
+func (c *raftSessionCommand) cleanup() {
+	if c.timer != nil {
+		c.timer.Cancel()
+	}
 }
 
 func newSessionOperationCommand(parent *raftSessionCommand) *raftSessionOperationCommand {
