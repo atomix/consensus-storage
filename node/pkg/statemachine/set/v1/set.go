@@ -336,9 +336,6 @@ func (s *SetStateMachine) doClear(proposal statemachine.Proposal[*setv1.ClearInp
 }
 
 func (s *SetStateMachine) doEvents(proposal statemachine.Proposal[*setv1.EventsInput, *setv1.EventsOutput]) {
-	// Output an empty event to ack the request
-	proposal.Output(&setv1.EventsOutput{})
-
 	s.listeners[proposal.ID()] = true
 	proposal.Watch(func(state statemachine.OperationState) {
 		if state == statemachine.Complete {

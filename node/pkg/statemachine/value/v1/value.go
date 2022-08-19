@@ -428,8 +428,6 @@ func (s *MapStateMachine) doDelete(proposal statemachine.Proposal[*valuev1.Delet
 }
 
 func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*valuev1.EventsInput, *valuev1.EventsOutput]) {
-	// Output an empty event to ack the request
-	proposal.Output(&valuev1.EventsOutput{})
 	s.listeners[proposal.ID()] = true
 	proposal.Watch(func(state statemachine.OperationState) {
 		if state == statemachine.Complete {

@@ -553,9 +553,6 @@ func (s *MapStateMachine) doClear(proposal statemachine.Proposal[*mapv1.ClearInp
 }
 
 func (s *MapStateMachine) doEvents(proposal statemachine.Proposal[*mapv1.EventsInput, *mapv1.EventsOutput]) {
-	// Output an empty event to ack the request
-	proposal.Output(&mapv1.EventsOutput{})
-
 	listener := &mapv1.MapListener{
 		Key: proposal.Input().Key,
 	}
