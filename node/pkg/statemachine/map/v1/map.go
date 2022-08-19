@@ -504,9 +504,7 @@ func (s *MapStateMachine) doRemove(proposal statemachine.Proposal[*mapv1.RemoveI
 	s.cancelTTL(entry.Key)
 
 	// Publish an event to listener streams.
-	s.notify(&mapv1.MapEntry{
-		Key: entry.Key,
-	}, &mapv1.EventsOutput{
+	s.notify(entry, &mapv1.EventsOutput{
 		Event: mapv1.Event{
 			Key: entry.Key,
 			Event: &mapv1.Event_Removed_{
@@ -668,9 +666,7 @@ func (s *MapStateMachine) scheduleTTL(key string, entry *mapv1.MapEntry) {
 	if entry.Value.Expire != nil {
 		s.timers[key] = s.Scheduler().RunAt(*entry.Value.Expire, func() {
 			delete(s.entries, key)
-			s.notify(&mapv1.MapEntry{
-				Key: entry.Key,
-			}, &mapv1.EventsOutput{
+			s.notify(entry, &mapv1.EventsOutput{
 				Event: mapv1.Event{
 					Key: key,
 					Event: &mapv1.Event_Removed_{
