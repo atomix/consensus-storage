@@ -12,7 +12,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-const Service = "atomix.multiraft.atomic.counter.v1.Counter"
+const Service = "atomix.multiraft.counter.v1.Counter"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
 	statemachine.RegisterPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(CounterType)

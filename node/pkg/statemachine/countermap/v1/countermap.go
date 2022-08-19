@@ -13,7 +13,7 @@ import (
 	"sync"
 )
 
-const Service = "atomix.multiraft.atomic.map.v1.CounterMap"
+const Service = "atomix.multiraft.map.v1.CounterMap"
 
 func Register(registry *statemachine.PrimitiveTypeRegistry) {
 	statemachine.RegisterPrimitiveType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](registry)(MapType)
