@@ -331,10 +331,134 @@ func TestCreateClosePrimitive(t *testing.T) {
 }
 
 func TestUnaryProposal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Close()
+	openSession.EXPECT().Output(gomock.Any())
+	manager.OpenSession(openSession)
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Submit a primitive proposal and verify the proposal is applied to the primitive
+	proposal := statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	sequenceNum := context.nextSequenceNum(sessionID)
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("Hello"),
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
+		assert.Equal(t, proposalID, proposal.ID())
+		assert.Equal(t, sessionID, proposal.Session().ID())
+		assert.Len(t, proposal.Session().Proposals().List(), 1)
+		p, ok := proposal.Session().Proposals().Get(proposalID)
+		assert.True(t, ok)
+		assert.Equal(t, proposalID, p.ID())
+		assert.Len(t, manager.(Context).Proposals().List(), 1)
+		p, ok = manager.(Context).Proposals().Get(proposalID)
+		assert.True(t, ok)
+		assert.Equal(t, proposalID, p.ID())
+		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("world!"),
+		})
+		proposal.Close()
+		assert.Len(t, proposal.Session().Proposals().List(), 0)
+		assert.Len(t, manager.(Context).Proposals().List(), 0)
+	})
+	manager.Propose(proposal)
+
+	// Retry the same primitive proposal and verify the proposal is not applied to the primitive again (for linearizability)
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("Hello"),
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	manager.Propose(proposal)
+
+	// Take another snapshot of the manager and create a new manager from the snapshot
+	assert.Len(t, manager.(Context).Proposals().List(), 0)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
+	buf := &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	assert.Len(t, manager.(Context).Proposals().List(), 0)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
+
+	// Retry the same primitive proposal again after the snapshot
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("Hello"),
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	manager.Propose(proposal)
 }
 
 func TestStreamingProposal(t *testing.T) {
+
+}
+
+func TestQuery(t *testing.T) {
+
+}
+
+func TestStreamingQuery(t *testing.T) {
 
 }
 
