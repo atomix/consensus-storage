@@ -308,11 +308,11 @@ func (p *primitiveProposals) List() []PrimitiveProposal {
 	return proposals
 }
 
-func (p *primitiveProposals) register(proposal *primitiveProposal) {
+func (p *primitiveProposals) add(proposal *primitiveProposal) {
 	p.proposals[proposal.ID()] = proposal
 }
 
-func (p *primitiveProposals) unregister(id statemachine.ProposalID) {
+func (p *primitiveProposals) remove(id statemachine.ProposalID) {
 	delete(p.proposals, id)
 }
 
@@ -372,8 +372,8 @@ func (p *sessionProposal) execute(parent statemachine.Proposal[*multiraftv1.Sess
 	switch parent.Input().Input.(type) {
 	case *multiraftv1.SessionProposalInput_Proposal:
 		proposal := newPrimitiveProposal(p)
-		p.session.manager.proposals.register(proposal)
-		p.session.proposals.register(proposal)
+		p.session.manager.proposals.add(proposal)
+		p.session.proposals.add(proposal)
 		p.session.manager.sm.Propose(proposal)
 	case *multiraftv1.SessionProposalInput_CreatePrimitive:
 		p.session.manager.sm.CreatePrimitive(newCreatePrimitiveProposal(p))
@@ -462,8 +462,8 @@ func (p *sessionProposal) recover(reader *snapshot.Reader) error {
 	switch p.input.Input.(type) {
 	case *multiraftv1.SessionProposalInput_Proposal:
 		proposal := newPrimitiveProposal(p)
-		p.session.manager.proposals.register(proposal)
-		p.session.proposals.register(proposal)
+		p.session.manager.proposals.add(proposal)
+		p.session.proposals.add(proposal)
 	}
 	return nil
 }
@@ -522,6 +522,8 @@ func (p *sessionProposal) Cancel() {
 }
 
 func (p *sessionProposal) close(phase statemachine.Phase) {
+	p.session.manager.proposals.remove(p.id)
+	p.session.proposals.remove(p.id)
 	p.phase = phase
 	if p.timer != nil {
 		p.timer.Cancel()
