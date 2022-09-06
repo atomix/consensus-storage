@@ -5,7 +5,6 @@
 package session
 
 import (
-	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -16,7 +15,7 @@ func NewManager(ctx statemachine.SessionManagerContext, factory NewPrimitiveMana
 	sm := &sessionManagerStateMachine{
 		SessionManagerContext: ctx,
 		sessions:              newManagedSessions(),
-		proposals:             newSessionProposals(),
+		proposals:             newPrimitiveProposals(),
 	}
 	sm.sm = factory(sm)
 	return sm
@@ -26,7 +25,7 @@ type sessionManagerStateMachine struct {
 	statemachine.SessionManagerContext
 	sm        PrimitiveManager
 	sessions  *managedSessions
-	proposals *sessionProposals
+	proposals *primitiveProposals
 	prevTime  time.Time
 }
 
@@ -65,13 +64,13 @@ func (m *sessionManagerStateMachine) Recover(reader *snapshot.Reader) error {
 	return m.sm.Recover(reader)
 }
 
-func (m *sessionManagerStateMachine) OpenSession(proposal statemachine.Proposal[*multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput]) {
+func (m *sessionManagerStateMachine) OpenSession(proposal statemachine.OpenSessionProposal) {
 	session := newManagedSession(m)
 	session.open(proposal)
 	m.prevTime = m.Time()
 }
 
-func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.Proposal[*multiraftv1.KeepAliveInput, *multiraftv1.KeepAliveOutput]) {
+func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.KeepAliveProposal) {
 	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
@@ -102,7 +101,7 @@ func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.Proposal[*m
 	m.prevTime = m.Time()
 }
 
-func (m *sessionManagerStateMachine) CloseSession(proposal statemachine.Proposal[*multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput]) {
+func (m *sessionManagerStateMachine) CloseSession(proposal statemachine.CloseSessionProposal) {
 	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
@@ -113,23 +112,24 @@ func (m *sessionManagerStateMachine) CloseSession(proposal statemachine.Proposal
 	session.close(proposal)
 }
 
-func (m *sessionManagerStateMachine) Propose(parent statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]) {
-	sessionID := ID(parent.Input().SessionID)
+func (m *sessionManagerStateMachine) Propose(proposal statemachine.SessionProposal) {
+	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
-		parent.Error(errors.NewFault("session not found"))
-		parent.Close()
+		proposal.Error(errors.NewFault("session not found"))
+		proposal.Close()
 		return
 	}
-
-	if proposal, ok := session.proposals.get(parent.Input().SequenceNum); ok {
-		proposal.replay(parent)
-	} else {
-		proposal := newSessionProposal(session)
-		proposal.execute(parent)
-	}
+	session.propose(proposal)
 }
 
-func (m *sessionManagerStateMachine) Query(query statemachine.Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput]) {
-
+func (m *sessionManagerStateMachine) Query(query statemachine.SessionQuery) {
+	sessionID := ID(query.Input().SessionID)
+	session, ok := m.sessions.get(sessionID)
+	if !ok {
+		query.Error(errors.NewFault("session not found"))
+		query.Close()
+		return
+	}
+	session.query(query)
 }

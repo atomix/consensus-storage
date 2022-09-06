@@ -6,23 +6,28 @@ package session
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/gogo/protobuf/proto"
 )
 
-type NewPrimitiveManagerFunc func(PrimitiveManagerContext) PrimitiveManager
+type NewPrimitiveManagerFunc func(Context) PrimitiveManager
 
 type PrimitiveManager interface {
 	snapshot.Recoverable
-	CreatePrimitive(proposal Proposal[*multiraftv1.CreatePrimitiveInput, *multiraftv1.CreatePrimitiveOutput])
-	ClosePrimitive(proposal Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput])
-	Propose(proposal Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput])
-	Query(query Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput])
+	CreatePrimitive(proposal CreatePrimitiveProposal)
+	ClosePrimitive(proposal ClosePrimitiveProposal)
+	Propose(proposal PrimitiveProposal)
+	Query(query PrimitiveQuery)
 }
 
-type PrimitiveManagerContext interface {
+type CreatePrimitiveProposal Proposal[*multiraftv1.CreatePrimitiveInput, *multiraftv1.CreatePrimitiveOutput]
+type ClosePrimitiveProposal Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput]
+type PrimitiveProposal Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+type PrimitiveQuery Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]
+
+type Context interface {
 	statemachine.SessionManagerContext
 	// Sessions returns the open sessions
 	Sessions() Sessions
@@ -40,7 +45,7 @@ const (
 )
 
 // Sessionized is an interface for types that are associated with a session
-type Sessionized[I, O any] interface {
+type Sessionized interface {
 	Session() Session
 }
 
@@ -68,7 +73,7 @@ type Sessions interface {
 // Execution is a proposal or query execution
 type Execution[T statemachine.ExecutionID, I, O any] interface {
 	statemachine.Execution[T, I, O]
-	Sessionized[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	Sessionized
 }
 
 // Proposal is a proposal operation
@@ -79,9 +84,9 @@ type Proposal[I, O proto.Message] interface {
 // Proposals provides access to pending proposals
 type Proposals interface {
 	// Get gets a proposal by ID
-	Get(statemachine.ProposalID) (Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], bool)
+	Get(statemachine.ProposalID) (PrimitiveProposal, bool)
 	// List lists all open proposals
-	List() []Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	List() []PrimitiveProposal
 }
 
 // Query is a read operation

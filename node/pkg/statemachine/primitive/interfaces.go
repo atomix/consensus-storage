@@ -11,7 +11,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-type NewPrimitiveFunc[I, O any] func(PrimitiveContext[I, O]) Primitive[I, O]
+type NewPrimitiveFunc[I, O any] func(Context[I, O]) Primitive[I, O]
 
 type Primitive[I, O any] interface {
 	snapshot.Recoverable
@@ -22,7 +22,7 @@ type Primitive[I, O any] interface {
 type Type[I, O any] interface {
 	Service() string
 	Codec() Codec[I, O]
-	NewStateMachine(PrimitiveContext[I, O]) Primitive[I, O]
+	NewStateMachine(Context[I, O]) Primitive[I, O]
 }
 
 func NewType[I, O any](service string, codec Codec[I, O], factory NewPrimitiveFunc[I, O]) Type[I, O] {
@@ -36,7 +36,7 @@ func NewType[I, O any](service string, codec Codec[I, O], factory NewPrimitiveFu
 type primitiveType[I, O any] struct {
 	service string
 	codec   Codec[I, O]
-	factory func(PrimitiveContext[I, O]) Primitive[I, O]
+	factory func(Context[I, O]) Primitive[I, O]
 }
 
 func (t *primitiveType[I, O]) Service() string {
@@ -47,11 +47,11 @@ func (t *primitiveType[I, O]) Codec() Codec[I, O] {
 	return t.codec
 }
 
-func (t *primitiveType[I, O]) NewStateMachine(context PrimitiveContext[I, O]) Primitive[I, O] {
+func (t *primitiveType[I, O]) NewStateMachine(context Context[I, O]) Primitive[I, O] {
 	return t.factory(context)
 }
 
-type PrimitiveContext[I, O any] interface {
+type Context[I, O any] interface {
 	statemachine.SessionManagerContext
 	// ID returns the service identifier
 	ID() ID
@@ -141,14 +141,14 @@ type Proposer[I1, O1, I2, O2 any] interface {
 	Proposals() Proposals[I2, O2]
 }
 
-func NewProposer[I1, O1, I2, O2 proto.Message](ctx PrimitiveContext[I1, O1]) *ProposerBuilder[I1, O1, I2, O2] {
+func NewProposer[I1, O1, I2, O2 proto.Message](ctx Context[I1, O1]) *ProposerBuilder[I1, O1, I2, O2] {
 	return &ProposerBuilder[I1, O1, I2, O2]{
 		ctx: ctx,
 	}
 }
 
 type ProposerBuilder[I1, O1, I2, O2 proto.Message] struct {
-	ctx     PrimitiveContext[I1, O1]
+	ctx     Context[I1, O1]
 	name    string
 	decoder func(I1) (I2, bool)
 	encoder func(O2) O1
@@ -199,14 +199,14 @@ type Querier[I1, O1, I2, O2 any] interface {
 	Executor[Query[I1, O1], statemachine.QueryID, I1, O1]
 }
 
-func NewQuerier[I1, O1, I2, O2 proto.Message](ctx PrimitiveContext[I1, O1]) *QuerierBuilder[I1, O1, I2, O2] {
+func NewQuerier[I1, O1, I2, O2 proto.Message](ctx Context[I1, O1]) *QuerierBuilder[I1, O1, I2, O2] {
 	return &QuerierBuilder[I1, O1, I2, O2]{
 		ctx: ctx,
 	}
 }
 
 type QuerierBuilder[I1, O1, I2, O2 proto.Message] struct {
-	ctx     PrimitiveContext[I1, O1]
+	ctx     Context[I1, O1]
 	name    string
 	decoder func(I1) (I2, bool)
 	encoder func(O2) O1
@@ -245,7 +245,7 @@ var _ ExecutorBuilder[
 	Querier[proto.Message, proto.Message, proto.Message, proto.Message]] = (*QuerierBuilder[proto.Message, proto.Message, proto.Message, proto.Message])(nil)
 
 type transcodingProposer[I1, O1, I2, O2 proto.Message] struct {
-	ctx     PrimitiveContext[I1, O1]
+	ctx     Context[I1, O1]
 	decoder func(I1) (I2, bool)
 	encoder func(O2) O1
 	name    string
@@ -267,7 +267,7 @@ func (p *transcodingProposer[I1, O1, I2, O2]) Execute(parent Proposal[I1, O1]) {
 }
 
 type transcodingQuerier[I1, O1, I2, O2 proto.Message] struct {
-	ctx     PrimitiveContext[I1, O1]
+	ctx     Context[I1, O1]
 	decoder func(I1) (I2, bool)
 	encoder func(O2) O1
 	name    string

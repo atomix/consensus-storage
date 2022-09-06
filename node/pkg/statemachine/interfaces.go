@@ -15,12 +15,18 @@ type NewSessionManagerFunc func(SessionManagerContext) SessionManager
 
 type SessionManager interface {
 	snapshot.Recoverable
-	OpenSession(proposal Proposal[*multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput])
-	KeepAlive(proposal Proposal[*multiraftv1.KeepAliveInput, *multiraftv1.KeepAliveOutput])
-	CloseSession(proposal Proposal[*multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput])
-	Propose(proposal Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput])
-	Query(query Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput])
+	OpenSession(proposal OpenSessionProposal)
+	KeepAlive(proposal KeepAliveProposal)
+	CloseSession(proposal CloseSessionProposal)
+	Propose(proposal SessionProposal)
+	Query(query SessionQuery)
 }
+
+type OpenSessionProposal Proposal[*multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput]
+type KeepAliveProposal Proposal[*multiraftv1.KeepAliveInput, *multiraftv1.KeepAliveOutput]
+type CloseSessionProposal Proposal[*multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput]
+type SessionProposal Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]
+type SessionQuery Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput]
 
 type Index uint64
 

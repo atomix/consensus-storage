@@ -26,7 +26,7 @@ func newStateMachine(protocol *protocolContext, types *primitive.TypeRegistry) d
 		stateMachineContext: context,
 		protocol:            protocol,
 		sm: statemachine.NewStateMachine(context, func(smCtx statemachine.SessionManagerContext) statemachine.SessionManager {
-			return session.NewManager(smCtx, func(sessionCtx session.PrimitiveManagerContext) session.PrimitiveManager {
+			return session.NewManager(smCtx, func(sessionCtx session.Context) session.PrimitiveManager {
 				return primitive.NewManager(sessionCtx, types)
 			})
 		}),

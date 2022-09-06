@@ -36,20 +36,20 @@ var mapCodec = primitive.NewCodec[*mapv1.MapInput, *mapv1.MapOutput](
 		return proto.Marshal(output)
 	})
 
-func newMapStateMachine(ctx primitive.PrimitiveContext[*mapv1.MapInput, *mapv1.MapOutput]) primitive.Primitive[*mapv1.MapInput, *mapv1.MapOutput] {
+func newMapStateMachine(ctx primitive.Context[*mapv1.MapInput, *mapv1.MapOutput]) primitive.Primitive[*mapv1.MapInput, *mapv1.MapOutput] {
 	sm := &MapStateMachine{
-		PrimitiveContext: ctx,
-		listeners:        make(map[primitive.ProposalID]*mapv1.MapListener),
-		entries:          make(map[string]*mapv1.MapEntry),
-		timers:           make(map[string]statemachine.Timer),
-		watchers:         make(map[primitive.QueryID]primitive.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]),
+		Context:   ctx,
+		listeners: make(map[primitive.ProposalID]*mapv1.MapListener),
+		entries:   make(map[string]*mapv1.MapEntry),
+		timers:    make(map[string]statemachine.Timer),
+		watchers:  make(map[primitive.QueryID]primitive.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]),
 	}
 	sm.init()
 	return sm
 }
 
 type MapStateMachine struct {
-	primitive.PrimitiveContext[*mapv1.MapInput, *mapv1.MapOutput]
+	primitive.Context[*mapv1.MapInput, *mapv1.MapOutput]
 	listeners map[primitive.ProposalID]*mapv1.MapListener
 	entries   map[string]*mapv1.MapEntry
 	timers    map[string]statemachine.Timer

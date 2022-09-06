@@ -16,16 +16,16 @@ import (
 
 var log = logging.GetLogger()
 
-func NewManager(ctx session.PrimitiveManagerContext, registry *TypeRegistry) session.PrimitiveManager {
+func NewManager(ctx session.Context, registry *TypeRegistry) session.PrimitiveManager {
 	return &primitiveManagerStateMachine{
-		PrimitiveManagerContext: ctx,
-		registry:                registry,
-		primitives:              make(map[ID]*managedPrimitive),
+		Context:    ctx,
+		registry:   registry,
+		primitives: make(map[ID]*managedPrimitive),
 	}
 }
 
 type primitiveManagerStateMachine struct {
-	session.PrimitiveManagerContext
+	session.Context
 	registry   *TypeRegistry
 	primitives map[ID]*managedPrimitive
 }
@@ -64,7 +64,7 @@ func (m *primitiveManagerStateMachine) Recover(reader *snapshot.Reader) error {
 			return errors.NewFault("primitive type not found")
 		}
 
-		context := newManagedContext(m.PrimitiveManagerContext, ID(snapshot.PrimitiveID), snapshot.Spec)
+		context := newManagedContext(m.Context, ID(snapshot.PrimitiveID), snapshot.Spec)
 		primitive := newManagedPrimitive(context, factory(context))
 		m.primitives[primitive.ID()] = primitive
 		if err := primitive.Recover(reader); err != nil {
@@ -74,7 +74,7 @@ func (m *primitiveManagerStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (m *primitiveManagerStateMachine) Propose(proposal session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) {
+func (m *primitiveManagerStateMachine) Propose(proposal session.PrimitiveProposal) {
 	primitive, ok := m.primitives[ID(proposal.Input().PrimitiveID)]
 	if !ok {
 		proposal.Error(errors.NewForbidden("primitive %d not found", proposal.Input().PrimitiveID))
@@ -84,7 +84,7 @@ func (m *primitiveManagerStateMachine) Propose(proposal session.Proposal[*multir
 	}
 }
 
-func (m *primitiveManagerStateMachine) CreatePrimitive(proposal session.Proposal[*multiraftv1.CreatePrimitiveInput, *multiraftv1.CreatePrimitiveOutput]) {
+func (m *primitiveManagerStateMachine) CreatePrimitive(proposal session.CreatePrimitiveProposal) {
 	var primitive *managedPrimitive
 	for _, p := range m.primitives {
 		if p.spec.Namespace == proposal.Input().Namespace &&
@@ -106,7 +106,7 @@ func (m *primitiveManagerStateMachine) CreatePrimitive(proposal session.Proposal
 			proposal.Close()
 			return
 		}
-		context := newManagedContext(m.PrimitiveManagerContext, ID(proposal.ID()), proposal.Input().PrimitiveSpec)
+		context := newManagedContext(m.Context, ID(proposal.ID()), proposal.Input().PrimitiveSpec)
 		primitive = newManagedPrimitive(context, factory(context))
 		m.primitives[primitive.ID()] = primitive
 	}
@@ -114,7 +114,7 @@ func (m *primitiveManagerStateMachine) CreatePrimitive(proposal session.Proposal
 	primitive.open(proposal)
 }
 
-func (m *primitiveManagerStateMachine) ClosePrimitive(proposal session.Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput]) {
+func (m *primitiveManagerStateMachine) ClosePrimitive(proposal session.ClosePrimitiveProposal) {
 	primitive, ok := m.primitives[ID(proposal.Input().PrimitiveID)]
 	if !ok {
 		proposal.Error(errors.NewForbidden("primitive %d not found", proposal.Input().PrimitiveID))
@@ -124,7 +124,7 @@ func (m *primitiveManagerStateMachine) ClosePrimitive(proposal session.Proposal[
 	}
 }
 
-func (m *primitiveManagerStateMachine) Query(query session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]) {
+func (m *primitiveManagerStateMachine) Query(query session.PrimitiveQuery) {
 	primitive, ok := m.primitives[ID(query.Input().PrimitiveID)]
 	if !ok {
 		query.Error(errors.NewFault("primitive %d not found", query.Input().PrimitiveID))
@@ -200,12 +200,12 @@ func (p *managedPrimitive) query(query session.Query[*multiraftv1.PrimitiveQuery
 	}
 }
 
-func newManagedContext(parent session.PrimitiveManagerContext, id ID, spec multiraftv1.PrimitiveSpec) *managedContext {
+func newManagedContext(parent session.Context, id ID, spec multiraftv1.PrimitiveSpec) *managedContext {
 	return &managedContext{
-		PrimitiveManagerContext: parent,
-		id:                      id,
-		spec:                    spec,
-		sessions:                newManagedSessions(),
+		Context:  parent,
+		id:       id,
+		spec:     spec,
+		sessions: newManagedSessions(),
 		log: parent.Log().WithFields(
 			logging.String("Service", spec.Service),
 			logging.Uint64("Primitive", uint64(id)),
@@ -215,7 +215,7 @@ func newManagedContext(parent session.PrimitiveManagerContext, id ID, spec multi
 }
 
 type managedContext struct {
-	session.PrimitiveManagerContext
+	session.Context
 	id       ID
 	spec     multiraftv1.PrimitiveSpec
 	sessions *managedSessions
@@ -264,7 +264,7 @@ func (c *managedContext) Recover(reader *snapshot.Reader) error {
 		if err != nil {
 			return err
 		}
-		parent, ok := c.PrimitiveManagerContext.Sessions().Get(session.ID(sessionID))
+		parent, ok := c.Context.Sessions().Get(session.ID(sessionID))
 		if !ok {
 			return errors.NewFault("session %d not found", sessionID)
 		}
@@ -278,7 +278,7 @@ func (c *managedContext) Sessions() session.Sessions {
 }
 
 func (c *managedContext) Proposals() session.Proposals {
-	return newManagedContextProposals(c.id, c.PrimitiveManagerContext.Proposals(), c.sessions)
+	return newManagedContextProposals(c.id, c.Context.Proposals(), c.sessions)
 }
 
 func newManagedSession(

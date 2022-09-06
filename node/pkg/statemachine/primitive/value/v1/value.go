@@ -35,18 +35,18 @@ var valueCodec = primitive.NewCodec[*valuev1.ValueInput, *valuev1.ValueOutput](
 		return proto.Marshal(output)
 	})
 
-func newMapStateMachine(ctx primitive.PrimitiveContext[*valuev1.ValueInput, *valuev1.ValueOutput]) primitive.Primitive[*valuev1.ValueInput, *valuev1.ValueOutput] {
+func newMapStateMachine(ctx primitive.Context[*valuev1.ValueInput, *valuev1.ValueOutput]) primitive.Primitive[*valuev1.ValueInput, *valuev1.ValueOutput] {
 	sm := &MapStateMachine{
-		PrimitiveContext: ctx,
-		listeners:        make(map[statemachine.ProposalID]bool),
-		watchers:         make(map[statemachine.QueryID]primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]),
+		Context:   ctx,
+		listeners: make(map[statemachine.ProposalID]bool),
+		watchers:  make(map[statemachine.QueryID]primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]),
 	}
 	sm.init()
 	return sm
 }
 
 type MapStateMachine struct {
-	primitive.PrimitiveContext[*valuev1.ValueInput, *valuev1.ValueOutput]
+	primitive.Context[*valuev1.ValueInput, *valuev1.ValueOutput]
 	value     *valuev1.ValueState
 	listeners map[statemachine.ProposalID]bool
 	timer     statemachine.Timer
