@@ -453,17 +453,16 @@ func (p *sessionProposal) recover(reader *snapshot.Reader) error {
 		if p.input.Deadline != nil {
 			p.timer = p.session.manager.Scheduler().Schedule(*p.input.Deadline, p.Cancel)
 		}
+		switch p.input.Input.(type) {
+		case *multiraftv1.SessionProposalInput_Proposal:
+			proposal := newPrimitiveProposal(p)
+			p.session.manager.proposals.add(proposal)
+			p.session.proposals.add(proposal)
+		}
 	case multiraftv1.SessionProposalSnapshot_COMPLETE:
 		p.phase = statemachine.Complete
 	case multiraftv1.SessionProposalSnapshot_CANCELED:
 		p.phase = statemachine.Canceled
-	}
-
-	switch p.input.Input.(type) {
-	case *multiraftv1.SessionProposalInput_Proposal:
-		proposal := newPrimitiveProposal(p)
-		p.session.manager.proposals.add(proposal)
-		p.session.proposals.add(proposal)
 	}
 	return nil
 }
