@@ -30,11 +30,11 @@ type sessionManagerStateMachine struct {
 	prevTime  time.Time
 }
 
-func (m *sessionManagerStateMachine) Sessions() Sessions[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (m *sessionManagerStateMachine) Sessions() Sessions {
 	return m.sessions
 }
 
-func (m *sessionManagerStateMachine) Proposals() Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (m *sessionManagerStateMachine) Proposals() Proposals {
 	return m.proposals
 }
 

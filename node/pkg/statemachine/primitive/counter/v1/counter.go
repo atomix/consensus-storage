@@ -7,7 +7,6 @@ package v1
 import (
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/gogo/protobuf/proto"
@@ -147,7 +146,7 @@ func (s *CounterStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *CounterStateMachine) Propose(proposal session.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) Propose(proposal primitive.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *counterv1.CounterInput_Set:
 		s.set.Execute(proposal)
@@ -162,7 +161,7 @@ func (s *CounterStateMachine) Propose(proposal session.Proposal[*counterv1.Count
 	}
 }
 
-func (s *CounterStateMachine) doSet(proposal session.Proposal[*counterv1.SetInput, *counterv1.SetOutput]) {
+func (s *CounterStateMachine) doSet(proposal primitive.Proposal[*counterv1.SetInput, *counterv1.SetOutput]) {
 	defer proposal.Close()
 	s.value = proposal.Input().Value
 	proposal.Output(&counterv1.SetOutput{
@@ -170,7 +169,7 @@ func (s *CounterStateMachine) doSet(proposal session.Proposal[*counterv1.SetInpu
 	})
 }
 
-func (s *CounterStateMachine) doUpdate(proposal session.Proposal[*counterv1.UpdateInput, *counterv1.UpdateOutput]) {
+func (s *CounterStateMachine) doUpdate(proposal primitive.Proposal[*counterv1.UpdateInput, *counterv1.UpdateOutput]) {
 	defer proposal.Close()
 	if s.value != proposal.Input().Compare {
 		proposal.Error(errors.NewConflict("optimistic lock failure"))
@@ -182,7 +181,7 @@ func (s *CounterStateMachine) doUpdate(proposal session.Proposal[*counterv1.Upda
 	}
 }
 
-func (s *CounterStateMachine) doIncrement(proposal session.Proposal[*counterv1.IncrementInput, *counterv1.IncrementOutput]) {
+func (s *CounterStateMachine) doIncrement(proposal primitive.Proposal[*counterv1.IncrementInput, *counterv1.IncrementOutput]) {
 	defer proposal.Close()
 	s.value += proposal.Input().Delta
 	proposal.Output(&counterv1.IncrementOutput{
@@ -190,7 +189,7 @@ func (s *CounterStateMachine) doIncrement(proposal session.Proposal[*counterv1.I
 	})
 }
 
-func (s *CounterStateMachine) doDecrement(proposal session.Proposal[*counterv1.DecrementInput, *counterv1.DecrementOutput]) {
+func (s *CounterStateMachine) doDecrement(proposal primitive.Proposal[*counterv1.DecrementInput, *counterv1.DecrementOutput]) {
 	defer proposal.Close()
 	s.value -= proposal.Input().Delta
 	proposal.Output(&counterv1.DecrementOutput{
@@ -198,7 +197,7 @@ func (s *CounterStateMachine) doDecrement(proposal session.Proposal[*counterv1.D
 	})
 }
 
-func (s *CounterStateMachine) Query(query session.Query[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) Query(query primitive.Query[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	switch query.Input().Input.(type) {
 	case *counterv1.CounterInput_Get:
 		s.get.Execute(query)
@@ -207,7 +206,7 @@ func (s *CounterStateMachine) Query(query session.Query[*counterv1.CounterInput,
 	}
 }
 
-func (s *CounterStateMachine) doGet(query session.Query[*counterv1.GetInput, *counterv1.GetOutput]) {
+func (s *CounterStateMachine) doGet(query primitive.Query[*counterv1.GetInput, *counterv1.GetOutput]) {
 	defer query.Close()
 	query.Output(&counterv1.GetOutput{
 		Value: s.value,

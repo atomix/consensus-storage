@@ -60,6 +60,10 @@ type ExecutionID interface {
 	ProposalID | QueryID
 }
 
+type ExecutionPhase interface {
+	ProposalPhase | QueryPhase
+}
+
 type Phase int
 
 const (
@@ -70,8 +74,8 @@ const (
 )
 
 // Execution is a proposal or query execution context
-type Execution[T ExecutionID, I, O any] interface {
-	Watchable[Phase]
+type Execution[T ExecutionID, P ExecutionPhase, I, O any] interface {
+	Watchable[P]
 	// ID returns the execution identifier
 	ID() T
 	// Log returns the operation log
@@ -90,80 +94,84 @@ type Execution[T ExecutionID, I, O any] interface {
 
 type ProposalID uint64
 
+type ProposalPhase ExecutionPhase
+
 // Proposal is a proposal operation
 type Proposal[I, O any] interface {
-	Execution[ProposalID, I, O]
+	Execution[ProposalID, ProposalPhase, I, O]
 }
 
 type QueryID uint64
 
+type QueryPhase ExecutionPhase
+
 // Query is a read operation
 type Query[I, O any] interface {
-	Execution[QueryID, I, O]
+	Execution[QueryID, QueryPhase, I, O]
 }
 
-func NewTranscodingExecution[T ExecutionID, I1, O1, I2, O2 any](execution Execution[T, I1, O1], input I2, transcoder func(O2) O1) Execution[T, I2, O2] {
-	return &transcodingExecution[T, I1, O1, I2, O2]{
+func NewTranscodingExecution[T ExecutionID, P ExecutionPhase, I1, O1, I2, O2 any](execution Execution[T, P, I1, O1], input I2, transcoder func(O2) O1) Execution[T, P, I2, O2] {
+	return &transcodingExecution[T, P, I1, O1, I2, O2]{
 		parent:     execution,
 		input:      input,
 		transcoder: transcoder,
 	}
 }
 
-type transcodingExecution[T ExecutionID, I1, O1, I2, O2 any] struct {
-	parent     Execution[T, I1, O1]
+type transcodingExecution[T ExecutionID, P ExecutionPhase, I1, O1, I2, O2 any] struct {
+	parent     Execution[T, P, I1, O1]
 	input      I2
 	transcoder func(O2) O1
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) ID() T {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) ID() T {
 	return e.parent.ID()
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Log() logging.Logger {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Log() logging.Logger {
 	return e.parent.Log()
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Watch(watcher WatchFunc[Phase]) CancelFunc {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Watch(watcher WatchFunc[P]) CancelFunc {
 	return e.parent.Watch(watcher)
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Input() I2 {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Input() I2 {
 	return e.input
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Output(output O2) {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Output(output O2) {
 	e.parent.Output(e.transcoder(output))
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Error(err error) {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Error(err error) {
 	e.parent.Error(err)
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Close() {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Close() {
 	e.parent.Close()
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Cancel() {
+func (e *transcodingExecution[T, P, I1, O1, I2, O2]) Cancel() {
 	e.parent.Cancel()
 }
 
 func NewTranscodingProposal[I1, O1, I2, O2 any](proposal Proposal[I1, O1], input I2, transcoder func(O2) O1) Proposal[I2, O2] {
 	return &transcodingProposal[I1, O1, I2, O2]{
-		Execution: NewTranscodingExecution[ProposalID, I1, O1, I2, O2](proposal, input, transcoder),
+		Execution: NewTranscodingExecution[ProposalID, ProposalPhase, I1, O1, I2, O2](proposal, input, transcoder),
 	}
 }
 
 type transcodingProposal[I1, O1, I2, O2 any] struct {
-	Execution[ProposalID, I2, O2]
+	Execution[ProposalID, ProposalPhase, I2, O2]
 }
 
 func NewTranscodingQuery[I1, O1, I2, O2 any](proposal Query[I1, O1], input I2, transcoder func(O2) O1) Query[I2, O2] {
 	return &transcodingQuery[I1, O1, I2, O2]{
-		Execution: NewTranscodingExecution[QueryID, I1, O1, I2, O2](proposal, input, transcoder),
+		Execution: NewTranscodingExecution[QueryID, QueryPhase, I1, O1, I2, O2](proposal, input, transcoder),
 	}
 }
 
 type transcodingQuery[I1, O1, I2, O2 any] struct {
-	Execution[QueryID, I2, O2]
+	Execution[QueryID, QueryPhase, I2, O2]
 }

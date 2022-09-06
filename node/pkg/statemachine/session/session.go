@@ -57,7 +57,7 @@ func (s *managedSession) Watch(f statemachine.WatchFunc[State]) statemachine.Can
 	}
 }
 
-func (s *managedSession) Proposals() Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (s *managedSession) Proposals() Proposals {
 	return s.proposals
 }
 
@@ -210,13 +210,13 @@ type managedSessions struct {
 	sessions map[ID]*managedSession
 }
 
-func (s *managedSessions) Get(id ID) (Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], bool) {
+func (s *managedSessions) Get(id ID) (Session, bool) {
 	session, ok := s.sessions[id]
 	return session, ok
 }
 
-func (s *managedSessions) List() []Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
-	sessions := make([]Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], 0, len(s.sessions))
+func (s *managedSessions) List() []Session {
+	sessions := make([]Session, 0, len(s.sessions))
 	for _, session := range s.sessions {
 		sessions = append(sessions, session)
 	}
@@ -266,7 +266,7 @@ type sessionProposal struct {
 	timer        statemachine.Timer
 	phase        statemachine.Phase
 	parent       statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]
-	watchers     map[uuid.UUID]statemachine.WatchFunc[statemachine.Phase]
+	watchers     map[uuid.UUID]statemachine.WatchFunc[statemachine.ProposalPhase]
 	outputs      *list.List
 	outputSeqNum multiraftv1.SequenceNum
 	log          logging.Logger
@@ -280,13 +280,13 @@ func (p *sessionProposal) Log() logging.Logger {
 	return p.log
 }
 
-func (p *sessionProposal) Session() Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (p *sessionProposal) Session() Session {
 	return p.session
 }
 
-func (p *sessionProposal) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+func (p *sessionProposal) Watch(watcher statemachine.WatchFunc[statemachine.ProposalPhase]) statemachine.CancelFunc {
 	if p.watchers == nil {
-		p.watchers = make(map[uuid.UUID]statemachine.WatchFunc[statemachine.Phase])
+		p.watchers = make(map[uuid.UUID]statemachine.WatchFunc[statemachine.ProposalPhase])
 	}
 	id := uuid.New()
 	p.watchers[id] = watcher
@@ -624,11 +624,11 @@ func (p *sessionQuery) Log() logging.Logger {
 	return p.log
 }
 
-func (p *sessionQuery) Session() Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (p *sessionQuery) Session() Session {
 	return p.session
 }
 
-func (p *sessionQuery) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+func (p *sessionQuery) Watch(watcher statemachine.WatchFunc[statemachine.QueryPhase]) statemachine.CancelFunc {
 	return p.parent.Watch(watcher)
 }
 

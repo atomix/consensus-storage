@@ -16,7 +16,7 @@ import (
 
 var log = logging.GetLogger()
 
-func NewManager(ctx session.Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], registry *TypeRegistry) session.PrimitiveManager {
+func NewManager(ctx session.Context, registry *TypeRegistry) session.PrimitiveManager {
 	return &primitiveManagerStateMachine{
 		Context:    ctx,
 		registry:   registry,
@@ -25,7 +25,7 @@ func NewManager(ctx session.Context[*multiraftv1.PrimitiveProposalInput, *multir
 }
 
 type primitiveManagerStateMachine struct {
-	session.Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	session.Context
 	registry   *TypeRegistry
 	primitives map[ID]*managedPrimitive
 }
@@ -200,7 +200,7 @@ func (p *managedPrimitive) query(query session.Query[*multiraftv1.PrimitiveQuery
 	}
 }
 
-func newManagedContext(parent session.Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], id ID, spec multiraftv1.PrimitiveSpec) *managedContext {
+func newManagedContext(parent session.Context, id ID, spec multiraftv1.PrimitiveSpec) *managedContext {
 	return &managedContext{
 		Context:  parent,
 		id:       id,
@@ -215,7 +215,7 @@ func newManagedContext(parent session.Context[*multiraftv1.PrimitiveProposalInpu
 }
 
 type managedContext struct {
-	session.Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	session.Context
 	id       ID
 	spec     multiraftv1.PrimitiveSpec
 	sessions *managedSessions
@@ -273,17 +273,17 @@ func (c *managedContext) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (c *managedContext) Sessions() session.Sessions[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (c *managedContext) Sessions() session.Sessions {
 	return c.sessions
 }
 
-func (c *managedContext) Proposals() session.Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (c *managedContext) Proposals() session.Proposals {
 	return newManagedContextProposals(c.id, c.Context.Proposals(), c.sessions)
 }
 
 func newManagedSession(
 	context *managedContext,
-	parent session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) *managedSession {
+	parent session.Session) *managedSession {
 	s := &managedSession{
 		primitive: context,
 		parent:    parent,
@@ -305,7 +305,7 @@ func newManagedSession(
 
 type managedSession struct {
 	primitive *managedContext
-	parent    session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	parent    session.Session
 	state     session.State
 	watchers  map[uuid.UUID]statemachine.WatchFunc[session.State]
 	cancel    statemachine.CancelFunc
@@ -332,7 +332,7 @@ func (s *managedSession) Watch(watcher statemachine.WatchFunc[session.State]) st
 	}
 }
 
-func (s *managedSession) Proposals() session.Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (s *managedSession) Proposals() session.Proposals {
 	return newManagedSessionProposals(s)
 }
 
@@ -345,7 +345,7 @@ func (s *managedSession) close() {
 	}
 }
 
-var _ session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] = (*managedSession)(nil)
+var _ session.Session = (*managedSession)(nil)
 
 func newManagedSessions() *managedSessions {
 	return &managedSessions{
@@ -357,13 +357,13 @@ type managedSessions struct {
 	sessions map[session.ID]*managedSession
 }
 
-func (s *managedSessions) Get(id session.ID) (session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], bool) {
+func (s *managedSessions) Get(id session.ID) (session.Session, bool) {
 	session, ok := s.sessions[id]
 	return session, ok
 }
 
-func (s *managedSessions) List() []session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
-	sessions := make([]session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], 0, len(s.sessions))
+func (s *managedSessions) List() []session.Session {
+	sessions := make([]session.Session, 0, len(s.sessions))
 	for _, session := range s.sessions {
 		sessions = append(sessions, session)
 	}
@@ -427,7 +427,7 @@ type managedProposal struct {
 
 var _ session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] = (*managedProposal)(nil)
 
-func newManagedContextProposals(primitiveID ID, proposals session.Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], sessions *managedSessions) *managedContextProposals {
+func newManagedContextProposals(primitiveID ID, proposals session.Proposals, sessions *managedSessions) *managedContextProposals {
 	return &managedContextProposals{
 		primitiveID: primitiveID,
 		proposals:   proposals,
@@ -437,7 +437,7 @@ func newManagedContextProposals(primitiveID ID, proposals session.Proposals[*mul
 
 type managedContextProposals struct {
 	primitiveID ID
-	proposals   session.Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	proposals   session.Proposals
 	sessions    *managedSessions
 }
 
