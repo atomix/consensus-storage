@@ -66,14 +66,14 @@ type Sessions interface {
 }
 
 // Execution is a proposal or query execution
-type Execution[T statemachine.ExecutionID, P statemachine.ExecutionPhase, I, O any] interface {
-	statemachine.Execution[T, P, I, O]
+type Execution[T statemachine.ExecutionID, I, O any] interface {
+	statemachine.Execution[T, I, O]
 	Sessionized[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
 }
 
 // Proposal is a proposal operation
 type Proposal[I, O proto.Message] interface {
-	Execution[statemachine.ProposalID, statemachine.ProposalPhase, I, O]
+	Execution[statemachine.ProposalID, I, O]
 }
 
 // Proposals provides access to pending proposals
@@ -86,5 +86,5 @@ type Proposals interface {
 
 // Query is a read operation
 type Query[I, O any] interface {
-	Execution[statemachine.QueryID, statemachine.QueryPhase, I, O]
+	Execution[statemachine.QueryID, I, O]
 }

@@ -266,7 +266,7 @@ type sessionProposal struct {
 	timer        statemachine.Timer
 	phase        statemachine.Phase
 	parent       statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]
-	watchers     map[uuid.UUID]statemachine.WatchFunc[statemachine.ProposalPhase]
+	watchers     map[uuid.UUID]statemachine.WatchFunc[statemachine.Phase]
 	outputs      *list.List
 	outputSeqNum multiraftv1.SequenceNum
 	log          logging.Logger
@@ -284,9 +284,9 @@ func (p *sessionProposal) Session() Session {
 	return p.session
 }
 
-func (p *sessionProposal) Watch(watcher statemachine.WatchFunc[statemachine.ProposalPhase]) statemachine.CancelFunc {
+func (p *sessionProposal) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
 	if p.watchers == nil {
-		p.watchers = make(map[uuid.UUID]statemachine.WatchFunc[statemachine.ProposalPhase])
+		p.watchers = make(map[uuid.UUID]statemachine.WatchFunc[statemachine.Phase])
 	}
 	id := uuid.New()
 	p.watchers[id] = watcher
@@ -628,7 +628,7 @@ func (p *sessionQuery) Session() Session {
 	return p.session
 }
 
-func (p *sessionQuery) Watch(watcher statemachine.WatchFunc[statemachine.QueryPhase]) statemachine.CancelFunc {
+func (p *sessionQuery) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
 	return p.parent.Watch(watcher)
 }
 

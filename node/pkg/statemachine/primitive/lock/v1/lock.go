@@ -191,7 +191,7 @@ func (s *LockStateMachine) doAcquire(proposal primitive.Proposal[*lockv1.Acquire
 			Index: multiraftv1.Index(proposal.ID()),
 		})
 	} else {
-		s.proposals[proposal.ID()] = proposal.Watch(func(phase statemachine.ProposalPhase) {
+		s.proposals[proposal.ID()] = proposal.Watch(func(phase statemachine.Phase) {
 			if phase == statemachine.Canceled {
 				for i, waiter := range s.queue {
 					if waiter.ID() == proposal.ID() {

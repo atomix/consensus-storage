@@ -213,7 +213,7 @@ func (s *SetStateMachine) Recover(reader *snapshot.Reader) error {
 			return errors.NewFault("cannot find proposal %d", proposalID)
 		}
 		s.listeners[proposal.ID()] = true
-		proposal.Watch(func(phase statemachine.ProposalPhase) {
+		proposal.Watch(func(phase statemachine.Phase) {
 			if phase == statemachine.Complete {
 				delete(s.listeners, proposal.ID())
 			}
@@ -338,7 +338,7 @@ func (s *SetStateMachine) doClear(proposal primitive.Proposal[*setv1.ClearInput,
 
 func (s *SetStateMachine) doEvents(proposal primitive.Proposal[*setv1.EventsInput, *setv1.EventsOutput]) {
 	s.listeners[proposal.ID()] = true
-	proposal.Watch(func(phase statemachine.ProposalPhase) {
+	proposal.Watch(func(phase statemachine.Phase) {
 		if phase == statemachine.Complete {
 			delete(s.listeners, proposal.ID())
 		}
@@ -392,7 +392,7 @@ func (s *SetStateMachine) doElements(query primitive.Query[*setv1.ElementsInput,
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
-		query.Watch(func(phase statemachine.QueryPhase) {
+		query.Watch(func(phase statemachine.Phase) {
 			if phase == statemachine.Complete {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())

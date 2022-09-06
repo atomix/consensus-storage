@@ -105,8 +105,8 @@ type Sessions[I, O any] interface {
 }
 
 // Execution is a proposal or query execution
-type Execution[T statemachine.ExecutionID, P statemachine.ExecutionPhase, I, O any] interface {
-	statemachine.Execution[T, P, I, O]
+type Execution[T statemachine.ExecutionID, I, O any] interface {
+	statemachine.Execution[T, I, O]
 	Sessionized[I, O]
 }
 
@@ -114,7 +114,7 @@ type ProposalID = statemachine.ProposalID
 
 // Proposal is a proposal operation
 type Proposal[I, O any] interface {
-	Execution[statemachine.ProposalID, statemachine.ProposalPhase, I, O]
+	Execution[statemachine.ProposalID, I, O]
 }
 
 // Proposals provides access to pending proposals
@@ -129,15 +129,15 @@ type QueryID = statemachine.QueryID
 
 // Query is a read operation
 type Query[I, O any] interface {
-	Execution[statemachine.QueryID, statemachine.QueryPhase, I, O]
+	Execution[statemachine.QueryID, I, O]
 }
 
-type Executor[T Execution[U, P, I, O], U statemachine.ExecutionID, P statemachine.ExecutionPhase, I, O any] interface {
+type Executor[T Execution[U, I, O], U statemachine.ExecutionID, I, O any] interface {
 	Execute(T)
 }
 
 type Proposer[I1, O1, I2, O2 any] interface {
-	Executor[Proposal[I1, O1], statemachine.ProposalID, statemachine.ProposalPhase, I1, O1]
+	Executor[Proposal[I1, O1], statemachine.ProposalID, I1, O1]
 	Proposals() Proposals[I2, O2]
 }
 
@@ -182,23 +182,21 @@ func (b *ProposerBuilder[I1, O1, I2, O2]) Build(f func(Proposal[I2, O2])) Propos
 var _ ExecutorBuilder[
 	Proposal[proto.Message, proto.Message],
 	statemachine.ProposalID,
-	statemachine.ProposalPhase,
 	proto.Message,
 	proto.Message,
 	Proposer[proto.Message, proto.Message, proto.Message, proto.Message]] = (*ProposerBuilder[proto.Message, proto.Message, proto.Message, proto.Message])(nil)
 
 type ExecutorBuilder[
-	T Execution[U, P, I, O],
+	T Execution[U, I, O],
 	U statemachine.ExecutionID,
-	P statemachine.ExecutionPhase,
 	I proto.Message,
 	O proto.Message,
-	E Executor[T, U, P, I, O]] interface {
+	E Executor[T, U, I, O]] interface {
 	Build(f func(T)) E
 }
 
 type Querier[I1, O1, I2, O2 any] interface {
-	Executor[Query[I1, O1], statemachine.QueryID, statemachine.QueryPhase, I1, O1]
+	Executor[Query[I1, O1], statemachine.QueryID, I1, O1]
 }
 
 func NewQuerier[I1, O1, I2, O2 proto.Message](ctx Context[I1, O1]) *QuerierBuilder[I1, O1, I2, O2] {
@@ -242,7 +240,6 @@ func (b *QuerierBuilder[I1, O1, I2, O2]) Build(f func(Query[I2, O2])) Querier[I1
 var _ ExecutorBuilder[
 	Query[proto.Message, proto.Message],
 	statemachine.QueryID,
-	statemachine.QueryPhase,
 	proto.Message,
 	proto.Message,
 	Querier[proto.Message, proto.Message, proto.Message, proto.Message]] = (*QuerierBuilder[proto.Message, proto.Message, proto.Message, proto.Message])(nil)
@@ -357,13 +354,13 @@ func (p *transcodingProposals[I1, O1, I2, O2]) List() []Proposal[I2, O2] {
 	return proposals
 }
 
-func newTranscodingExecution[T statemachine.ExecutionID, P statemachine.ExecutionPhase, I1, O1, I2, O2 any](
-	parent Execution[T, P, I1, O1],
+func newTranscodingExecution[T statemachine.ExecutionID, I1, O1, I2, O2 any](
+	parent Execution[T, I1, O1],
 	input I2,
 	decoder func(I1) (I2, bool),
 	encoder func(O2) O1,
-	log logging.Logger) Execution[T, P, I2, O2] {
-	return &transcodingExecution[T, P, I1, O1, I2, O2]{
+	log logging.Logger) Execution[T, I2, O2] {
+	return &transcodingExecution[T, I1, O1, I2, O2]{
 		parent:  parent,
 		input:   input,
 		decoder: decoder,
@@ -372,47 +369,47 @@ func newTranscodingExecution[T statemachine.ExecutionID, P statemachine.Executio
 	}
 }
 
-type transcodingExecution[T statemachine.ExecutionID, P statemachine.ExecutionPhase, I1, O1, I2, O2 any] struct {
-	parent  Execution[T, P, I1, O1]
+type transcodingExecution[T statemachine.ExecutionID, I1, O1, I2, O2 any] struct {
+	parent  Execution[T, I1, O1]
 	input   I2
 	decoder func(I1) (I2, bool)
 	encoder func(O2) O1
 	log     logging.Logger
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) ID() T {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) ID() T {
 	return p.parent.ID()
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Log() logging.Logger {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Log() logging.Logger {
 	return p.log
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Session() Session[I2, O2] {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Session() Session[I2, O2] {
 	return newTranscodingSession[I1, O1, I2, O2](p.parent.Session(), p.decoder, p.encoder)
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Watch(watcher statemachine.WatchFunc[P]) statemachine.CancelFunc {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
 	return p.parent.Watch(watcher)
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Input() I2 {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Input() I2 {
 	return p.input
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Output(output O2) {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Output(output O2) {
 	p.parent.Output(p.encoder(output))
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Error(err error) {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Error(err error) {
 	p.parent.Error(err)
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Cancel() {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Cancel() {
 	p.parent.Cancel()
 }
 
-func (p *transcodingExecution[T, P, I1, O1, I2, O2]) Close() {
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Close() {
 	p.parent.Close()
 }
 
@@ -423,12 +420,12 @@ func newTranscodingProposal[I1, O1, I2, O2 any](
 	encoder func(O2) O1,
 	log logging.Logger) Proposal[I2, O2] {
 	return &transcodingProposal[I2, O2]{
-		Execution: newTranscodingExecution[statemachine.ProposalID, statemachine.ProposalPhase, I1, O1, I2, O2](parent, input, decoder, encoder, log),
+		Execution: newTranscodingExecution[statemachine.ProposalID, I1, O1, I2, O2](parent, input, decoder, encoder, log),
 	}
 }
 
 type transcodingProposal[I, O any] struct {
-	Execution[statemachine.ProposalID, statemachine.ProposalPhase, I, O]
+	Execution[statemachine.ProposalID, I, O]
 }
 
 func newTranscodingQuery[I1, O1, I2, O2 any](
@@ -438,10 +435,10 @@ func newTranscodingQuery[I1, O1, I2, O2 any](
 	encoder func(O2) O1,
 	log logging.Logger) Query[I2, O2] {
 	return &transcodingQuery[I2, O2]{
-		Execution: newTranscodingExecution[statemachine.QueryID, statemachine.QueryPhase, I1, O1, I2, O2](parent, input, decoder, encoder, log),
+		Execution: newTranscodingExecution[statemachine.QueryID, I1, O1, I2, O2](parent, input, decoder, encoder, log),
 	}
 }
 
 type transcodingQuery[I, O any] struct {
-	Execution[statemachine.QueryID, statemachine.QueryPhase, I, O]
+	Execution[statemachine.QueryID, I, O]
 }

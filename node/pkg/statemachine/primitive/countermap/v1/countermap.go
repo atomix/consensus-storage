@@ -291,7 +291,7 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 			return err
 		}
 		s.listeners[proposal.ID()] = listener
-		proposal.Watch(func(phase statemachine.ProposalPhase) {
+		proposal.Watch(func(phase statemachine.Phase) {
 			if phase == statemachine.Complete {
 				delete(s.listeners, proposal.ID())
 			}

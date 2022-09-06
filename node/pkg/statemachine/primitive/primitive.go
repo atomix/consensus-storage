@@ -63,7 +63,7 @@ func (p *primitiveStateMachine[I, O]) query(parent session.Query[*multiraftv1.Pr
 	}
 }
 
-var _ primitiveDelegate = (*primitiveStateMachine[any, any])(nil)
+var _ primitiveDelegate = (*primitiveStateMachine[proto.Message, proto.Message])(nil)
 
 func newPrimitiveSessions[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Sessions) Sessions[I, O] {
 	return &primitiveSessions[I, O]{
@@ -191,7 +191,7 @@ func (e *primitiveProposal[I, O]) Session() Session[I, O] {
 	return newPrimitiveSession[I, O](e.primitive, e.parent.Session())
 }
 
-func (e *primitiveProposal[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.ProposalPhase]) statemachine.CancelFunc {
+func (e *primitiveProposal[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
 	return e.parent.Watch(watcher)
 }
 
@@ -253,7 +253,7 @@ func (e *primitiveQuery[I, O]) Session() Session[I, O] {
 	return newPrimitiveSession[I, O](e.primitive, e.parent.Session())
 }
 
-func (e *primitiveQuery[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.QueryPhase]) statemachine.CancelFunc {
+func (e *primitiveQuery[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
 	return e.parent.Watch(watcher)
 }
 
