@@ -41,6 +41,10 @@ func (c *stateMachineContext) Index() statemachine.Index {
 	return statemachine.Index(c.index.Load())
 }
 
+func (c *stateMachineContext) update() statemachine.Index {
+	return statemachine.Index(c.index.Add(1))
+}
+
 func (c *stateMachineContext) Snapshot(writer *snapshot.Writer) error {
 	if err := writer.WriteVarUint64(c.index.Load()); err != nil {
 		return err
@@ -72,7 +76,7 @@ func (s *stateMachine) Update(bytes []byte) (dbsm.Result, error) {
 		return dbsm.Result{}, err
 	}
 	s.sm.Propose(newProposal(
-		statemachine.ProposalID(s.index.Add(1)),
+		statemachine.ProposalID(s.stateMachineContext.update()),
 		proposal.Proposal,
 		s.protocol.getStream(proposal.Term, proposal.SequenceNum)))
 	return dbsm.Result{}, nil
