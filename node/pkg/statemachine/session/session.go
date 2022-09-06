@@ -521,9 +521,12 @@ func (p *sessionProposal) Cancel() {
 }
 
 func (p *sessionProposal) close(phase statemachine.Phase) {
+	if p.phase == phase {
+		return
+	}
+	p.phase = phase
 	p.session.manager.proposals.remove(p.id)
 	p.session.proposals.remove(p.id)
-	p.phase = phase
 	if p.timer != nil {
 		p.timer.Cancel()
 	}

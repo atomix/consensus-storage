@@ -50,6 +50,91 @@ func (c *managerTestContext) nextQueryID() statemachine.QueryID {
 	return c.queryID
 }
 
+func TestOpenCloseSession(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	context := newManagerTestContext(ctrl)
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Close()
+	openSession.EXPECT().Output(gomock.Any())
+	manager.OpenSession(openSession)
+
+	// Verify the session is in the context
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	session, ok := manager.(Context).Sessions().Get(sessionID)
+	assert.True(t, ok)
+	assert.Equal(t, sessionID, session.ID())
+
+	// Take a snapshot of the manager and create a new manager from the snapshot
+	buf := &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+
+	// Verify the session is in the context after recovering from a snapshot
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	session, ok = manager.(Context).Sessions().Get(sessionID)
+	assert.True(t, ok)
+	assert.Equal(t, sessionID, session.ID())
+
+	// Close the session and verify it is removed from the session manager context
+	closeSession := statemachine.NewMockCloseSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	closeSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	closeSession.EXPECT().Input().Return(&multiraftv1.CloseSessionInput{
+		SessionID: multiraftv1.SessionID(sessionID),
+	}).AnyTimes()
+	closeSession.EXPECT().Output(gomock.Any())
+	closeSession.EXPECT().Close()
+	manager.CloseSession(closeSession)
+
+	// Verify the session has been removed from the snapshot
+	assert.Len(t, manager.(Context).Sessions().List(), 0)
+	session, ok = manager.(Context).Sessions().Get(sessionID)
+	assert.False(t, ok)
+	assert.Nil(t, session)
+}
+
+func TestExpireSession(t *testing.T) {
+
+}
+
+func TestCreatePrimitive(t *testing.T) {
+
+}
+
+func TestClosePrimitive(t *testing.T) {
+
+}
+
+func TestUnaryProposal(t *testing.T) {
+
+}
+
+func TestStreamingProposal(t *testing.T) {
+
+}
+
 func TestManager(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
