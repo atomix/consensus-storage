@@ -118,6 +118,27 @@ func TestManager(t *testing.T) {
 	})
 	manager.Propose(proposal)
 
+	// Retry the create primitive command and verify the primitive manager is not called again
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_CreatePrimitive{
+			CreatePrimitive: &multiraftv1.CreatePrimitiveInput{
+				PrimitiveSpec: multiraftv1.PrimitiveSpec{
+					Service:   "test",
+					Namespace: "foo",
+					Name:      "bar",
+				},
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	manager.Propose(proposal)
+
 	// Submit a primitive proposal and verify the proposal is applied to the primitive
 	proposal = statemachine.NewMockSessionProposal(ctrl)
 	proposalID = context.nextProposalID()
@@ -139,11 +160,11 @@ func TestManager(t *testing.T) {
 		assert.Equal(t, proposalID, proposal.ID())
 		assert.Equal(t, sessionID, proposal.Session().ID())
 		assert.Len(t, proposal.Session().Proposals().List(), 1)
-		p, ok := proposal.Session().Proposals().Get(3)
+		p, ok := proposal.Session().Proposals().Get(proposalID)
 		assert.True(t, ok)
 		assert.Equal(t, proposalID, p.ID())
 		assert.Len(t, manager.(Context).Proposals().List(), 1)
-		p, ok = manager.(Context).Proposals().Get(3)
+		p, ok = manager.(Context).Proposals().Get(proposalID)
 		assert.True(t, ok)
 		assert.Equal(t, proposalID, p.ID())
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
