@@ -14,11 +14,11 @@ import (
 
 func TestStateMachineContext(t *testing.T) {
 	context := newStateMachineContext(nil)
-	assert.Equal(t, time.UnixMilli(1), context.update(time.UnixMilli(1)))
+	context.scheduler.tick(time.UnixMilli(1))
 	assert.Equal(t, time.UnixMilli(1), context.Time())
-	assert.Equal(t, time.UnixMilli(2), context.update(time.UnixMilli(2)))
+	context.scheduler.tick(time.UnixMilli(2))
 	assert.Equal(t, time.UnixMilli(2), context.Time())
-	assert.Equal(t, time.UnixMilli(2), context.update(time.UnixMilli(1)))
+	context.scheduler.tick(time.UnixMilli(1))
 	assert.Equal(t, time.UnixMilli(2), context.Time())
 	buf := &bytes.Buffer{}
 	assert.NoError(t, context.Snapshot(snapshot.NewWriter(buf)))

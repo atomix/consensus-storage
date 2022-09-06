@@ -6,25 +6,27 @@ package statemachine
 
 import (
 	"container/list"
+	"sync/atomic"
 	"time"
 )
 
 func newScheduler() *stateMachineScheduler {
-	return &stateMachineScheduler{
+	scheduler := &stateMachineScheduler{
 		scheduledTasks: list.New(),
 		indexedTasks:   make(map[Index]*list.List),
-		time:           time.Now(),
 	}
+	scheduler.time.Store(time.UnixMilli(0))
+	return scheduler
 }
 
 type stateMachineScheduler struct {
 	scheduledTasks *list.List
 	indexedTasks   map[Index]*list.List
-	time           time.Time
+	time           atomic.Value
 }
 
 func (s *stateMachineScheduler) Time() time.Time {
-	return s.time
+	return s.time.Load().(time.Time)
 }
 
 func (s *stateMachineScheduler) Await(index Index, f func()) Timer {
@@ -38,13 +40,7 @@ func (s *stateMachineScheduler) Await(index Index, f func()) Timer {
 }
 
 func (s *stateMachineScheduler) Delay(d time.Duration, f func()) Timer {
-	task := &timeTask{
-		scheduler: s,
-		time:      s.time.Add(d),
-		callback:  f,
-	}
-	task.schedule()
-	return task
+	return s.Schedule(s.Time().Add(d), f)
 }
 
 func (s *stateMachineScheduler) Schedule(t time.Time, f func()) Timer {
@@ -59,16 +55,28 @@ func (s *stateMachineScheduler) Schedule(t time.Time, f func()) Timer {
 
 // tick runs the scheduled time-based tasks
 func (s *stateMachineScheduler) tick(time time.Time) {
-	s.runScheduledTasks(time)
-	s.time = time
+	if time.After(s.Time()) {
+		element := s.scheduledTasks.Front()
+		if element != nil {
+			for element != nil {
+				task := element.Value.(*timeTask)
+				if task.isRunnable(time) {
+					next := element.Next()
+					s.scheduledTasks.Remove(element)
+					s.time.Store(task.time)
+					task.run()
+					element = next
+				} else {
+					break
+				}
+			}
+		}
+		s.time.Store(time)
+	}
 }
 
 // tock runs the scheduled index-based tasks
 func (s *stateMachineScheduler) tock(index Index) {
-	s.runIndexedTasks(index)
-}
-
-func (s *stateMachineScheduler) runIndexedTasks(index Index) {
 	if tasks, ok := s.indexedTasks[index]; ok {
 		elem := tasks.Front()
 		for elem != nil {
@@ -77,25 +85,6 @@ func (s *stateMachineScheduler) runIndexedTasks(index Index) {
 			elem = elem.Next()
 		}
 		delete(s.indexedTasks, index)
-	}
-}
-
-// runScheduleTasks runs the scheduled tasks in the scheduler queue
-func (s *stateMachineScheduler) runScheduledTasks(time time.Time) {
-	element := s.scheduledTasks.Front()
-	if element != nil {
-		for element != nil {
-			task := element.Value.(*timeTask)
-			if task.isRunnable(time) {
-				next := element.Next()
-				s.scheduledTasks.Remove(element)
-				s.time = task.time
-				task.run()
-				element = next
-			} else {
-				break
-			}
-		}
 	}
 }
 
@@ -125,7 +114,7 @@ func (t *timeTask) schedule() {
 }
 
 func (t *timeTask) isRunnable(time time.Time) bool {
-	return time.UnixNano() > t.time.UnixNano()
+	return time.UnixNano() >= t.time.UnixNano()
 }
 
 func (t *timeTask) run() {
