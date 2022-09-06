@@ -21,13 +21,13 @@ import (
 	mapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/map/v1"
 	setv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/set/v1"
 	valuev1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/value/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
-	countersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/counter/v1"
-	countermapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/countermap/v1"
-	locksmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/lock/v1"
-	mapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/map/v1"
-	setsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/set/v1"
-	valuesmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/value/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
+	countersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/counter/v1"
+	countermapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/countermap/v1"
+	locksmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/lock/v1"
+	mapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/map/v1"
+	setsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/set/v1"
+	valuesmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
@@ -39,7 +39,7 @@ var log = logging.GetLogger()
 func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 	var options Options
 	options.apply(opts...)
-	registry := statemachine.NewPrimitiveTypeRegistry()
+	registry := primitive.NewTypeRegistry()
 	countersmv1.Register(registry)
 	countermapsmv1.Register(registry)
 	locksmv1.Register(registry)
