@@ -20,17 +20,17 @@ type primitiveDelegate interface {
 	query(query session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput])
 }
 
-func newPrimitiveDelegate[I, O proto.Message](context session.Context, primitiveType Type[I, O]) primitiveDelegate {
+func newPrimitiveDelegate[I, O proto.Message](context *managedContext, primitiveType Type[I, O]) primitiveDelegate {
 	primitive := &primitiveStateMachine[I, O]{
-		Context: context,
-		codec:   primitiveType.Codec(),
+		managedContext: context,
+		codec:          primitiveType.Codec(),
 	}
 	primitive.sm = primitiveType.NewStateMachine(primitive)
 	return primitive
 }
 
 type primitiveStateMachine[I, O proto.Message] struct {
-	session.Context
+	*managedContext
 	codec Codec[I, O]
 	sm    Primitive[I, O]
 }
