@@ -68,7 +68,7 @@ func (m *primitiveManagerStateMachine) Recover(reader *snapshot.Reader) error {
 		primitive := newManagedPrimitive(context, factory(context))
 		m.primitives[primitive.ID()] = primitive
 		if err := primitive.Recover(reader); err != nil {
-			return nil
+			return err
 		}
 	}
 	return nil
@@ -127,7 +127,7 @@ func (m *primitiveManagerStateMachine) ClosePrimitive(proposal session.ClosePrim
 func (m *primitiveManagerStateMachine) Query(query session.PrimitiveQuery) {
 	primitive, ok := m.primitives[ID(query.Input().PrimitiveID)]
 	if !ok {
-		query.Error(errors.NewFault("primitive %d not found", query.Input().PrimitiveID))
+		query.Error(errors.NewForbidden("primitive %d not found", query.Input().PrimitiveID))
 		query.Close()
 	} else {
 		primitive.query(query)
