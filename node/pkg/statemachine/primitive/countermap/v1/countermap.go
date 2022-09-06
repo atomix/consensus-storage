@@ -589,8 +589,8 @@ func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*countermapv1.Eve
 		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
-	proposal.Watch(func(state statemachine.ProposalPhase) {
-		if state == statemachine.Complete {
+	proposal.Watch(func(phase statemachine.Phase) {
+		if phase == statemachine.Complete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -642,7 +642,7 @@ func (s *MapStateMachine) doEntries(query primitive.Query[*countermapv1.EntriesI
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
-		query.Watch(func(phase statemachine.QueryPhase) {
+		query.Watch(func(phase statemachine.Phase) {
 			if phase == statemachine.Complete {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())

@@ -29,7 +29,7 @@ func newStateMachine(protocol *protocolContext, types *primitive.TypeRegistry) d
 		stateMachineContext: context,
 		protocol:            protocol,
 		sm: statemachine.NewStateMachine(context, func(smCtx statemachine.Context) statemachine.SessionManager {
-			return session.NewManager(context, func(sessionCtx session.Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) session.PrimitiveManager {
+			return session.NewManager(context, func(sessionCtx session.Context) session.PrimitiveManager {
 				return primitive.NewManager(sessionCtx, types)
 			})
 		}),
