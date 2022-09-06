@@ -8,7 +8,6 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
-	"time"
 )
 
 func NewManager(ctx statemachine.SessionManagerContext, factory NewPrimitiveManagerFunc) statemachine.SessionManager {
@@ -26,7 +25,6 @@ type sessionManagerStateMachine struct {
 	sm        PrimitiveManager
 	sessions  *managedSessions
 	proposals *primitiveProposals
-	prevTime  time.Time
 }
 
 func (m *sessionManagerStateMachine) Sessions() Sessions {
@@ -67,7 +65,6 @@ func (m *sessionManagerStateMachine) Recover(reader *snapshot.Reader) error {
 func (m *sessionManagerStateMachine) OpenSession(proposal statemachine.OpenSessionProposal) {
 	session := newManagedSession(m)
 	session.open(proposal)
-	m.prevTime = m.Time()
 }
 
 func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.KeepAliveProposal) {
@@ -79,26 +76,6 @@ func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.KeepAlivePr
 		return
 	}
 	session.keepAlive(proposal)
-
-	// Compute the minimum session timeout
-	var minSessionTimeout time.Duration
-	for _, session := range m.sessions.list() {
-		if session.timeout > minSessionTimeout {
-			minSessionTimeout = session.timeout
-		}
-	}
-
-	// Compute the maximum time at which sessions may be expired.
-	// If no keep-alive has been received from any session for more than the minimum session
-	// timeout, suspect a stop-the-world pause may have occurred. We decline to expire any
-	// of the sessions in this scenario, instead resetting the timestamps for all the sessions.
-	// Only expire a session if keep-alives have been received from other sessions during the
-	// session's expiration period.
-	maxExpireTime := m.prevTime.Add(minSessionTimeout)
-	for _, session := range m.sessions.list() {
-		session.checkExpiration(maxExpireTime)
-	}
-	m.prevTime = m.Time()
 }
 
 func (m *sessionManagerStateMachine) CloseSession(proposal statemachine.CloseSessionProposal) {

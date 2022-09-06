@@ -23,6 +23,7 @@ func newManagedSession(manager *sessionManagerStateMachine) *managedSession {
 		manager:          manager,
 		proposals:        newPrimitiveProposals(),
 		sessionProposals: make(map[multiraftv1.SequenceNum]*sessionProposal),
+		watchers:         make(map[uuid.UUID]statemachine.WatchFunc[State]),
 	}
 }
 
@@ -36,7 +37,7 @@ type managedSession struct {
 	watchers         map[uuid.UUID]statemachine.WatchFunc[State]
 	timeout          time.Duration
 	lastUpdated      time.Time
-	reset            bool
+	expireTimer      statemachine.Timer
 }
 
 func (s *managedSession) Log() logging.Logger {
@@ -142,17 +143,8 @@ func (s *managedSession) Recover(reader *snapshot.Reader) error {
 		s.state = Closed
 	}
 	s.manager.sessions.add(s)
+	s.scheduleExpireTimer()
 	return nil
-}
-
-func (s *managedSession) checkExpiration(expireTime time.Time) {
-	t := s.manager.Time()
-	if t.After(expireTime) {
-		s.resetTime(t)
-	}
-	if t.After(s.expireTime()) {
-		s.expire()
-	}
 }
 
 func (s *managedSession) expire() {
@@ -164,15 +156,13 @@ func (s *managedSession) expire() {
 	}
 }
 
-func (s *managedSession) resetTime(t time.Time) {
-	if !s.reset {
-		s.lastUpdated = t
-		s.reset = true
+func (s *managedSession) scheduleExpireTimer() {
+	if s.expireTimer != nil {
+		s.expireTimer.Cancel()
 	}
-}
-
-func (s *managedSession) expireTime() time.Time {
-	return s.lastUpdated.Add(s.timeout)
+	expireTime := s.lastUpdated.Add(s.timeout)
+	s.expireTimer = s.manager.Scheduler().Schedule(expireTime, s.expire)
+	s.Log().Debugw("Scheduled expire time", logging.Time("Expire", expireTime))
 }
 
 func (s *managedSession) open(proposal statemachine.Proposal[*multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput]) {
@@ -183,6 +173,7 @@ func (s *managedSession) open(proposal statemachine.Proposal[*multiraftv1.OpenSe
 	s.timeout = proposal.Input().Timeout
 	s.log = s.manager.Log().WithFields(logging.Uint64("Session", uint64(s.id)))
 	s.manager.sessions.add(s)
+	s.scheduleExpireTimer()
 	s.Log().Infow("Opened session", logging.Duration("Timeout", s.timeout))
 	proposal.Output(&multiraftv1.OpenSessionOutput{
 		SessionID: multiraftv1.SessionID(s.ID()),
@@ -220,12 +211,13 @@ func (s *managedSession) keepAlive(proposal statemachine.Proposal[*multiraftv1.K
 	proposal.Output(&multiraftv1.KeepAliveOutput{})
 
 	s.lastUpdated = s.manager.Time()
-	s.reset = false
+	s.scheduleExpireTimer()
 }
 
 func (s *managedSession) close(proposal statemachine.Proposal[*multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput]) {
 	defer proposal.Close()
 	s.manager.sessions.remove(s.id)
+	s.expireTimer.Cancel()
 	s.state = Closed
 	for _, watcher := range s.watchers {
 		watcher(Closed)

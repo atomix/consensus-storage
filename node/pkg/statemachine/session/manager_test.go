@@ -18,7 +18,7 @@ import (
 
 func newManagerTestContext(ctrl *gomock.Controller) *managerTestContext {
 	context := statemachine.NewMockSessionManagerContext(ctrl)
-	context.EXPECT().Time().Return(time.Now()).AnyTimes()
+	context.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
 	context.EXPECT().Log().Return(logging.GetLogger()).AnyTimes()
 	return &managerTestContext{
 		MockSessionManagerContext: context,
@@ -55,6 +55,10 @@ func TestOpenCloseSession(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
 	manager := NewManager(context, func(Context) PrimitiveManager {
@@ -98,6 +102,7 @@ func TestOpenCloseSession(t *testing.T) {
 	assert.Equal(t, sessionID, session.ID())
 
 	// Close the session and verify it is removed from the session manager context
+	timer.EXPECT().Cancel()
 	closeSession := statemachine.NewMockCloseSessionProposal(ctrl)
 	proposalID = context.nextProposalID()
 	closeSession.EXPECT().ID().Return(proposalID).AnyTimes()
@@ -116,7 +121,62 @@ func TestOpenCloseSession(t *testing.T) {
 }
 
 func TestExpireSession(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	var expireFunc func()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).DoAndReturn(func(expire time.Time, f func()) statemachine.Timer {
+		assert.Equal(t, time.UnixMilli(0).Add(time.Minute), expire)
+		expireFunc = f
+		return timer
+	})
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Close()
+	openSession.EXPECT().Output(gomock.Any())
+	manager.OpenSession(openSession)
+
+	// Verify the session is in the context
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	session, ok := manager.(Context).Sessions().Get(sessionID)
+	assert.True(t, ok)
+	assert.Equal(t, sessionID, session.ID())
+
+	closed := false
+	session.Watch(func(state State) {
+		assert.Equal(t, Closed, state)
+		closed = true
+	})
+
+	// Call the expiration function
+	context.EXPECT().Time().Return(time.UnixMilli(0).Add(time.Minute)).AnyTimes()
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0).Add(time.Minute)).AnyTimes()
+	expireFunc()
+
+	// Verify the session was closed and removed from the manager
+	assert.True(t, closed)
+	assert.Len(t, manager.(Context).Sessions().List(), 0)
+	session, ok = manager.(Context).Sessions().Get(sessionID)
+	assert.False(t, ok)
+	assert.Nil(t, session)
 }
 
 func TestCreatePrimitive(t *testing.T) {
