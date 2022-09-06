@@ -8,8 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
-	"github.com/atomix/multi-raft-storage/node/pkg/stream"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/primitive"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
@@ -29,7 +28,7 @@ const (
 	defaultClientTimeout           = time.Minute
 )
 
-func NewNode(config *multiraftv1.NodeConfig, registry *statemachine.PrimitiveTypeRegistry) *Node {
+func NewNode(config *multiraftv1.NodeConfig, registry *primitive.TypeRegistry) *Node {
 	var rtt uint64 = 250
 	if config.HeartbeatPeriod != nil {
 		rtt = uint64(config.HeartbeatPeriod.Milliseconds())
@@ -70,7 +69,7 @@ func NewNode(config *multiraftv1.NodeConfig, registry *statemachine.PrimitiveTyp
 type Node struct {
 	host       *dragonboat.NodeHost
 	config     *multiraftv1.NodeConfig
-	registry   *statemachine.PrimitiveTypeRegistry
+	registry   *primitive.TypeRegistry
 	partitions map[multiraftv1.PartitionID]*Partition
 	watchers   map[int]chan<- multiraftv1.Event
 	watcherID  int
@@ -185,12 +184,12 @@ func (n *Node) Leave(groupID multiraftv1.GroupID) error {
 }
 
 func (n *Node) newStateMachine(clusterID, nodeID uint64) dbstatemachine.IStateMachine {
-	streams := stream.NewRegistry()
+	streams := newContext()
 	partition := newPartition(multiraftv1.PartitionID(clusterID), multiraftv1.MemberID(nodeID), n.host, streams)
 	n.mu.Lock()
 	n.partitions[partition.id] = partition
 	n.mu.Unlock()
-	return statemachine.NewStateMachine(streams, n.registry)
+	return newStateMachine(streams, n.registry)
 }
 
 func (n *Node) Shutdown() error {
@@ -237,9 +236,8 @@ func (n *Node) OpenSession(ctx context.Context, input *multiraftv1.OpenSessionIn
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_OpenSession{
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_OpenSession{
 			OpenSession: input,
 		},
 	}
@@ -259,9 +257,8 @@ func (n *Node) KeepAliveSession(ctx context.Context, input *multiraftv1.KeepAliv
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_KeepAlive{
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_KeepAlive{
 			KeepAlive: input,
 		},
 	}
@@ -281,9 +278,8 @@ func (n *Node) CloseSession(ctx context.Context, input *multiraftv1.CloseSession
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_CloseSession{
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_CloseSession{
 			CloseSession: input,
 		},
 	}
@@ -303,13 +299,17 @@ func (n *Node) CreatePrimitive(ctx context.Context, input *multiraftv1.CreatePri
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_SessionCommand{
-			SessionCommand: &multiraftv1.SessionCommandInput{
+	var deadline *time.Time
+	if dl, ok := ctx.Deadline(); ok {
+		deadline = &dl
+	}
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_Proposal{
+			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Input: &multiraftv1.SessionCommandInput_CreatePrimitive{
+				Deadline:    deadline,
+				Input: &multiraftv1.SessionProposalInput_CreatePrimitive{
 					CreatePrimitive: input,
 				},
 			},
@@ -328,12 +328,11 @@ func (n *Node) CreatePrimitive(ctx context.Context, input *multiraftv1.CreatePri
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionCommand().Failure),
-			Message: getHeaderMessage(output.GetSessionCommand().Failure),
+			Status:  getHeaderStatus(output.GetProposal().Failure),
+			Message: getHeaderMessage(output.GetProposal().Failure),
 		},
-		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 	}
-	return output.GetSessionCommand().GetCreatePrimitive(), responseHeaders, nil
+	return output.GetProposal().GetCreatePrimitive(), responseHeaders, nil
 }
 
 func (n *Node) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimitiveInput, requestHeaders *multiraftv1.CommandRequestHeaders) (*multiraftv1.ClosePrimitiveOutput, *multiraftv1.CommandResponseHeaders, error) {
@@ -342,13 +341,17 @@ func (n *Node) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimi
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_SessionCommand{
-			SessionCommand: &multiraftv1.SessionCommandInput{
+	var deadline *time.Time
+	if dl, ok := ctx.Deadline(); ok {
+		deadline = &dl
+	}
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_Proposal{
+			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Input: &multiraftv1.SessionCommandInput_ClosePrimitive{
+				Deadline:    deadline,
+				Input: &multiraftv1.SessionProposalInput_ClosePrimitive{
 					ClosePrimitive: input,
 				},
 			},
@@ -367,12 +370,11 @@ func (n *Node) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimi
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionCommand().Failure),
-			Message: getHeaderMessage(output.GetSessionCommand().Failure),
+			Status:  getHeaderStatus(output.GetProposal().Failure),
+			Message: getHeaderMessage(output.GetProposal().Failure),
 		},
-		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
 	}
-	return output.GetSessionCommand().GetClosePrimitive(), responseHeaders, nil
+	return output.GetProposal().GetClosePrimitive(), responseHeaders, nil
 }
 
 func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders) ([]byte, *multiraftv1.CommandResponseHeaders, error) {
@@ -386,19 +388,16 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 		deadline = &t
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_SessionCommand{
-			SessionCommand: &multiraftv1.SessionCommandInput{
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_Proposal{
+			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
 				Deadline:    deadline,
-				Input: &multiraftv1.SessionCommandInput_Operation{
-					Operation: &multiraftv1.PrimitiveOperationInput{
+				Input: &multiraftv1.SessionProposalInput_Proposal{
+					Proposal: &multiraftv1.PrimitiveProposalInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						OperationInput: multiraftv1.OperationInput{
-							Payload: inputBytes,
-						},
+						Payload:     inputBytes,
 					},
 				},
 			},
@@ -417,15 +416,15 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionCommand().Failure),
-			Message: getHeaderMessage(output.GetSessionCommand().Failure),
+			Status:  getHeaderStatus(output.GetProposal().Failure),
+			Message: getHeaderMessage(output.GetProposal().Failure),
 		},
-		OutputSequenceNum: output.GetSessionCommand().SequenceNum,
+		OutputSequenceNum: output.GetProposal().GetProposal().SequenceNum,
 	}
 	if responseHeaders.Status != multiraftv1.OperationResponseHeaders_OK {
 		return nil, responseHeaders, nil
 	}
-	return output.GetSessionCommand().GetOperation().Payload, responseHeaders, nil
+	return output.GetProposal().GetProposal().Payload, responseHeaders, nil
 }
 
 func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.CommandRequestHeaders, stream streams.WriteStream[*StreamCommandResponse[[]byte]]) error {
@@ -434,24 +433,27 @@ func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHead
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	command := &multiraftv1.CommandInput{
-		Timestamp: time.Now(),
-		Input: &multiraftv1.CommandInput_SessionCommand{
-			SessionCommand: &multiraftv1.SessionCommandInput{
+	var deadline *time.Time
+	if t, ok := ctx.Deadline(); ok {
+		deadline = &t
+	}
+
+	command := &multiraftv1.StateMachineProposalInput{
+		Input: &multiraftv1.StateMachineProposalInput_Proposal{
+			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Input: &multiraftv1.SessionCommandInput_Operation{
-					Operation: &multiraftv1.PrimitiveOperationInput{
+				Deadline:    deadline,
+				Input: &multiraftv1.SessionProposalInput_Proposal{
+					Proposal: &multiraftv1.PrimitiveProposalInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						OperationInput: multiraftv1.OperationInput{
-							Payload: inputBytes,
-						},
+						Payload:     inputBytes,
 					},
 				},
 			},
 		},
 	}
-	return partition.StreamCommand(ctx, command, streams.NewEncodingStream[*multiraftv1.CommandOutput, *StreamCommandResponse[[]byte]](stream, func(output *multiraftv1.CommandOutput, err error) (*StreamCommandResponse[[]byte], error) {
+	return partition.StreamCommand(ctx, command, streams.NewEncodingStream[*multiraftv1.StateMachineProposalOutput, *StreamCommandResponse[[]byte]](stream, func(output *multiraftv1.StateMachineProposalOutput, err error) (*StreamCommandResponse[[]byte], error) {
 		if err != nil {
 			return nil, err
 		}
@@ -464,14 +466,14 @@ func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHead
 						},
 					},
 				},
-				Status:  getHeaderStatus(output.GetSessionCommand().Failure),
-				Message: getHeaderMessage(output.GetSessionCommand().Failure),
+				Status:  getHeaderStatus(output.GetProposal().Failure),
+				Message: getHeaderMessage(output.GetProposal().Failure),
 			},
-			OutputSequenceNum: output.GetSessionCommand().SequenceNum,
+			OutputSequenceNum: output.GetProposal().GetProposal().SequenceNum,
 		}
 		var payload []byte
 		if headers.Status == multiraftv1.OperationResponseHeaders_OK {
-			payload = output.GetSessionCommand().GetOperation().Payload
+			payload = output.GetProposal().GetProposal().Payload
 		}
 		return &StreamCommandResponse[[]byte]{
 			Headers: headers,
@@ -486,17 +488,21 @@ func (n *Node) Query(ctx context.Context, inputBytes []byte, requestHeaders *mul
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	query := &multiraftv1.QueryInput{
+	var deadline *time.Time
+	if t, ok := ctx.Deadline(); ok {
+		deadline = &t
+	}
+
+	query := &multiraftv1.StateMachineQueryInput{
 		MaxReceivedIndex: requestHeaders.MaxReceivedIndex,
-		Input: &multiraftv1.QueryInput_SessionQuery{
-			SessionQuery: &multiraftv1.SessionQueryInput{
+		Input: &multiraftv1.StateMachineQueryInput_Query{
+			Query: &multiraftv1.SessionQueryInput{
 				SessionID: requestHeaders.SessionID,
-				Input: &multiraftv1.SessionQueryInput_Operation{
-					Operation: &multiraftv1.PrimitiveOperationInput{
+				Deadline:  deadline,
+				Input: &multiraftv1.SessionQueryInput_Query{
+					Query: &multiraftv1.PrimitiveQueryInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						OperationInput: multiraftv1.OperationInput{
-							Payload: inputBytes,
-						},
+						Payload:     inputBytes,
 					},
 				},
 			},
@@ -515,14 +521,14 @@ func (n *Node) Query(ctx context.Context, inputBytes []byte, requestHeaders *mul
 					},
 				},
 			},
-			Status:  getHeaderStatus(output.GetSessionQuery().Failure),
-			Message: getHeaderMessage(output.GetSessionQuery().Failure),
+			Status:  getHeaderStatus(output.GetQuery().Failure),
+			Message: getHeaderMessage(output.GetQuery().Failure),
 		},
 	}
 	if responseHeaders.Status != multiraftv1.OperationResponseHeaders_OK {
 		return nil, responseHeaders, nil
 	}
-	return output.GetSessionQuery().GetOperation().Payload, responseHeaders, nil
+	return output.GetQuery().GetQuery().Payload, responseHeaders, nil
 }
 
 func (n *Node) StreamQuery(ctx context.Context, inputBytes []byte, requestHeaders *multiraftv1.QueryRequestHeaders, stream streams.WriteStream[*StreamQueryResponse[[]byte]]) error {
@@ -531,23 +537,27 @@ func (n *Node) StreamQuery(ctx context.Context, inputBytes []byte, requestHeader
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	query := &multiraftv1.QueryInput{
+	var deadline *time.Time
+	if t, ok := ctx.Deadline(); ok {
+		deadline = &t
+	}
+
+	query := &multiraftv1.StateMachineQueryInput{
 		MaxReceivedIndex: requestHeaders.MaxReceivedIndex,
-		Input: &multiraftv1.QueryInput_SessionQuery{
-			SessionQuery: &multiraftv1.SessionQueryInput{
+		Input: &multiraftv1.StateMachineQueryInput_Query{
+			Query: &multiraftv1.SessionQueryInput{
 				SessionID: requestHeaders.SessionID,
-				Input: &multiraftv1.SessionQueryInput_Operation{
-					Operation: &multiraftv1.PrimitiveOperationInput{
+				Deadline:  deadline,
+				Input: &multiraftv1.SessionQueryInput_Query{
+					Query: &multiraftv1.PrimitiveQueryInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
-						OperationInput: multiraftv1.OperationInput{
-							Payload: inputBytes,
-						},
+						Payload:     inputBytes,
 					},
 				},
 			},
 		},
 	}
-	return partition.StreamQuery(ctx, query, streams.NewEncodingStream[*multiraftv1.QueryOutput, *StreamQueryResponse[[]byte]](stream, func(output *multiraftv1.QueryOutput, err error) (*StreamQueryResponse[[]byte], error) {
+	return partition.StreamQuery(ctx, query, streams.NewEncodingStream[*multiraftv1.StateMachineQueryOutput, *StreamQueryResponse[[]byte]](stream, func(output *multiraftv1.StateMachineQueryOutput, err error) (*StreamQueryResponse[[]byte], error) {
 		if err != nil {
 			return nil, err
 		}
@@ -560,13 +570,13 @@ func (n *Node) StreamQuery(ctx context.Context, inputBytes []byte, requestHeader
 						},
 					},
 				},
-				Status:  getHeaderStatus(output.GetSessionQuery().Failure),
-				Message: getHeaderMessage(output.GetSessionQuery().Failure),
+				Status:  getHeaderStatus(output.GetQuery().Failure),
+				Message: getHeaderMessage(output.GetQuery().Failure),
 			},
 		}
 		var payload []byte
 		if headers.Status == multiraftv1.OperationResponseHeaders_OK {
-			payload = output.GetSessionQuery().GetOperation().Payload
+			payload = output.GetQuery().GetQuery().Payload
 		}
 		return &StreamQueryResponse[[]byte]{
 			Headers: headers,

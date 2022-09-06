@@ -66,18 +66,22 @@ spec:
                   properties:
                     quorumSize:
                       type: integer
+                      nullable: true
                     readReplicas:
                       type: integer
+                      nullable: true
                     heartbeatPeriod:
                       type: string
                     electionTimeout:
                       type: string
                     snapshotEntryThreshold:
                       type: integer
-                      minimum: 0
+                      minimum: 1
+                      nullable: true
                     compactionRetainEntries:
                       type: integer
                       minimum: 0
+                      nullable: true
             status:
               type: object
               properties:
@@ -98,6 +102,7 @@ spec:
                         type: integer
                       leader:
                         type: string
+                        nullable: true
                       followers:
                         type: array
                         items:

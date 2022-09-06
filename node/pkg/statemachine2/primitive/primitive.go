@@ -1,0 +1,283 @@
+// SPDX-FileCopyrightText: 2022-present Intel Corporation
+//
+// SPDX-License-Identifier: Apache-2.0
+
+package primitive
+
+import (
+	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/session"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/snapshot"
+	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/gogo/protobuf/proto"
+)
+
+type primitiveDelegate interface {
+	snapshot.Recoverable
+	propose(proposal session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput])
+	query(query session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput])
+}
+
+func newPrimitiveDelegate[I, O proto.Message](context Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], primitiveType Type[I, O]) primitiveDelegate {
+	primitive := &primitiveStateMachine[I, O]{
+		Context: context,
+		codec:   primitiveType.Codec(),
+	}
+	primitive.sm = primitiveType.NewStateMachine(primitive)
+	return primitive
+}
+
+type primitiveStateMachine[I, O proto.Message] struct {
+	Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	codec Codec[I, O]
+	sm    Primitive[I, O]
+}
+
+func (p *primitiveStateMachine[I, O]) Sessions() session.Sessions[I, O] {
+	return newPrimitiveSessions[I, O](p, p.Context.Sessions())
+}
+
+func (p *primitiveStateMachine[I, O]) Proposals() session.Proposals[I, O] {
+	return newPrimitiveProposals[I, O](p, p.Context.Proposals())
+}
+
+func (p *primitiveStateMachine[I, O]) Snapshot(writer *snapshot.Writer) error {
+	return p.sm.Snapshot(writer)
+}
+
+func (p *primitiveStateMachine[I, O]) Recover(reader *snapshot.Reader) error {
+	return p.sm.Recover(reader)
+}
+
+func (p *primitiveStateMachine[I, O]) propose(parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) {
+	if proposal, ok := newPrimitiveProposal[I, O](p, parent); ok {
+		p.sm.Propose(proposal)
+	}
+}
+
+func (p *primitiveStateMachine[I, O]) query(parent session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]) {
+	if query, ok := newPrimitiveQuery[I, O](p, parent); ok {
+		p.sm.Query(query)
+	}
+}
+
+var _ primitiveDelegate = (*primitiveStateMachine[any, any])(nil)
+
+func newPrimitiveSessions[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Sessions[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) session.Sessions[I, O] {
+	return &primitiveSessions[I, O]{
+		primitive: primitive,
+		parent:    parent,
+	}
+}
+
+type primitiveSessions[I, O proto.Message] struct {
+	primitive *primitiveStateMachine[I, O]
+	parent    session.Sessions[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+}
+
+func (p *primitiveSessions[I, O]) Get(id session.ID) (session.Session[I, O], bool) {
+	proposal, ok := p.parent.Get(id)
+	if !ok {
+		return nil, false
+	}
+	return newPrimitiveSession[I, O](p.primitive, proposal), true
+}
+
+func (p *primitiveSessions[I, O]) List() []session.Session[I, O] {
+	parents := p.primitive.Context.Sessions().List()
+	proposals := make([]session.Session[I, O], 0, len(parents))
+	for _, parent := range parents {
+		proposals = append(proposals, newPrimitiveSession[I, O](p.primitive, parent))
+	}
+	return proposals
+}
+
+func newPrimitiveSession[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) session.Session[I, O] {
+	return &primitiveSession[I, O]{
+		primitive: primitive,
+		parent:    parent,
+	}
+}
+
+type primitiveSession[I, O proto.Message] struct {
+	primitive *primitiveStateMachine[I, O]
+	parent    session.Session[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+}
+
+func (s *primitiveSession[I, O]) Log() logging.Logger {
+	return s.parent.Log()
+}
+
+func (s *primitiveSession[I, O]) ID() session.ID {
+	return s.parent.ID()
+}
+
+func (s *primitiveSession[I, O]) State() session.State {
+	return s.parent.State()
+}
+
+func (s *primitiveSession[I, O]) Watch(watcher statemachine.WatchFunc[session.State]) statemachine.CancelFunc {
+	return s.parent.Watch(watcher)
+}
+
+func (s *primitiveSession[I, O]) Proposals() session.Proposals[I, O] {
+	return newPrimitiveProposals[I, O](s.primitive, s.parent.Proposals())
+}
+
+func newPrimitiveProposals[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) session.Proposals[I, O] {
+	return &primitiveProposals[I, O]{
+		primitive: primitive,
+		parent:    parent,
+	}
+}
+
+type primitiveProposals[I, O proto.Message] struct {
+	primitive *primitiveStateMachine[I, O]
+	parent    session.Proposals[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+}
+
+func (p *primitiveProposals[I, O]) Get(id statemachine.ProposalID) (session.Proposal[I, O], bool) {
+	proposal, ok := p.parent.Get(id)
+	if !ok {
+		return nil, false
+	}
+	return newPrimitiveProposal[I, O](p.primitive, proposal)
+}
+
+func (p *primitiveProposals[I, O]) List() []session.Proposal[I, O] {
+	parents := p.parent.List()
+	proposals := make([]session.Proposal[I, O], 0, len(parents))
+	for _, parent := range parents {
+		proposal, ok := newPrimitiveProposal[I, O](p.primitive, parent)
+		if ok {
+			proposals = append(proposals, proposal)
+		}
+	}
+	return proposals
+}
+
+func newPrimitiveProposal[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) (session.Proposal[I, O], bool) {
+	input, err := primitive.codec.DecodeInput(parent.Input().Payload)
+	if err != nil {
+		parent.Error(errors.NewInternal("failed decoding proposal input: %s", err))
+		return nil, false
+	}
+	return &primitiveProposal[I, O]{
+		primitive: primitive,
+		parent:    parent,
+		input:     input,
+	}, true
+}
+
+type primitiveProposal[I, O proto.Message] struct {
+	primitive *primitiveStateMachine[I, O]
+	parent    session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	input     I
+}
+
+func (e *primitiveProposal[I, O]) ID() statemachine.ProposalID {
+	return e.parent.ID()
+}
+
+func (e *primitiveProposal[I, O]) Log() logging.Logger {
+	return e.parent.Log()
+}
+
+func (e *primitiveProposal[I, O]) Session() session.Session[I, O] {
+	return newPrimitiveSession[I, O](e.primitive, e.parent.Session())
+}
+
+func (e *primitiveProposal[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+	return e.parent.Watch(watcher)
+}
+
+func (e *primitiveProposal[I, O]) Input() I {
+	return e.input
+}
+
+func (e *primitiveProposal[I, O]) Output(output O) {
+	payload, err := e.primitive.codec.EncodeOutput(output)
+	if err != nil {
+		e.parent.Error(errors.NewInternal("failed encoding proposal output: %s", err))
+	} else {
+		e.parent.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: payload,
+		})
+	}
+}
+
+func (e *primitiveProposal[I, O]) Error(err error) {
+	e.parent.Error(err)
+}
+
+func (e *primitiveProposal[I, O]) Cancel() {
+	e.parent.Cancel()
+}
+
+func (e *primitiveProposal[I, O]) Close() {
+	e.parent.Close()
+}
+
+func newPrimitiveQuery[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]) (session.Query[I, O], bool) {
+	input, err := primitive.codec.DecodeInput(parent.Input().Payload)
+	if err != nil {
+		parent.Error(errors.NewInternal("failed decoding proposal input: %s", err))
+		return nil, false
+	}
+	return &primitiveQuery[I, O]{
+		primitive: primitive,
+		parent:    parent,
+		input:     input,
+	}, true
+}
+
+type primitiveQuery[I, O proto.Message] struct {
+	primitive *primitiveStateMachine[I, O]
+	parent    session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]
+	input     I
+}
+
+func (e *primitiveQuery[I, O]) ID() statemachine.QueryID {
+	return e.parent.ID()
+}
+
+func (e *primitiveQuery[I, O]) Log() logging.Logger {
+	return e.parent.Log()
+}
+
+func (e *primitiveQuery[I, O]) Session() session.Session[I, O] {
+	return newPrimitiveSession[I, O](e.primitive, e.parent.Session())
+}
+
+func (e *primitiveQuery[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+	return e.parent.Watch(watcher)
+}
+
+func (e *primitiveQuery[I, O]) Input() I {
+	return e.input
+}
+
+func (e *primitiveQuery[I, O]) Output(output O) {
+	payload, err := e.primitive.codec.EncodeOutput(output)
+	if err != nil {
+		e.parent.Error(errors.NewInternal("failed encoding proposal output: %s", err))
+	} else {
+		e.parent.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: payload,
+		})
+	}
+}
+
+func (e *primitiveQuery[I, O]) Error(err error) {
+	e.parent.Error(err)
+}
+
+func (e *primitiveQuery[I, O]) Cancel() {
+	e.parent.Cancel()
+}
+
+func (e *primitiveQuery[I, O]) Close() {
+	e.parent.Close()
+}

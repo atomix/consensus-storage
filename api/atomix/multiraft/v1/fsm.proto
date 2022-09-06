@@ -12,20 +12,30 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
-message CommandInput {
-    google.protobuf.Timestamp timestamp = 1 [
-        (gogoproto.stdtime) = true,
-        (gogoproto.nullable) = false
+message RaftProposal {
+    uint64 term = 1 [
+        (gogoproto.casttype) = "Term"
     ];
+    uint64 sequence_num = 2 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
+    google.protobuf.Timestamp timestamp = 3 [
+        (gogoproto.nullable) = false,
+        (gogoproto.stdtime) = true
+    ];
+    StateMachineProposalInput proposal = 4;
+}
+
+message StateMachineProposalInput {
     oneof input {
-        OpenSessionInput open_session = 2;
-        KeepAliveInput keep_alive = 3;
-        CloseSessionInput close_session = 4;
-        SessionCommandInput session_command = 5;
+        OpenSessionInput open_session = 1;
+        KeepAliveInput keep_alive = 2;
+        CloseSessionInput close_session = 3;
+        SessionProposalInput proposal = 4;
     }
 }
 
-message CommandOutput {
+message StateMachineProposalOutput {
     uint64 index = 1 [
         (gogoproto.casttype) = "Index"
     ];
@@ -33,7 +43,25 @@ message CommandOutput {
         OpenSessionOutput open_session = 2;
         KeepAliveOutput keep_alive = 3;
         CloseSessionOutput close_session = 4;
-        SessionCommandOutput session_command = 5;
+        SessionProposalOutput proposal = 5;
+    }
+}
+
+message StateMachineQueryInput {
+    uint64 max_received_index = 1 [
+        (gogoproto.casttype) = "Index"
+    ];
+    oneof input {
+        SessionQueryInput query = 2;
+    }
+}
+
+message StateMachineQueryOutput {
+    uint64 index = 1 [
+        (gogoproto.casttype) = "Index"
+    ];
+    oneof output {
+        SessionQueryOutput query = 2;
     }
 }
 
@@ -81,7 +109,7 @@ message CloseSessionOutput {
 
 }
 
-message SessionCommandInput {
+message SessionProposalInput {
     uint64 session_id = 1 [
         (gogoproto.customname) = "SessionID",
         (gogoproto.casttype) = "SessionID"
@@ -95,11 +123,11 @@ message SessionCommandInput {
     oneof input {
         CreatePrimitiveInput create_primitive = 4;
         ClosePrimitiveInput close_primitive = 5;
-        PrimitiveOperationInput operation = 6;
+        PrimitiveProposalInput proposal = 6;
     }
 }
 
-message SessionCommandOutput {
+message SessionProposalOutput {
     uint64 sequence_num = 1 [
         (gogoproto.casttype) = "SequenceNum"
     ];
@@ -107,7 +135,27 @@ message SessionCommandOutput {
     oneof output {
         CreatePrimitiveOutput create_primitive = 3;
         ClosePrimitiveOutput close_primitive = 4;
-        PrimitiveOperationOutput operation = 5;
+        PrimitiveProposalOutput proposal = 5;
+    }
+}
+
+message SessionQueryInput {
+    uint64 session_id = 1 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "SessionID"
+    ];
+    google.protobuf.Timestamp deadline = 2 [
+        (gogoproto.stdtime) = true
+    ];
+    oneof input {
+        PrimitiveQueryInput query = 3;
+    }
+}
+
+message SessionQueryOutput {
+    Failure failure = 1;
+    oneof output {
+        PrimitiveQueryOutput query = 2;
     }
 }
 
@@ -136,81 +184,27 @@ message ClosePrimitiveOutput {
 
 }
 
-message PartitionQueryInput {
-    uint32 partition_id = 1 [
-        (gogoproto.customname) = "PartitionID",
-        (gogoproto.casttype) = "PartitionID"
-    ];
-    QueryInput query = 2 [
-        (gogoproto.nullable) = false
-    ];
-    bool sync = 3;
-}
-
-message PartitionQueryOutput {
-    QueryOutput query = 1 [
-        (gogoproto.nullable) = false
-    ];
-}
-
-message QueryInput {
-    uint64 max_received_index = 1 [
-        (gogoproto.casttype) = "Index"
-    ];
-    oneof input {
-        SessionQueryInput session_query = 2;
-    }
-}
-
-message QueryOutput {
-    uint64 index = 1 [
-        (gogoproto.casttype) = "Index"
-    ];
-    oneof output {
-        SessionQueryOutput session_query = 2;
-    }
-}
-
-message SessionQueryInput {
-    uint64 session_id = 1 [
-        (gogoproto.customname) = "SessionID",
-        (gogoproto.casttype) = "SessionID"
-    ];
-    oneof input {
-        PrimitiveOperationInput operation = 2;
-    }
-}
-
-message SessionQueryOutput {
-    Failure failure = 1;
-    oneof output {
-        PrimitiveOperationOutput operation = 2;
-    }
-}
-
-message PrimitiveOperationInput {
+message PrimitiveProposalInput {
     uint64 primitive_id = 1 [
         (gogoproto.customname) = "PrimitiveID",
         (gogoproto.casttype) = "PrimitiveID"
     ];
-    OperationInput input = 2 [
-        (gogoproto.nullable) = false,
-        (gogoproto.embed) = true
-    ];
+    bytes payload = 2;
 }
 
-message OperationInput {
+message PrimitiveProposalOutput {
     bytes payload = 1;
 }
 
-message PrimitiveOperationOutput {
-    OperationOutput output = 1 [
-        (gogoproto.nullable) = false,
-        (gogoproto.embed) = true
+message PrimitiveQueryInput {
+    uint64 primitive_id = 1 [
+        (gogoproto.customname) = "PrimitiveID",
+        (gogoproto.casttype) = "PrimitiveID"
     ];
+    bytes payload = 2;
 }
 
-message OperationOutput {
+message PrimitiveQueryOutput {
     bytes payload = 1;
 }
 
@@ -274,7 +268,6 @@ message SessionSnapshot {
         (gogoproto.stdtime) = true,
         (gogoproto.nullable) = false
     ];
-    repeated CommandSnapshot commands = 5;
     enum State {
         UNKNOWN = 0;
         OPEN = 1;
@@ -282,23 +275,21 @@ message SessionSnapshot {
     }
 }
 
-message CommandSnapshot {
+message SessionProposalSnapshot {
     uint64 index = 1 [
         (gogoproto.casttype) = "Index"
     ];
-    State state = 2;
-    SessionCommandInput input = 3;
-    repeated SessionCommandOutput pending_outputs = 4;
+    Phase phase = 2;
+    SessionProposalInput input = 3;
+    repeated SessionProposalOutput pending_outputs = 4;
     uint64 last_output_sequence_num = 5 [
         (gogoproto.casttype) = "SequenceNum"
     ];
-    google.protobuf.Timestamp deadline = 6 [
-        (gogoproto.stdtime) = true
-    ];
 
-    enum State {
+    enum Phase {
         PENDING = 0;
         RUNNING = 1;
         COMPLETE = 2;
+        CANCELED = 3;
     }
 }

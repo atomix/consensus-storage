@@ -7,7 +7,6 @@ package protocol
 import (
 	"context"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/stream"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/gogo/protobuf/proto"
@@ -15,9 +14,10 @@ import (
 	"google.golang.org/grpc/metadata"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
-func newPartition(id multiraftv1.PartitionID, memberID multiraftv1.MemberID, host *dragonboat.NodeHost, streams *stream.Registry) *Partition {
+func newPartition(id multiraftv1.PartitionID, memberID multiraftv1.MemberID, host *dragonboat.NodeHost, streams *protocolContext) *Partition {
 	return &Partition{
 		id:       id,
 		memberID: memberID,
@@ -33,7 +33,7 @@ type Partition struct {
 	ready    int32
 	leader   uint64
 	term     uint64
-	streams  *stream.Registry
+	streams  *protocolContext
 	mu       sync.RWMutex
 }
 
@@ -58,11 +58,11 @@ func (p *Partition) getLeader() (multiraftv1.Term, multiraftv1.MemberID) {
 	return multiraftv1.Term(atomic.LoadUint64(&p.term)), multiraftv1.MemberID(atomic.LoadUint64(&p.leader))
 }
 
-func (p *Partition) Command(ctx context.Context, command *multiraftv1.CommandInput) (*multiraftv1.CommandOutput, error) {
-	resultCh := make(chan streams.Result[*multiraftv1.CommandOutput], 1)
+func (p *Partition) Command(ctx context.Context, command *multiraftv1.StateMachineProposalInput) (*multiraftv1.StateMachineProposalOutput, error) {
+	resultCh := make(chan streams.Result[*multiraftv1.StateMachineProposalOutput], 1)
 	errCh := make(chan error, 1)
 	go func() {
-		if err := p.commitCommand(ctx, command, streams.NewChannelStream[*multiraftv1.CommandOutput](resultCh)); err != nil {
+		if err := p.commitCommand(ctx, command, streams.NewChannelStream[*multiraftv1.StateMachineProposalOutput](resultCh)); err != nil {
 			errCh <- err
 		}
 	}()
@@ -86,41 +86,39 @@ func (p *Partition) Command(ctx context.Context, command *multiraftv1.CommandInp
 	}
 }
 
-func (p *Partition) StreamCommand(ctx context.Context, input *multiraftv1.CommandInput, out streams.WriteStream[*multiraftv1.CommandOutput]) error {
-	in := streams.NewBufferedStream[*multiraftv1.CommandOutput]()
+func (p *Partition) StreamCommand(ctx context.Context, input *multiraftv1.StateMachineProposalInput, stream streams.WriteStream[*multiraftv1.StateMachineProposalOutput]) error {
+	resultCh := make(chan streams.Result[*multiraftv1.StateMachineProposalOutput])
 	go func() {
-		if err := p.commitCommand(ctx, input, in); err != nil {
-			in.Error(err)
-			in.Close()
+		if err := p.commitCommand(ctx, input, streams.NewChannelStream[*multiraftv1.StateMachineProposalOutput](resultCh)); err != nil {
+			stream.Error(err)
+			stream.Close()
 			return
 		}
 	}()
 	go func() {
-		for {
-			result, ok := in.Receive()
-			if !ok {
-				out.Close()
-				return
-			}
-			out.Send(result)
+		defer stream.Close()
+		for result := range resultCh {
+			stream.Send(result)
 		}
 	}()
 	return nil
 }
 
-func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.CommandInput, stream streams.WriteStream[*multiraftv1.CommandOutput]) error {
+func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.StateMachineProposalInput, stream streams.WriteStream[*multiraftv1.StateMachineProposalOutput]) error {
 	term, leader := p.getLeader()
 	if leader != p.memberID {
 		return errors.NewUnavailable("not the leader")
 	}
 
-	streamID := p.streams.Register(term, stream)
-	entry := &multiraftv1.RaftLogEntry{
-		StreamID: streamID,
-		Command:  *input,
+	sequenceNum := p.streams.addStream(term, stream)
+	proposal := &multiraftv1.RaftProposal{
+		Term:        term,
+		SequenceNum: sequenceNum,
+		Timestamp:   time.Now(),
+		Proposal:    input,
 	}
 
-	bytes, err := proto.Marshal(entry)
+	bytes, err := proto.Marshal(proposal)
 	if err != nil {
 		return errors.NewInternal("failed to marshal RaftLogEntry: %v", err)
 	}
@@ -133,11 +131,15 @@ func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.Comman
 	return nil
 }
 
-func (p *Partition) Query(ctx context.Context, query *multiraftv1.QueryInput) (*multiraftv1.QueryOutput, error) {
-	resultCh := make(chan streams.Result[*multiraftv1.QueryOutput], 1)
+func (p *Partition) Query(ctx context.Context, input *multiraftv1.StateMachineQueryInput) (*multiraftv1.StateMachineQueryOutput, error) {
+	resultCh := make(chan streams.Result[*multiraftv1.StateMachineQueryOutput], 1)
 	errCh := make(chan error, 1)
+	query := &protocolQuery{
+		input:  input,
+		stream: streams.NewChannelStream[*multiraftv1.StateMachineQueryOutput](resultCh),
+	}
 	go func() {
-		if err := p.applyQuery(ctx, query, streams.NewChannelStream[*multiraftv1.QueryOutput](resultCh)); err != nil {
+		if err := p.applyQuery(ctx, query); err != nil {
 			errCh <- err
 		}
 	}()
@@ -161,34 +163,22 @@ func (p *Partition) Query(ctx context.Context, query *multiraftv1.QueryInput) (*
 	}
 }
 
-func (p *Partition) StreamQuery(ctx context.Context, input *multiraftv1.QueryInput, out streams.WriteStream[*multiraftv1.QueryOutput]) error {
-	in := streams.NewBufferedStream[*multiraftv1.QueryOutput]()
+func (p *Partition) StreamQuery(ctx context.Context, input *multiraftv1.StateMachineQueryInput, stream streams.WriteStream[*multiraftv1.StateMachineQueryOutput]) error {
+	query := &protocolQuery{
+		input:  input,
+		stream: stream,
+	}
 	go func() {
-		if err := p.applyQuery(ctx, input, in); err != nil {
-			in.Error(err)
-			in.Close()
+		if err := p.applyQuery(ctx, query); err != nil {
+			stream.Error(err)
+			stream.Close()
 			return
-		}
-	}()
-	go func() {
-		for {
-			result, ok := in.Receive()
-			if !ok {
-				out.Close()
-				return
-			}
-			out.Send(result)
 		}
 	}()
 	return nil
 }
 
-func (p *Partition) applyQuery(ctx context.Context, input *multiraftv1.QueryInput, output streams.WriteStream[*multiraftv1.QueryOutput]) error {
-	query := &stream.Query{
-		Input:   input,
-		Stream:  output,
-		Context: ctx,
-	}
+func (p *Partition) applyQuery(ctx context.Context, query *protocolQuery) error {
 	md, _ := metadata.FromIncomingContext(ctx)
 	sync := md["Sync"] != nil
 	if sync {

@@ -333,8 +333,7 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*countermapv1.CounterMapOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*countermapv1.CounterMapOutput]](ch)
+	stream := streams.NewBufferedStream[*protocol.StreamCommandResponse[*countermapv1.CounterMapOutput]]()
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -347,7 +346,12 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 		}
 	}()
 
-	for result := range ch {
+	for {
+		result, ok := stream.Receive()
+		if !ok {
+			return nil
+		}
+
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
@@ -370,7 +374,6 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 			return err
 		}
 	}
-	return nil
 }
 
 func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server countermapv1.CounterMap_EntriesServer) error {
@@ -382,8 +385,7 @@ func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server 
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*countermapv1.CounterMapOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*countermapv1.CounterMapOutput]](ch)
+	stream := streams.NewBufferedStream[*protocol.StreamQueryResponse[*countermapv1.CounterMapOutput]]()
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -396,7 +398,12 @@ func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server 
 		}
 	}()
 
-	for result := range ch {
+	for {
+		result, ok := stream.Receive()
+		if !ok {
+			return nil
+		}
+
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Entries",
@@ -419,7 +426,6 @@ func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server 
 			return err
 		}
 	}
-	return nil
 }
 
 var _ countermapv1.CounterMapServer = (*CounterMapServer)(nil)

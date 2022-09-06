@@ -354,6 +354,7 @@ func (s *SetStateMachine) Read(query statemachine.Query[*setv1.SetInput, *setv1.
 		s.elements.Read(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))
+		query.Close()
 	}
 }
 

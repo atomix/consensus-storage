@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+type StateMachine[I, O any] interface {
+	Snapshot(writer *snapshot.Writer) error
+	Recover(reader *snapshot.Reader) error
+	Update(proposal Proposal[I, O])
+	Read(query Query[I, O])
+}
+
 type PrimitiveType[I, O any] interface {
 	Service() string
 	Codec() Codec[I, O]

@@ -29,18 +29,24 @@ spec:
               properties:
                 quorumSize:
                   type: integer
+                  nullable: true
                 readReplicas:
                   type: integer
+                  nullable: true
                 heartbeatPeriod:
                   type: string
+                  nullable: true
                 electionTimeout:
                   type: string
+                  nullable: true
                 snapshotEntryThreshold:
                   type: integer
-                  minimum: 0
+                  minimum: 1
+                  nullable: true
                 compactionRetainEntries:
                   type: integer
                   minimum: 0
+                  nullable: true
             status:
               type: object
               properties:
@@ -52,6 +58,7 @@ spec:
                     - Ready
                 term:
                   type: integer
+                  nullable: true
                 leader:
                   type: object
                   required:

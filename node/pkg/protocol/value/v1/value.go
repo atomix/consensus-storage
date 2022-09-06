@@ -177,8 +177,7 @@ func (s *ValueServer) Events(request *valuev1.EventsRequest, server valuev1.Valu
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*valuev1.ValueOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*valuev1.ValueOutput]](ch)
+	stream := streams.NewBufferedStream[*protocol.StreamCommandResponse[*valuev1.ValueOutput]]()
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -191,7 +190,12 @@ func (s *ValueServer) Events(request *valuev1.EventsRequest, server valuev1.Valu
 		}
 	}()
 
-	for result := range ch {
+	for {
+		result, ok := stream.Receive()
+		if !ok {
+			return nil
+		}
+
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
@@ -214,7 +218,6 @@ func (s *ValueServer) Events(request *valuev1.EventsRequest, server valuev1.Valu
 			return err
 		}
 	}
-	return nil
 }
 
 func (s *ValueServer) Watch(request *valuev1.WatchRequest, server valuev1.Value_WatchServer) error {
@@ -226,8 +229,7 @@ func (s *ValueServer) Watch(request *valuev1.WatchRequest, server valuev1.Value_
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*valuev1.ValueOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*valuev1.ValueOutput]](ch)
+	stream := streams.NewBufferedStream[*protocol.StreamQueryResponse[*valuev1.ValueOutput]]()
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -240,7 +242,12 @@ func (s *ValueServer) Watch(request *valuev1.WatchRequest, server valuev1.Value_
 		}
 	}()
 
-	for result := range ch {
+	for {
+		result, ok := stream.Receive()
+		if !ok {
+			return nil
+		}
+
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Watch",
@@ -263,7 +270,6 @@ func (s *ValueServer) Watch(request *valuev1.WatchRequest, server valuev1.Value_
 			return err
 		}
 	}
-	return nil
 }
 
 var _ valuev1.ValueServer = (*ValueServer)(nil)

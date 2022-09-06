@@ -8,9 +8,6 @@
     - [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput)
     - [CloseSessionInput](#atomix-multiraft-v1-CloseSessionInput)
     - [CloseSessionOutput](#atomix-multiraft-v1-CloseSessionOutput)
-    - [CommandInput](#atomix-multiraft-v1-CommandInput)
-    - [CommandOutput](#atomix-multiraft-v1-CommandOutput)
-    - [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot)
     - [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput)
     - [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput)
     - [Failure](#atomix-multiraft-v1-Failure)
@@ -19,25 +16,27 @@
     - [KeepAliveOutput](#atomix-multiraft-v1-KeepAliveOutput)
     - [OpenSessionInput](#atomix-multiraft-v1-OpenSessionInput)
     - [OpenSessionOutput](#atomix-multiraft-v1-OpenSessionOutput)
-    - [OperationInput](#atomix-multiraft-v1-OperationInput)
-    - [OperationOutput](#atomix-multiraft-v1-OperationOutput)
-    - [PartitionQueryInput](#atomix-multiraft-v1-PartitionQueryInput)
-    - [PartitionQueryOutput](#atomix-multiraft-v1-PartitionQueryOutput)
-    - [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput)
-    - [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput)
+    - [PrimitiveProposalInput](#atomix-multiraft-v1-PrimitiveProposalInput)
+    - [PrimitiveProposalOutput](#atomix-multiraft-v1-PrimitiveProposalOutput)
+    - [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput)
+    - [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput)
     - [PrimitiveSnapshot](#atomix-multiraft-v1-PrimitiveSnapshot)
     - [PrimitiveSpec](#atomix-multiraft-v1-PrimitiveSpec)
-    - [QueryInput](#atomix-multiraft-v1-QueryInput)
-    - [QueryOutput](#atomix-multiraft-v1-QueryOutput)
-    - [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput)
-    - [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput)
+    - [RaftProposal](#atomix-multiraft-v1-RaftProposal)
+    - [SessionProposalInput](#atomix-multiraft-v1-SessionProposalInput)
+    - [SessionProposalOutput](#atomix-multiraft-v1-SessionProposalOutput)
+    - [SessionProposalSnapshot](#atomix-multiraft-v1-SessionProposalSnapshot)
     - [SessionQueryInput](#atomix-multiraft-v1-SessionQueryInput)
     - [SessionQueryOutput](#atomix-multiraft-v1-SessionQueryOutput)
     - [SessionSnapshot](#atomix-multiraft-v1-SessionSnapshot)
     - [Snapshot](#atomix-multiraft-v1-Snapshot)
+    - [StateMachineProposalInput](#atomix-multiraft-v1-StateMachineProposalInput)
+    - [StateMachineProposalOutput](#atomix-multiraft-v1-StateMachineProposalOutput)
+    - [StateMachineQueryInput](#atomix-multiraft-v1-StateMachineQueryInput)
+    - [StateMachineQueryOutput](#atomix-multiraft-v1-StateMachineQueryOutput)
   
-    - [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State)
     - [Failure.Status](#atomix-multiraft-v1-Failure-Status)
+    - [SessionProposalSnapshot.Phase](#atomix-multiraft-v1-SessionProposalSnapshot-Phase)
     - [SessionSnapshot.State](#atomix-multiraft-v1-SessionSnapshot-State)
   
 - [Scalar Value Types](#scalar-value-types)
@@ -95,64 +94,6 @@
 
 ### CloseSessionOutput
 
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-CommandInput"></a>
-
-### CommandInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
-| open_session | [OpenSessionInput](#atomix-multiraft-v1-OpenSessionInput) |  |  |
-| keep_alive | [KeepAliveInput](#atomix-multiraft-v1-KeepAliveInput) |  |  |
-| close_session | [CloseSessionInput](#atomix-multiraft-v1-CloseSessionInput) |  |  |
-| session_command | [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-CommandOutput"></a>
-
-### CommandOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| open_session | [OpenSessionOutput](#atomix-multiraft-v1-OpenSessionOutput) |  |  |
-| keep_alive | [KeepAliveOutput](#atomix-multiraft-v1-KeepAliveOutput) |  |  |
-| close_session | [CloseSessionOutput](#atomix-multiraft-v1-CloseSessionOutput) |  |  |
-| session_command | [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-CommandSnapshot"></a>
-
-### CommandSnapshot
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| state | [CommandSnapshot.State](#atomix-multiraft-v1-CommandSnapshot-State) |  |  |
-| input | [SessionCommandInput](#atomix-multiraft-v1-SessionCommandInput) |  |  |
-| pending_outputs | [SessionCommandOutput](#atomix-multiraft-v1-SessionCommandOutput) | repeated |  |
-| last_output_sequence_num | [uint64](#uint64) |  |  |
-| deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
@@ -279,93 +220,62 @@
 
 
 
-<a name="atomix-multiraft-v1-OperationInput"></a>
+<a name="atomix-multiraft-v1-PrimitiveProposalInput"></a>
 
-### OperationInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| payload | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-OperationOutput"></a>
-
-### OperationOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| payload | [bytes](#bytes) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PartitionQueryInput"></a>
-
-### PartitionQueryInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| partition_id | [uint32](#uint32) |  |  |
-| query | [QueryInput](#atomix-multiraft-v1-QueryInput) |  |  |
-| sync | [bool](#bool) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PartitionQueryOutput"></a>
-
-### PartitionQueryOutput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| query | [QueryOutput](#atomix-multiraft-v1-QueryOutput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-PrimitiveOperationInput"></a>
-
-### PrimitiveOperationInput
+### PrimitiveProposalInput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | primitive_id | [uint64](#uint64) |  |  |
-| input | [OperationInput](#atomix-multiraft-v1-OperationInput) |  |  |
+| payload | [bytes](#bytes) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-PrimitiveOperationOutput"></a>
+<a name="atomix-multiraft-v1-PrimitiveProposalOutput"></a>
 
-### PrimitiveOperationOutput
+### PrimitiveProposalOutput
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| output | [OperationOutput](#atomix-multiraft-v1-OperationOutput) |  |  |
+| payload | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveQueryInput"></a>
+
+### PrimitiveQueryInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| primitive_id | [uint64](#uint64) |  |  |
+| payload | [bytes](#bytes) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-PrimitiveQueryOutput"></a>
+
+### PrimitiveQueryOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| payload | [bytes](#bytes) |  |  |
 
 
 
@@ -405,41 +315,27 @@
 
 
 
-<a name="atomix-multiraft-v1-QueryInput"></a>
+<a name="atomix-multiraft-v1-RaftProposal"></a>
 
-### QueryInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| max_received_index | [uint64](#uint64) |  |  |
-| session_query | [SessionQueryInput](#atomix-multiraft-v1-SessionQueryInput) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-v1-QueryOutput"></a>
-
-### QueryOutput
+### RaftProposal
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-| session_query | [SessionQueryOutput](#atomix-multiraft-v1-SessionQueryOutput) |  |  |
+| term | [uint64](#uint64) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| proposal | [StateMachineProposalInput](#atomix-multiraft-v1-StateMachineProposalInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-SessionCommandInput"></a>
+<a name="atomix-multiraft-v1-SessionProposalInput"></a>
 
-### SessionCommandInput
+### SessionProposalInput
 
 
 
@@ -450,16 +346,16 @@
 | deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | create_primitive | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
 | close_primitive | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
-| operation | [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput) |  |  |
+| proposal | [PrimitiveProposalInput](#atomix-multiraft-v1-PrimitiveProposalInput) |  |  |
 
 
 
 
 
 
-<a name="atomix-multiraft-v1-SessionCommandOutput"></a>
+<a name="atomix-multiraft-v1-SessionProposalOutput"></a>
 
-### SessionCommandOutput
+### SessionProposalOutput
 
 
 
@@ -469,7 +365,26 @@
 | failure | [Failure](#atomix-multiraft-v1-Failure) |  |  |
 | create_primitive | [CreatePrimitiveOutput](#atomix-multiraft-v1-CreatePrimitiveOutput) |  |  |
 | close_primitive | [ClosePrimitiveOutput](#atomix-multiraft-v1-ClosePrimitiveOutput) |  |  |
-| operation | [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput) |  |  |
+| proposal | [PrimitiveProposalOutput](#atomix-multiraft-v1-PrimitiveProposalOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-SessionProposalSnapshot"></a>
+
+### SessionProposalSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| phase | [SessionProposalSnapshot.Phase](#atomix-multiraft-v1-SessionProposalSnapshot-Phase) |  |  |
+| input | [SessionProposalInput](#atomix-multiraft-v1-SessionProposalInput) |  |  |
+| pending_outputs | [SessionProposalOutput](#atomix-multiraft-v1-SessionProposalOutput) | repeated |  |
+| last_output_sequence_num | [uint64](#uint64) |  |  |
 
 
 
@@ -485,7 +400,8 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
-| operation | [PrimitiveOperationInput](#atomix-multiraft-v1-PrimitiveOperationInput) |  |  |
+| deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| query | [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput) |  |  |
 
 
 
@@ -501,7 +417,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | failure | [Failure](#atomix-multiraft-v1-Failure) |  |  |
-| operation | [PrimitiveOperationOutput](#atomix-multiraft-v1-PrimitiveOperationOutput) |  |  |
+| query | [PrimitiveQueryOutput](#atomix-multiraft-v1-PrimitiveQueryOutput) |  |  |
 
 
 
@@ -520,7 +436,6 @@
 | state | [SessionSnapshot.State](#atomix-multiraft-v1-SessionSnapshot-State) |  |  |
 | timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 | last_updated | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
-| commands | [CommandSnapshot](#atomix-multiraft-v1-CommandSnapshot) | repeated |  |
 
 
 
@@ -542,20 +457,76 @@
 
 
 
+
+<a name="atomix-multiraft-v1-StateMachineProposalInput"></a>
+
+### StateMachineProposalInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| open_session | [OpenSessionInput](#atomix-multiraft-v1-OpenSessionInput) |  |  |
+| keep_alive | [KeepAliveInput](#atomix-multiraft-v1-KeepAliveInput) |  |  |
+| close_session | [CloseSessionInput](#atomix-multiraft-v1-CloseSessionInput) |  |  |
+| proposal | [SessionProposalInput](#atomix-multiraft-v1-SessionProposalInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-StateMachineProposalOutput"></a>
+
+### StateMachineProposalOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| open_session | [OpenSessionOutput](#atomix-multiraft-v1-OpenSessionOutput) |  |  |
+| keep_alive | [KeepAliveOutput](#atomix-multiraft-v1-KeepAliveOutput) |  |  |
+| close_session | [CloseSessionOutput](#atomix-multiraft-v1-CloseSessionOutput) |  |  |
+| proposal | [SessionProposalOutput](#atomix-multiraft-v1-SessionProposalOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-StateMachineQueryInput"></a>
+
+### StateMachineQueryInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| max_received_index | [uint64](#uint64) |  |  |
+| query | [SessionQueryInput](#atomix-multiraft-v1-SessionQueryInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-v1-StateMachineQueryOutput"></a>
+
+### StateMachineQueryOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| index | [uint64](#uint64) |  |  |
+| query | [SessionQueryOutput](#atomix-multiraft-v1-SessionQueryOutput) |  |  |
+
+
+
+
+
  
-
-
-<a name="atomix-multiraft-v1-CommandSnapshot-State"></a>
-
-### CommandSnapshot.State
-
-
-| Name | Number | Description |
-| ---- | ------ | ----------- |
-| PENDING | 0 |  |
-| RUNNING | 1 |  |
-| COMPLETE | 2 |  |
-
 
 
 <a name="atomix-multiraft-v1-Failure-Status"></a>
@@ -579,6 +550,20 @@
 | TIMEOUT | 11 |  |
 | FAULT | 12 |  |
 | INTERNAL | 13 |  |
+
+
+
+<a name="atomix-multiraft-v1-SessionProposalSnapshot-Phase"></a>
+
+### SessionProposalSnapshot.Phase
+
+
+| Name | Number | Description |
+| ---- | ------ | ----------- |
+| PENDING | 0 |  |
+| RUNNING | 1 |  |
+| COMPLETE | 2 |  |
+| CANCELED | 3 |  |
 
 
 

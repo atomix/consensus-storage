@@ -177,8 +177,7 @@ func (s *SetServer) Events(request *setv1.EventsRequest, server setv1.Set_Events
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamCommandResponse[*setv1.SetOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamCommandResponse[*setv1.SetOutput]](ch)
+	stream := streams.NewBufferedStream[*protocol.StreamCommandResponse[*setv1.SetOutput]]()
 	go func() {
 		err := s.protocol.StreamCommand(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -191,7 +190,12 @@ func (s *SetServer) Events(request *setv1.EventsRequest, server setv1.Set_Events
 		}
 	}()
 
-	for result := range ch {
+	for {
+		result, ok := stream.Receive()
+		if !ok {
+			return nil
+		}
+
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
@@ -214,7 +218,6 @@ func (s *SetServer) Events(request *setv1.EventsRequest, server setv1.Set_Events
 			return err
 		}
 	}
-	return nil
 }
 
 func (s *SetServer) Elements(request *setv1.ElementsRequest, server setv1.Set_ElementsServer) error {
@@ -226,8 +229,7 @@ func (s *SetServer) Elements(request *setv1.ElementsRequest, server setv1.Set_El
 		},
 	}
 
-	ch := make(chan streams.Result[*protocol.StreamQueryResponse[*setv1.SetOutput]])
-	stream := streams.NewChannelStream[*protocol.StreamQueryResponse[*setv1.SetOutput]](ch)
+	stream := streams.NewBufferedStream[*protocol.StreamQueryResponse[*setv1.SetOutput]]()
 	go func() {
 		err := s.protocol.StreamQuery(server.Context(), input, request.Headers, stream)
 		if err != nil {
@@ -240,7 +242,12 @@ func (s *SetServer) Elements(request *setv1.ElementsRequest, server setv1.Set_El
 		}
 	}()
 
-	for result := range ch {
+	for {
+		result, ok := stream.Receive()
+		if !ok {
+			return nil
+		}
+
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Elements",
@@ -263,7 +270,6 @@ func (s *SetServer) Elements(request *setv1.ElementsRequest, server setv1.Set_El
 			return err
 		}
 	}
-	return nil
 }
 
 var _ setv1.SetServer = (*SetServer)(nil)
