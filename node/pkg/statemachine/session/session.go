@@ -499,6 +499,9 @@ func (p *sessionProposal) Error(err error) {
 }
 
 func (p *sessionProposal) Close() {
+	if p.phase != statemachine.Runnnig {
+		return
+	}
 	if p.parent != nil {
 		p.parent.Close()
 	}
@@ -506,6 +509,9 @@ func (p *sessionProposal) Close() {
 }
 
 func (p *sessionProposal) Cancel() {
+	if p.phase != statemachine.Runnnig {
+		return
+	}
 	if p.parent != nil {
 		p.parent.Cancel()
 	}
@@ -513,9 +519,6 @@ func (p *sessionProposal) Cancel() {
 }
 
 func (p *sessionProposal) close(phase statemachine.Phase) {
-	if p.phase == phase {
-		return
-	}
 	p.phase = phase
 	p.session.manager.proposals.remove(p.id)
 	p.session.proposals.remove(p.id)

@@ -71,7 +71,7 @@ func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.KeepAlivePr
 	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
-		proposal.Error(errors.NewFault("session not found"))
+		proposal.Error(errors.NewForbidden("session not found"))
 		proposal.Close()
 		return
 	}
@@ -82,7 +82,7 @@ func (m *sessionManagerStateMachine) CloseSession(proposal statemachine.CloseSes
 	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
-		proposal.Error(errors.NewFault("session not found"))
+		proposal.Error(errors.NewForbidden("session not found"))
 		proposal.Close()
 		return
 	}
@@ -93,7 +93,7 @@ func (m *sessionManagerStateMachine) Propose(proposal statemachine.SessionPropos
 	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
-		proposal.Error(errors.NewFault("session not found"))
+		proposal.Error(errors.NewForbidden("session not found"))
 		proposal.Close()
 		return
 	}
@@ -104,7 +104,7 @@ func (m *sessionManagerStateMachine) Query(query statemachine.SessionQuery) {
 	sessionID := ID(query.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
-		query.Error(errors.NewFault("session not found"))
+		query.Error(errors.NewForbidden("session not found"))
 		query.Close()
 		return
 	}
