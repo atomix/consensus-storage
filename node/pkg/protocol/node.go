@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/primitive"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
@@ -419,7 +419,7 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 			Status:  getHeaderStatus(output.GetProposal().Failure),
 			Message: getHeaderMessage(output.GetProposal().Failure),
 		},
-		OutputSequenceNum: output.GetProposal().GetProposal().SequenceNum,
+		OutputSequenceNum: output.GetProposal().SequenceNum,
 	}
 	if responseHeaders.Status != multiraftv1.OperationResponseHeaders_OK {
 		return nil, responseHeaders, nil
@@ -469,7 +469,7 @@ func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHead
 				Status:  getHeaderStatus(output.GetProposal().Failure),
 				Message: getHeaderMessage(output.GetProposal().Failure),
 			},
-			OutputSequenceNum: output.GetProposal().GetProposal().SequenceNum,
+			OutputSequenceNum: output.GetProposal().SequenceNum,
 		}
 		var payload []byte
 		if headers.Status == multiraftv1.OperationResponseHeaders_OK {

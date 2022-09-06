@@ -6,10 +6,10 @@ package protocol
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine2"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/primitive"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/session"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/snapshot"
+	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/gogo/protobuf/proto"
@@ -28,8 +28,8 @@ func newStateMachine(protocol *protocolContext, types *primitive.TypeRegistry) d
 	sm := &stateMachine{
 		stateMachineContext: context,
 		protocol:            protocol,
-		sm: statemachine.NewStateMachine(context, func(smCtx statemachine.Context) statemachine.StateMachine {
-			return session.NewManager(context, func(sessionCtx session.Context[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]) session.PrimitiveManager {
+		sm: statemachine.NewStateMachine(context, func(smCtx statemachine.Context) statemachine.SessionManager {
+			return session.NewManager(context, func(sessionCtx session.Context[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) session.PrimitiveManager {
 				return primitive.NewManager(sessionCtx, types)
 			})
 		}),
@@ -75,7 +75,7 @@ type stateMachine struct {
 	*stateMachineContext
 	protocol *protocolContext
 	queryID  atomic.Uint64
-	sm       statemachine.StateMachine
+	sm       *statemachine.StateMachine
 }
 
 func (s *stateMachine) Update(bytes []byte) (dbsm.Result, error) {

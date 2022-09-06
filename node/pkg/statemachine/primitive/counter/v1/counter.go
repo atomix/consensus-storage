@@ -6,21 +6,22 @@ package v1
 
 import (
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/gogo/protobuf/proto"
 )
 
 const Service = "atomix.runtime.counter.v1.Counter"
 
-func Register(registry *statemachine.PrimitiveTypeRegistry) {
-	statemachine.RegisterPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(Type)
+func Register(registry *primitive.TypeRegistry) {
+	primitive.RegisterType[*counterv1.CounterInput, *counterv1.CounterOutput](registry)(Type)
 }
 
-var Type = statemachine.NewPrimitiveType[*counterv1.CounterInput, *counterv1.CounterOutput](Service, counterCodec, newCounterStateMachine)
+var Type = primitive.NewType[*counterv1.CounterInput, *counterv1.CounterOutput](Service, counterCodec, newCounterStateMachine)
 
-var counterCodec = statemachine.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
+var counterCodec = primitive.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
 	func(bytes []byte) (*counterv1.CounterInput, error) {
 		input := &counterv1.CounterInput{}
 		if err := proto.Unmarshal(bytes, input); err != nil {
@@ -32,26 +33,26 @@ var counterCodec = statemachine.NewCodec[*counterv1.CounterInput, *counterv1.Cou
 		return proto.Marshal(output)
 	})
 
-func newCounterStateMachine(ctx statemachine.PrimitiveContext[*counterv1.CounterInput, *counterv1.CounterOutput]) statemachine.Primitive[*counterv1.CounterInput, *counterv1.CounterOutput] {
+func newCounterStateMachine(ctx primitive.Context[*counterv1.CounterInput, *counterv1.CounterOutput]) primitive.Primitive[*counterv1.CounterInput, *counterv1.CounterOutput] {
 	sm := &CounterStateMachine{
-		PrimitiveContext: ctx,
+		Context: ctx,
 	}
 	sm.init()
 	return sm
 }
 
 type CounterStateMachine struct {
-	statemachine.PrimitiveContext[*counterv1.CounterInput, *counterv1.CounterOutput]
+	primitive.Context[*counterv1.CounterInput, *counterv1.CounterOutput]
 	value     int64
-	set       statemachine.Updater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.SetInput, *counterv1.SetOutput]
-	update    statemachine.Updater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.UpdateInput, *counterv1.UpdateOutput]
-	increment statemachine.Updater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.IncrementInput, *counterv1.IncrementOutput]
-	decrement statemachine.Updater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.DecrementInput, *counterv1.DecrementOutput]
-	get       statemachine.Reader[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.GetInput, *counterv1.GetOutput]
+	set       primitive.Proposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.SetInput, *counterv1.SetOutput]
+	update    primitive.Proposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.UpdateInput, *counterv1.UpdateOutput]
+	increment primitive.Proposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.IncrementInput, *counterv1.IncrementOutput]
+	decrement primitive.Proposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.DecrementInput, *counterv1.DecrementOutput]
+	get       primitive.Querier[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.GetInput, *counterv1.GetOutput]
 }
 
 func (s *CounterStateMachine) init() {
-	s.set = statemachine.NewUpdater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.SetInput, *counterv1.SetOutput](s).
+	s.set = primitive.NewProposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.SetInput, *counterv1.SetOutput](s).
 		Name("Set").
 		Decoder(func(input *counterv1.CounterInput) (*counterv1.SetInput, bool) {
 			if set, ok := input.Input.(*counterv1.CounterInput_Set); ok {
@@ -67,7 +68,7 @@ func (s *CounterStateMachine) init() {
 			}
 		}).
 		Build(s.doSet)
-	s.update = statemachine.NewUpdater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.UpdateInput, *counterv1.UpdateOutput](s).
+	s.update = primitive.NewProposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.UpdateInput, *counterv1.UpdateOutput](s).
 		Name("Update").
 		Decoder(func(input *counterv1.CounterInput) (*counterv1.UpdateInput, bool) {
 			if set, ok := input.Input.(*counterv1.CounterInput_Update); ok {
@@ -83,7 +84,7 @@ func (s *CounterStateMachine) init() {
 			}
 		}).
 		Build(s.doUpdate)
-	s.increment = statemachine.NewUpdater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.IncrementInput, *counterv1.IncrementOutput](s).
+	s.increment = primitive.NewProposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.IncrementInput, *counterv1.IncrementOutput](s).
 		Name("Increment").
 		Decoder(func(input *counterv1.CounterInput) (*counterv1.IncrementInput, bool) {
 			if set, ok := input.Input.(*counterv1.CounterInput_Increment); ok {
@@ -99,7 +100,7 @@ func (s *CounterStateMachine) init() {
 			}
 		}).
 		Build(s.doIncrement)
-	s.decrement = statemachine.NewUpdater[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.DecrementInput, *counterv1.DecrementOutput](s).
+	s.decrement = primitive.NewProposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.DecrementInput, *counterv1.DecrementOutput](s).
 		Name("Decrement").
 		Decoder(func(input *counterv1.CounterInput) (*counterv1.DecrementInput, bool) {
 			if set, ok := input.Input.(*counterv1.CounterInput_Decrement); ok {
@@ -115,7 +116,7 @@ func (s *CounterStateMachine) init() {
 			}
 		}).
 		Build(s.doDecrement)
-	s.get = statemachine.NewReader[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.GetInput, *counterv1.GetOutput](s).
+	s.get = primitive.NewQuerier[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.GetInput, *counterv1.GetOutput](s).
 		Name("Get").
 		Decoder(func(input *counterv1.CounterInput) (*counterv1.GetInput, bool) {
 			if set, ok := input.Input.(*counterv1.CounterInput_Get); ok {
@@ -146,22 +147,22 @@ func (s *CounterStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *CounterStateMachine) Update(proposal statemachine.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) Propose(proposal session.Proposal[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *counterv1.CounterInput_Set:
-		s.set.Update(proposal)
+		s.set.Execute(proposal)
 	case *counterv1.CounterInput_Update:
-		s.update.Update(proposal)
+		s.update.Execute(proposal)
 	case *counterv1.CounterInput_Increment:
-		s.increment.Update(proposal)
+		s.increment.Execute(proposal)
 	case *counterv1.CounterInput_Decrement:
-		s.decrement.Update(proposal)
+		s.decrement.Execute(proposal)
 	default:
 		proposal.Error(errors.NewNotSupported("proposal not supported"))
 	}
 }
 
-func (s *CounterStateMachine) doSet(proposal statemachine.Proposal[*counterv1.SetInput, *counterv1.SetOutput]) {
+func (s *CounterStateMachine) doSet(proposal session.Proposal[*counterv1.SetInput, *counterv1.SetOutput]) {
 	defer proposal.Close()
 	s.value = proposal.Input().Value
 	proposal.Output(&counterv1.SetOutput{
@@ -169,7 +170,7 @@ func (s *CounterStateMachine) doSet(proposal statemachine.Proposal[*counterv1.Se
 	})
 }
 
-func (s *CounterStateMachine) doUpdate(proposal statemachine.Proposal[*counterv1.UpdateInput, *counterv1.UpdateOutput]) {
+func (s *CounterStateMachine) doUpdate(proposal session.Proposal[*counterv1.UpdateInput, *counterv1.UpdateOutput]) {
 	defer proposal.Close()
 	if s.value != proposal.Input().Compare {
 		proposal.Error(errors.NewConflict("optimistic lock failure"))
@@ -181,7 +182,7 @@ func (s *CounterStateMachine) doUpdate(proposal statemachine.Proposal[*counterv1
 	}
 }
 
-func (s *CounterStateMachine) doIncrement(proposal statemachine.Proposal[*counterv1.IncrementInput, *counterv1.IncrementOutput]) {
+func (s *CounterStateMachine) doIncrement(proposal session.Proposal[*counterv1.IncrementInput, *counterv1.IncrementOutput]) {
 	defer proposal.Close()
 	s.value += proposal.Input().Delta
 	proposal.Output(&counterv1.IncrementOutput{
@@ -189,7 +190,7 @@ func (s *CounterStateMachine) doIncrement(proposal statemachine.Proposal[*counte
 	})
 }
 
-func (s *CounterStateMachine) doDecrement(proposal statemachine.Proposal[*counterv1.DecrementInput, *counterv1.DecrementOutput]) {
+func (s *CounterStateMachine) doDecrement(proposal session.Proposal[*counterv1.DecrementInput, *counterv1.DecrementOutput]) {
 	defer proposal.Close()
 	s.value -= proposal.Input().Delta
 	proposal.Output(&counterv1.DecrementOutput{
@@ -197,16 +198,16 @@ func (s *CounterStateMachine) doDecrement(proposal statemachine.Proposal[*counte
 	})
 }
 
-func (s *CounterStateMachine) Read(query statemachine.Query[*counterv1.CounterInput, *counterv1.CounterOutput]) {
+func (s *CounterStateMachine) Query(query session.Query[*counterv1.CounterInput, *counterv1.CounterOutput]) {
 	switch query.Input().Input.(type) {
 	case *counterv1.CounterInput_Get:
-		s.get.Read(query)
+		s.get.Execute(query)
 	default:
 		query.Error(errors.NewNotSupported("query not supported"))
 	}
 }
 
-func (s *CounterStateMachine) doGet(query statemachine.Query[*counterv1.GetInput, *counterv1.GetOutput]) {
+func (s *CounterStateMachine) doGet(query session.Query[*counterv1.GetInput, *counterv1.GetOutput]) {
 	defer query.Close()
 	query.Output(&counterv1.GetOutput{
 		Value: s.value,

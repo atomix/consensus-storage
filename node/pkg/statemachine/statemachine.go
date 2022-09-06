@@ -6,50 +6,115 @@ package statemachine
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/snapshot"
-	"github.com/atomix/multi-raft-storage/node/pkg/stream"
-	"github.com/gogo/protobuf/proto"
-	dbstatemachine "github.com/lni/dragonboat/v3/statemachine"
-	"io"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 )
 
-func NewStateMachine(streams *stream.Registry, primitives *PrimitiveTypeRegistry) dbstatemachine.IStateMachine {
-	return &stateMachine{
-		state:   newStateManager(primitives),
-		streams: streams,
+func NewStateMachine(context Context, factory NewSessionManagerFunc) *StateMachine {
+	return &StateMachine{
+		Context: context,
+		sm:      factory(context),
 	}
 }
 
-type stateMachine struct {
-	state   *stateManager
-	streams *stream.Registry
+type StateMachine struct {
+	Context
+	sm SessionManager
 }
 
-func (s *stateMachine) Update(bytes []byte) (dbstatemachine.Result, error) {
-	logEntry := &multiraftv1.RaftLogEntry{}
-	if err := proto.Unmarshal(bytes, logEntry); err != nil {
-		return dbstatemachine.Result{}, err
+func (s *StateMachine) Snapshot(writer *snapshot.Writer) error {
+	return s.sm.Snapshot(writer)
+}
+
+func (s *StateMachine) Recover(reader *snapshot.Reader) error {
+	return s.sm.Recover(reader)
+}
+
+func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput]) {
+	switch p := proposal.Input().Input.(type) {
+	case *multiraftv1.StateMachineProposalInput_Proposal:
+		s.sm.Propose(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput](
+			proposal,
+			p.Proposal,
+			func(output *multiraftv1.SessionProposalOutput) *multiraftv1.StateMachineProposalOutput {
+				return &multiraftv1.StateMachineProposalOutput{
+					Index: multiraftv1.Index(s.Index()),
+					Output: &multiraftv1.StateMachineProposalOutput_Proposal{
+						Proposal: output,
+					},
+				}
+			}))
+	case *multiraftv1.StateMachineProposalInput_OpenSession:
+		s.sm.OpenSession(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput](
+			proposal,
+			p.OpenSession,
+			func(output *multiraftv1.OpenSessionOutput) *multiraftv1.StateMachineProposalOutput {
+				return &multiraftv1.StateMachineProposalOutput{
+					Index: multiraftv1.Index(s.Index()),
+					Output: &multiraftv1.StateMachineProposalOutput_OpenSession{
+						OpenSession: output,
+					},
+				}
+			}))
+	case *multiraftv1.StateMachineProposalInput_KeepAlive:
+		s.sm.KeepAlive(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.KeepAliveInput, *multiraftv1.KeepAliveOutput](
+			proposal,
+			p.KeepAlive,
+			func(output *multiraftv1.KeepAliveOutput) *multiraftv1.StateMachineProposalOutput {
+				return &multiraftv1.StateMachineProposalOutput{
+					Index: multiraftv1.Index(s.Index()),
+					Output: &multiraftv1.StateMachineProposalOutput_KeepAlive{
+						KeepAlive: output,
+					},
+				}
+			}))
+	case *multiraftv1.StateMachineProposalInput_CloseSession:
+		s.sm.CloseSession(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput](
+			proposal,
+			p.CloseSession,
+			func(output *multiraftv1.CloseSessionOutput) *multiraftv1.StateMachineProposalOutput {
+				return &multiraftv1.StateMachineProposalOutput{
+					Index: multiraftv1.Index(s.Index()),
+					Output: &multiraftv1.StateMachineProposalOutput_CloseSession{
+						CloseSession: output,
+					},
+				}
+			}))
 	}
-
-	stream := s.streams.Lookup(logEntry.StreamID)
-	s.state.Command(&logEntry.Command, stream)
-	return dbstatemachine.Result{}, nil
 }
 
-func (s *stateMachine) Lookup(value interface{}) (interface{}, error) {
-	query := value.(*stream.Query)
-	s.state.Query(query.Context, query.Input, query.Stream)
-	return nil, nil
-}
-
-func (s *stateMachine) SaveSnapshot(writer io.Writer, collection dbstatemachine.ISnapshotFileCollection, i <-chan struct{}) error {
-	return s.state.Snapshot(snapshot.NewWriter(writer))
-}
-
-func (s *stateMachine) RecoverFromSnapshot(reader io.Reader, files []dbstatemachine.SnapshotFile, i <-chan struct{}) error {
-	return s.state.Recover(snapshot.NewReader(reader))
-}
-
-func (s *stateMachine) Close() error {
-	return nil
+func (s *StateMachine) Query(query Query[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput]) {
+	minIndex := Index(query.Input().MaxReceivedIndex)
+	if s.Index() < minIndex {
+		s.Scheduler().Await(minIndex, func() {
+			switch q := query.Input().Input.(type) {
+			case *multiraftv1.StateMachineQueryInput_Query:
+				s.sm.Query(NewTranscodingQuery[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput, *multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput](
+					query,
+					q.Query,
+					func(output *multiraftv1.SessionQueryOutput) *multiraftv1.StateMachineQueryOutput {
+						return &multiraftv1.StateMachineQueryOutput{
+							Index: multiraftv1.Index(s.Index()),
+							Output: &multiraftv1.StateMachineQueryOutput_Query{
+								Query: output,
+							},
+						}
+					}))
+			}
+		})
+	} else {
+		switch q := query.Input().Input.(type) {
+		case *multiraftv1.StateMachineQueryInput_Query:
+			s.sm.Query(NewTranscodingQuery[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput, *multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput](
+				query,
+				q.Query,
+				func(output *multiraftv1.SessionQueryOutput) *multiraftv1.StateMachineQueryOutput {
+					return &multiraftv1.StateMachineQueryOutput{
+						Index: multiraftv1.Index(s.Index()),
+						Output: &multiraftv1.StateMachineQueryOutput_Query{
+							Query: output,
+						},
+					}
+				}))
+		}
+	}
 }

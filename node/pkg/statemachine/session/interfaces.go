@@ -6,8 +6,8 @@ package session
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine2"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/snapshot"
+	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 )
 

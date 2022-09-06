@@ -5,9 +5,9 @@
 package primitive
 
 import (
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine2"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/session"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine2/snapshot"
+	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/gogo/protobuf/proto"
 )

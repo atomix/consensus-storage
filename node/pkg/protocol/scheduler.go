@@ -6,7 +6,7 @@ package protocol
 
 import (
 	"container/list"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine2"
+	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"time"
 )
 
