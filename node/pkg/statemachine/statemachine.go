@@ -21,14 +21,20 @@ type Context interface {
 }
 
 func NewStateMachine(context Context, factory NewSessionManagerFunc) *StateMachine {
-	smContext := &stateMachineContext{
-		Context:   context,
-		scheduler: newScheduler(),
-	}
+	smContext := newStateMachineContext(context)
 	return &StateMachine{
 		stateMachineContext: smContext,
 		sm:                  factory(smContext),
 	}
+}
+
+func newStateMachineContext(parent Context) *stateMachineContext {
+	context := &stateMachineContext{
+		Context:   parent,
+		scheduler: newScheduler(),
+	}
+	context.time.Store(time.UnixMilli(0))
+	return context
 }
 
 type stateMachineContext struct {
@@ -78,7 +84,7 @@ func (c *stateMachineContext) Recover(reader *snapshot.Reader) error {
 	if err != nil {
 		return err
 	}
-	c.time.Store(time)
+	c.time.Store(time.Local())
 	return nil
 }
 
