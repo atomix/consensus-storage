@@ -18,55 +18,43 @@ import (
 	"io"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 func newStateMachine(protocol *protocolContext, types *primitive.TypeRegistry) dbsm.IStateMachine {
-	context := &stateMachineContext{
-		scheduler: newScheduler(),
-	}
-	sm := &stateMachine{
+	context := &stateMachineContext{}
+	return &stateMachine{
 		stateMachineContext: context,
 		protocol:            protocol,
-		sm: statemachine.NewStateMachine(context, func(smCtx statemachine.Context) statemachine.SessionManager {
-			return session.NewManager(context, func(sessionCtx session.Context) session.PrimitiveManager {
+		sm: statemachine.NewStateMachine(context, func(smCtx statemachine.SessionManagerContext) statemachine.SessionManager {
+			return session.NewManager(smCtx, func(sessionCtx session.PrimitiveManagerContext) session.PrimitiveManager {
 				return primitive.NewManager(sessionCtx, types)
 			})
 		}),
 	}
-	return sm
 }
 
 type stateMachineContext struct {
-	index     atomic.Uint64
-	time      atomic.Value
-	scheduler *stateMachineScheduler
-}
-
-func (c *stateMachineContext) Log() logging.Logger {
-	return log
-}
-
-func (c *stateMachineContext) update(ts time.Time) (statemachine.Index, time.Time) {
-	index := statemachine.Index(c.index.Add(1))
-	t := c.time.Load().(time.Time)
-	if ts.After(t) {
-		c.time.Store(ts)
-		return index, ts
-	}
-	return index, t
+	index atomic.Uint64
 }
 
 func (c *stateMachineContext) Index() statemachine.Index {
 	return statemachine.Index(c.index.Load())
 }
 
-func (c *stateMachineContext) Time() time.Time {
-	return c.time.Load().(time.Time)
+func (c *stateMachineContext) Snapshot(writer *snapshot.Writer) error {
+	if err := writer.WriteVarUint64(c.index.Load()); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (c *stateMachineContext) Scheduler() statemachine.Scheduler {
-	return c.scheduler
+func (c *stateMachineContext) Recover(reader *snapshot.Reader) error {
+	index, err := reader.ReadVarUint64()
+	if err != nil {
+		return err
+	}
+	c.index.Store(index)
+	return nil
 }
 
 var _ statemachine.Context = (*stateMachineContext)(nil)
@@ -83,24 +71,10 @@ func (s *stateMachine) Update(bytes []byte) (dbsm.Result, error) {
 	if err := proto.Unmarshal(bytes, proposal); err != nil {
 		return dbsm.Result{}, err
 	}
-
-	// Update the timestamp
-	index, ts := s.update(proposal.Timestamp)
-
-	// Run scheduled tasks for the updated timestamp
-	s.scheduler.tick(ts)
-
-	// Get the local output stream (if any)
-	stream := s.protocol.getStream(proposal.Term, proposal.SequenceNum)
-
-	// Submit the proposal to the state machine
 	s.sm.Propose(newProposal(
-		statemachine.ProposalID(index),
+		statemachine.ProposalID(s.index.Add(1)),
 		proposal.Proposal,
-		stream))
-
-	// Run scheduled tasks for this index
-	s.scheduler.tock(index)
+		s.protocol.getStream(proposal.Term, proposal.SequenceNum)))
 	return dbsm.Result{}, nil
 }
 
@@ -110,33 +84,22 @@ func (s *stateMachine) Lookup(value interface{}) (interface{}, error) {
 	return nil, nil
 }
 
-func (s *stateMachine) SaveSnapshot(writer io.Writer, collection dbsm.ISnapshotFileCollection, i <-chan struct{}) error {
-	sw := snapshot.NewWriter(writer)
-	log.Infow("Persisting state to snapshot",
-		logging.Uint64("Index", uint64(s.Index())),
-		logging.Time("Time", s.Time()))
-	snapshot := &multiraftv1.Snapshot{
-		Index:     multiraftv1.Index(s.Index()),
-		Timestamp: s.Time(),
-	}
-	if err := sw.WriteMessage(snapshot); err != nil {
+func (s *stateMachine) SaveSnapshot(w io.Writer, collection dbsm.ISnapshotFileCollection, i <-chan struct{}) error {
+	writer := snapshot.NewWriter(w)
+	log.Infow("Persisting state to snapshot", logging.Uint64("Index", uint64(s.Index())))
+	if err := s.stateMachineContext.Snapshot(writer); err != nil {
 		return err
 	}
-	return s.sm.Snapshot(sw)
+	return s.sm.Snapshot(writer)
 }
 
-func (s *stateMachine) RecoverFromSnapshot(reader io.Reader, files []dbsm.SnapshotFile, i <-chan struct{}) error {
-	sr := snapshot.NewReader(reader)
-	snapshot := &multiraftv1.Snapshot{}
-	if err := sr.ReadMessage(snapshot); err != nil {
+func (s *stateMachine) RecoverFromSnapshot(r io.Reader, files []dbsm.SnapshotFile, i <-chan struct{}) error {
+	reader := snapshot.NewReader(r)
+	if err := s.stateMachineContext.Recover(reader); err != nil {
 		return err
 	}
-	log.Infow("Recovering state from snapshot",
-		logging.Uint64("Index", uint64(snapshot.Index)),
-		logging.Time("Time", snapshot.Timestamp))
-	s.index.Store(uint64(snapshot.Index))
-	s.time.Store(snapshot.Timestamp)
-	return s.sm.Recover(sr)
+	log.Infow("Recovering state from snapshot", logging.Uint64("Index", uint64(s.Index())))
+	return s.sm.Recover(reader)
 }
 
 func (s *stateMachine) Close() error {

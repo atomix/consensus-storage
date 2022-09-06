@@ -32,16 +32,16 @@ var counterCodec = primitive.NewCodec[*counterv1.CounterInput, *counterv1.Counte
 		return proto.Marshal(output)
 	})
 
-func newCounterStateMachine(ctx primitive.Context[*counterv1.CounterInput, *counterv1.CounterOutput]) primitive.Primitive[*counterv1.CounterInput, *counterv1.CounterOutput] {
+func newCounterStateMachine(ctx primitive.PrimitiveContext[*counterv1.CounterInput, *counterv1.CounterOutput]) primitive.Primitive[*counterv1.CounterInput, *counterv1.CounterOutput] {
 	sm := &CounterStateMachine{
-		Context: ctx,
+		PrimitiveContext: ctx,
 	}
 	sm.init()
 	return sm
 }
 
 type CounterStateMachine struct {
-	primitive.Context[*counterv1.CounterInput, *counterv1.CounterOutput]
+	primitive.PrimitiveContext[*counterv1.CounterInput, *counterv1.CounterOutput]
 	value     int64
 	set       primitive.Proposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.SetInput, *counterv1.SetOutput]
 	update    primitive.Proposer[*counterv1.CounterInput, *counterv1.CounterOutput, *counterv1.UpdateInput, *counterv1.UpdateOutput]

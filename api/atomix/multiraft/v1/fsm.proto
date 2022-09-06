@@ -19,19 +19,19 @@ message RaftProposal {
     uint64 sequence_num = 2 [
         (gogoproto.casttype) = "SequenceNum"
     ];
-    google.protobuf.Timestamp timestamp = 3 [
-        (gogoproto.nullable) = false,
-        (gogoproto.stdtime) = true
-    ];
-    StateMachineProposalInput proposal = 4;
+    StateMachineProposalInput proposal = 3;
 }
 
 message StateMachineProposalInput {
+    google.protobuf.Timestamp timestamp = 1 [
+        (gogoproto.nullable) = false,
+        (gogoproto.stdtime) = true
+    ];
     oneof input {
-        OpenSessionInput open_session = 1;
-        KeepAliveInput keep_alive = 2;
-        CloseSessionInput close_session = 3;
-        SessionProposalInput proposal = 4;
+        OpenSessionInput open_session = 2;
+        KeepAliveInput keep_alive = 3;
+        CloseSessionInput close_session = 4;
+        SessionProposalInput proposal = 5;
     }
 }
 

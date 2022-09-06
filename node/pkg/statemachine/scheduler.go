@@ -2,25 +2,24 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package protocol
+package statemachine
 
 import (
 	"container/list"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"time"
 )
 
 func newScheduler() *stateMachineScheduler {
 	return &stateMachineScheduler{
 		scheduledTasks: list.New(),
-		indexedTasks:   make(map[statemachine.Index]*list.List),
+		indexedTasks:   make(map[Index]*list.List),
 		time:           time.Now(),
 	}
 }
 
 type stateMachineScheduler struct {
 	scheduledTasks *list.List
-	indexedTasks   map[statemachine.Index]*list.List
+	indexedTasks   map[Index]*list.List
 	time           time.Time
 }
 
@@ -28,7 +27,7 @@ func (s *stateMachineScheduler) Time() time.Time {
 	return s.time
 }
 
-func (s *stateMachineScheduler) Await(index statemachine.Index, f func()) statemachine.Timer {
+func (s *stateMachineScheduler) Await(index Index, f func()) Timer {
 	task := &indexTask{
 		scheduler: s,
 		index:     index,
@@ -38,7 +37,7 @@ func (s *stateMachineScheduler) Await(index statemachine.Index, f func()) statem
 	return task
 }
 
-func (s *stateMachineScheduler) Delay(d time.Duration, f func()) statemachine.Timer {
+func (s *stateMachineScheduler) Delay(d time.Duration, f func()) Timer {
 	task := &timeTask{
 		scheduler: s,
 		time:      s.time.Add(d),
@@ -48,7 +47,7 @@ func (s *stateMachineScheduler) Delay(d time.Duration, f func()) statemachine.Ti
 	return task
 }
 
-func (s *stateMachineScheduler) Schedule(t time.Time, f func()) statemachine.Timer {
+func (s *stateMachineScheduler) Schedule(t time.Time, f func()) Timer {
 	task := &timeTask{
 		scheduler: s,
 		time:      t,
@@ -65,11 +64,11 @@ func (s *stateMachineScheduler) tick(time time.Time) {
 }
 
 // tock runs the scheduled index-based tasks
-func (s *stateMachineScheduler) tock(index statemachine.Index) {
+func (s *stateMachineScheduler) tock(index Index) {
 	s.runIndexedTasks(index)
 }
 
-func (s *stateMachineScheduler) runIndexedTasks(index statemachine.Index) {
+func (s *stateMachineScheduler) runIndexedTasks(index Index) {
 	if tasks, ok := s.indexedTasks[index]; ok {
 		elem := tasks.Front()
 		for elem != nil {
@@ -143,7 +142,7 @@ func (t *timeTask) Cancel() {
 type indexTask struct {
 	scheduler *stateMachineScheduler
 	callback  func()
-	index     statemachine.Index
+	index     Index
 	elem      *list.Element
 }
 

@@ -34,19 +34,19 @@ var counterMapCodec = primitive.NewCodec[*countermapv1.CounterMapInput, *counter
 		return proto.Marshal(output)
 	})
 
-func newMapStateMachine(ctx primitive.Context[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) primitive.Primitive[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput] {
+func newMapStateMachine(ctx primitive.PrimitiveContext[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) primitive.Primitive[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput] {
 	sm := &MapStateMachine{
-		Context:   ctx,
-		listeners: make(map[statemachine.ProposalID]*countermapv1.CounterMapListener),
-		entries:   make(map[string]int64),
-		watchers:  make(map[statemachine.QueryID]statemachine.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]),
+		PrimitiveContext: ctx,
+		listeners:        make(map[statemachine.ProposalID]*countermapv1.CounterMapListener),
+		entries:          make(map[string]int64),
+		watchers:         make(map[statemachine.QueryID]statemachine.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]),
 	}
 	sm.init()
 	return sm
 }
 
 type MapStateMachine struct {
-	primitive.Context[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]
+	primitive.PrimitiveContext[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]
 	listeners map[statemachine.ProposalID]*countermapv1.CounterMapListener
 	entries   map[string]int64
 	watchers  map[statemachine.QueryID]statemachine.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]

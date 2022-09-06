@@ -12,18 +12,18 @@ import (
 	"time"
 )
 
-func NewManager(ctx statemachine.Context, factory NewPrimitiveManagerFunc) statemachine.SessionManager {
+func NewManager(ctx statemachine.SessionManagerContext, factory NewPrimitiveManagerFunc) statemachine.SessionManager {
 	sm := &sessionManagerStateMachine{
-		Context:   ctx,
-		sessions:  newManagedSessions(),
-		proposals: newSessionProposals(),
+		SessionManagerContext: ctx,
+		sessions:              newManagedSessions(),
+		proposals:             newSessionProposals(),
 	}
 	sm.sm = factory(sm)
 	return sm
 }
 
 type sessionManagerStateMachine struct {
-	statemachine.Context
+	statemachine.SessionManagerContext
 	sm        PrimitiveManager
 	sessions  *managedSessions
 	proposals *sessionProposals

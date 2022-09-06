@@ -36,11 +36,11 @@ type primitiveStateMachine[I, O proto.Message] struct {
 }
 
 func (p *primitiveStateMachine[I, O]) Sessions() Sessions[I, O] {
-	return newPrimitiveSessions[I, O](p, p.Context.Sessions())
+	return newPrimitiveSessions[I, O](p, p.PrimitiveManagerContext.Sessions())
 }
 
 func (p *primitiveStateMachine[I, O]) Proposals() Proposals[I, O] {
-	return newPrimitiveProposals[I, O](p, p.Context.Proposals())
+	return newPrimitiveProposals[I, O](p, p.PrimitiveManagerContext.Proposals())
 }
 
 func (p *primitiveStateMachine[I, O]) Snapshot(writer *snapshot.Writer) error {
@@ -86,7 +86,7 @@ func (p *primitiveSessions[I, O]) Get(id SessionID) (Session[I, O], bool) {
 }
 
 func (p *primitiveSessions[I, O]) List() []Session[I, O] {
-	parents := p.primitive.Context.Sessions().List()
+	parents := p.primitive.PrimitiveManagerContext.Sessions().List()
 	proposals := make([]Session[I, O], 0, len(parents))
 	for _, parent := range parents {
 		proposals = append(proposals, newPrimitiveSession[I, O](p.primitive, parent))

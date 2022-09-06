@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"sync"
 	"sync/atomic"
-	"time"
 )
 
 func newPartition(id multiraftv1.PartitionID, memberID multiraftv1.MemberID, host *dragonboat.NodeHost, streams *protocolContext) *Partition {
@@ -114,7 +113,6 @@ func (p *Partition) commitCommand(ctx context.Context, input *multiraftv1.StateM
 	proposal := &multiraftv1.RaftProposal{
 		Term:        term,
 		SequenceNum: sequenceNum,
-		Timestamp:   time.Now(),
 		Proposal:    input,
 	}
 

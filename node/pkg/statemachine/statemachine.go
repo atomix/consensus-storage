@@ -7,29 +7,109 @@ package statemachine
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
+	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/gogo/protobuf/types"
+	"sync/atomic"
+	"time"
 )
 
+var log = logging.GetLogger()
+
+type Context interface {
+	// Index returns the current service index
+	Index() Index
+}
+
 func NewStateMachine(context Context, factory NewSessionManagerFunc) *StateMachine {
+	smContext := &stateMachineContext{
+		Context:   context,
+		scheduler: newScheduler(),
+	}
 	return &StateMachine{
-		Context: context,
-		sm:      factory(context),
+		stateMachineContext: smContext,
+		sm:                  factory(smContext),
 	}
 }
 
-type StateMachine struct {
+type stateMachineContext struct {
 	Context
+	time      atomic.Value
+	scheduler *stateMachineScheduler
+}
+
+func (c *stateMachineContext) Log() logging.Logger {
+	return log
+}
+
+func (c *stateMachineContext) update(newTS time.Time) time.Time {
+	ts := c.time.Load().(time.Time)
+	if newTS.After(ts) {
+		c.time.Store(newTS)
+		return newTS
+	}
+	return ts
+}
+
+func (c *stateMachineContext) Time() time.Time {
+	return c.time.Load().(time.Time)
+}
+
+func (c *stateMachineContext) Scheduler() Scheduler {
+	return c.scheduler
+}
+
+func (c *stateMachineContext) Snapshot(writer *snapshot.Writer) error {
+	timestamp, err := types.TimestampProto(c.Time())
+	if err != nil {
+		return err
+	}
+	if err := writer.WriteMessage(timestamp); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *stateMachineContext) Recover(reader *snapshot.Reader) error {
+	timestamp := &types.Timestamp{}
+	if err := reader.ReadMessage(timestamp); err != nil {
+		return err
+	}
+	time, err := types.TimestampFromProto(timestamp)
+	if err != nil {
+		return err
+	}
+	c.time.Store(time)
+	return nil
+}
+
+var _ SessionManagerContext = (*stateMachineContext)(nil)
+
+type StateMachine struct {
+	*stateMachineContext
 	sm SessionManager
 }
 
 func (s *StateMachine) Snapshot(writer *snapshot.Writer) error {
+	if err := s.stateMachineContext.Snapshot(writer); err != nil {
+		return err
+	}
 	return s.sm.Snapshot(writer)
 }
 
 func (s *StateMachine) Recover(reader *snapshot.Reader) error {
+	if err := s.stateMachineContext.Recover(reader); err != nil {
+		return err
+	}
 	return s.sm.Recover(reader)
 }
 
 func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput]) {
+	// Update the timestamp
+	ts := s.update(proposal.Input().Timestamp)
+
+	// Run scheduled tasks for the updated timestamp
+	s.scheduler.tick(ts)
+
 	switch p := proposal.Input().Input.(type) {
 	case *multiraftv1.StateMachineProposalInput_Proposal:
 		s.sm.Propose(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput](
@@ -80,6 +160,9 @@ func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachinePropos
 				}
 			}))
 	}
+
+	// Run scheduled tasks for this index
+	s.scheduler.tock(s.Index())
 }
 
 func (s *StateMachine) Query(query Query[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput]) {

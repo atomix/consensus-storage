@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type NewSessionManagerFunc func(Context) SessionManager
+type NewSessionManagerFunc func(SessionManagerContext) SessionManager
 
 type SessionManager interface {
 	snapshot.Recoverable
@@ -24,11 +24,10 @@ type SessionManager interface {
 
 type Index uint64
 
-type Context interface {
+type SessionManagerContext interface {
+	Context
 	// Log returns the primitive logger
 	Log() logging.Logger
-	// Index returns the current service index
-	Index() Index
 	// Time returns the current service time
 	Time() time.Time
 	// Scheduler returns the service scheduler

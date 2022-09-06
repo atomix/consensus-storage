@@ -34,20 +34,20 @@ var setCodec = primitive.NewCodec[*setv1.SetInput, *setv1.SetOutput](
 		return proto.Marshal(output)
 	})
 
-func newSetStateMachine(ctx primitive.Context[*setv1.SetInput, *setv1.SetOutput]) primitive.Primitive[*setv1.SetInput, *setv1.SetOutput] {
+func newSetStateMachine(ctx primitive.PrimitiveContext[*setv1.SetInput, *setv1.SetOutput]) primitive.Primitive[*setv1.SetInput, *setv1.SetOutput] {
 	sm := &SetStateMachine{
-		Context:   ctx,
-		listeners: make(map[statemachine.ProposalID]bool),
-		entries:   make(map[string]*setv1.SetElement),
-		timers:    make(map[string]statemachine.Timer),
-		watchers:  make(map[statemachine.QueryID]primitive.Query[*setv1.ElementsInput, *setv1.ElementsOutput]),
+		PrimitiveContext: ctx,
+		listeners:        make(map[statemachine.ProposalID]bool),
+		entries:          make(map[string]*setv1.SetElement),
+		timers:           make(map[string]statemachine.Timer),
+		watchers:         make(map[statemachine.QueryID]primitive.Query[*setv1.ElementsInput, *setv1.ElementsOutput]),
 	}
 	sm.init()
 	return sm
 }
 
 type SetStateMachine struct {
-	primitive.Context[*setv1.SetInput, *setv1.SetOutput]
+	primitive.PrimitiveContext[*setv1.SetInput, *setv1.SetOutput]
 	listeners map[statemachine.ProposalID]bool
 	entries   map[string]*setv1.SetElement
 	timers    map[string]statemachine.Timer

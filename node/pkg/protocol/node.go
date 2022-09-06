@@ -237,6 +237,7 @@ func (n *Node) OpenSession(ctx context.Context, input *multiraftv1.OpenSessionIn
 	}
 
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_OpenSession{
 			OpenSession: input,
 		},
@@ -258,6 +259,7 @@ func (n *Node) KeepAliveSession(ctx context.Context, input *multiraftv1.KeepAliv
 	}
 
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_KeepAlive{
 			KeepAlive: input,
 		},
@@ -279,6 +281,7 @@ func (n *Node) CloseSession(ctx context.Context, input *multiraftv1.CloseSession
 	}
 
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_CloseSession{
 			CloseSession: input,
 		},
@@ -304,6 +307,7 @@ func (n *Node) CreatePrimitive(ctx context.Context, input *multiraftv1.CreatePri
 		deadline = &dl
 	}
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
@@ -346,6 +350,7 @@ func (n *Node) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimi
 		deadline = &dl
 	}
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
@@ -389,6 +394,7 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 	}
 
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
@@ -439,6 +445,7 @@ func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHead
 	}
 
 	command := &multiraftv1.StateMachineProposalInput{
+		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,

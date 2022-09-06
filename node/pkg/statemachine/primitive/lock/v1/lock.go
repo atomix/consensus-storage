@@ -35,11 +35,11 @@ var lockCodec = primitive.NewCodec[*lockv1.LockInput, *lockv1.LockOutput](
 		return proto.Marshal(output)
 	})
 
-func newLockStateMachine(ctx primitive.Context[*lockv1.LockInput, *lockv1.LockOutput]) primitive.Primitive[*lockv1.LockInput, *lockv1.LockOutput] {
+func newLockStateMachine(ctx primitive.PrimitiveContext[*lockv1.LockInput, *lockv1.LockOutput]) primitive.Primitive[*lockv1.LockInput, *lockv1.LockOutput] {
 	sm := &LockStateMachine{
-		Context:   ctx,
-		proposals: make(map[primitive.ProposalID]statemachine.CancelFunc),
-		sessions:  make(map[primitive.SessionID]statemachine.CancelFunc),
+		PrimitiveContext: ctx,
+		proposals:        make(map[primitive.ProposalID]statemachine.CancelFunc),
+		sessions:         make(map[primitive.SessionID]statemachine.CancelFunc),
 	}
 	sm.init()
 	return sm
@@ -51,7 +51,7 @@ type Waiter struct {
 }
 
 type LockStateMachine struct {
-	primitive.Context[*lockv1.LockInput, *lockv1.LockOutput]
+	primitive.PrimitiveContext[*lockv1.LockInput, *lockv1.LockOutput]
 	lock      primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
 	queue     []primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
 	proposals map[primitive.ProposalID]statemachine.CancelFunc

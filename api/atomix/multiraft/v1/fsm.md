@@ -325,7 +325,6 @@
 | ----- | ---- | ----- | ----------- |
 | term | [uint64](#uint64) |  |  |
 | sequence_num | [uint64](#uint64) |  |  |
-| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | proposal | [StateMachineProposalInput](#atomix-multiraft-v1-StateMachineProposalInput) |  |  |
 
 
@@ -466,6 +465,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | open_session | [OpenSessionInput](#atomix-multiraft-v1-OpenSessionInput) |  |  |
 | keep_alive | [KeepAliveInput](#atomix-multiraft-v1-KeepAliveInput) |  |  |
 | close_session | [CloseSessionInput](#atomix-multiraft-v1-CloseSessionInput) |  |  |

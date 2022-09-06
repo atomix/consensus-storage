@@ -12,7 +12,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-type NewPrimitiveManagerFunc func(Context) PrimitiveManager
+type NewPrimitiveManagerFunc func(PrimitiveManagerContext) PrimitiveManager
 
 type PrimitiveManager interface {
 	snapshot.Recoverable
@@ -22,8 +22,8 @@ type PrimitiveManager interface {
 	Query(query Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput])
 }
 
-type Context interface {
-	statemachine.Context
+type PrimitiveManagerContext interface {
+	statemachine.SessionManagerContext
 	// Sessions returns the open sessions
 	Sessions() Sessions
 	// Proposals returns the pending proposals
