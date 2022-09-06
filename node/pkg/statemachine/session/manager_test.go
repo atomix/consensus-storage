@@ -251,6 +251,86 @@ func TestManager(t *testing.T) {
 	manager.Query(query)
 
 	// Submit a streaming (not closed) proposal
+	streamProposal := statemachine.NewMockSessionProposal(ctrl)
+	streamProposalID := context.nextProposalID()
+	sequenceNum = context.nextSequenceNum(sessionID)
+	streamProposal.EXPECT().ID().Return(streamProposalID).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("Hello"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Times(3)
+	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
+		assert.Equal(t, streamProposalID, proposal.ID())
+		assert.Equal(t, sessionID, proposal.Session().ID())
+		assert.Len(t, proposal.Session().Proposals().List(), 1)
+		p, ok := proposal.Session().Proposals().Get(streamProposalID)
+		assert.True(t, ok)
+		assert.Equal(t, streamProposalID, p.ID())
+		assert.Len(t, manager.(Context).Proposals().List(), 1)
+		p, ok = manager.(Context).Proposals().Get(streamProposalID)
+		assert.True(t, ok)
+		assert.Equal(t, streamProposalID, p.ID())
+		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("a"),
+		})
+		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("b"),
+		})
+		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("c"),
+		})
+	})
+	manager.Propose(streamProposal)
+
+	// Verify the proposal is still open in the manager context and session
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	assert.Len(t, manager.(Context).Proposals().List(), 1)
+	p, ok := manager.(Context).Proposals().Get(streamProposalID)
+	assert.True(t, ok)
+	assert.Equal(t, streamProposalID, p.ID())
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
+	p, ok = manager.(Context).Sessions().List()[0].Proposals().Get(streamProposalID)
+	assert.True(t, ok)
+	assert.Equal(t, streamProposalID, p.ID())
+
+	// Retry the streaming command and verify outputs are replayed
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(streamProposalID).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("Hello"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Times(3)
+	manager.Propose(streamProposal)
+
+	// Verify the proposal is still open in the manager context and session
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	assert.Len(t, manager.(Context).Proposals().List(), 1)
+	p, ok = manager.(Context).Proposals().Get(streamProposalID)
+	assert.True(t, ok)
+	assert.Equal(t, streamProposalID, p.ID())
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
+	p, ok = manager.(Context).Sessions().List()[0].Proposals().Get(streamProposalID)
+	assert.True(t, ok)
+	assert.Equal(t, streamProposalID, p.ID())
+
+	// Verify sending additional outputs on the proposal stream
+	streamProposal.EXPECT().Output(gomock.Any()).Times(2)
 	proposal = statemachine.NewMockSessionProposal(ctrl)
 	proposalID = context.nextProposalID()
 	sequenceNum = context.nextSequenceNum(sessionID)
@@ -265,41 +345,24 @@ func TestManager(t *testing.T) {
 			},
 		},
 	}).AnyTimes()
-	proposal.EXPECT().Output(gomock.Any()).Times(3)
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
-		assert.Equal(t, proposalID, proposal.ID())
-		assert.Equal(t, sessionID, proposal.Session().ID())
-		assert.Len(t, proposal.Session().Proposals().List(), 1)
-		p, ok := proposal.Session().Proposals().Get(proposalID)
+		streamProposal, ok := proposal.Session().Proposals().Get(streamProposalID)
 		assert.True(t, ok)
-		assert.Equal(t, proposalID, p.ID())
-		assert.Len(t, manager.(Context).Proposals().List(), 1)
-		p, ok = manager.(Context).Proposals().Get(proposalID)
-		assert.True(t, ok)
-		assert.Equal(t, proposalID, p.ID())
-		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
-			Payload: []byte("a"),
+		assert.Equal(t, streamProposalID, streamProposal.ID())
+		streamProposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("e"),
+		})
+		streamProposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("f"),
 		})
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
-			Payload: []byte("b"),
+			Payload: []byte("world!"),
 		})
-		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
-			Payload: []byte("c"),
-		})
+		proposal.Close()
 	})
 	manager.Propose(proposal)
-
-	// Verify the proposal is still open in the manager context and session
-	assert.Len(t, manager.(Context).Sessions().List(), 1)
-	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
-	assert.Len(t, manager.(Context).Proposals().List(), 1)
-	p, ok := manager.(Context).Proposals().Get(proposalID)
-	assert.True(t, ok)
-	assert.Equal(t, proposalID, p.ID())
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
-	p, ok = manager.(Context).Sessions().List()[0].Proposals().Get(proposalID)
-	assert.True(t, ok)
-	assert.Equal(t, proposalID, p.ID())
 
 	// Take a snapshot of the manager and restore the manager state again
 	buf = &bytes.Buffer{}
@@ -315,13 +378,13 @@ func TestManager(t *testing.T) {
 	assert.Len(t, manager.(Context).Sessions().List(), 1)
 	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
 	assert.Len(t, manager.(Context).Proposals().List(), 1)
-	p, ok = manager.(Context).Proposals().Get(proposalID)
+	p, ok = manager.(Context).Proposals().Get(streamProposalID)
 	assert.True(t, ok)
-	assert.Equal(t, proposalID, p.ID())
+	assert.Equal(t, streamProposalID, p.ID())
 	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
-	p, ok = manager.(Context).Sessions().List()[0].Proposals().Get(proposalID)
+	p, ok = manager.(Context).Sessions().List()[0].Proposals().Get(streamProposalID)
 	assert.True(t, ok)
-	assert.Equal(t, proposalID, p.ID())
+	assert.Equal(t, streamProposalID, p.ID())
 
 	// Close the primitive
 	proposal = statemachine.NewMockSessionProposal(ctrl)

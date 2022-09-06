@@ -609,61 +609,6 @@ func (p *closePrimitiveProposal) Output(output *multiraftv1.ClosePrimitiveOutput
 
 var _ Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput] = (*closePrimitiveProposal)(nil)
 
-func newSessionProposals() *sessionProposals {
-	return &sessionProposals{
-		primitiveProposals: make(map[statemachine.ProposalID]*primitiveProposal),
-		sessionProposals:   make(map[multiraftv1.SequenceNum]*sessionProposal),
-	}
-}
-
-type sessionProposals struct {
-	primitiveProposals map[statemachine.ProposalID]*primitiveProposal
-	sessionProposals   map[multiraftv1.SequenceNum]*sessionProposal
-}
-
-func (p *sessionProposals) Get(id statemachine.ProposalID) (PrimitiveProposal, bool) {
-	proposal, ok := p.primitiveProposals[id]
-	return proposal, ok
-}
-
-func (p *sessionProposals) List() []PrimitiveProposal {
-	proposals := make([]PrimitiveProposal, 0, len(p.primitiveProposals))
-	for _, proposal := range p.primitiveProposals {
-		proposals = append(proposals, proposal)
-	}
-	return proposals
-}
-
-func (p *sessionProposals) open(proposal *primitiveProposal) {
-	p.primitiveProposals[proposal.ID()] = proposal
-	p.register(proposal.sessionProposal)
-}
-
-func (p *sessionProposals) close(id statemachine.ProposalID) {
-	delete(p.primitiveProposals, id)
-}
-
-func (p *sessionProposals) register(proposal *sessionProposal) {
-	p.sessionProposals[proposal.Input().SequenceNum] = proposal
-}
-
-func (p *sessionProposals) unregister(seqNum multiraftv1.SequenceNum) {
-	delete(p.sessionProposals, seqNum)
-}
-
-func (p *sessionProposals) get(seqNum multiraftv1.SequenceNum) (*sessionProposal, bool) {
-	proposal, ok := p.sessionProposals[seqNum]
-	return proposal, ok
-}
-
-func (p *sessionProposals) list() []*sessionProposal {
-	proposals := make([]*sessionProposal, 0, len(p.sessionProposals))
-	for _, proposal := range p.sessionProposals {
-		proposals = append(proposals, proposal)
-	}
-	return proposals
-}
-
 func newSessionQuery(session *managedSession) *sessionQuery {
 	return &sessionQuery{
 		session: session,
