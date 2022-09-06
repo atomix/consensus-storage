@@ -179,12 +179,155 @@ func TestExpireSession(t *testing.T) {
 	assert.Nil(t, session)
 }
 
-func TestCreatePrimitive(t *testing.T) {
+func TestCreateClosePrimitive(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-}
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
-func TestClosePrimitive(t *testing.T) {
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
 
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Close()
+	openSession.EXPECT().Output(gomock.Any())
+	manager.OpenSession(openSession)
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Take a snapshot of the manager and create a new manager from the snapshot
+	buf := &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Create a primitive using the session
+	proposal := statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	sequenceNum := context.nextSequenceNum(sessionID)
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_CreatePrimitive{
+			CreatePrimitive: &multiraftv1.CreatePrimitiveInput{
+				PrimitiveSpec: multiraftv1.PrimitiveSpec{
+					Service:   "test",
+					Namespace: "foo",
+					Name:      "bar",
+				},
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	primitives.EXPECT().CreatePrimitive(gomock.Any()).Do(func(proposal CreatePrimitiveProposal) {
+		assert.Equal(t, sessionID, proposal.Session().ID())
+		assert.Len(t, proposal.Session().Proposals().List(), 0)
+		assert.Len(t, manager.(Context).Proposals().List(), 0)
+		proposal.Output(&multiraftv1.CreatePrimitiveOutput{
+			PrimitiveID: 1,
+		})
+		proposal.Close()
+	})
+	manager.Propose(proposal)
+
+	// Retry the create primitive command and verify the primitive manager is not called again
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_CreatePrimitive{
+			CreatePrimitive: &multiraftv1.CreatePrimitiveInput{
+				PrimitiveSpec: multiraftv1.PrimitiveSpec{
+					Service:   "test",
+					Namespace: "foo",
+					Name:      "bar",
+				},
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	manager.Propose(proposal)
+
+	// Take a snapshot of the manager and retry creating the primitive one more time
+	buf = &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Retry the create primitive command and verify the primitive manager is not called again
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_CreatePrimitive{
+			CreatePrimitive: &multiraftv1.CreatePrimitiveInput{
+				PrimitiveSpec: multiraftv1.PrimitiveSpec{
+					Service:   "test",
+					Namespace: "foo",
+					Name:      "bar",
+				},
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	manager.Propose(proposal)
+
+	// Close the primitive
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposalID = context.nextProposalID()
+	sequenceNum = context.nextSequenceNum(sessionID)
+	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionProposalInput_ClosePrimitive{
+			ClosePrimitive: &multiraftv1.ClosePrimitiveInput{
+				PrimitiveID: 1,
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	primitives.EXPECT().ClosePrimitive(gomock.Any()).Do(func(proposal ClosePrimitiveProposal) {
+		assert.Equal(t, sessionID, proposal.Session().ID())
+		proposal.Output(&multiraftv1.ClosePrimitiveOutput{})
+		proposal.Close()
+	})
+	manager.Propose(proposal)
 }
 
 func TestUnaryProposal(t *testing.T) {
@@ -200,6 +343,11 @@ func TestManager(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
 	manager := NewManager(context, func(Context) PrimitiveManager {
