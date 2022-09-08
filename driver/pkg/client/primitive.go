@@ -189,6 +189,8 @@ type QueryContext[T QueryResponse] struct {
 }
 
 func (c *QueryContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (T, error)) (T, error) {
+	c.session.recorder.Start(c.headers.SequenceNum)
+	defer c.session.recorder.End(c.headers.SequenceNum)
 	response, err := f(c.session.conn, c.headers)
 	if err != nil {
 		return response, err
