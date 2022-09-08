@@ -252,15 +252,15 @@ func (s *primitiveSessions) list() []*primitiveSession {
 
 func newPrimitiveQuery(
 	session *primitiveSession,
-	parent session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]) *primitiveQuery {
+	parent session.PrimitiveQuery) *primitiveQuery {
 	return &primitiveQuery{
-		Query:   parent,
-		session: session,
+		PrimitiveQuery: parent,
+		session:        session,
 	}
 }
 
 type primitiveQuery struct {
-	session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]
+	session.PrimitiveQuery
 	session *primitiveSession
 }
 
@@ -272,15 +272,15 @@ var _ session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQuer
 
 func newPrimitiveProposal(
 	session *primitiveSession,
-	parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) *primitiveProposal {
+	parent session.PrimitiveProposal) *primitiveProposal {
 	return &primitiveProposal{
-		Proposal: parent,
-		session:  session,
+		PrimitiveProposal: parent,
+		session:           session,
 	}
 }
 
 type primitiveProposal struct {
-	session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
+	session.PrimitiveProposal
 	session *primitiveSession
 }
 

@@ -5,9 +5,11 @@
 package primitive
 
 import (
+	"bytes"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -15,41 +17,9 @@ import (
 	"time"
 )
 
-func newManagerTestContext(ctrl *gomock.Controller) *managerTestContext {
-	context := session.NewMockContext(ctrl)
-	context.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	context.EXPECT().Log().Return(logging.GetLogger()).AnyTimes()
-	return &managerTestContext{
-		MockContext: context,
-	}
-}
-
-type managerTestContext struct {
-	*session.MockContext
-	index   statemachine.Index
-	queryID statemachine.QueryID
-}
-
-func (c *managerTestContext) nextProposalID() statemachine.ProposalID {
-	c.index++
-	c.EXPECT().Index().Return(c.index).AnyTimes()
-	return statemachine.ProposalID(c.index)
-}
-
-func (c *managerTestContext) nextQueryID() statemachine.QueryID {
-	c.queryID++
-	return c.queryID
-}
-
 func TestPrimitive(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	scheduler := statemachine.NewMockScheduler(ctrl)
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
-	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	registry := NewTypeRegistry()
 	codec := NewMockAnyCodec(ctrl)
@@ -67,7 +37,14 @@ func TestPrimitive(t *testing.T) {
 	})
 	RegisterType[any, any](registry)(primitiveType)
 
-	manager := NewManager(context, registry)
+	timer := statemachine.NewMockTimer(ctrl)
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+
+	context := session.NewMockContext(ctrl)
+	context.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	context.EXPECT().Log().Return(logging.GetLogger()).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	session1 := session.NewMockSession(ctrl)
 	session1.EXPECT().ID().Return(session.ID(1)).AnyTimes()
@@ -92,8 +69,11 @@ func TestPrimitive(t *testing.T) {
 	sessions.EXPECT().List().Return([]session.Session{session1, session2}).AnyTimes()
 	context.EXPECT().Sessions().Return(sessions).AnyTimes()
 
+	manager := NewManager(context, registry)
+
 	createPrimitive := session.NewMockCreatePrimitiveProposal(ctrl)
-	createPrimitive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	context.EXPECT().Index().Return(statemachine.Index(1)).AnyTimes()
+	createPrimitive.EXPECT().ID().Return(statemachine.ProposalID(1)).AnyTimes()
 	createPrimitive.EXPECT().Session().Return(session1).AnyTimes()
 	createPrimitive.EXPECT().Input().Return(&multiraftv1.CreatePrimitiveInput{
 		PrimitiveSpec: multiraftv1.PrimitiveSpec{
@@ -110,16 +90,15 @@ func TestPrimitive(t *testing.T) {
 	manager.CreatePrimitive(createPrimitive)
 
 	unusedProposal := session.NewMockPrimitiveProposal(ctrl)
-	unusedProposalID := context.nextProposalID()
-	unusedProposal.EXPECT().ID().Return(unusedProposalID).AnyTimes()
+	unusedProposal.EXPECT().ID().Return(statemachine.ProposalID(2)).AnyTimes()
 	unusedProposal.EXPECT().Session().Return(session1).AnyTimes()
 	unusedProposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
 		PrimitiveID: 0,
 	}).AnyTimes()
 
 	proposal := session.NewMockPrimitiveProposal(ctrl)
-	proposalID := context.nextProposalID()
-	proposal.EXPECT().ID().Return(proposalID).AnyTimes()
+	context.EXPECT().Index().Return(statemachine.Index(3)).AnyTimes()
+	proposal.EXPECT().ID().Return(statemachine.ProposalID(3)).AnyTimes()
 	proposal.EXPECT().Session().Return(session1).AnyTimes()
 	proposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
 		PrimitiveID: primitiveID,
@@ -129,11 +108,11 @@ func TestPrimitive(t *testing.T) {
 	proposal.EXPECT().Close()
 	proposals := session.NewMockProposals(ctrl)
 	proposals.EXPECT().Get(gomock.Any()).DoAndReturn(func(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
-		if id == proposalID {
-			return proposal, true
-		}
-		if id == unusedProposalID {
+		if id == 2 {
 			return unusedProposal, true
+		}
+		if id == 3 {
+			return proposal, true
 		}
 		return nil, false
 	}).AnyTimes()
@@ -168,7 +147,114 @@ func TestPrimitive(t *testing.T) {
 	manager.Propose(proposal)
 
 	query := session.NewMockPrimitiveQuery(ctrl)
-	query.EXPECT().ID().Return(context.nextQueryID()).AnyTimes()
+	query.EXPECT().ID().Return(statemachine.QueryID(1)).AnyTimes()
+	query.EXPECT().Session().Return(session1).AnyTimes()
+	query.EXPECT().Input().Return(&multiraftv1.PrimitiveQueryInput{
+		PrimitiveID: primitiveID,
+		Payload:     []byte("Hello"),
+	}).AnyTimes()
+	query.EXPECT().Output(gomock.Any())
+	query.EXPECT().Close()
+	primitive.EXPECT().Query(gomock.Any()).Do(func(query Query[any, any]) {
+		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
+		assert.Len(t, primitiveCtx.Sessions().List(), 1)
+		session, ok := primitiveCtx.Sessions().Get(1)
+		assert.True(t, ok)
+		assert.Equal(t, SessionID(1), session.ID())
+		query.Output("world!")
+		query.Close()
+	})
+	manager.Query(query)
+
+	// Take a snapshot of the manager and create a new manager from the snapshot
+	buf := &bytes.Buffer{}
+	primitive.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+
+	context = session.NewMockContext(ctrl)
+	context.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	context.EXPECT().Log().Return(logging.GetLogger()).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	session1 = session.NewMockSession(ctrl)
+	session1.EXPECT().ID().Return(session.ID(1)).AnyTimes()
+	session1.EXPECT().Log().Return(logging.GetLogger()).AnyTimes()
+	session1.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
+
+	session2 = session.NewMockSession(ctrl)
+	session2.EXPECT().ID().Return(session.ID(2)).AnyTimes()
+	session2.EXPECT().Log().Return(logging.GetLogger()).AnyTimes()
+	session2.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
+
+	sessions = session.NewMockSessions(ctrl)
+	sessions.EXPECT().Get(gomock.Any()).DoAndReturn(func(id session.ID) (session.Session, bool) {
+		if id == 1 {
+			return session1, true
+		}
+		if id == 2 {
+			return session2, true
+		}
+		return nil, false
+	}).AnyTimes()
+	sessions.EXPECT().List().Return([]session.Session{session1, session2}).AnyTimes()
+	context.EXPECT().Sessions().Return(sessions).AnyTimes()
+
+	manager = NewManager(context, registry)
+	primitive.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+
+	proposal = session.NewMockPrimitiveProposal(ctrl)
+	context.EXPECT().Index().Return(statemachine.Index(4)).AnyTimes()
+	proposal.EXPECT().ID().Return(statemachine.ProposalID(4)).AnyTimes()
+	proposal.EXPECT().Session().Return(session1).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
+		PrimitiveID: primitiveID,
+		Payload:     []byte("Hello"),
+	}).AnyTimes()
+	proposal.EXPECT().Output(gomock.Any())
+	proposal.EXPECT().Close()
+	proposals = session.NewMockProposals(ctrl)
+	proposals.EXPECT().Get(gomock.Any()).DoAndReturn(func(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
+		if id == 2 {
+			return unusedProposal, true
+		}
+		if id == 4 {
+			return proposal, true
+		}
+		return nil, false
+	}).AnyTimes()
+	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal, unusedProposal}).AnyTimes()
+	context.EXPECT().Proposals().Return(proposals).AnyTimes()
+	session1.EXPECT().Proposals().Return(proposals).AnyTimes()
+	primitive.EXPECT().Propose(gomock.Any()).Do(func(proposal Proposal[any, any]) {
+		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
+		assert.Len(t, primitiveCtx.Sessions().List(), 1)
+		session, ok := primitiveCtx.Sessions().Get(1)
+		assert.True(t, ok)
+		assert.Equal(t, SessionID(1), session.ID())
+		assert.Len(t, primitiveCtx.Proposals().List(), 1)
+		assert.Equal(t, proposal.ID(), primitiveCtx.Proposals().List()[0].ID())
+		p, ok := primitiveCtx.Proposals().Get(proposal.ID())
+		assert.True(t, ok)
+		assert.Equal(t, proposal.ID(), p.ID())
+		assert.Len(t, session.Proposals().List(), 1)
+		assert.Equal(t, proposal.ID(), session.Proposals().List()[0].ID())
+		p, ok = session.Proposals().Get(proposal.ID())
+		assert.True(t, ok)
+		assert.Equal(t, proposal.ID(), p.ID())
+		assert.Equal(t, SessionID(1), proposal.Session().ID())
+		assert.Len(t, proposal.Session().Proposals().List(), 1)
+		assert.Equal(t, proposal.ID(), proposal.Session().Proposals().List()[0].ID())
+		p, ok = proposal.Session().Proposals().Get(proposal.ID())
+		assert.True(t, ok)
+		assert.Equal(t, proposal.ID(), p.ID())
+		proposal.Output("world!")
+		proposal.Close()
+	})
+	manager.Propose(proposal)
+
+	query = session.NewMockPrimitiveQuery(ctrl)
+	query.EXPECT().ID().Return(statemachine.QueryID(1)).AnyTimes()
 	query.EXPECT().Session().Return(session1).AnyTimes()
 	query.EXPECT().Input().Return(&multiraftv1.PrimitiveQueryInput{
 		PrimitiveID: primitiveID,
@@ -188,7 +274,8 @@ func TestPrimitive(t *testing.T) {
 	manager.Query(query)
 
 	closePrimitive := session.NewMockClosePrimitiveProposal(ctrl)
-	closePrimitive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	context.EXPECT().Index().Return(statemachine.Index(5)).AnyTimes()
+	closePrimitive.EXPECT().ID().Return(statemachine.ProposalID(5)).AnyTimes()
 	closePrimitive.EXPECT().Session().Return(session1).AnyTimes()
 	closePrimitive.EXPECT().Input().Return(&multiraftv1.ClosePrimitiveInput{
 		PrimitiveID: primitiveID,
