@@ -643,6 +643,58 @@ func (mr *MockPrimitiveProposalMockRecorder) Watch(arg0 interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockPrimitiveProposal)(nil).Watch), arg0)
 }
 
+// MockProposals is a mock of Proposals interface.
+type MockProposals struct {
+	ctrl     *gomock.Controller
+	recorder *MockProposalsMockRecorder
+}
+
+// MockProposalsMockRecorder is the mock recorder for MockProposals.
+type MockProposalsMockRecorder struct {
+	mock *MockProposals
+}
+
+// NewMockProposals creates a new mock instance.
+func NewMockProposals(ctrl *gomock.Controller) *MockProposals {
+	mock := &MockProposals{ctrl: ctrl}
+	mock.recorder = &MockProposalsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockProposals) EXPECT() *MockProposalsMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockProposals) Get(arg0 statemachine.ProposalID) (PrimitiveProposal, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0)
+	ret0, _ := ret[0].(PrimitiveProposal)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockProposalsMockRecorder) Get(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockProposals)(nil).Get), arg0)
+}
+
+// List mocks base method.
+func (m *MockProposals) List() []PrimitiveProposal {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List")
+	ret0, _ := ret[0].([]PrimitiveProposal)
+	return ret0
+}
+
+// List indicates an expected call of List.
+func (mr *MockProposalsMockRecorder) List() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockProposals)(nil).List))
+}
+
 // MockPrimitiveQuery is a mock of PrimitiveQuery interface.
 type MockPrimitiveQuery struct {
 	ctrl     *gomock.Controller
