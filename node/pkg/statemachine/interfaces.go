@@ -53,30 +53,12 @@ type Scheduler interface {
 	Schedule(t time.Time, f func()) Timer
 }
 
-type WatchFunc[T any] func(T)
-
-type CancelFunc func()
-
-type Watchable[T any] interface {
-	Watch(watcher WatchFunc[T]) CancelFunc
-}
-
 type ExecutionID interface {
 	ProposalID | QueryID
 }
 
-type Phase int
-
-const (
-	Pending Phase = iota
-	Runnnig
-	Complete
-	Canceled
-)
-
 // Execution is a proposal or query execution context
 type Execution[T ExecutionID, I, O any] interface {
-	Watchable[Phase]
 	// ID returns the execution identifier
 	ID() T
 	// Log returns the operation log
@@ -89,8 +71,6 @@ type Execution[T ExecutionID, I, O any] interface {
 	Error(error)
 	// Close closes the execution
 	Close()
-	// Cancel cancels the execution
-	Cancel()
 }
 
 type ProposalID uint64
@@ -129,10 +109,6 @@ func (e *transcodingExecution[T, I1, O1, I2, O2]) Log() logging.Logger {
 	return e.parent.Log()
 }
 
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Watch(watcher WatchFunc[Phase]) CancelFunc {
-	return e.parent.Watch(watcher)
-}
-
 func (e *transcodingExecution[T, I1, O1, I2, O2]) Input() I2 {
 	return e.input
 }
@@ -147,10 +123,6 @@ func (e *transcodingExecution[T, I1, O1, I2, O2]) Error(err error) {
 
 func (e *transcodingExecution[T, I1, O1, I2, O2]) Close() {
 	e.parent.Close()
-}
-
-func (e *transcodingExecution[T, I1, O1, I2, O2]) Cancel() {
-	e.parent.Cancel()
 }
 
 func NewTranscodingProposal[I1, O1, I2, O2 any](proposal Proposal[I1, O1], input I2, transcoder func(O2) O1) Proposal[I2, O2] {

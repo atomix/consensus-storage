@@ -130,18 +130,28 @@ func (s *SessionClient) open() {
 	s.requestCh = make(chan sessionRequestEvent, chanBufSize)
 	go func() {
 		ticker := time.NewTicker(sessionTimeout / 4)
-		var requestNum multiraftv1.SequenceNum
+		var nextRequestNum multiraftv1.SequenceNum = 1
 		requests := make(map[multiraftv1.SequenceNum]bool)
+		pendingRequests := make(map[multiraftv1.SequenceNum]bool)
 		responseStreams := make(map[multiraftv1.SequenceNum]*sessionResponseStream)
 		for {
 			select {
 			case requestEvent := <-s.requestCh:
 				switch requestEvent.eventType {
 				case sessionRequestEventStart:
-					for requestNum < requestEvent.requestNum {
-						requestNum++
-						requests[requestNum] = true
-						log.Debugf("Started request %d", requestNum)
+					if requestEvent.requestNum == nextRequestNum {
+						requests[nextRequestNum] = true
+						log.Debugf("Started request %d", nextRequestNum)
+						nextRequestNum++
+						_, nextRequestPending := pendingRequests[nextRequestNum]
+						for nextRequestPending {
+							delete(pendingRequests, nextRequestNum)
+							requests[nextRequestNum] = true
+							nextRequestNum++
+							_, nextRequestPending = pendingRequests[nextRequestNum]
+						}
+					} else {
+						pendingRequests[requestEvent.requestNum] = true
 					}
 				case sessionRequestEventEnd:
 					if requests[requestEvent.requestNum] {
@@ -149,8 +159,8 @@ func (s *SessionClient) open() {
 						log.Debugf("Finished request %d", requestEvent.requestNum)
 					}
 				case sessionStreamEventOpen:
-					responseStreams[requestNum] = &sessionResponseStream{}
-					log.Debugf("Opened request %d response stream", requestNum)
+					responseStreams[requestEvent.requestNum] = &sessionResponseStream{}
+					log.Debugf("Opened request %d response stream", requestEvent.requestNum)
 				case sessionStreamEventReceive:
 					responseStream, ok := responseStreams[requestEvent.requestNum]
 					if ok {
@@ -197,7 +207,7 @@ func (s *SessionClient) open() {
 							}
 						}
 					}
-				}(requestNum)
+				}(nextRequestNum - 1)
 			}
 		}
 	}()
@@ -258,10 +268,10 @@ type Recorder struct {
 	session *SessionClient
 }
 
-func (r *Recorder) Start(headers *multiraftv1.CommandRequestHeaders) {
+func (r *Recorder) Start(sequenceNum multiraftv1.SequenceNum) {
 	r.session.requestCh <- sessionRequestEvent{
 		eventType:  sessionRequestEventStart,
-		requestNum: headers.SequenceNum,
+		requestNum: sequenceNum,
 	}
 }
 
@@ -287,10 +297,10 @@ func (r *Recorder) StreamClose(headers *multiraftv1.CommandRequestHeaders) {
 	}
 }
 
-func (r *Recorder) End(headers *multiraftv1.CommandRequestHeaders) {
+func (r *Recorder) End(sequenceNum multiraftv1.SequenceNum) {
 	r.session.requestCh <- sessionRequestEvent{
 		eventType:  sessionRequestEventEnd,
-		requestNum: headers.SequenceNum,
+		requestNum: sequenceNum,
 	}
 }
 

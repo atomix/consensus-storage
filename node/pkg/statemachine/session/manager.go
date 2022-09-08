@@ -11,7 +11,7 @@ import (
 )
 
 func NewManager(ctx statemachine.SessionManagerContext, factory NewPrimitiveManagerFunc) statemachine.SessionManager {
-	sm := &sessionManagerStateMachine{
+	sm := &sessionManager{
 		SessionManagerContext: ctx,
 		sessions:              newManagedSessions(),
 		proposals:             newPrimitiveProposals(),
@@ -20,22 +20,22 @@ func NewManager(ctx statemachine.SessionManagerContext, factory NewPrimitiveMana
 	return sm
 }
 
-type sessionManagerStateMachine struct {
+type sessionManager struct {
 	statemachine.SessionManagerContext
 	sm        PrimitiveManager
 	sessions  *managedSessions
 	proposals *primitiveProposals
 }
 
-func (m *sessionManagerStateMachine) Sessions() Sessions {
+func (m *sessionManager) Sessions() Sessions {
 	return m.sessions
 }
 
-func (m *sessionManagerStateMachine) Proposals() Proposals {
+func (m *sessionManager) Proposals() Proposals {
 	return m.proposals
 }
 
-func (m *sessionManagerStateMachine) Snapshot(writer *snapshot.Writer) error {
+func (m *sessionManager) Snapshot(writer *snapshot.Writer) error {
 	sessions := m.sessions.list()
 	if err := writer.WriteVarInt(len(sessions)); err != nil {
 		return err
@@ -48,7 +48,7 @@ func (m *sessionManagerStateMachine) Snapshot(writer *snapshot.Writer) error {
 	return m.sm.Snapshot(writer)
 }
 
-func (m *sessionManagerStateMachine) Recover(reader *snapshot.Reader) error {
+func (m *sessionManager) Recover(reader *snapshot.Reader) error {
 	n, err := reader.ReadVarInt()
 	if err != nil {
 		return err
@@ -62,51 +62,51 @@ func (m *sessionManagerStateMachine) Recover(reader *snapshot.Reader) error {
 	return m.sm.Recover(reader)
 }
 
-func (m *sessionManagerStateMachine) OpenSession(proposal statemachine.OpenSessionProposal) {
+func (m *sessionManager) OpenSession(openSession statemachine.OpenSessionProposal) {
 	session := newManagedSession(m)
-	session.open(proposal)
+	session.open(openSession)
 }
 
-func (m *sessionManagerStateMachine) KeepAlive(proposal statemachine.KeepAliveProposal) {
+func (m *sessionManager) KeepAlive(keepAlive statemachine.KeepAliveProposal) {
+	sessionID := ID(keepAlive.Input().SessionID)
+	session, ok := m.sessions.get(sessionID)
+	if !ok {
+		keepAlive.Error(errors.NewForbidden("session not found"))
+		keepAlive.Close()
+	} else {
+		session.keepAlive(keepAlive)
+	}
+}
+
+func (m *sessionManager) CloseSession(closeSession statemachine.CloseSessionProposal) {
+	sessionID := ID(closeSession.Input().SessionID)
+	session, ok := m.sessions.get(sessionID)
+	if !ok {
+		closeSession.Error(errors.NewForbidden("session not found"))
+		closeSession.Close()
+	} else {
+		session.close(closeSession)
+	}
+}
+
+func (m *sessionManager) Propose(proposal statemachine.SessionProposal) {
 	sessionID := ID(proposal.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
 		proposal.Error(errors.NewForbidden("session not found"))
 		proposal.Close()
-		return
+	} else {
+		session.propose(proposal)
 	}
-	session.keepAlive(proposal)
 }
 
-func (m *sessionManagerStateMachine) CloseSession(proposal statemachine.CloseSessionProposal) {
-	sessionID := ID(proposal.Input().SessionID)
-	session, ok := m.sessions.get(sessionID)
-	if !ok {
-		proposal.Error(errors.NewForbidden("session not found"))
-		proposal.Close()
-		return
-	}
-	session.close(proposal)
-}
-
-func (m *sessionManagerStateMachine) Propose(proposal statemachine.SessionProposal) {
-	sessionID := ID(proposal.Input().SessionID)
-	session, ok := m.sessions.get(sessionID)
-	if !ok {
-		proposal.Error(errors.NewForbidden("session not found"))
-		proposal.Close()
-		return
-	}
-	session.propose(proposal)
-}
-
-func (m *sessionManagerStateMachine) Query(query statemachine.SessionQuery) {
+func (m *sessionManager) Query(query statemachine.SessionQuery) {
 	sessionID := ID(query.Input().SessionID)
 	session, ok := m.sessions.get(sessionID)
 	if !ok {
 		query.Error(errors.NewForbidden("session not found"))
 		query.Close()
-		return
+	} else {
+		session.query(query)
 	}
-	session.query(query)
 }

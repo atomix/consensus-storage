@@ -353,20 +353,6 @@ func (mr *MockOpenSessionProposalMockRecorder) Output(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Output", reflect.TypeOf((*MockOpenSessionProposal)(nil).Output), arg0)
 }
 
-// Watch mocks base method.
-func (m *MockOpenSessionProposal) Watch(arg0 WatchFunc[Phase]) CancelFunc {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(CancelFunc)
-	return ret0
-}
-
-// Watch indicates an expected call of Watch.
-func (mr *MockOpenSessionProposalMockRecorder) Watch(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockOpenSessionProposal)(nil).Watch), arg0)
-}
-
 // MockKeepAliveProposal is a mock of KeepAliveProposal interface.
 type MockKeepAliveProposal struct {
 	ctrl     *gomock.Controller
@@ -478,20 +464,6 @@ func (m *MockKeepAliveProposal) Output(arg0 *v1.KeepAliveOutput) {
 func (mr *MockKeepAliveProposalMockRecorder) Output(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Output", reflect.TypeOf((*MockKeepAliveProposal)(nil).Output), arg0)
-}
-
-// Watch mocks base method.
-func (m *MockKeepAliveProposal) Watch(arg0 WatchFunc[Phase]) CancelFunc {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(CancelFunc)
-	return ret0
-}
-
-// Watch indicates an expected call of Watch.
-func (mr *MockKeepAliveProposalMockRecorder) Watch(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockKeepAliveProposal)(nil).Watch), arg0)
 }
 
 // MockCloseSessionProposal is a mock of CloseSessionProposal interface.
@@ -607,20 +579,6 @@ func (mr *MockCloseSessionProposalMockRecorder) Output(arg0 interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Output", reflect.TypeOf((*MockCloseSessionProposal)(nil).Output), arg0)
 }
 
-// Watch mocks base method.
-func (m *MockCloseSessionProposal) Watch(arg0 WatchFunc[Phase]) CancelFunc {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(CancelFunc)
-	return ret0
-}
-
-// Watch indicates an expected call of Watch.
-func (mr *MockCloseSessionProposalMockRecorder) Watch(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockCloseSessionProposal)(nil).Watch), arg0)
-}
-
 // MockSessionProposal is a mock of SessionProposal interface.
 type MockSessionProposal struct {
 	ctrl     *gomock.Controller
@@ -734,20 +692,6 @@ func (mr *MockSessionProposalMockRecorder) Output(arg0 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Output", reflect.TypeOf((*MockSessionProposal)(nil).Output), arg0)
 }
 
-// Watch mocks base method.
-func (m *MockSessionProposal) Watch(arg0 WatchFunc[Phase]) CancelFunc {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(CancelFunc)
-	return ret0
-}
-
-// Watch indicates an expected call of Watch.
-func (mr *MockSessionProposalMockRecorder) Watch(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockSessionProposal)(nil).Watch), arg0)
-}
-
 // MockSessionQuery is a mock of SessionQuery interface.
 type MockSessionQuery struct {
 	ctrl     *gomock.Controller
@@ -859,20 +803,6 @@ func (m *MockSessionQuery) Output(arg0 *v1.SessionQueryOutput) {
 func (mr *MockSessionQueryMockRecorder) Output(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Output", reflect.TypeOf((*MockSessionQuery)(nil).Output), arg0)
-}
-
-// Watch mocks base method.
-func (m *MockSessionQuery) Watch(arg0 WatchFunc[Phase]) CancelFunc {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(CancelFunc)
-	return ret0
-}
-
-// Watch indicates an expected call of Watch.
-func (mr *MockSessionQueryMockRecorder) Watch(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockSessionQuery)(nil).Watch), arg0)
 }
 
 // MockScheduler is a mock of Scheduler interface.

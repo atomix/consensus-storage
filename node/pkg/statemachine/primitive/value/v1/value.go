@@ -217,8 +217,8 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 			return errors.NewFault("cannot find proposal %d", proposalID)
 		}
 		s.listeners[proposal.ID()] = true
-		proposal.Watch(func(phase statemachine.Phase) {
-			if phase == statemachine.Complete {
+		proposal.Watch(func(phase primitive.ProposalPhase) {
+			if phase == primitive.ProposalComplete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -430,8 +430,8 @@ func (s *MapStateMachine) doDelete(proposal primitive.Proposal[*valuev1.DeleteIn
 
 func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*valuev1.EventsInput, *valuev1.EventsOutput]) {
 	s.listeners[proposal.ID()] = true
-	proposal.Watch(func(phase statemachine.Phase) {
-		if phase == statemachine.Complete {
+	proposal.Watch(func(phase primitive.ProposalPhase) {
+		if phase == primitive.ProposalComplete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -469,8 +469,8 @@ func (s *MapStateMachine) doWatch(query primitive.Query[*valuev1.WatchInput, *va
 	s.mu.Lock()
 	s.watchers[query.ID()] = query
 	s.mu.Unlock()
-	query.Watch(func(phase statemachine.Phase) {
-		if phase == statemachine.Complete {
+	query.Watch(func(phase primitive.QueryPhase) {
+		if phase == primitive.QueryComplete {
 			s.mu.Lock()
 			delete(s.watchers, query.ID())
 			s.mu.Unlock()

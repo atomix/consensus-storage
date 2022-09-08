@@ -348,10 +348,10 @@ func (mr *MockCreatePrimitiveProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockCreatePrimitiveProposal) Watch(arg0 statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+func (m *MockCreatePrimitiveProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(statemachine.CancelFunc)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -489,10 +489,10 @@ func (mr *MockClosePrimitiveProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockClosePrimitiveProposal) Watch(arg0 statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+func (m *MockClosePrimitiveProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(statemachine.CancelFunc)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -630,10 +630,10 @@ func (mr *MockPrimitiveProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockPrimitiveProposal) Watch(arg0 statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+func (m *MockPrimitiveProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(statemachine.CancelFunc)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -823,10 +823,10 @@ func (mr *MockPrimitiveQueryMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockPrimitiveQuery) Watch(arg0 statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
+func (m *MockPrimitiveQuery) Watch(arg0 WatchFunc[QueryPhase]) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(statemachine.CancelFunc)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -968,10 +968,10 @@ func (mr *MockSessionMockRecorder) State() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockSession) Watch(arg0 statemachine.WatchFunc[State]) statemachine.CancelFunc {
+func (m *MockSession) Watch(arg0 WatchFunc[State]) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
-	ret0, _ := ret[0].(statemachine.CancelFunc)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 

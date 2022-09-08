@@ -88,8 +88,8 @@ type CommandContext[T CommandResponse] struct {
 }
 
 func (c *CommandContext[T]) Run(f func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (T, error)) (T, error) {
-	c.session.recorder.Start(c.headers)
-	defer c.session.recorder.End(c.headers)
+	c.session.recorder.Start(c.headers.SequenceNum)
+	defer c.session.recorder.End(c.headers.SequenceNum)
 	response, err := f(c.session.conn, c.headers)
 	if err != nil {
 		return response, err
@@ -130,10 +130,10 @@ type StreamCommandContext[T any, U CommandResponse] struct {
 }
 
 func (c *StreamCommandContext[T, U]) Open(f func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (T, error)) (T, error) {
-	c.session.recorder.Start(c.headers)
+	c.session.recorder.Start(c.headers.SequenceNum)
 	client, err := f(c.session.conn, c.headers)
 	if err != nil {
-		c.session.recorder.End(c.headers)
+		c.session.recorder.End(c.headers.SequenceNum)
 		return client, err
 	}
 	c.session.recorder.StreamOpen(c.headers)
@@ -145,8 +145,8 @@ func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
 		response, err := f()
 		if err != nil {
 			c.session.recorder.StreamClose(c.headers)
-			c.session.recorder.End(c.headers)
-			return response, err
+			c.session.recorder.End(c.headers.SequenceNum)
+			return nil, err
 		}
 		headers := response.GetHeaders()
 		c.session.lastIndex.Update(headers.Index)
@@ -174,6 +174,7 @@ func Query[T QueryResponse](primitive *PrimitiveClient) *QueryContext[T] {
 				PrimitiveID: primitive.id,
 			},
 		},
+		SequenceNum:      primitive.session.nextRequestNum(),
 		MaxReceivedIndex: primitive.session.lastIndex.Get(),
 	}
 	return &QueryContext[T]{
@@ -213,6 +214,7 @@ func StreamQuery[T any, U QueryResponse](primitive *PrimitiveClient) *StreamQuer
 				PrimitiveID: primitive.id,
 			},
 		},
+		SequenceNum:      primitive.session.nextRequestNum(),
 		MaxReceivedIndex: primitive.session.lastIndex.Get(),
 	}
 	return &StreamQueryContext[T, U]{
@@ -227,18 +229,27 @@ type StreamQueryContext[T any, U QueryResponse] struct {
 }
 
 func (c *StreamQueryContext[T, U]) Open(f func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (T, error)) (T, error) {
-	return f(c.session.conn, c.headers)
+	c.session.recorder.Start(c.headers.SequenceNum)
+	client, err := f(c.session.conn, c.headers)
+	if err != nil {
+		c.session.recorder.End(c.headers.SequenceNum)
+		return client, err
+	}
+	return client, nil
 }
 
 func (c *StreamQueryContext[T, U]) Recv(f func() (U, error)) (U, error) {
-	response, err := f()
-	if err != nil {
-		return response, err
+	for {
+		response, err := f()
+		if err != nil {
+			c.session.recorder.End(c.headers.SequenceNum)
+			return nil, err
+		}
+		headers := response.GetHeaders()
+		c.session.lastIndex.Update(headers.Index)
+		if headers.Status != multiraftv1.OperationResponseHeaders_OK {
+			return response, getErrorFromStatus(headers.Status, headers.Message)
+		}
+		return response, nil
 	}
-	headers := response.GetHeaders()
-	c.session.lastIndex.Update(headers.Index)
-	if headers.Status != multiraftv1.OperationResponseHeaders_OK {
-		return response, getErrorFromStatus(headers.Status, headers.Message)
-	}
-	return response, nil
 }

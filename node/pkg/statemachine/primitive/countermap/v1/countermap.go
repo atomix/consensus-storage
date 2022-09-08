@@ -291,8 +291,8 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 			return err
 		}
 		s.listeners[proposal.ID()] = listener
-		proposal.Watch(func(phase statemachine.Phase) {
-			if phase == statemachine.Complete {
+		proposal.Watch(func(phase primitive.ProposalPhase) {
+			if phase == primitive.ProposalComplete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -589,8 +589,8 @@ func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*countermapv1.Eve
 		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
-	proposal.Watch(func(phase statemachine.Phase) {
-		if phase == statemachine.Complete {
+	proposal.Watch(func(phase primitive.ProposalPhase) {
+		if phase == primitive.ProposalComplete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -642,8 +642,8 @@ func (s *MapStateMachine) doEntries(query primitive.Query[*countermapv1.EntriesI
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
-		query.Watch(func(phase statemachine.Phase) {
-			if phase == statemachine.Complete {
+		query.Watch(func(phase primitive.QueryPhase) {
+			if phase == primitive.QueryComplete {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()

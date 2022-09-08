@@ -111,9 +111,15 @@ func (p *primitiveContext) open(proposal session.Proposal[*multiraftv1.CreatePri
 }
 
 func (p *primitiveContext) close(proposal session.Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput]) {
-	p.sessions.remove(proposal.Session().ID())
-	proposal.Output(&multiraftv1.ClosePrimitiveOutput{})
-	proposal.Close()
+	session, ok := p.sessions.get(proposal.Session().ID())
+	if !ok {
+		proposal.Error(errors.NewForbidden("session not found"))
+		proposal.Close()
+	} else {
+		session.close()
+		proposal.Output(&multiraftv1.ClosePrimitiveOutput{})
+		proposal.Close()
+	}
 }
 
 func (p *primitiveContext) propose(proposal session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) {
@@ -143,7 +149,7 @@ func newPrimitiveSession(
 		primitive: context,
 		parent:    parent,
 		state:     session.Open,
-		watchers:  make(map[uuid.UUID]statemachine.WatchFunc[session.State]),
+		watchers:  make(map[uuid.UUID]session.WatchFunc[session.State]),
 		log: parent.Log().WithFields(
 			logging.String("Service", context.spec.Service),
 			logging.Uint64("Primitive", uint64(context.id)),
@@ -162,8 +168,8 @@ type primitiveSession struct {
 	primitive *primitiveContext
 	parent    session.Session
 	state     session.State
-	watchers  map[uuid.UUID]statemachine.WatchFunc[session.State]
-	cancel    statemachine.CancelFunc
+	watchers  map[uuid.UUID]session.WatchFunc[session.State]
+	cancel    session.CancelFunc
 	log       logging.Logger
 }
 
@@ -179,7 +185,7 @@ func (s *primitiveSession) State() session.State {
 	return s.state
 }
 
-func (s *primitiveSession) Watch(watcher statemachine.WatchFunc[session.State]) statemachine.CancelFunc {
+func (s *primitiveSession) Watch(watcher session.WatchFunc[session.State]) session.CancelFunc {
 	id := uuid.New()
 	s.watchers[id] = watcher
 	return func() {

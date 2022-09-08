@@ -302,17 +302,12 @@ func (n *Node) CreatePrimitive(ctx context.Context, input *multiraftv1.CreatePri
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	var deadline *time.Time
-	if dl, ok := ctx.Deadline(); ok {
-		deadline = &dl
-	}
 	command := &multiraftv1.StateMachineProposalInput{
 		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Deadline:    deadline,
 				Input: &multiraftv1.SessionProposalInput_CreatePrimitive{
 					CreatePrimitive: input,
 				},
@@ -345,17 +340,12 @@ func (n *Node) ClosePrimitive(ctx context.Context, input *multiraftv1.ClosePrimi
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	var deadline *time.Time
-	if dl, ok := ctx.Deadline(); ok {
-		deadline = &dl
-	}
 	command := &multiraftv1.StateMachineProposalInput{
 		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Deadline:    deadline,
 				Input: &multiraftv1.SessionProposalInput_ClosePrimitive{
 					ClosePrimitive: input,
 				},
@@ -388,18 +378,12 @@ func (n *Node) Command(ctx context.Context, inputBytes []byte, requestHeaders *m
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	var deadline *time.Time
-	if t, ok := ctx.Deadline(); ok {
-		deadline = &t
-	}
-
 	command := &multiraftv1.StateMachineProposalInput{
 		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Deadline:    deadline,
 				Input: &multiraftv1.SessionProposalInput_Proposal{
 					Proposal: &multiraftv1.PrimitiveProposalInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
@@ -439,18 +423,12 @@ func (n *Node) StreamCommand(ctx context.Context, inputBytes []byte, requestHead
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	var deadline *time.Time
-	if t, ok := ctx.Deadline(); ok {
-		deadline = &t
-	}
-
 	command := &multiraftv1.StateMachineProposalInput{
 		Timestamp: time.Now(),
 		Input: &multiraftv1.StateMachineProposalInput_Proposal{
 			Proposal: &multiraftv1.SessionProposalInput{
 				SessionID:   requestHeaders.SessionID,
 				SequenceNum: requestHeaders.SequenceNum,
-				Deadline:    deadline,
 				Input: &multiraftv1.SessionProposalInput_Proposal{
 					Proposal: &multiraftv1.PrimitiveProposalInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
@@ -495,17 +473,12 @@ func (n *Node) Query(ctx context.Context, inputBytes []byte, requestHeaders *mul
 		return nil, nil, errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	var deadline *time.Time
-	if t, ok := ctx.Deadline(); ok {
-		deadline = &t
-	}
-
 	query := &multiraftv1.StateMachineQueryInput{
 		MaxReceivedIndex: requestHeaders.MaxReceivedIndex,
 		Input: &multiraftv1.StateMachineQueryInput_Query{
 			Query: &multiraftv1.SessionQueryInput{
-				SessionID: requestHeaders.SessionID,
-				Deadline:  deadline,
+				SessionID:   requestHeaders.SessionID,
+				SequenceNum: requestHeaders.SequenceNum,
 				Input: &multiraftv1.SessionQueryInput_Query{
 					Query: &multiraftv1.PrimitiveQueryInput{
 						PrimitiveID: requestHeaders.PrimitiveID,
@@ -544,17 +517,12 @@ func (n *Node) StreamQuery(ctx context.Context, inputBytes []byte, requestHeader
 		return errors.NewForbidden("unknown partition %d", requestHeaders.PartitionID)
 	}
 
-	var deadline *time.Time
-	if t, ok := ctx.Deadline(); ok {
-		deadline = &t
-	}
-
 	query := &multiraftv1.StateMachineQueryInput{
 		MaxReceivedIndex: requestHeaders.MaxReceivedIndex,
 		Input: &multiraftv1.StateMachineQueryInput_Query{
 			Query: &multiraftv1.SessionQueryInput{
-				SessionID: requestHeaders.SessionID,
-				Deadline:  deadline,
+				SessionID:   requestHeaders.SessionID,
+				SequenceNum: requestHeaders.SequenceNum,
 				Input: &multiraftv1.SessionQueryInput_Query{
 					Query: &multiraftv1.PrimitiveQueryInput{
 						PrimitiveID: requestHeaders.PrimitiveID,

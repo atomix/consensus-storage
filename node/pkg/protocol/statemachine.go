@@ -6,17 +6,15 @@ package protocol
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	statemachine "github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
 	"github.com/gogo/protobuf/proto"
-	"github.com/google/uuid"
 	dbsm "github.com/lni/dragonboat/v3/statemachine"
 	"io"
-	"sync"
 	"sync/atomic"
 )
 
@@ -119,13 +117,10 @@ func newExecution[T statemachine.ExecutionID, I, O proto.Message](id T, input I,
 }
 
 type stateMachineExecution[T statemachine.ExecutionID, I, O proto.Message] struct {
-	id       T
-	input    I
-	stream   streams.WriteStream[O]
-	state    atomic.Int32
-	watching atomic.Bool
-	watchers map[string]statemachine.WatchFunc[statemachine.Phase]
-	mu       sync.RWMutex
+	id     T
+	input  I
+	stream streams.WriteStream[O]
+	state  atomic.Int32
 }
 
 func (e stateMachineExecution[T, I, O]) ID() T {
@@ -134,19 +129,6 @@ func (e stateMachineExecution[T, I, O]) ID() T {
 
 func (e stateMachineExecution[T, I, O]) Log() logging.Logger {
 	return log
-}
-
-func (e *stateMachineExecution[T, I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
-	e.mu.Lock()
-	defer e.mu.Unlock()
-	if e.watching.CompareAndSwap(false, true) {
-		e.watchers = make(map[string]statemachine.WatchFunc[statemachine.Phase])
-	}
-	id := uuid.New().String()
-	e.watchers[id] = watcher
-	return func() {
-		delete(e.watchers, id)
-	}
 }
 
 func (e stateMachineExecution[T, I, O]) Input() I {
@@ -161,26 +143,8 @@ func (e stateMachineExecution[T, I, O]) Error(err error) {
 	e.stream.Error(err)
 }
 
-func (e *stateMachineExecution[T, I, O]) close(phase statemachine.Phase) {
-	if e.state.CompareAndSwap(int32(statemachine.Runnnig), int32(phase)) {
-		if e.watching.Load() {
-			e.mu.RLock()
-			defer e.mu.RUnlock()
-			for _, watcher := range e.watchers {
-				watcher(phase)
-			}
-		}
-	}
-}
-
-func (e *stateMachineExecution[T, I, O]) Cancel() {
-	e.stream.Close()
-	e.close(statemachine.Canceled)
-}
-
 func (e stateMachineExecution[T, I, O]) Close() {
 	e.stream.Close()
-	e.close(statemachine.Complete)
 }
 
 func newProposal(id statemachine.ProposalID, input *multiraftv1.StateMachineProposalInput, stream streams.WriteStream[*multiraftv1.StateMachineProposalOutput]) *stateMachineProposal {

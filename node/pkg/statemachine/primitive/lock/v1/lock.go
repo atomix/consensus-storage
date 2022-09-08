@@ -7,7 +7,6 @@ package v1
 import (
 	lockv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/lock/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -38,8 +37,8 @@ var lockCodec = primitive.NewCodec[*lockv1.LockInput, *lockv1.LockOutput](
 func newLockStateMachine(ctx primitive.Context[*lockv1.LockInput, *lockv1.LockOutput]) primitive.Primitive[*lockv1.LockInput, *lockv1.LockOutput] {
 	sm := &LockStateMachine{
 		Context:   ctx,
-		proposals: make(map[primitive.ProposalID]statemachine.CancelFunc),
-		sessions:  make(map[primitive.SessionID]statemachine.CancelFunc),
+		proposals: make(map[primitive.ProposalID]primitive.CancelFunc),
+		sessions:  make(map[primitive.SessionID]primitive.CancelFunc),
 	}
 	sm.init()
 	return sm
@@ -54,8 +53,8 @@ type LockStateMachine struct {
 	primitive.Context[*lockv1.LockInput, *lockv1.LockOutput]
 	lock      primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
 	queue     []primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
-	proposals map[primitive.ProposalID]statemachine.CancelFunc
-	sessions  map[primitive.SessionID]statemachine.CancelFunc
+	proposals map[primitive.ProposalID]primitive.CancelFunc
+	sessions  map[primitive.SessionID]primitive.CancelFunc
 	acquire   primitive.Proposer[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.AcquireInput, *lockv1.AcquireOutput]
 	release   primitive.Proposer[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.ReleaseInput, *lockv1.ReleaseOutput]
 	get       primitive.Querier[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.GetInput, *lockv1.GetOutput]
@@ -191,8 +190,8 @@ func (s *LockStateMachine) doAcquire(proposal primitive.Proposal[*lockv1.Acquire
 			Index: multiraftv1.Index(proposal.ID()),
 		})
 	} else {
-		s.proposals[proposal.ID()] = proposal.Watch(func(phase statemachine.Phase) {
-			if phase == statemachine.Canceled {
+		s.proposals[proposal.ID()] = proposal.Watch(func(phase primitive.ProposalPhase) {
+			if phase == primitive.ProposalCanceled {
 				for i, waiter := range s.queue {
 					if waiter.ID() == proposal.ID() {
 						s.queue = append(s.queue[:i], s.queue[i+1:]...)

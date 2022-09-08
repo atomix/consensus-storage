@@ -9,7 +9,6 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/gogo/protobuf/proto"
 )
 
 type NewPrimitiveManagerFunc func(Context) PrimitiveManager
@@ -49,9 +48,17 @@ type Sessionized interface {
 	Session() Session
 }
 
+type WatchFunc[T any] func(T)
+
+type CancelFunc func()
+
+type Watchable[T any] interface {
+	Watch(watcher WatchFunc[T]) CancelFunc
+}
+
 // Session is a service session
 type Session interface {
-	statemachine.Watchable[State]
+	Watchable[State]
 	// Log returns the session log
 	Log() logging.Logger
 	// ID returns the session identifier
@@ -70,15 +77,27 @@ type Sessions interface {
 	List() []Session
 }
 
+type Phase int
+
+const (
+	Pending Phase = iota
+	Running
+	Complete
+	Canceled
+)
+
 // Execution is a proposal or query execution
 type Execution[T statemachine.ExecutionID, I, O any] interface {
 	statemachine.Execution[T, I, O]
 	Sessionized
 }
 
+type ProposalPhase = Phase
+
 // Proposal is a proposal operation
-type Proposal[I, O proto.Message] interface {
+type Proposal[I, O any] interface {
 	Execution[statemachine.ProposalID, I, O]
+	Watchable[ProposalPhase]
 }
 
 // Proposals provides access to pending proposals
@@ -89,7 +108,10 @@ type Proposals interface {
 	List() []PrimitiveProposal
 }
 
+type QueryPhase = Phase
+
 // Query is a read operation
 type Query[I, O any] interface {
 	Execution[statemachine.QueryID, I, O]
+	Watchable[QueryPhase]
 }

@@ -117,10 +117,13 @@ func (s *genericSession[I, O]) State() SessionState {
 	return SessionState(s.parent.State())
 }
 
-func (s *genericSession[I, O]) Watch(watcher statemachine.WatchFunc[SessionState]) statemachine.CancelFunc {
-	return s.parent.Watch(func(state session.State) {
+func (s *genericSession[I, O]) Watch(watcher WatchFunc[SessionState]) CancelFunc {
+	cancel := s.parent.Watch(func(state session.State) {
 		watcher(SessionState(state))
 	})
+	return func() {
+		cancel()
+	}
 }
 
 func (s *genericSession[I, O]) Proposals() Proposals[I, O] {
@@ -190,8 +193,13 @@ func (e *genericProposal[I, O]) Session() Session[I, O] {
 	return newGenericSession[I, O](e.primitive, e.parent.Session())
 }
 
-func (e *genericProposal[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
-	return e.parent.Watch(watcher)
+func (e *genericProposal[I, O]) Watch(watcher WatchFunc[ProposalPhase]) CancelFunc {
+	cancel := e.parent.Watch(func(phase session.ProposalPhase) {
+		watcher(ProposalPhase(phase))
+	})
+	return func() {
+		cancel()
+	}
 }
 
 func (e *genericProposal[I, O]) Input() I {
@@ -211,10 +219,6 @@ func (e *genericProposal[I, O]) Output(output O) {
 
 func (e *genericProposal[I, O]) Error(err error) {
 	e.parent.Error(err)
-}
-
-func (e *genericProposal[I, O]) Cancel() {
-	e.parent.Cancel()
 }
 
 func (e *genericProposal[I, O]) Close() {
@@ -252,8 +256,13 @@ func (e *genericQuery[I, O]) Session() Session[I, O] {
 	return newGenericSession[I, O](e.primitive, e.parent.Session())
 }
 
-func (e *genericQuery[I, O]) Watch(watcher statemachine.WatchFunc[statemachine.Phase]) statemachine.CancelFunc {
-	return e.parent.Watch(watcher)
+func (e *genericQuery[I, O]) Watch(watcher WatchFunc[QueryPhase]) CancelFunc {
+	cancel := e.parent.Watch(func(phase session.QueryPhase) {
+		watcher(QueryPhase(phase))
+	})
+	return func() {
+		cancel()
+	}
 }
 
 func (e *genericQuery[I, O]) Input() I {
@@ -273,10 +282,6 @@ func (e *genericQuery[I, O]) Output(output O) {
 
 func (e *genericQuery[I, O]) Error(err error) {
 	e.parent.Error(err)
-}
-
-func (e *genericQuery[I, O]) Cancel() {
-	e.parent.Cancel()
 }
 
 func (e *genericQuery[I, O]) Close() {
