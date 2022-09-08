@@ -39,8 +39,8 @@ dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
-github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908113146-a4dccc0ca9f1 h1:cwYLTEswYHB9G6I2r4a1IgfVsaNqJKh87BUK8bFp5gU=
-github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908113146-a4dccc0ca9f1/go.mod h1:d4NYqqKf8/chxB0fVfGatdsT3htAr108ewobUtCs0+E=
+github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908193507-2f9b8f58f40c h1:DEDlTsadlt9KCzwBPDt8cGGxt5Sw2kL6nExaa3LwH0w=
+github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908193507-2f9b8f58f40c/go.mod h1:d4NYqqKf8/chxB0fVfGatdsT3htAr108ewobUtCs0+E=
 github.com/atomix/runtime/api v0.4.0 h1:4f2acij1GX6l9nmuROkKgqMP7uZEdjEveWoBFhkPY3Q=
 github.com/atomix/runtime/api v0.4.0/go.mod h1:tjbd3w4yij89ZHCYdQUbmvZMC0HoHQQ/3/gVzQuOCH0=
 github.com/atomix/runtime/sdk v0.4.1 h1:WDXmuISBDImHgPEKKH5tnqDpkGbm1kMMkB/KviKjvMY=

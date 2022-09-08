@@ -10,47 +10,47 @@ import (
 	"google.golang.org/grpc"
 )
 
-func newPrimitiveClient(session *SessionClient, id multiraftv1.PrimitiveID) *PrimitiveClient {
+func newPrimitiveClient(session *SessionClient, spec multiraftv1.PrimitiveSpec) *PrimitiveClient {
 	return &PrimitiveClient{
 		session: session,
-		id:      id,
+		spec:    spec,
 	}
 }
 
 type PrimitiveClient struct {
 	session *SessionClient
 	id      multiraftv1.PrimitiveID
+	spec    multiraftv1.PrimitiveSpec
 }
 
-func (p *PrimitiveClient) close(ctx context.Context) error {
-	request := &multiraftv1.ClosePrimitiveRequest{
-		Headers: &multiraftv1.CommandRequestHeaders{
-			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
-				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
-					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
-						PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
-							PartitionID: p.session.partition.id,
-						},
-						SessionID: p.session.sessionID,
-					},
-					PrimitiveID: p.id,
-				},
+func (p *PrimitiveClient) open(ctx context.Context) error {
+	command := Command[*multiraftv1.CreatePrimitiveResponse](p)
+	response, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*multiraftv1.CreatePrimitiveResponse, error) {
+		return multiraftv1.NewSessionClient(conn).CreatePrimitive(ctx, &multiraftv1.CreatePrimitiveRequest{
+			Headers: headers,
+			CreatePrimitiveInput: multiraftv1.CreatePrimitiveInput{
+				PrimitiveSpec: p.spec,
 			},
-			SequenceNum: p.session.nextRequestNum(),
-		},
-		ClosePrimitiveInput: multiraftv1.ClosePrimitiveInput{
-			PrimitiveID: p.id,
-		},
-	}
-	client := multiraftv1.NewSessionClient(p.session.partition.conn)
-	response, err := client.ClosePrimitive(ctx, request)
+		})
+	})
 	if err != nil {
 		return err
 	}
-	if response.Headers.Status != multiraftv1.OperationResponseHeaders_OK {
-		return getErrorFromStatus(response.Headers.Status, response.Headers.Message)
-	}
+	p.id = response.PrimitiveID
 	return nil
+}
+
+func (p *PrimitiveClient) close(ctx context.Context) error {
+	command := Command[*multiraftv1.ClosePrimitiveResponse](p)
+	_, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*multiraftv1.ClosePrimitiveResponse, error) {
+		return multiraftv1.NewSessionClient(conn).ClosePrimitive(ctx, &multiraftv1.ClosePrimitiveRequest{
+			Headers: headers,
+			ClosePrimitiveInput: multiraftv1.ClosePrimitiveInput{
+				PrimitiveID: p.id,
+			},
+		})
+	})
+	return err
 }
 
 type CommandResponse interface {

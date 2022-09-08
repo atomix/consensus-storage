@@ -36,8 +36,13 @@ func (c *Client) Connect(ctx context.Context, config multiraftv1.DriverConfig) e
 		return errors.NewConflict("client already connected")
 	}
 
+	sessionTimeout := defaultSessionTimeout
+	if config.SessionTimeout != nil {
+		sessionTimeout = *config.SessionTimeout
+	}
+
 	for _, partitionConfig := range config.Partitions {
-		partition := newPartitionClient(partitionConfig.PartitionID, c.network)
+		partition := newPartitionClient(partitionConfig.PartitionID, c.network, sessionTimeout)
 		if err := partition.connect(ctx, &partitionConfig); err != nil {
 			return err
 		}

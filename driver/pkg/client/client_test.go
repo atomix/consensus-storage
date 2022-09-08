@@ -6,15 +6,21 @@ package client
 
 import (
 	"context"
+	"encoding/binary"
+	"encoding/json"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"io"
 	"testing"
+	"time"
 )
 
-func TestClientPrimitiveCommandQuery(t *testing.T) {
+func TestPrimitiveCreateClose(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -174,4 +180,381 @@ func TestClientPrimitiveCommandQuery(t *testing.T) {
 		})
 	err = session.ClosePrimitive(context.TODO(), "name")
 	assert.NoError(t, err)
+}
+
+func TestUnaryCommand(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	partitionServer := NewMockPartitionServer(ctrl)
+	sessionServer := NewMockSessionServer(ctrl)
+	testServer := NewMockTestServer(ctrl)
+
+	network := runtime.NewLocalNetwork()
+	lis, err := network.Listen("localhost:5678")
+
+	server := grpc.NewServer()
+	multiraftv1.RegisterPartitionServer(server, partitionServer)
+	multiraftv1.RegisterSessionServer(server, sessionServer)
+	RegisterTestServer(server, testServer)
+	go func() {
+		assert.NoError(t, server.Serve(lis))
+	}()
+
+	client := NewClient(network)
+	timeout := 10 * time.Second
+	err = client.Connect(context.TODO(), multiraftv1.DriverConfig{
+		Partitions: []multiraftv1.PartitionConfig{
+			{
+				PartitionID: 1,
+				Leader:      "localhost:5678",
+			},
+		},
+		SessionTimeout: &timeout,
+	})
+	assert.NoError(t, err)
+
+	partition := client.Partitions()[0]
+	partitionServer.EXPECT().OpenSession(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.OpenSessionRequest) (*multiraftv1.OpenSessionResponse, error) {
+			return &multiraftv1.OpenSessionResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 1,
+				},
+				OpenSessionOutput: &multiraftv1.OpenSessionOutput{
+					SessionID: 1,
+				},
+			}, nil
+		})
+	session, err := partition.GetSession(context.TODO())
+	assert.NoError(t, err)
+
+	sessionServer.EXPECT().CreatePrimitive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.CreatePrimitiveRequest) (*multiraftv1.CreatePrimitiveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(1), request.Headers.SequenceNum)
+			return &multiraftv1.CreatePrimitiveResponse{
+				Headers: &multiraftv1.CommandResponseHeaders{
+					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+									Index: 2,
+								},
+							},
+						},
+						Status: multiraftv1.OperationResponseHeaders_OK,
+					},
+					OutputSequenceNum: 1,
+				},
+				CreatePrimitiveOutput: &multiraftv1.CreatePrimitiveOutput{
+					PrimitiveID: 2,
+				},
+			}, nil
+		})
+	err = session.CreatePrimitive(context.TODO(), "name", "service")
+	assert.NoError(t, err)
+
+	primitive, err := session.GetPrimitive("name")
+	assert.NoError(t, err)
+
+	command := Command[*TestCommandResponse](primitive)
+	testServer.EXPECT().TestCommand(gomock.Any(), gomock.Any()).
+		Return(nil, errors.ToProto(errors.NewUnavailable("unavailable")))
+	testServer.EXPECT().TestCommand(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *TestCommandRequest) (*TestCommandResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.Headers.SequenceNum)
+			assert.Equal(t, multiraftv1.PrimitiveID(2), request.Headers.PrimitiveID)
+			return &TestCommandResponse{
+				Headers: &multiraftv1.CommandResponseHeaders{
+					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+									Index: 3,
+								},
+							},
+						},
+						Status: multiraftv1.OperationResponseHeaders_OK,
+					},
+					OutputSequenceNum: 1,
+				},
+			}, nil
+		})
+	commandResponse, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*TestCommandResponse, error) {
+		return NewTestClient(conn).TestCommand(context.TODO(), &TestCommandRequest{
+			Headers: headers,
+		})
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, commandResponse)
+
+	ch := make(chan struct{})
+	partitionServer.EXPECT().KeepAlive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.KeepAliveRequest) (*multiraftv1.KeepAliveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.LastInputSequenceNum)
+			inputFilter := &bloom.BloomFilter{}
+			assert.NoError(t, json.Unmarshal(request.InputFilter, inputFilter))
+			sequenceNumBytes := make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 1)
+			assert.False(t, inputFilter.Test(sequenceNumBytes))
+			sequenceNumBytes = make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 2)
+			assert.False(t, inputFilter.Test(sequenceNumBytes))
+			close(ch)
+			return &multiraftv1.KeepAliveResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 4,
+				},
+			}, nil
+		})
+	select {
+	case <-ch:
+	case <-time.After(time.Minute):
+		t.FailNow()
+	}
+}
+
+func TestStreamCommand(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	partitionServer := NewMockPartitionServer(ctrl)
+	sessionServer := NewMockSessionServer(ctrl)
+	testServer := NewMockTestServer(ctrl)
+
+	network := runtime.NewLocalNetwork()
+	lis, err := network.Listen("localhost:5678")
+
+	server := grpc.NewServer()
+	multiraftv1.RegisterPartitionServer(server, partitionServer)
+	multiraftv1.RegisterSessionServer(server, sessionServer)
+	RegisterTestServer(server, testServer)
+	go func() {
+		assert.NoError(t, server.Serve(lis))
+	}()
+
+	client := NewClient(network)
+	timeout := 10 * time.Second
+	err = client.Connect(context.TODO(), multiraftv1.DriverConfig{
+		Partitions: []multiraftv1.PartitionConfig{
+			{
+				PartitionID: 1,
+				Leader:      "localhost:5678",
+			},
+		},
+		SessionTimeout: &timeout,
+	})
+	assert.NoError(t, err)
+
+	partition := client.Partitions()[0]
+	partitionServer.EXPECT().OpenSession(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.OpenSessionRequest) (*multiraftv1.OpenSessionResponse, error) {
+			return &multiraftv1.OpenSessionResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 1,
+				},
+				OpenSessionOutput: &multiraftv1.OpenSessionOutput{
+					SessionID: 1,
+				},
+			}, nil
+		})
+	session, err := partition.GetSession(context.TODO())
+	assert.NoError(t, err)
+
+	sessionServer.EXPECT().CreatePrimitive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.CreatePrimitiveRequest) (*multiraftv1.CreatePrimitiveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(1), request.Headers.SequenceNum)
+			return &multiraftv1.CreatePrimitiveResponse{
+				Headers: &multiraftv1.CommandResponseHeaders{
+					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+									Index: 2,
+								},
+							},
+						},
+						Status: multiraftv1.OperationResponseHeaders_OK,
+					},
+					OutputSequenceNum: 1,
+				},
+				CreatePrimitiveOutput: &multiraftv1.CreatePrimitiveOutput{
+					PrimitiveID: 2,
+				},
+			}, nil
+		})
+	err = session.CreatePrimitive(context.TODO(), "name", "service")
+	assert.NoError(t, err)
+
+	primitive, err := session.GetPrimitive("name")
+	assert.NoError(t, err)
+
+	command := StreamCommand[Test_TestStreamCommandClient, *TestCommandResponse](primitive)
+	sendResponseCh := make(chan struct{})
+	testServer.EXPECT().TestStreamCommand(gomock.Any(), gomock.Any()).
+		Return(errors.ToProto(errors.NewUnavailable("unavailable")))
+	testServer.EXPECT().TestStreamCommand(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(request *TestCommandRequest, stream Test_TestStreamCommandServer) error {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.Headers.SequenceNum)
+			assert.Equal(t, multiraftv1.PrimitiveID(2), request.Headers.PrimitiveID)
+			var outputSequenceNum multiraftv1.SequenceNum
+			for range sendResponseCh {
+				outputSequenceNum++
+				assert.Nil(t, stream.Send(&TestCommandResponse{
+					Headers: &multiraftv1.CommandResponseHeaders{
+						OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+							PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+								SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+									PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+										Index: 3,
+									},
+								},
+							},
+							Status: multiraftv1.OperationResponseHeaders_OK,
+						},
+						OutputSequenceNum: outputSequenceNum,
+					},
+				}))
+			}
+			return nil
+		})
+	stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (Test_TestStreamCommandClient, error) {
+		return NewTestClient(conn).TestStreamCommand(context.TODO(), &TestCommandRequest{
+			Headers: headers,
+		})
+	})
+	assert.NoError(t, err)
+
+	go func() {
+		sendResponseCh <- struct{}{}
+	}()
+	response, err := command.Recv(stream.Recv)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	go func() {
+		sendResponseCh <- struct{}{}
+	}()
+	response, err = command.Recv(stream.Recv)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+
+	keepAliveDone := make(chan struct{})
+	partitionServer.EXPECT().KeepAlive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.KeepAliveRequest) (*multiraftv1.KeepAliveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.LastInputSequenceNum)
+			inputFilter := &bloom.BloomFilter{}
+			assert.NoError(t, json.Unmarshal(request.InputFilter, inputFilter))
+			sequenceNumBytes := make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 1)
+			assert.False(t, inputFilter.Test(sequenceNumBytes))
+			sequenceNumBytes = make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 2)
+			assert.True(t, inputFilter.Test(sequenceNumBytes))
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.LastOutputSequenceNums[2])
+			close(keepAliveDone)
+			return &multiraftv1.KeepAliveResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 4,
+				},
+			}, nil
+		})
+	select {
+	case <-keepAliveDone:
+	case <-time.After(time.Minute):
+		t.FailNow()
+	}
+
+	go func() {
+		sendResponseCh <- struct{}{}
+	}()
+	response, err = command.Recv(stream.Recv)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+
+	close(sendResponseCh)
+
+	keepAliveDone = make(chan struct{})
+	partitionServer.EXPECT().KeepAlive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.KeepAliveRequest) (*multiraftv1.KeepAliveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.LastInputSequenceNum)
+			inputFilter := &bloom.BloomFilter{}
+			assert.NoError(t, json.Unmarshal(request.InputFilter, inputFilter))
+			sequenceNumBytes := make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 1)
+			assert.False(t, inputFilter.Test(sequenceNumBytes))
+			sequenceNumBytes = make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 2)
+			assert.True(t, inputFilter.Test(sequenceNumBytes))
+			assert.Equal(t, multiraftv1.SequenceNum(3), request.LastOutputSequenceNums[2])
+			close(keepAliveDone)
+			return &multiraftv1.KeepAliveResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 5,
+				},
+			}, nil
+		})
+	select {
+	case <-keepAliveDone:
+	case <-time.After(time.Minute):
+		t.FailNow()
+	}
+
+	response, err = command.Recv(stream.Recv)
+	assert.Equal(t, io.EOF, err)
+	assert.Nil(t, response)
+
+	keepAliveDone = make(chan struct{})
+	partitionServer.EXPECT().KeepAlive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.KeepAliveRequest) (*multiraftv1.KeepAliveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.LastInputSequenceNum)
+			inputFilter := &bloom.BloomFilter{}
+			assert.NoError(t, json.Unmarshal(request.InputFilter, inputFilter))
+			sequenceNumBytes := make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 1)
+			assert.False(t, inputFilter.Test(sequenceNumBytes))
+			sequenceNumBytes = make([]byte, 8)
+			binary.BigEndian.PutUint64(sequenceNumBytes, 2)
+			assert.False(t, inputFilter.Test(sequenceNumBytes))
+			_, ok := request.LastOutputSequenceNums[2]
+			assert.False(t, ok)
+			close(keepAliveDone)
+			return &multiraftv1.KeepAliveResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 6,
+				},
+			}, nil
+		})
+	select {
+	case <-keepAliveDone:
+	case <-time.After(time.Minute):
+		t.FailNow()
+	}
+}
+
+func TestStreamCommandCancel(t *testing.T) {
+
+}
+
+func TestStreamQuery(t *testing.T) {
+
+}
+
+func TestStreamQueryCancel(t *testing.T) {
+
 }

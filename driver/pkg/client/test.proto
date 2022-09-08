@@ -15,7 +15,9 @@ import "gogoproto/gogo.proto";
 // Test is a test service
 service Test {
     rpc TestCommand (TestCommandRequest) returns (TestCommandResponse);
+    rpc TestStreamCommand (TestCommandRequest) returns (stream TestCommandResponse);
     rpc TestQuery (TestQueryRequest) returns (TestQueryResponse);
+    rpc TestStreamQuery (TestQueryRequest) returns (stream TestQueryResponse);
 }
 
 message TestCommandRequest {

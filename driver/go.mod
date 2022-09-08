@@ -3,7 +3,7 @@ module github.com/atomix/multi-raft-storage/driver
 go 1.19
 
 require (
-	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2 // indirect
 	google.golang.org/grpc v1.46.0
 	google.golang.org/protobuf v1.28.0 // indirect
@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908113146-a4dccc0ca9f1
+	github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908193507-2f9b8f58f40c
 	github.com/atomix/runtime/api v0.4.0
 	github.com/atomix/runtime/sdk v0.4.1
 	github.com/bits-and-blooms/bloom/v3 v3.2.0

@@ -185,3 +185,31 @@ func (mr *MockTestServerMockRecorder) TestQuery(arg0, arg1 interface{}) *gomock.
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestQuery", reflect.TypeOf((*MockTestServer)(nil).TestQuery), arg0, arg1)
 }
+
+// TestStreamCommand mocks base method.
+func (m *MockTestServer) TestStreamCommand(arg0 *TestCommandRequest, arg1 Test_TestStreamCommandServer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TestStreamCommand", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TestStreamCommand indicates an expected call of TestStreamCommand.
+func (mr *MockTestServerMockRecorder) TestStreamCommand(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestStreamCommand", reflect.TypeOf((*MockTestServer)(nil).TestStreamCommand), arg0, arg1)
+}
+
+// TestStreamQuery mocks base method.
+func (m *MockTestServer) TestStreamQuery(arg0 *TestQueryRequest, arg1 Test_TestStreamQueryServer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TestStreamQuery", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TestStreamQuery indicates an expected call of TestStreamQuery.
+func (mr *MockTestServerMockRecorder) TestStreamQuery(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestStreamQuery", reflect.TypeOf((*MockTestServer)(nil).TestStreamQuery), arg0, arg1)
+}

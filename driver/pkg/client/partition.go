@@ -15,25 +15,28 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"sync"
+	"time"
 )
 
-func newPartitionClient(id multiraftv1.PartitionID, network runtime.Network) *PartitionClient {
+func newPartitionClient(id multiraftv1.PartitionID, network runtime.Network, sessionTimeout time.Duration) *PartitionClient {
 	return &PartitionClient{
-		network: network,
-		id:      id,
+		network:        network,
+		id:             id,
+		sessionTimeout: sessionTimeout,
 	}
 }
 
 type PartitionClient struct {
-	network   runtime.Network
-	id        multiraftv1.PartitionID
-	state     *PartitionState
-	watchers  map[int]chan<- PartitionState
-	watcherID int
-	conn      *grpc.ClientConn
-	resolver  *partitionResolver
-	session   *SessionClient
-	mu        sync.RWMutex
+	network        runtime.Network
+	id             multiraftv1.PartitionID
+	sessionTimeout time.Duration
+	state          *PartitionState
+	watchers       map[int]chan<- PartitionState
+	watcherID      int
+	conn           *grpc.ClientConn
+	resolver       *partitionResolver
+	session        *SessionClient
+	mu             sync.RWMutex
 }
 
 func (p *PartitionClient) ID() multiraftv1.PartitionID {
@@ -62,7 +65,7 @@ func (p *PartitionClient) GetSession(ctx context.Context) (*SessionClient, error
 			PartitionID: p.id,
 		},
 		OpenSessionInput: &multiraftv1.OpenSessionInput{
-			Timeout: sessionTimeout,
+			Timeout: p.sessionTimeout,
 		},
 	}
 
@@ -72,7 +75,7 @@ func (p *PartitionClient) GetSession(ctx context.Context) (*SessionClient, error
 		return nil, errors.FromProto(err)
 	}
 
-	session = newSessionClient(response.SessionID, p, p.conn)
+	session = newSessionClient(response.SessionID, p, p.conn, p.sessionTimeout)
 	p.session = session
 	return session, nil
 }

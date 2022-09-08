@@ -24,14 +24,16 @@ const chanBufSize = 1000
 // The false positive rate for request/response filters
 const fpRate float64 = 0.05
 
-const sessionTimeout = 1 * time.Minute
+const defaultSessionTimeout = 1 * time.Minute
 
-func newSessionClient(id multiraftv1.SessionID, partition *PartitionClient, conn *grpc.ClientConn) *SessionClient {
+func newSessionClient(id multiraftv1.SessionID, partition *PartitionClient, conn *grpc.ClientConn, timeout time.Duration) *SessionClient {
 	session := &SessionClient{
 		sessionID:  id,
 		partition:  partition,
 		conn:       conn,
 		primitives: make(map[string]*PrimitiveClient),
+		timeout:    timeout,
+		requestNum: &atomic.Uint64{},
 	}
 	session.recorder = &Recorder{
 		session: session,
@@ -44,8 +46,9 @@ type SessionClient struct {
 	sessionID    multiraftv1.SessionID
 	partition    *PartitionClient
 	conn         *grpc.ClientConn
+	timeout      time.Duration
 	lastIndex    *sessionIndex
-	requestNum   *sessionRequestNum
+	requestNum   *atomic.Uint64
 	requestCh    chan sessionRequestEvent
 	primitives   map[string]*PrimitiveClient
 	primitivesMu sync.RWMutex
@@ -59,37 +62,14 @@ func (s *SessionClient) CreatePrimitive(ctx context.Context, name string, servic
 	if ok {
 		return nil
 	}
-	request := &multiraftv1.CreatePrimitiveRequest{
-		Headers: &multiraftv1.CommandRequestHeaders{
-			OperationRequestHeaders: multiraftv1.OperationRequestHeaders{
-				PrimitiveRequestHeaders: multiraftv1.PrimitiveRequestHeaders{
-					SessionRequestHeaders: multiraftv1.SessionRequestHeaders{
-						PartitionRequestHeaders: multiraftv1.PartitionRequestHeaders{
-							PartitionID: s.partition.id,
-						},
-						SessionID: s.sessionID,
-					},
-				},
-			},
-			SequenceNum: s.nextRequestNum(),
-		},
-		CreatePrimitiveInput: multiraftv1.CreatePrimitiveInput{
-			PrimitiveSpec: multiraftv1.PrimitiveSpec{
-				Service:   service,
-				Namespace: runtime.GetNamespace(),
-				Name:      name,
-			},
-		},
-	}
-	client := multiraftv1.NewSessionClient(s.partition.conn)
-	response, err := client.CreatePrimitive(ctx, request)
-	if err != nil {
+	primitive = newPrimitiveClient(s, multiraftv1.PrimitiveSpec{
+		Service:   service,
+		Namespace: runtime.GetNamespace(),
+		Name:      name,
+	})
+	if err := primitive.open(ctx); err != nil {
 		return err
 	}
-	if response.Headers.Status != multiraftv1.OperationResponseHeaders_OK {
-		return getErrorFromStatus(response.Headers.Status, response.Headers.Message)
-	}
-	primitive = newPrimitiveClient(s, response.PrimitiveID)
 	s.primitives[name] = primitive
 	return nil
 }
@@ -119,7 +99,7 @@ func (s *SessionClient) ClosePrimitive(ctx context.Context, name string) error {
 }
 
 func (s *SessionClient) nextRequestNum() multiraftv1.SequenceNum {
-	return s.requestNum.Next()
+	return multiraftv1.SequenceNum(s.requestNum.Add(1))
 }
 
 func (s *SessionClient) update(index multiraftv1.Index) {
@@ -130,11 +110,9 @@ func (s *SessionClient) open() {
 	s.lastIndex = &sessionIndex{}
 	s.lastIndex.Update(multiraftv1.Index(s.sessionID))
 
-	s.requestNum = &sessionRequestNum{}
-
 	s.requestCh = make(chan sessionRequestEvent, chanBufSize)
 	go func() {
-		ticker := time.NewTicker(sessionTimeout / 4)
+		ticker := time.NewTicker(s.timeout / 4)
 		var nextRequestNum multiraftv1.SequenceNum = 1
 		requests := make(map[multiraftv1.SequenceNum]bool)
 		pendingRequests := make(map[multiraftv1.SequenceNum]bool)
@@ -188,12 +166,12 @@ func (s *SessionClient) open() {
 				}
 			case <-ticker.C:
 				openRequests := bloom.NewWithEstimates(uint(len(requests)), fpRate)
-				completeResponses := make(map[multiraftv1.SequenceNum]multiraftv1.SequenceNum)
 				for requestNum := range requests {
 					requestBytes := make([]byte, 8)
 					binary.BigEndian.PutUint64(requestBytes, uint64(requestNum))
 					openRequests.Add(requestBytes)
 				}
+				completeResponses := make(map[multiraftv1.SequenceNum]multiraftv1.SequenceNum)
 				for requestNum, responseStream := range responseStreams {
 					if responseStream.currentResponseNum > 1 && responseStream.currentResponseNum > responseStream.ackedResponseNum {
 						completeResponses[requestNum] = responseStream.currentResponseNum
@@ -331,15 +309,6 @@ func (i *sessionIndex) Update(index multiraftv1.Index) {
 func (i *sessionIndex) Get() multiraftv1.Index {
 	value := atomic.LoadUint64(&i.value)
 	return multiraftv1.Index(value)
-}
-
-type sessionRequestNum struct {
-	value uint64
-}
-
-func (i *sessionRequestNum) Next() multiraftv1.SequenceNum {
-	value := atomic.AddUint64(&i.value, 1)
-	return multiraftv1.SequenceNum(value)
 }
 
 type sessionRequestEventType int
