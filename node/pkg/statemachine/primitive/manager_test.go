@@ -10,6 +10,7 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -54,8 +55,11 @@ func TestPrimitive(t *testing.T) {
 	codec := NewMockAnyCodec(ctrl)
 	codec.EXPECT().DecodeInput(gomock.Any()).Return("Hello", nil).AnyTimes()
 	codec.EXPECT().EncodeOutput(gomock.Any()).Return([]byte("world!"), nil).AnyTimes()
+
+	var primitiveCtx Context[any, any]
 	primitive := NewMockAnyPrimitive(ctrl)
-	primitiveType := NewType[any, any]("test", codec, func(Context[any, any]) Primitive[any, any] {
+	primitiveType := NewType[any, any]("test", codec, func(ctx Context[any, any]) Primitive[any, any] {
+		primitiveCtx = ctx
 		return primitive
 	})
 	RegisterType[any, any](registry)(primitiveType)
@@ -94,6 +98,11 @@ func TestPrimitive(t *testing.T) {
 	proposal.EXPECT().Output(gomock.Any())
 	proposal.EXPECT().Close()
 	primitive.EXPECT().Propose(gomock.Any()).Do(func(proposal Proposal[any, any]) {
+		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
+		assert.Len(t, primitiveCtx.Sessions().List(), 1)
+		session, ok := primitiveCtx.Sessions().Get(1)
+		assert.True(t, ok)
+		assert.Equal(t, SessionID(1), session.ID())
 		proposal.Output("world!")
 		proposal.Close()
 	})
@@ -109,6 +118,11 @@ func TestPrimitive(t *testing.T) {
 	query.EXPECT().Output(gomock.Any())
 	query.EXPECT().Close()
 	primitive.EXPECT().Query(gomock.Any()).Do(func(query Query[any, any]) {
+		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
+		assert.Len(t, primitiveCtx.Sessions().List(), 1)
+		session, ok := primitiveCtx.Sessions().Get(1)
+		assert.True(t, ok)
+		assert.Equal(t, SessionID(1), session.ID())
 		query.Output("world!")
 		query.Close()
 	})

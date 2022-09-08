@@ -35,11 +35,11 @@ type primitiveStateMachine[I, O any] struct {
 }
 
 func (p *primitiveStateMachine[I, O]) Sessions() Sessions[I, O] {
-	return newPrimitiveSessions[I, O](p, p.Context.Sessions())
+	return newPrimitiveSessions[I, O](p, p.managedContext.Sessions())
 }
 
 func (p *primitiveStateMachine[I, O]) Proposals() Proposals[I, O] {
-	return newPrimitiveProposals[I, O](p, p.Context.Proposals())
+	return newPrimitiveProposals[I, O](p, p.managedContext.Proposals())
 }
 
 func (p *primitiveStateMachine[I, O]) Snapshot(writer *snapshot.Writer) error {
@@ -77,20 +77,20 @@ type primitiveSessions[I, O any] struct {
 }
 
 func (p *primitiveSessions[I, O]) Get(id SessionID) (Session[I, O], bool) {
-	proposal, ok := p.parent.Get(session.ID(id))
+	session, ok := p.parent.Get(session.ID(id))
 	if !ok {
 		return nil, false
 	}
-	return newPrimitiveSession[I, O](p.primitive, proposal), true
+	return newPrimitiveSession[I, O](p.primitive, session), true
 }
 
 func (p *primitiveSessions[I, O]) List() []Session[I, O] {
-	parents := p.primitive.Context.Sessions().List()
-	proposals := make([]Session[I, O], 0, len(parents))
+	parents := p.parent.List()
+	sessions := make([]Session[I, O], 0, len(parents))
 	for _, parent := range parents {
-		proposals = append(proposals, newPrimitiveSession[I, O](p.primitive, parent))
+		sessions = append(sessions, newPrimitiveSession[I, O](p.primitive, parent))
 	}
-	return proposals
+	return sessions
 }
 
 func newPrimitiveSession[I, O any](primitive *primitiveStateMachine[I, O], parent session.Session) Session[I, O] {
