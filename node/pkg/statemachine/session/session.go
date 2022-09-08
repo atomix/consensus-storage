@@ -695,6 +695,7 @@ func (q *sessionQuery) close(phase QueryPhase) {
 	if q.phase != Running {
 		return
 	}
+	q.phase = phase
 	q.parent.Close()
 	if q.watching.Load() {
 		q.mu.RLock()
