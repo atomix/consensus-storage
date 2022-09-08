@@ -1,0 +1,43 @@
+/*
+SPDX-FileCopyrightText: 2022-present Open Networking Foundation <info@opennetworking.org>
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
+syntax = "proto3";
+
+package atomix.multiraft.test;
+
+import "atomix/multiraft/v1/descriptor.proto";
+import "atomix/multiraft/v1/headers.proto";
+import "gogoproto/gogo.proto";
+
+// Test is a test service
+service Test {
+    rpc TestCommand (TestCommandRequest) returns (TestCommandResponse);
+    rpc TestQuery (TestQueryRequest) returns (TestQueryResponse);
+}
+
+message TestCommandRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+}
+
+message TestCommandResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+}
+
+message TestQueryRequest {
+    atomix.multiraft.v1.QueryRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+}
+
+message TestQueryResponse {
+    atomix.multiraft.v1.QueryResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+}

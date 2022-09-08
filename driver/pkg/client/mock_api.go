@@ -132,3 +132,56 @@ func (mr *MockPartitionServerMockRecorder) OpenSession(arg0, arg1 interface{}) *
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OpenSession", reflect.TypeOf((*MockPartitionServer)(nil).OpenSession), arg0, arg1)
 }
+
+// MockTestServer is a mock of TestServer interface.
+type MockTestServer struct {
+	ctrl     *gomock.Controller
+	recorder *MockTestServerMockRecorder
+}
+
+// MockTestServerMockRecorder is the mock recorder for MockTestServer.
+type MockTestServerMockRecorder struct {
+	mock *MockTestServer
+}
+
+// NewMockTestServer creates a new mock instance.
+func NewMockTestServer(ctrl *gomock.Controller) *MockTestServer {
+	mock := &MockTestServer{ctrl: ctrl}
+	mock.recorder = &MockTestServerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTestServer) EXPECT() *MockTestServerMockRecorder {
+	return m.recorder
+}
+
+// TestCommand mocks base method.
+func (m *MockTestServer) TestCommand(arg0 context.Context, arg1 *TestCommandRequest) (*TestCommandResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TestCommand", arg0, arg1)
+	ret0, _ := ret[0].(*TestCommandResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TestCommand indicates an expected call of TestCommand.
+func (mr *MockTestServerMockRecorder) TestCommand(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestCommand", reflect.TypeOf((*MockTestServer)(nil).TestCommand), arg0, arg1)
+}
+
+// TestQuery mocks base method.
+func (m *MockTestServer) TestQuery(arg0 context.Context, arg1 *TestQueryRequest) (*TestQueryResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TestQuery", arg0, arg1)
+	ret0, _ := ret[0].(*TestQueryResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// TestQuery indicates an expected call of TestQuery.
+func (mr *MockTestServerMockRecorder) TestQuery(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TestQuery", reflect.TypeOf((*MockTestServer)(nil).TestQuery), arg0, arg1)
+}

@@ -14,12 +14,13 @@ import (
 	"testing"
 )
 
-func TestClient(t *testing.T) {
+func TestClientPrimitiveCommandQuery(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	partitionServer := NewMockPartitionServer(ctrl)
 	sessionServer := NewMockSessionServer(ctrl)
+	testServer := NewMockTestServer(ctrl)
 
 	network := runtime.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
@@ -27,6 +28,7 @@ func TestClient(t *testing.T) {
 	server := grpc.NewServer()
 	multiraftv1.RegisterPartitionServer(server, partitionServer)
 	multiraftv1.RegisterSessionServer(server, sessionServer)
+	RegisterTestServer(server, testServer)
 	go func() {
 		assert.NoError(t, server.Serve(lis))
 	}()
@@ -61,6 +63,7 @@ func TestClient(t *testing.T) {
 		DoAndReturn(func(ctx context.Context, request *multiraftv1.CreatePrimitiveRequest) (*multiraftv1.CreatePrimitiveResponse, error) {
 			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
 			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(1), request.Headers.SequenceNum)
 			return &multiraftv1.CreatePrimitiveResponse{
 				Headers: &multiraftv1.CommandResponseHeaders{
 					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
@@ -83,21 +86,83 @@ func TestClient(t *testing.T) {
 	err = session.CreatePrimitive(context.TODO(), "name", "service")
 	assert.NoError(t, err)
 
-	_, err = session.GetPrimitive("name")
+	primitive, err := session.GetPrimitive("name")
 	assert.NoError(t, err)
 
-	sessionServer.EXPECT().ClosePrimitive(gomock.Any(), gomock.Any()).
-		DoAndReturn(func(ctx context.Context, request *multiraftv1.ClosePrimitiveRequest) (*multiraftv1.ClosePrimitiveResponse, error) {
+	command := Command[*TestCommandResponse](primitive)
+	testServer.EXPECT().TestCommand(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *TestCommandRequest) (*TestCommandResponse, error) {
 			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
 			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
-			assert.Equal(t, multiraftv1.PrimitiveID(2), request.PrimitiveID)
-			return &multiraftv1.ClosePrimitiveResponse{
+			assert.Equal(t, multiraftv1.SequenceNum(2), request.Headers.SequenceNum)
+			assert.Equal(t, multiraftv1.PrimitiveID(2), request.Headers.PrimitiveID)
+			return &TestCommandResponse{
 				Headers: &multiraftv1.CommandResponseHeaders{
 					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
 						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
 							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
 								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
 									Index: 3,
+								},
+							},
+						},
+						Status: multiraftv1.OperationResponseHeaders_OK,
+					},
+					OutputSequenceNum: 1,
+				},
+			}, nil
+		})
+	commandResponse, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*TestCommandResponse, error) {
+		return NewTestClient(conn).TestCommand(context.TODO(), &TestCommandRequest{
+			Headers: headers,
+		})
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, commandResponse)
+
+	query := Query[*TestQueryResponse](primitive)
+	testServer.EXPECT().TestQuery(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *TestQueryRequest) (*TestQueryResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.SequenceNum(3), request.Headers.SequenceNum)
+			assert.Equal(t, multiraftv1.PrimitiveID(2), request.Headers.PrimitiveID)
+			return &TestQueryResponse{
+				Headers: &multiraftv1.QueryResponseHeaders{
+					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+									Index: 3,
+								},
+							},
+						},
+						Status: multiraftv1.OperationResponseHeaders_OK,
+					},
+				},
+			}, nil
+		})
+	queryResponse, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (*TestQueryResponse, error) {
+		return NewTestClient(conn).TestQuery(context.TODO(), &TestQueryRequest{
+			Headers: headers,
+		})
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, queryResponse)
+
+	sessionServer.EXPECT().ClosePrimitive(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.ClosePrimitiveRequest) (*multiraftv1.ClosePrimitiveResponse, error) {
+			assert.Equal(t, multiraftv1.PartitionID(1), request.Headers.PartitionID)
+			assert.Equal(t, multiraftv1.SessionID(1), request.Headers.SessionID)
+			assert.Equal(t, multiraftv1.PrimitiveID(2), request.PrimitiveID)
+			assert.Equal(t, multiraftv1.SequenceNum(4), request.Headers.SequenceNum)
+			return &multiraftv1.ClosePrimitiveResponse{
+				Headers: &multiraftv1.CommandResponseHeaders{
+					OperationResponseHeaders: multiraftv1.OperationResponseHeaders{
+						PrimitiveResponseHeaders: multiraftv1.PrimitiveResponseHeaders{
+							SessionResponseHeaders: multiraftv1.SessionResponseHeaders{
+								PartitionResponseHeaders: multiraftv1.PartitionResponseHeaders{
+									Index: 4,
 								},
 							},
 						},
