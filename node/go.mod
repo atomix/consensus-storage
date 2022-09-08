@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.4.5
+	github.com/atomix/multi-raft-storage/api v0.4.6-0.20220908063632-6c35ae7ebe05
 	github.com/atomix/runtime/sdk v0.4.1
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/golang/mock v1.6.0
@@ -80,5 +80,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
-
-replace github.com/atomix/multi-raft-storage/api => ../api
