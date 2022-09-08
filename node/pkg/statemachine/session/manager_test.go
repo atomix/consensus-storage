@@ -996,8 +996,76 @@ func TestStreamingProposal(t *testing.T) {
 	manager.Propose(streamProposal)
 }
 
-func TestQuery(t *testing.T) {
+func TestUnaryQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	timer.EXPECT().Cancel().AnyTimes()
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Submit a query for an unknown session and verify the returned error
+	query := statemachine.NewMockSessionQuery(ctrl)
+	query.EXPECT().ID().Return(context.nextQueryID()).AnyTimes()
+	query.EXPECT().Input().Return(&multiraftv1.SessionQueryInput{
+		SessionID: 1,
+		Input: &multiraftv1.SessionQueryInput_Query{
+			Query: &multiraftv1.PrimitiveQueryInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	query.EXPECT().Error(gomock.Any()).Do(func(err error) {
+		assert.True(t, errors.IsForbidden(err))
+	})
+	query.EXPECT().Close()
+	manager.Query(query)
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Output(gomock.Any())
+	openSession.EXPECT().Close()
+	manager.OpenSession(openSession)
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Submit a primitive query and verify the query is applied to the primitive
+	query = statemachine.NewMockSessionQuery(ctrl)
+	query.EXPECT().ID().Return(context.nextQueryID()).AnyTimes()
+	query.EXPECT().Input().Return(&multiraftv1.SessionQueryInput{
+		SessionID: multiraftv1.SessionID(sessionID),
+		Input: &multiraftv1.SessionQueryInput_Query{
+			Query: &multiraftv1.PrimitiveQueryInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	query.EXPECT().Output(gomock.Any())
+	query.EXPECT().Close()
+	primitives.EXPECT().Query(gomock.Any()).Do(func(query PrimitiveQuery) {
+		query.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: []byte("bar"),
+		})
+		query.Close()
+	})
+	manager.Query(query)
 }
 
 func TestStreamingQuery(t *testing.T) {
