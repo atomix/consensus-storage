@@ -342,7 +342,6 @@
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
 | sequence_num | [uint64](#uint64) |  |  |
-| deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 | create_primitive | [CreatePrimitiveInput](#atomix-multiraft-v1-CreatePrimitiveInput) |  |  |
 | close_primitive | [ClosePrimitiveInput](#atomix-multiraft-v1-ClosePrimitiveInput) |  |  |
 | proposal | [PrimitiveProposalInput](#atomix-multiraft-v1-PrimitiveProposalInput) |  |  |
@@ -399,7 +398,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | session_id | [uint64](#uint64) |  |  |
-| deadline | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
 | query | [PrimitiveQueryInput](#atomix-multiraft-v1-PrimitiveQueryInput) |  |  |
 
 

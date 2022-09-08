@@ -117,13 +117,10 @@ message SessionProposalInput {
     uint64 sequence_num = 2 [
         (gogoproto.casttype) = "SequenceNum"
     ];
-    google.protobuf.Timestamp deadline = 3 [
-        (gogoproto.stdtime) = true
-    ];
     oneof input {
-        CreatePrimitiveInput create_primitive = 4;
-        ClosePrimitiveInput close_primitive = 5;
-        PrimitiveProposalInput proposal = 6;
+        CreatePrimitiveInput create_primitive = 3;
+        ClosePrimitiveInput close_primitive = 4;
+        PrimitiveProposalInput proposal = 5;
     }
 }
 
@@ -144,8 +141,8 @@ message SessionQueryInput {
         (gogoproto.customname) = "SessionID",
         (gogoproto.casttype) = "SessionID"
     ];
-    google.protobuf.Timestamp deadline = 2 [
-        (gogoproto.stdtime) = true
+    uint64 sequence_num = 2 [
+        (gogoproto.casttype) = "SequenceNum"
     ];
     oneof input {
         PrimitiveQueryInput query = 3;

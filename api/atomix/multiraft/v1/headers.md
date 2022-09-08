@@ -164,6 +164,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | operation | [OperationRequestHeaders](#atomix-multiraft-v1-OperationRequestHeaders) |  |  |
+| sequence_num | [uint64](#uint64) |  |  |
 | max_received_index | [uint64](#uint64) |  |  |
 
 

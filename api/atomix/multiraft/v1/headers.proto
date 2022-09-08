@@ -118,7 +118,10 @@ message QueryRequestHeaders {
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
-    uint64 max_received_index = 2 [
+    uint64 sequence_num = 2 [
+        (gogoproto.casttype) = "SequenceNum"
+    ];
+    uint64 max_received_index = 3 [
         (gogoproto.casttype) = "Index"
     ];
 }
