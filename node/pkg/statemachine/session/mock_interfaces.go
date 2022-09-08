@@ -783,3 +783,148 @@ func (mr *MockPrimitiveQueryMockRecorder) Watch(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockPrimitiveQuery)(nil).Watch), arg0)
 }
+
+// MockSessions is a mock of Sessions interface.
+type MockSessions struct {
+	ctrl     *gomock.Controller
+	recorder *MockSessionsMockRecorder
+}
+
+// MockSessionsMockRecorder is the mock recorder for MockSessions.
+type MockSessionsMockRecorder struct {
+	mock *MockSessions
+}
+
+// NewMockSessions creates a new mock instance.
+func NewMockSessions(ctrl *gomock.Controller) *MockSessions {
+	mock := &MockSessions{ctrl: ctrl}
+	mock.recorder = &MockSessionsMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSessions) EXPECT() *MockSessionsMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockSessions) Get(arg0 ID) (Session, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", arg0)
+	ret0, _ := ret[0].(Session)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockSessionsMockRecorder) Get(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSessions)(nil).Get), arg0)
+}
+
+// List mocks base method.
+func (m *MockSessions) List() []Session {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List")
+	ret0, _ := ret[0].([]Session)
+	return ret0
+}
+
+// List indicates an expected call of List.
+func (mr *MockSessionsMockRecorder) List() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSessions)(nil).List))
+}
+
+// MockSession is a mock of Session interface.
+type MockSession struct {
+	ctrl     *gomock.Controller
+	recorder *MockSessionMockRecorder
+}
+
+// MockSessionMockRecorder is the mock recorder for MockSession.
+type MockSessionMockRecorder struct {
+	mock *MockSession
+}
+
+// NewMockSession creates a new mock instance.
+func NewMockSession(ctrl *gomock.Controller) *MockSession {
+	mock := &MockSession{ctrl: ctrl}
+	mock.recorder = &MockSessionMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSession) EXPECT() *MockSessionMockRecorder {
+	return m.recorder
+}
+
+// ID mocks base method.
+func (m *MockSession) ID() ID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ID")
+	ret0, _ := ret[0].(ID)
+	return ret0
+}
+
+// ID indicates an expected call of ID.
+func (mr *MockSessionMockRecorder) ID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockSession)(nil).ID))
+}
+
+// Log mocks base method.
+func (m *MockSession) Log() logging.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Log")
+	ret0, _ := ret[0].(logging.Logger)
+	return ret0
+}
+
+// Log indicates an expected call of Log.
+func (mr *MockSessionMockRecorder) Log() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Log", reflect.TypeOf((*MockSession)(nil).Log))
+}
+
+// Proposals mocks base method.
+func (m *MockSession) Proposals() Proposals {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Proposals")
+	ret0, _ := ret[0].(Proposals)
+	return ret0
+}
+
+// Proposals indicates an expected call of Proposals.
+func (mr *MockSessionMockRecorder) Proposals() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Proposals", reflect.TypeOf((*MockSession)(nil).Proposals))
+}
+
+// State mocks base method.
+func (m *MockSession) State() State {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "State")
+	ret0, _ := ret[0].(State)
+	return ret0
+}
+
+// State indicates an expected call of State.
+func (mr *MockSessionMockRecorder) State() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockSession)(nil).State))
+}
+
+// Watch mocks base method.
+func (m *MockSession) Watch(arg0 statemachine.WatchFunc[State]) statemachine.CancelFunc {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Watch", arg0)
+	ret0, _ := ret[0].(statemachine.CancelFunc)
+	return ret0
+}
+
+// Watch indicates an expected call of Watch.
+func (mr *MockSessionMockRecorder) Watch(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Watch", reflect.TypeOf((*MockSession)(nil).Watch), arg0)
+}

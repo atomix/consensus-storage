@@ -11,7 +11,6 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/gogo/protobuf/proto"
 )
 
 type primitiveDelegate interface {
@@ -20,7 +19,7 @@ type primitiveDelegate interface {
 	query(query session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput])
 }
 
-func newPrimitiveDelegate[I, O proto.Message](context *managedContext, primitiveType Type[I, O]) primitiveDelegate {
+func newPrimitiveDelegate[I, O any](context *managedContext, primitiveType Type[I, O]) primitiveDelegate {
 	primitive := &primitiveStateMachine[I, O]{
 		managedContext: context,
 		codec:          primitiveType.Codec(),
@@ -29,7 +28,7 @@ func newPrimitiveDelegate[I, O proto.Message](context *managedContext, primitive
 	return primitive
 }
 
-type primitiveStateMachine[I, O proto.Message] struct {
+type primitiveStateMachine[I, O any] struct {
 	*managedContext
 	codec Codec[I, O]
 	sm    Primitive[I, O]
@@ -63,16 +62,16 @@ func (p *primitiveStateMachine[I, O]) query(parent session.Query[*multiraftv1.Pr
 	}
 }
 
-var _ primitiveDelegate = (*primitiveStateMachine[proto.Message, proto.Message])(nil)
+var _ primitiveDelegate = (*primitiveStateMachine[any, any])(nil)
 
-func newPrimitiveSessions[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Sessions) Sessions[I, O] {
+func newPrimitiveSessions[I, O any](primitive *primitiveStateMachine[I, O], parent session.Sessions) Sessions[I, O] {
 	return &primitiveSessions[I, O]{
 		primitive: primitive,
 		parent:    parent,
 	}
 }
 
-type primitiveSessions[I, O proto.Message] struct {
+type primitiveSessions[I, O any] struct {
 	primitive *primitiveStateMachine[I, O]
 	parent    session.Sessions
 }
@@ -94,14 +93,14 @@ func (p *primitiveSessions[I, O]) List() []Session[I, O] {
 	return proposals
 }
 
-func newPrimitiveSession[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Session) Session[I, O] {
+func newPrimitiveSession[I, O any](primitive *primitiveStateMachine[I, O], parent session.Session) Session[I, O] {
 	return &primitiveSession[I, O]{
 		primitive: primitive,
 		parent:    parent,
 	}
 }
 
-type primitiveSession[I, O proto.Message] struct {
+type primitiveSession[I, O any] struct {
 	primitive *primitiveStateMachine[I, O]
 	parent    session.Session
 }
@@ -128,14 +127,14 @@ func (s *primitiveSession[I, O]) Proposals() Proposals[I, O] {
 	return newPrimitiveProposals[I, O](s.primitive, s.parent.Proposals())
 }
 
-func newPrimitiveProposals[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Proposals) Proposals[I, O] {
+func newPrimitiveProposals[I, O any](primitive *primitiveStateMachine[I, O], parent session.Proposals) Proposals[I, O] {
 	return &primitiveProposals[I, O]{
 		primitive: primitive,
 		parent:    parent,
 	}
 }
 
-type primitiveProposals[I, O proto.Message] struct {
+type primitiveProposals[I, O any] struct {
 	primitive *primitiveStateMachine[I, O]
 	parent    session.Proposals
 }
@@ -160,7 +159,7 @@ func (p *primitiveProposals[I, O]) List() []Proposal[I, O] {
 	return proposals
 }
 
-func newPrimitiveProposal[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) (Proposal[I, O], bool) {
+func newPrimitiveProposal[I, O any](primitive *primitiveStateMachine[I, O], parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) (Proposal[I, O], bool) {
 	input, err := primitive.codec.DecodeInput(parent.Input().Payload)
 	if err != nil {
 		parent.Error(errors.NewInternal("failed decoding proposal input: %s", err))
@@ -173,7 +172,7 @@ func newPrimitiveProposal[I, O proto.Message](primitive *primitiveStateMachine[I
 	}, true
 }
 
-type primitiveProposal[I, O proto.Message] struct {
+type primitiveProposal[I, O any] struct {
 	primitive *primitiveStateMachine[I, O]
 	parent    session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]
 	input     I
@@ -222,7 +221,7 @@ func (e *primitiveProposal[I, O]) Close() {
 	e.parent.Close()
 }
 
-func newPrimitiveQuery[I, O proto.Message](primitive *primitiveStateMachine[I, O], parent session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]) (Query[I, O], bool) {
+func newPrimitiveQuery[I, O any](primitive *primitiveStateMachine[I, O], parent session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]) (Query[I, O], bool) {
 	input, err := primitive.codec.DecodeInput(parent.Input().Payload)
 	if err != nil {
 		parent.Error(errors.NewInternal("failed decoding proposal input: %s", err))
@@ -235,7 +234,7 @@ func newPrimitiveQuery[I, O proto.Message](primitive *primitiveStateMachine[I, O
 	}, true
 }
 
-type primitiveQuery[I, O proto.Message] struct {
+type primitiveQuery[I, O any] struct {
 	primitive *primitiveStateMachine[I, O]
 	parent    session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]
 	input     I

@@ -9,6 +9,8 @@ type Codec[I, O any] interface {
 	EncodeOutput(O) ([]byte, error)
 }
 
+type AnyCodec Codec[any, any]
+
 type EncodeFunc[T any] func(T) ([]byte, error)
 
 type DecodeFunc[T any] func([]byte) (T, error)

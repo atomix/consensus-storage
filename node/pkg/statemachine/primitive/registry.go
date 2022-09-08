@@ -5,11 +5,10 @@
 package primitive
 
 import (
-	"github.com/gogo/protobuf/proto"
 	"sync"
 )
 
-func RegisterType[I, O proto.Message](registry *TypeRegistry) func(primitiveType Type[I, O]) {
+func RegisterType[I, O any](registry *TypeRegistry) func(primitiveType Type[I, O]) {
 	return func(primitiveType Type[I, O]) {
 		registry.register(primitiveType.Service(), func(context *managedContext) primitiveDelegate {
 			return newPrimitiveDelegate[I, O](context, primitiveType)

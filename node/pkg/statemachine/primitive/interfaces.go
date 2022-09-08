@@ -19,11 +19,15 @@ type Primitive[I, O any] interface {
 	Query(query Query[I, O])
 }
 
+type AnyPrimitive Primitive[any, any]
+
 type Type[I, O any] interface {
 	Service() string
 	Codec() Codec[I, O]
 	NewStateMachine(Context[I, O]) Primitive[I, O]
 }
+
+type AnyType Type[any, any]
 
 func NewType[I, O any](service string, codec Codec[I, O], factory NewPrimitiveFunc[I, O]) Type[I, O] {
 	return &primitiveType[I, O]{
@@ -67,6 +71,8 @@ type Context[I, O any] interface {
 	Proposals() Proposals[I, O]
 }
 
+type AnyContext Context[any, any]
+
 type ID uint64
 
 type SessionState int
@@ -96,6 +102,8 @@ type Session[I, O any] interface {
 	Proposals() Proposals[I, O]
 }
 
+type AnySession Session[any, any]
+
 // Sessions provides access to open sessions
 type Sessions[I, O any] interface {
 	// Get gets a session by ID
@@ -103,6 +111,8 @@ type Sessions[I, O any] interface {
 	// List lists all open sessions
 	List() []Session[I, O]
 }
+
+type AnySessions Sessions[any, any]
 
 // Execution is a proposal or query execution
 type Execution[T statemachine.ExecutionID, I, O any] interface {
@@ -117,6 +127,8 @@ type Proposal[I, O any] interface {
 	Execution[statemachine.ProposalID, I, O]
 }
 
+type AnyProposal Proposal[any, any]
+
 // Proposals provides access to pending proposals
 type Proposals[I, O any] interface {
 	// Get gets a proposal by ID
@@ -125,12 +137,16 @@ type Proposals[I, O any] interface {
 	List() []Proposal[I, O]
 }
 
+type AnyProposals Proposals[any, any]
+
 type QueryID = statemachine.QueryID
 
 // Query is a read operation
 type Query[I, O any] interface {
 	Execution[statemachine.QueryID, I, O]
 }
+
+type AnyQuery Query[any, any]
 
 type Executor[T Execution[U, I, O], U statemachine.ExecutionID, I, O any] interface {
 	Execute(T)
