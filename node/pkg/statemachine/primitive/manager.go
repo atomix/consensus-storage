@@ -441,7 +441,7 @@ type managedContextProposals struct {
 	sessions    *managedSessions
 }
 
-func (p *managedContextProposals) Get(id statemachine.ProposalID) (session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], bool) {
+func (p *managedContextProposals) Get(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
 	parent, ok := p.proposals.Get(id)
 	if !ok {
 		return nil, false
@@ -456,9 +456,9 @@ func (p *managedContextProposals) Get(id statemachine.ProposalID) (session.Propo
 	return newManagedProposal(session, parent), true
 }
 
-func (p *managedContextProposals) List() []session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (p *managedContextProposals) List() []session.PrimitiveProposal {
 	parents := p.proposals.List()
-	proposals := make([]session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], 0, len(parents))
+	proposals := make([]session.PrimitiveProposal, 0, len(parents))
 	for _, parent := range parents {
 		if ID(parent.Input().PrimitiveID) != p.primitiveID {
 			continue
@@ -482,7 +482,7 @@ type managedSessionProposals struct {
 	session *managedSession
 }
 
-func (p *managedSessionProposals) Get(id statemachine.ProposalID) (session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], bool) {
+func (p *managedSessionProposals) Get(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
 	parent, ok := p.session.parent.Proposals().Get(id)
 	if !ok {
 		return nil, false
@@ -493,9 +493,9 @@ func (p *managedSessionProposals) Get(id statemachine.ProposalID) (session.Propo
 	return newManagedProposal(p.session, parent), true
 }
 
-func (p *managedSessionProposals) List() []session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput] {
+func (p *managedSessionProposals) List() []session.PrimitiveProposal {
 	parents := p.session.parent.Proposals().List()
-	proposals := make([]session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput], 0, len(parents))
+	proposals := make([]session.PrimitiveProposal, 0, len(parents))
 	for _, parent := range parents {
 		if ID(parent.Input().PrimitiveID) != p.session.primitive.id {
 			continue
