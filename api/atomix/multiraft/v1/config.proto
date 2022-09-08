@@ -67,6 +67,9 @@ message DriverConfig {
     repeated PartitionConfig partitions = 1 [
         (gogoproto.nullable) = false
     ];
+    google.protobuf.Duration session_timeout = 2 [
+        (gogoproto.stdduration) = true
+    ];
 }
 
 message PartitionConfig {

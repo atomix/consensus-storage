@@ -33,6 +33,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | partitions | [PartitionConfig](#atomix-multiraft-v1-PartitionConfig) | repeated |  |
+| session_timeout | [google.protobuf.Duration](#google-protobuf-Duration) |  |  |
 
 
 
