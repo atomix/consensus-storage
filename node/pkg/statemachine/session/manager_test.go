@@ -1168,5 +1168,218 @@ func TestUnaryQuery(t *testing.T) {
 }
 
 func TestStreamingQuery(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	timer.EXPECT().Cancel().AnyTimes()
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Submit a query for an unknown session and verify the returned error
+	query := statemachine.NewMockSessionQuery(ctrl)
+	query.EXPECT().ID().Return(context.nextQueryID()).AnyTimes()
+	query.EXPECT().Input().Return(&multiraftv1.SessionQueryInput{
+		SessionID:   1,
+		SequenceNum: context.nextSequenceNum(0),
+		Input: &multiraftv1.SessionQueryInput_Query{
+			Query: &multiraftv1.PrimitiveQueryInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	query.EXPECT().Error(gomock.Any()).Do(func(err error) {
+		assert.True(t, errors.IsForbidden(err))
+	})
+	query.EXPECT().Close()
+	manager.Query(query)
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Output(gomock.Any())
+	openSession.EXPECT().Close()
+	manager.OpenSession(openSession)
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Submit a primitive query and verify the query is applied to the primitive
+	query = statemachine.NewMockSessionQuery(ctrl)
+	sequenceNum := context.nextSequenceNum(sessionID)
+	query.EXPECT().ID().Return(context.nextQueryID()).AnyTimes()
+	query.EXPECT().Input().Return(&multiraftv1.SessionQueryInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: sequenceNum,
+		Input: &multiraftv1.SessionQueryInput_Query{
+			Query: &multiraftv1.PrimitiveQueryInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	query.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionQueryOutput) {
+		assert.Equal(t, "a", string(output.GetQuery().Payload))
+	})
+	query.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionQueryOutput) {
+		assert.Equal(t, "b", string(output.GetQuery().Payload))
+	})
+	var streamingQuery PrimitiveQuery
+	streamingQueryComplete := false
+	primitives.EXPECT().Query(gomock.Any()).Do(func(query PrimitiveQuery) {
+		query.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: []byte("a"),
+		})
+		query.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: []byte("b"),
+		})
+		query.Watch(func(phase QueryPhase) {
+			streamingQueryComplete = phase == Complete
+		})
+		streamingQuery = query
+	})
+	manager.Query(query)
+	assert.False(t, streamingQueryComplete)
+
+	// Submit a proposal sending additional outputs to the query
+	proposal := statemachine.NewMockSessionProposal(ctrl)
+	proposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: context.nextSequenceNum(sessionID),
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("bar"),
+			},
+		},
+	}).AnyTimes()
+	proposal.EXPECT().Close()
+	query.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionQueryOutput) {
+		assert.Equal(t, "c", string(output.GetQuery().Payload))
+	})
+	query.EXPECT().Close()
+	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
+		streamingQuery.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: []byte("c"),
+		})
+		streamingQuery.Close()
+		proposal.Close()
+	})
+	manager.Propose(proposal)
+	assert.True(t, streamingQueryComplete)
+
+	// Send a keep-alive to verify the query is not closed
+	inputFilter := bloom.NewWithEstimates(2, .05)
+	sequenceNumBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(sequenceNumBytes, uint64(sequenceNum))
+	inputFilter.Add(sequenceNumBytes)
+	inputFilterBytes, err := json.Marshal(inputFilter)
+	assert.NoError(t, err)
+	keepAlive := statemachine.NewMockKeepAliveProposal(ctrl)
+	keepAlive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	keepAlive.EXPECT().Input().Return(&multiraftv1.KeepAliveInput{
+		SessionID:            multiraftv1.SessionID(sessionID),
+		InputFilter:          inputFilterBytes,
+		LastInputSequenceNum: context.lastSequenceNum(),
+	}).AnyTimes()
+	keepAlive.EXPECT().Output(gomock.Any())
+	keepAlive.EXPECT().Close()
+	manager.KeepAlive(keepAlive)
+}
+
+func TestStreamingQueryCancel(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	timer.EXPECT().Cancel().AnyTimes()
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Output(gomock.Any())
+	openSession.EXPECT().Close()
+	manager.OpenSession(openSession)
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Submit a primitive query and verify the query is applied to the primitive
+	query := statemachine.NewMockSessionQuery(ctrl)
+	query.EXPECT().ID().Return(context.nextQueryID()).AnyTimes()
+	query.EXPECT().Input().Return(&multiraftv1.SessionQueryInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: context.nextSequenceNum(sessionID),
+		Input: &multiraftv1.SessionQueryInput_Query{
+			Query: &multiraftv1.PrimitiveQueryInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	query.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionQueryOutput) {
+		assert.Equal(t, "a", string(output.GetQuery().Payload))
+	})
+	query.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionQueryOutput) {
+		assert.Equal(t, "b", string(output.GetQuery().Payload))
+	})
+	streamingQueryCanceled := false
+	primitives.EXPECT().Query(gomock.Any()).Do(func(query PrimitiveQuery) {
+		query.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: []byte("a"),
+		})
+		query.Output(&multiraftv1.PrimitiveQueryOutput{
+			Payload: []byte("b"),
+		})
+		query.Watch(func(phase QueryPhase) {
+			streamingQueryCanceled = phase == Canceled
+		})
+	})
+	manager.Query(query)
+	assert.False(t, streamingQueryCanceled)
+
+	// Send a keep-alive to cancel the streaming query
+	inputFilter := bloom.NewWithEstimates(2, .05)
+	inputFilterBytes, err := json.Marshal(inputFilter)
+	assert.NoError(t, err)
+	keepAlive := statemachine.NewMockKeepAliveProposal(ctrl)
+	keepAlive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	keepAlive.EXPECT().Input().Return(&multiraftv1.KeepAliveInput{
+		SessionID:            multiraftv1.SessionID(sessionID),
+		InputFilter:          inputFilterBytes,
+		LastInputSequenceNum: context.lastSequenceNum(),
+	}).AnyTimes()
+	keepAlive.EXPECT().Output(gomock.Any())
+	keepAlive.EXPECT().Close()
+	query.EXPECT().Close()
+	manager.KeepAlive(keepAlive)
+	assert.True(t, streamingQueryCanceled)
 }
