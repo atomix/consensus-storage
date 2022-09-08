@@ -146,7 +146,7 @@ func (c *StreamCommandContext[T, U]) Recv(f func() (U, error)) (U, error) {
 		if err != nil {
 			c.session.recorder.StreamClose(c.headers)
 			c.session.recorder.End(c.headers.SequenceNum)
-			return nil, err
+			return response, err
 		}
 		headers := response.GetHeaders()
 		c.session.lastIndex.Update(headers.Index)
@@ -243,7 +243,7 @@ func (c *StreamQueryContext[T, U]) Recv(f func() (U, error)) (U, error) {
 		response, err := f()
 		if err != nil {
 			c.session.recorder.End(c.headers.SequenceNum)
-			return nil, err
+			return response, err
 		}
 		headers := response.GetHeaders()
 		c.session.lastIndex.Update(headers.Index)
