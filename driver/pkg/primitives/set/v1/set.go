@@ -13,7 +13,6 @@ import (
 	atomicsetv1 "github.com/atomix/runtime/api/atomix/runtime/set/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
 	"io"
 )
@@ -42,12 +41,7 @@ func (s *multiRaftSetServer) Create(ctx context.Context, request *atomicsetv1.Cr
 		if err != nil {
 			return err
 		}
-		spec := multiraftv1.PrimitiveSpec{
-			Service:   Service,
-			Namespace: runtime.GetNamespace(),
-			Name:      request.ID.Name,
-		}
-		return session.CreatePrimitive(ctx, spec)
+		return session.CreatePrimitive(ctx, request.ID.Name, Service)
 	})
 	if err != nil {
 		log.Warnw("Create",

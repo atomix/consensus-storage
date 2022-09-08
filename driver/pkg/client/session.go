@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/bits-and-blooms/bloom/v3"
 	"google.golang.org/grpc"
 	"os"
@@ -51,10 +52,10 @@ type SessionClient struct {
 	recorder     *Recorder
 }
 
-func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.PrimitiveSpec) error {
+func (s *SessionClient) CreatePrimitive(ctx context.Context, name string, service string) error {
 	s.primitivesMu.Lock()
 	defer s.primitivesMu.Unlock()
-	primitive, ok := s.primitives[spec.Name]
+	primitive, ok := s.primitives[name]
 	if ok {
 		return nil
 	}
@@ -73,7 +74,11 @@ func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.Pr
 			SequenceNum: s.nextRequestNum(),
 		},
 		CreatePrimitiveInput: multiraftv1.CreatePrimitiveInput{
-			PrimitiveSpec: spec,
+			PrimitiveSpec: multiraftv1.PrimitiveSpec{
+				Service:   service,
+				Namespace: runtime.GetNamespace(),
+				Name:      name,
+			},
 		},
 	}
 	client := multiraftv1.NewSessionClient(s.partition.conn)
@@ -85,7 +90,7 @@ func (s *SessionClient) CreatePrimitive(ctx context.Context, spec multiraftv1.Pr
 		return getErrorFromStatus(response.Headers.Status, response.Headers.Message)
 	}
 	primitive = newPrimitiveClient(s, response.PrimitiveID)
-	s.primitives[spec.Name] = primitive
+	s.primitives[name] = primitive
 	return nil
 }
 
@@ -99,7 +104,7 @@ func (s *SessionClient) GetPrimitive(name string) (*PrimitiveClient, error) {
 	return primitive, nil
 }
 
-func (s *SessionClient) ClosePrimitive(ctx context.Context, name string, opts ...grpc.CallOption) error {
+func (s *SessionClient) ClosePrimitive(ctx context.Context, name string) error {
 	s.primitivesMu.Lock()
 	defer s.primitivesMu.Unlock()
 	primitive, ok := s.primitives[name]

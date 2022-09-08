@@ -21,6 +21,7 @@ require (
 	github.com/atomix/runtime/api v0.4.0
 	github.com/atomix/runtime/sdk v0.4.1
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
+	github.com/golang/mock v1.6.0
 	github.com/stretchr/testify v1.7.1
 )
 

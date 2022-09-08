@@ -12,7 +12,6 @@ import (
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
 )
 
@@ -41,12 +40,7 @@ func (s *multiRaftCounterServer) Create(ctx context.Context, request *counterv1.
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	spec := multiraftv1.PrimitiveSpec{
-		Service:   Service,
-		Namespace: runtime.GetNamespace(),
-		Name:      request.ID.Name,
-	}
-	if err := session.CreatePrimitive(ctx, spec); err != nil {
+	if err := session.CreatePrimitive(ctx, request.ID.Name, Service); err != nil {
 		log.Warnw("Create",
 			logging.Stringer("CreateRequest", request),
 			logging.Error("Error", err))

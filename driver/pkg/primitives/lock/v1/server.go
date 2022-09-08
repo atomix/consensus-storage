@@ -13,7 +13,6 @@ import (
 	lockv1 "github.com/atomix/runtime/api/atomix/runtime/lock/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
 )
 
@@ -41,12 +40,7 @@ func (s *multiRaftLockServer) Create(ctx context.Context, request *lockv1.Create
 		if err != nil {
 			return err
 		}
-		spec := multiraftv1.PrimitiveSpec{
-			Service:   Service,
-			Namespace: runtime.GetNamespace(),
-			Name:      request.ID.Name,
-		}
-		return session.CreatePrimitive(ctx, spec)
+		return session.CreatePrimitive(ctx, request.ID.Name, Service)
 	})
 	if err != nil {
 		log.Warnw("Create",

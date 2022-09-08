@@ -10,21 +10,22 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/grpc/retry"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"sync"
 )
 
-func newPartitionClient(client *Client, id multiraftv1.PartitionID) *PartitionClient {
+func newPartitionClient(id multiraftv1.PartitionID, network runtime.Network) *PartitionClient {
 	return &PartitionClient{
-		client: client,
-		id:     id,
+		network: network,
+		id:      id,
 	}
 }
 
 type PartitionClient struct {
-	client    *Client
+	network   runtime.Network
 	id        multiraftv1.PartitionID
 	state     *PartitionState
 	watchers  map[int]chan<- PartitionState
@@ -86,7 +87,7 @@ func (p *PartitionClient) connect(ctx context.Context, config *multiraftv1.Parti
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"loadBalancingPolicy":"%s"}`, resolverName)),
 		grpc.WithResolvers(p.resolver),
-		grpc.WithContextDialer(p.client.network.Connect),
+		grpc.WithContextDialer(p.network.Connect),
 		grpc.WithUnaryInterceptor(retry.RetryingUnaryClientInterceptor(retry.WithRetryOn(codes.Unavailable))),
 		grpc.WithStreamInterceptor(retry.RetryingStreamClientInterceptor(retry.WithRetryOn(codes.Unavailable))))
 	if err != nil {

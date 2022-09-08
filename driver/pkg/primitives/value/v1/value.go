@@ -12,7 +12,6 @@ import (
 	valuev1 "github.com/atomix/runtime/api/atomix/runtime/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"google.golang.org/grpc"
 	"io"
 )
@@ -42,12 +41,7 @@ func (s *multiRaftValueServer) Create(ctx context.Context, request *valuev1.Crea
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	spec := multiraftv1.PrimitiveSpec{
-		Service:   Service,
-		Namespace: runtime.GetNamespace(),
-		Name:      request.ID.Name,
-	}
-	if err := session.CreatePrimitive(ctx, spec); err != nil {
+	if err := session.CreatePrimitive(ctx, request.ID.Name, Service); err != nil {
 		log.Warnw("Create",
 			logging.Stringer("CreateRequest", request),
 			logging.Error("Error", err))

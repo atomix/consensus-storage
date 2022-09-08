@@ -37,7 +37,7 @@ func (c *Client) Connect(ctx context.Context, config multiraftv1.DriverConfig) e
 	}
 
 	for _, partitionConfig := range config.Partitions {
-		partition := newPartitionClient(c, partitionConfig.PartitionID)
+		partition := newPartitionClient(partitionConfig.PartitionID, c.network)
 		if err := partition.connect(ctx, &partitionConfig); err != nil {
 			return err
 		}

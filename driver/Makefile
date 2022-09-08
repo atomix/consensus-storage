@@ -6,6 +6,10 @@
 build:
 	go build ./pkg/...
 
+.PHONY: test
+test:
+	CGO_ENABLED=1 go test -race github.com/atomix/multi-raft-storage/driver/...
+
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse
 
