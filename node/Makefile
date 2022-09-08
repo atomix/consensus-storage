@@ -13,6 +13,10 @@ endif
 build:
 	docker build . -t atomix/multi-raft-node:latest
 
+.PHONY: test
+test:
+	CGO_ENABLED=1 go test -race github.com/atomix/multi-raft-storage/node/...
+
 .PHONY: release
 release: build
 	docker push atomix/multi-raft-node:latest
