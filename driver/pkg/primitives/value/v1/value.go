@@ -316,8 +316,8 @@ func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server val
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
-	command := client.StreamCommand[api.Value_EventsClient, *api.EventsResponse](primitive)
-	stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.Value_EventsClient, error) {
+	command := client.StreamCommand[*api.EventsResponse](primitive)
+	stream, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (client.CommandStream[*api.EventsResponse], error) {
 		return api.NewValueClient(conn).Events(server.Context(), &api.EventsRequest{
 			Headers:     headers,
 			EventsInput: &api.EventsInput{},
@@ -331,7 +331,7 @@ func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server val
 		return err
 	}
 	for {
-		output, err := command.Recv(stream.Recv)
+		output, err := stream.Recv()
 		if err == io.EOF {
 			log.Debugw("Events",
 				logging.Stringer("EventsRequest", request),
@@ -422,8 +422,8 @@ func (s *multiRaftValueServer) Watch(request *valuev1.WatchRequest, server value
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
-	query := client.StreamQuery[api.Value_WatchClient, *api.WatchResponse](primitive)
-	stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.Value_WatchClient, error) {
+	query := client.StreamQuery[*api.WatchResponse](primitive)
+	stream, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (client.QueryStream[*api.WatchResponse], error) {
 		return api.NewValueClient(conn).Watch(server.Context(), &api.WatchRequest{
 			Headers:    headers,
 			WatchInput: &api.WatchInput{},
@@ -436,7 +436,7 @@ func (s *multiRaftValueServer) Watch(request *valuev1.WatchRequest, server value
 		return errors.ToProto(err)
 	}
 	for {
-		output, err := query.Recv(stream.Recv)
+		output, err := stream.Recv()
 		if err == io.EOF {
 			return nil
 		}

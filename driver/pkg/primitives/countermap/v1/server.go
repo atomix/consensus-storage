@@ -610,8 +610,8 @@ func (s *multiRaftCounterMapServer) Events(request *atomiccountermapv1.EventsReq
 				logging.Error("Error", err))
 			return err
 		}
-		command := client.StreamCommand[api.CounterMap_EventsClient, *api.EventsResponse](primitive)
-		stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.CounterMap_EventsClient, error) {
+		command := client.StreamCommand[*api.EventsResponse](primitive)
+		stream, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (client.CommandStream[*api.EventsResponse], error) {
 			return api.NewCounterMapClient(conn).Events(server.Context(), &api.EventsRequest{
 				Headers: headers,
 				EventsInput: &api.EventsInput{
@@ -627,7 +627,7 @@ func (s *multiRaftCounterMapServer) Events(request *atomiccountermapv1.EventsReq
 			return err
 		}
 		for {
-			output, err := command.Recv(stream.Recv)
+			output, err := stream.Recv()
 			if err == io.EOF {
 				log.Debugw("Events",
 					logging.Stringer("EventsRequest", request),
@@ -711,8 +711,8 @@ func (s *multiRaftCounterMapServer) Entries(request *atomiccountermapv1.EntriesR
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
-		query := client.StreamQuery[api.CounterMap_EntriesClient, *api.EntriesResponse](primitive)
-		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.CounterMap_EntriesClient, error) {
+		query := client.StreamQuery[*api.EntriesResponse](primitive)
+		stream, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (client.QueryStream[*api.EntriesResponse], error) {
 			return api.NewCounterMapClient(conn).Entries(server.Context(), &api.EntriesRequest{
 				Headers: headers,
 				EntriesInput: &api.EntriesInput{
@@ -727,7 +727,7 @@ func (s *multiRaftCounterMapServer) Entries(request *atomiccountermapv1.EntriesR
 			return errors.ToProto(err)
 		}
 		for {
-			output, err := query.Recv(stream.Recv)
+			output, err := stream.Recv()
 			if err == io.EOF {
 				return nil
 			}

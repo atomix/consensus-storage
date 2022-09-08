@@ -543,8 +543,8 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 				logging.Error("Error", err))
 			return err
 		}
-		command := client.StreamCommand[api.Map_EventsClient, *api.EventsResponse](primitive)
-		stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.Map_EventsClient, error) {
+		command := client.StreamCommand[*api.EventsResponse](primitive)
+		stream, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (client.CommandStream[*api.EventsResponse], error) {
 			return api.NewMapClient(conn).Events(server.Context(), &api.EventsRequest{
 				Headers: headers,
 				EventsInput: &api.EventsInput{
@@ -560,7 +560,7 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 			return err
 		}
 		for {
-			output, err := command.Recv(stream.Recv)
+			output, err := stream.Recv()
 			if err == io.EOF {
 				log.Debugw("Events",
 					logging.Stringer("EventsRequest", request),
@@ -657,8 +657,8 @@ func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
-		query := client.StreamQuery[api.Map_EntriesClient, *api.EntriesResponse](primitive)
-		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.Map_EntriesClient, error) {
+		query := client.StreamQuery[*api.EntriesResponse](primitive)
+		stream, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (client.QueryStream[*api.EntriesResponse], error) {
 			return api.NewMapClient(conn).Entries(server.Context(), &api.EntriesRequest{
 				Headers: headers,
 				EntriesInput: &api.EntriesInput{
@@ -673,7 +673,7 @@ func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server
 			return errors.ToProto(err)
 		}
 		for {
-			output, err := query.Recv(stream.Recv)
+			output, err := stream.Recv()
 			if err == io.EOF {
 				return nil
 			}

@@ -331,8 +331,8 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 				logging.Error("Error", err))
 			return err
 		}
-		command := client.StreamCommand[api.Set_EventsClient, *api.EventsResponse](primitive)
-		stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (api.Set_EventsClient, error) {
+		command := client.StreamCommand[*api.EventsResponse](primitive)
+		stream, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (client.CommandStream[*api.EventsResponse], error) {
 			return api.NewSetClient(conn).Events(server.Context(), &api.EventsRequest{
 				Headers:     headers,
 				EventsInput: &api.EventsInput{},
@@ -346,7 +346,7 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 			return err
 		}
 		for {
-			output, err := command.Recv(stream.Recv)
+			output, err := stream.Recv()
 			if err == io.EOF {
 				log.Debugw("Events",
 					logging.Stringer("EventsRequest", request),
@@ -421,8 +421,8 @@ func (s *multiRaftSetServer) Elements(request *atomicsetv1.ElementsRequest, serv
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
-		query := client.StreamQuery[api.Set_ElementsClient, *api.ElementsResponse](primitive)
-		stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (api.Set_ElementsClient, error) {
+		query := client.StreamQuery[*api.ElementsResponse](primitive)
+		stream, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (client.QueryStream[*api.ElementsResponse], error) {
 			return api.NewSetClient(conn).Elements(server.Context(), &api.ElementsRequest{
 				Headers: headers,
 				ElementsInput: &api.ElementsInput{
@@ -437,7 +437,7 @@ func (s *multiRaftSetServer) Elements(request *atomicsetv1.ElementsRequest, serv
 			return errors.ToProto(err)
 		}
 		for {
-			output, err := query.Recv(stream.Recv)
+			output, err := stream.Recv()
 			if err == io.EOF {
 				return nil
 			}

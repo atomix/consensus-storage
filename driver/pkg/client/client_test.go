@@ -419,7 +419,7 @@ func TestStreamCommand(t *testing.T) {
 	primitive, err := session.GetPrimitive("name")
 	assert.NoError(t, err)
 
-	command := StreamCommand[Test_TestStreamCommandClient, *TestCommandResponse](primitive)
+	command := StreamCommand[*TestCommandResponse](primitive)
 	sendResponseCh := make(chan struct{})
 	testServer.EXPECT().TestStreamCommand(gomock.Any(), gomock.Any()).
 		Return(errors.ToProto(errors.NewUnavailable("unavailable")))
@@ -450,7 +450,7 @@ func TestStreamCommand(t *testing.T) {
 			}
 			return nil
 		})
-	stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (Test_TestStreamCommandClient, error) {
+	stream, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (CommandStream[*TestCommandResponse], error) {
 		return NewTestClient(conn).TestStreamCommand(context.TODO(), &TestCommandRequest{
 			Headers: headers,
 		})
@@ -460,13 +460,13 @@ func TestStreamCommand(t *testing.T) {
 	go func() {
 		sendResponseCh <- struct{}{}
 	}()
-	response, err := command.Recv(stream.Recv)
+	response, err := stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	go func() {
 		sendResponseCh <- struct{}{}
 	}()
-	response, err = command.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -501,7 +501,7 @@ func TestStreamCommand(t *testing.T) {
 	go func() {
 		sendResponseCh <- struct{}{}
 	}()
-	response, err = command.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -535,7 +535,7 @@ func TestStreamCommand(t *testing.T) {
 		t.FailNow()
 	}
 
-	response, err = command.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.Equal(t, io.EOF, err)
 	assert.Nil(t, response)
 
@@ -657,7 +657,7 @@ func TestStreamCommandCancel(t *testing.T) {
 	primitive, err := session.GetPrimitive("name")
 	assert.NoError(t, err)
 
-	command := StreamCommand[Test_TestStreamCommandClient, *TestCommandResponse](primitive)
+	command := StreamCommand[*TestCommandResponse](primitive)
 	testServer.EXPECT().TestStreamCommand(gomock.Any(), gomock.Any()).
 		Return(errors.ToProto(errors.NewUnavailable("unavailable")))
 	testServer.EXPECT().TestStreamCommand(gomock.Any(), gomock.Any()).
@@ -701,17 +701,17 @@ func TestStreamCommandCancel(t *testing.T) {
 		})
 
 	ctx, cancel := context.WithCancel(context.Background())
-	stream, err := command.Open(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (Test_TestStreamCommandClient, error) {
+	stream, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (CommandStream[*TestCommandResponse], error) {
 		return NewTestClient(conn).TestStreamCommand(ctx, &TestCommandRequest{
 			Headers: headers,
 		})
 	})
 	assert.NoError(t, err)
 
-	response, err := command.Recv(stream.Recv)
+	response, err := stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	response, err = command.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -772,7 +772,7 @@ func TestStreamCommandCancel(t *testing.T) {
 		t.FailNow()
 	}
 
-	_, err = command.Recv(stream.Recv)
+	_, err = stream.Recv()
 	assert.Error(t, err)
 
 	keepAliveDone = make(chan struct{})
@@ -1041,7 +1041,7 @@ func TestStreamQuery(t *testing.T) {
 	primitive, err := session.GetPrimitive("name")
 	assert.NoError(t, err)
 
-	query := StreamQuery[Test_TestStreamQueryClient, *TestQueryResponse](primitive)
+	query := StreamQuery[*TestQueryResponse](primitive)
 	sendResponseCh := make(chan struct{})
 	testServer.EXPECT().TestStreamQuery(gomock.Any(), gomock.Any()).
 		Return(errors.ToProto(errors.NewUnavailable("unavailable")))
@@ -1069,7 +1069,7 @@ func TestStreamQuery(t *testing.T) {
 			}
 			return nil
 		})
-	stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (Test_TestStreamQueryClient, error) {
+	stream, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (QueryStream[*TestQueryResponse], error) {
 		return NewTestClient(conn).TestStreamQuery(context.TODO(), &TestQueryRequest{
 			Headers: headers,
 		})
@@ -1079,13 +1079,13 @@ func TestStreamQuery(t *testing.T) {
 	go func() {
 		sendResponseCh <- struct{}{}
 	}()
-	response, err := query.Recv(stream.Recv)
+	response, err := stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 	go func() {
 		sendResponseCh <- struct{}{}
 	}()
-	response, err = query.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -1119,7 +1119,7 @@ func TestStreamQuery(t *testing.T) {
 	go func() {
 		sendResponseCh <- struct{}{}
 	}()
-	response, err = query.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -1152,7 +1152,7 @@ func TestStreamQuery(t *testing.T) {
 		t.FailNow()
 	}
 
-	response, err = query.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.Equal(t, io.EOF, err)
 	assert.Nil(t, response)
 
@@ -1274,7 +1274,7 @@ func TestStreamQueryCancel(t *testing.T) {
 	primitive, err := session.GetPrimitive("name")
 	assert.NoError(t, err)
 
-	query := StreamQuery[Test_TestStreamQueryClient, *TestQueryResponse](primitive)
+	query := StreamQuery[*TestQueryResponse](primitive)
 	testServer.EXPECT().TestStreamQuery(gomock.Any(), gomock.Any()).
 		Return(errors.ToProto(errors.NewUnavailable("unavailable")))
 	testServer.EXPECT().TestStreamQuery(gomock.Any(), gomock.Any()).
@@ -1316,17 +1316,17 @@ func TestStreamQueryCancel(t *testing.T) {
 		})
 
 	ctx, cancel := context.WithCancel(context.Background())
-	stream, err := query.Open(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (Test_TestStreamQueryClient, error) {
+	stream, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.QueryRequestHeaders) (QueryStream[*TestQueryResponse], error) {
 		return NewTestClient(conn).TestStreamQuery(ctx, &TestQueryRequest{
 			Headers: headers,
 		})
 	})
 	assert.NoError(t, err)
 
-	response, err := query.Recv(stream.Recv)
+	response, err := stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
-	response, err = query.Recv(stream.Recv)
+	response, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.NotNil(t, response)
 
@@ -1386,7 +1386,7 @@ func TestStreamQueryCancel(t *testing.T) {
 		t.FailNow()
 	}
 
-	_, err = query.Recv(stream.Recv)
+	_, err = stream.Recv()
 	assert.Error(t, err)
 
 	keepAliveDone = make(chan struct{})
