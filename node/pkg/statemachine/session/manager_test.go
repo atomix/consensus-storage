@@ -49,6 +49,10 @@ func (c *managerTestContext) nextSequenceNum(sessionID ID) multiraftv1.SequenceN
 	return sequenceNum
 }
 
+func (c *managerTestContext) lastSequenceNum() multiraftv1.SequenceNum {
+	return multiraftv1.SequenceNum(c.index)
+}
+
 func (c *managerTestContext) nextQueryID() statemachine.QueryID {
 	c.queryID++
 	return c.queryID
@@ -438,7 +442,7 @@ func TestUnaryProposal(t *testing.T) {
 	proposal1.EXPECT().Close()
 	manager.Propose(proposal1)
 
-	// Take another snapshot of the manager and create a new manager from the snapshot
+	// Take a snapshot of the manager and create a new manager from the snapshot
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
 	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 	buf := &bytes.Buffer{}
@@ -564,7 +568,413 @@ func TestUnaryProposal(t *testing.T) {
 }
 
 func TestStreamingProposal(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
+	context := newManagerTestContext(ctrl)
+	timer := statemachine.NewMockTimer(ctrl)
+	timer.EXPECT().Cancel().AnyTimes()
+	scheduler := statemachine.NewMockScheduler(ctrl)
+	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
+
+	primitives := NewMockPrimitiveManager(ctrl)
+	manager := NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+
+	// Open a new session
+	proposalID := context.nextProposalID()
+	sessionID := ID(proposalID)
+	openSession := statemachine.NewMockOpenSessionProposal(ctrl)
+	openSession.EXPECT().ID().Return(proposalID).AnyTimes()
+	openSession.EXPECT().Input().Return(&multiraftv1.OpenSessionInput{
+		Timeout: time.Minute,
+	}).AnyTimes()
+	openSession.EXPECT().Output(gomock.Any())
+	openSession.EXPECT().Close()
+	manager.OpenSession(openSession)
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+
+	// Submit a primitive proposal and verify the proposal is applied to the primitive
+	streamProposal := statemachine.NewMockSessionProposal(ctrl)
+	streamProposalID := context.nextProposalID()
+	streamSequenceNum := context.nextSequenceNum(sessionID)
+	streamProposal.EXPECT().ID().Return(streamProposalID).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(1), output.SequenceNum)
+		assert.Equal(t, "a", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
+		assert.Equal(t, streamProposalID, proposal.ID())
+		assert.Equal(t, sessionID, proposal.Session().ID())
+		assert.Len(t, proposal.Session().Proposals().List(), 1)
+		p, ok := proposal.Session().Proposals().Get(streamProposalID)
+		assert.True(t, ok)
+		assert.Equal(t, streamProposalID, p.ID())
+		assert.Len(t, manager.(Context).Proposals().List(), 1)
+		p, ok = manager.(Context).Proposals().Get(streamProposalID)
+		assert.True(t, ok)
+		assert.Equal(t, streamProposalID, p.ID())
+		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("a"),
+		})
+		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("b"),
+		})
+	})
+	manager.Propose(streamProposal)
+
+	// Retry the same primitive proposal and verify the proposal is not applied to the primitive again (for linearizability)
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(1), output.SequenceNum)
+		assert.Equal(t, "a", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	manager.Propose(streamProposal)
+
+	// Take a snapshot of the manager and create a new manager from the snapshot
+	assert.Len(t, manager.(Context).Proposals().List(), 1)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
+	buf := &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	assert.Len(t, manager.(Context).Proposals().List(), 1)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
+
+	// Retry the same primitive proposal again after the snapshot
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(1), output.SequenceNum)
+		assert.Equal(t, "a", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	manager.Propose(streamProposal)
+
+	// Submit a separate proposal producing more outputs to the streaming proposal
+	proposal := statemachine.NewMockSessionProposal(ctrl)
+	proposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: context.nextSequenceNum(sessionID),
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("bar"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(3), output.SequenceNum)
+		assert.Equal(t, "c", string(output.GetProposal().Payload))
+	})
+	proposal.EXPECT().Close()
+	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
+		streamProposal, ok := proposal.Session().Proposals().Get(streamProposalID)
+		assert.True(t, ok)
+		streamProposal.Output(&multiraftv1.PrimitiveProposalOutput{
+			Payload: []byte("c"),
+		})
+		proposal.Close()
+	})
+	manager.Propose(proposal)
+
+	// Retry the streaming proposal again to verify all 3 outputs are replayed
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(1), output.SequenceNum)
+		assert.Equal(t, "a", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(3), output.SequenceNum)
+		assert.Equal(t, "c", string(output.GetProposal().Payload))
+	})
+	manager.Propose(streamProposal)
+
+	// Send a keep-alive to ack one of the streaming proposal outputs
+	inputFilter := bloom.NewWithEstimates(2, .05)
+	streamSequenceNumBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(streamSequenceNumBytes, uint64(streamSequenceNum))
+	inputFilter.Add(streamSequenceNumBytes)
+	inputFilterBytes, err := json.Marshal(inputFilter)
+	assert.NoError(t, err)
+	keepAlive := statemachine.NewMockKeepAliveProposal(ctrl)
+	keepAlive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	keepAlive.EXPECT().Input().Return(&multiraftv1.KeepAliveInput{
+		SessionID:            multiraftv1.SessionID(sessionID),
+		InputFilter:          inputFilterBytes,
+		LastInputSequenceNum: context.lastSequenceNum(),
+		LastOutputSequenceNums: map[multiraftv1.SequenceNum]multiraftv1.SequenceNum{
+			streamSequenceNum: 1,
+		},
+	}).AnyTimes()
+	keepAlive.EXPECT().Output(gomock.Any())
+	keepAlive.EXPECT().Close()
+	manager.KeepAlive(keepAlive)
+
+	// Retry the streaming proposal and verify only the two unacknowledged outputs are replayed
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(3), output.SequenceNum)
+		assert.Equal(t, "c", string(output.GetProposal().Payload))
+	})
+	manager.Propose(streamProposal)
+
+	// Submit a proposal to close the streaming proposal
+	proposal = statemachine.NewMockSessionProposal(ctrl)
+	proposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	proposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: context.nextSequenceNum(sessionID),
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("bar"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Close()
+	proposal.EXPECT().Close()
+	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
+		streamProposal, ok := proposal.Session().Proposals().Get(streamProposalID)
+		assert.True(t, ok)
+		streamProposal.Close()
+		proposal.Close()
+	})
+	manager.Propose(proposal)
+
+	// Retry the streaming proposal and verify only the two unacknowledged outputs are replayed and the proposal is closed
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(3), output.SequenceNum)
+		assert.Equal(t, "c", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Close()
+	manager.Propose(streamProposal)
+
+	// Take a snapshot of the manager and create a new manager from the snapshot
+	assert.Len(t, manager.(Context).Proposals().List(), 0)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
+	buf = &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	assert.Len(t, manager.(Context).Proposals().List(), 0)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
+
+	// Retry the streaming proposal to verify outputs again
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(2), output.SequenceNum)
+		assert.Equal(t, "b", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Output(gomock.Any()).Do(func(output *multiraftv1.SessionProposalOutput) {
+		assert.Equal(t, multiraftv1.SequenceNum(3), output.SequenceNum)
+		assert.Equal(t, "c", string(output.GetProposal().Payload))
+	})
+	streamProposal.EXPECT().Close()
+	manager.Propose(streamProposal)
+
+	// Send another keep-alive acking the remaining outputs
+	inputFilter = bloom.NewWithEstimates(2, .05)
+	streamSequenceNumBytes = make([]byte, 8)
+	binary.BigEndian.PutUint64(streamSequenceNumBytes, uint64(streamSequenceNum))
+	inputFilter.Add(streamSequenceNumBytes)
+	inputFilterBytes, err = json.Marshal(inputFilter)
+	assert.NoError(t, err)
+	keepAlive = statemachine.NewMockKeepAliveProposal(ctrl)
+	keepAlive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	keepAlive.EXPECT().Input().Return(&multiraftv1.KeepAliveInput{
+		SessionID:            multiraftv1.SessionID(sessionID),
+		InputFilter:          inputFilterBytes,
+		LastInputSequenceNum: context.lastSequenceNum(),
+		LastOutputSequenceNums: map[multiraftv1.SequenceNum]multiraftv1.SequenceNum{
+			streamSequenceNum: 3,
+		},
+	}).AnyTimes()
+	keepAlive.EXPECT().Output(gomock.Any())
+	keepAlive.EXPECT().Close()
+	manager.KeepAlive(keepAlive)
+
+	// Retry the streaming proposal to verify the close is replayed
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Close()
+	manager.Propose(streamProposal)
+
+	// Take a snapshot of the manager and create a new manager from the snapshot
+	assert.Len(t, manager.(Context).Proposals().List(), 0)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
+	buf = &bytes.Buffer{}
+	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
+	manager = NewManager(context, func(Context) PrimitiveManager {
+		return primitives
+	})
+	primitives.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+	assert.Len(t, manager.(Context).Sessions().List(), 1)
+	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
+	assert.Len(t, manager.(Context).Proposals().List(), 0)
+	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
+
+	// Retry the streaming proposal to verify the close is replayed
+	streamProposal = statemachine.NewMockSessionProposal(ctrl)
+	streamProposal.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	streamProposal.EXPECT().Input().Return(&multiraftv1.SessionProposalInput{
+		SessionID:   multiraftv1.SessionID(sessionID),
+		SequenceNum: streamSequenceNum,
+		Input: &multiraftv1.SessionProposalInput_Proposal{
+			Proposal: &multiraftv1.PrimitiveProposalInput{
+				PrimitiveID: 1,
+				Payload:     []byte("foo"),
+			},
+		},
+	}).AnyTimes()
+	streamProposal.EXPECT().Close()
+	manager.Propose(streamProposal)
+
+	// Send a keep-alive to ack the streaming proposal
+	inputFilter = bloom.NewWithEstimates(2, .05)
+	inputFilterBytes, err = json.Marshal(inputFilter)
+	assert.NoError(t, err)
+	keepAlive = statemachine.NewMockKeepAliveProposal(ctrl)
+	keepAlive.EXPECT().ID().Return(context.nextProposalID()).AnyTimes()
+	keepAlive.EXPECT().Input().Return(&multiraftv1.KeepAliveInput{
+		SessionID:            multiraftv1.SessionID(sessionID),
+		InputFilter:          inputFilterBytes,
+		LastInputSequenceNum: context.lastSequenceNum(),
+		LastOutputSequenceNums: map[multiraftv1.SequenceNum]multiraftv1.SequenceNum{
+			streamSequenceNum: 3,
+		},
+	}).AnyTimes()
+	keepAlive.EXPECT().Output(gomock.Any())
+	keepAlive.EXPECT().Close()
+	manager.KeepAlive(keepAlive)
 }
 
 func TestQuery(t *testing.T) {

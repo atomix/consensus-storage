@@ -476,7 +476,7 @@ func (p *sessionProposal) nextSequenceNum() multiraftv1.SequenceNum {
 }
 
 func (p *sessionProposal) Input() *multiraftv1.SessionProposalInput {
-	return p.parent.Input()
+	return p.input
 }
 
 func (p *sessionProposal) Output(output *multiraftv1.SessionProposalOutput) {
@@ -485,14 +485,16 @@ func (p *sessionProposal) Output(output *multiraftv1.SessionProposalOutput) {
 	}
 	p.Log().Debugw("Cached command output", logging.Uint64("SequenceNum", uint64(output.SequenceNum)))
 	p.outputs.PushBack(output)
-	p.parent.Output(output)
+	if p.parent != nil {
+		p.parent.Output(output)
+	}
 }
 
 func (p *sessionProposal) Error(err error) {
 	if p.phase == statemachine.Complete {
 		return
 	}
-	p.parent.Output(&multiraftv1.SessionProposalOutput{
+	p.Output(&multiraftv1.SessionProposalOutput{
 		SequenceNum: p.nextSequenceNum(),
 		Failure:     getFailure(err),
 	})
