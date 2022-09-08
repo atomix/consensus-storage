@@ -10,7 +10,7 @@ PATCH := $(word 3, $(subst ., , $(VERSION)))
 endif
 
 .PHONY: build
-build:
+build: test
 	docker build . -t atomix/multi-raft-node:latest
 
 .PHONY: test
