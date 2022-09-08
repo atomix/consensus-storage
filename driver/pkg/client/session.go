@@ -32,8 +32,9 @@ func newSessionClient(id multiraftv1.SessionID, partition *PartitionClient, conn
 		partition:  partition,
 		conn:       conn,
 		primitives: make(map[string]*PrimitiveClient),
-		timeout:    timeout,
 		requestNum: &atomic.Uint64{},
+		requestCh:  make(chan sessionRequestEvent, chanBufSize),
+		ticker:     time.NewTicker(timeout / 4),
 	}
 	session.recorder = &Recorder{
 		session: session,
@@ -46,7 +47,7 @@ type SessionClient struct {
 	sessionID    multiraftv1.SessionID
 	partition    *PartitionClient
 	conn         *grpc.ClientConn
-	timeout      time.Duration
+	ticker       *time.Ticker
 	lastIndex    *sessionIndex
 	requestNum   *atomic.Uint64
 	requestCh    chan sessionRequestEvent
@@ -110,16 +111,17 @@ func (s *SessionClient) open() {
 	s.lastIndex = &sessionIndex{}
 	s.lastIndex.Update(multiraftv1.Index(s.sessionID))
 
-	s.requestCh = make(chan sessionRequestEvent, chanBufSize)
 	go func() {
-		ticker := time.NewTicker(s.timeout / 4)
 		var nextRequestNum multiraftv1.SequenceNum = 1
 		requests := make(map[multiraftv1.SequenceNum]bool)
 		pendingRequests := make(map[multiraftv1.SequenceNum]bool)
 		responseStreams := make(map[multiraftv1.SequenceNum]*sessionResponseStream)
 		for {
 			select {
-			case requestEvent := <-s.requestCh:
+			case requestEvent, ok := <-s.requestCh:
+				if !ok {
+					break
+				}
 				switch requestEvent.eventType {
 				case sessionRequestEventStart:
 					if requestEvent.requestNum == nextRequestNum {
@@ -164,7 +166,7 @@ func (s *SessionClient) open() {
 						}
 					}
 				}
-			case <-ticker.C:
+			case <-s.ticker.C:
 				openRequests := bloom.NewWithEstimates(uint(len(requests)), fpRate)
 				for requestNum := range requests {
 					requestBytes := make([]byte, 8)
@@ -230,6 +232,9 @@ func (s *SessionClient) keepAliveSessions(ctx context.Context, lastRequestNum mu
 }
 
 func (s *SessionClient) close(ctx context.Context) error {
+	close(s.requestCh)
+	s.ticker.Stop()
+
 	request := &multiraftv1.CloseSessionRequest{
 		Headers: &multiraftv1.PartitionRequestHeaders{
 			PartitionID: s.partition.id,

@@ -180,6 +180,17 @@ func TestPrimitiveCreateClose(t *testing.T) {
 		})
 	err = session.ClosePrimitive(context.TODO(), "name")
 	assert.NoError(t, err)
+
+	partitionServer.EXPECT().CloseSession(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.CloseSessionRequest) (*multiraftv1.CloseSessionResponse, error) {
+			return &multiraftv1.CloseSessionResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 5,
+				},
+			}, nil
+		})
+	err = client.Close(context.TODO())
+	assert.NoError(t, err)
 }
 
 func TestUnaryCommand(t *testing.T) {
@@ -318,6 +329,17 @@ func TestUnaryCommand(t *testing.T) {
 	case <-time.After(time.Minute):
 		t.FailNow()
 	}
+
+	partitionServer.EXPECT().CloseSession(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.CloseSessionRequest) (*multiraftv1.CloseSessionResponse, error) {
+			return &multiraftv1.CloseSessionResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 5,
+				},
+			}, nil
+		})
+	err = client.Close(context.TODO())
+	assert.NoError(t, err)
 }
 
 func TestStreamCommand(t *testing.T) {
@@ -545,6 +567,17 @@ func TestStreamCommand(t *testing.T) {
 	case <-time.After(time.Minute):
 		t.FailNow()
 	}
+
+	partitionServer.EXPECT().CloseSession(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, request *multiraftv1.CloseSessionRequest) (*multiraftv1.CloseSessionResponse, error) {
+			return &multiraftv1.CloseSessionResponse{
+				Headers: &multiraftv1.PartitionResponseHeaders{
+					Index: 7,
+				},
+			}, nil
+		})
+	err = client.Close(context.TODO())
+	assert.NoError(t, err)
 }
 
 func TestStreamCommandCancel(t *testing.T) {

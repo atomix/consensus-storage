@@ -79,5 +79,12 @@ func (c *Client) Configure(ctx context.Context, config multiraftv1.DriverConfig)
 }
 
 func (c *Client) Close(ctx context.Context) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, partition := range c.partitions {
+		if err := partition.close(ctx); err != nil {
+			return err
+		}
+	}
 	return nil
 }

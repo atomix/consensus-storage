@@ -104,6 +104,15 @@ func (p *PartitionClient) configure(config *multiraftv1.PartitionConfig) error {
 	return p.resolver.update(config)
 }
 
+func (p *PartitionClient) close(ctx context.Context) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.session != nil {
+		return p.session.close(ctx)
+	}
+	return nil
+}
+
 type PartitionState struct {
 	Leader    string
 	Followers []string
