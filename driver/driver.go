@@ -8,6 +8,7 @@ import (
 	"context"
 	multiraftcounterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
 	multiraftcountermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/countermap/v1"
+	multiraftelectionv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/election/v1"
 	multiraftlockv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/lock/v1"
 	multiraftmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
 	multiraftsetv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/set/v1"
@@ -16,12 +17,14 @@ import (
 	"github.com/atomix/multi-raft-storage/driver/pkg/client"
 	counterv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/counter/v1"
 	countermapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/countermap/v1"
+	electionv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/election/v1"
 	lockv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/lock/v1"
 	mapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/map/v1"
 	setv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/set/v1"
 	valuev1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/value/v1"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	countermapv1 "github.com/atomix/runtime/api/atomix/runtime/countermap/v1"
+	electionv1 "github.com/atomix/runtime/api/atomix/runtime/election/v1"
 	lockv1 "github.com/atomix/runtime/api/atomix/runtime/lock/v1"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	setv1 "github.com/atomix/runtime/api/atomix/runtime/set/v1"
@@ -46,6 +49,9 @@ func New(network runtime.Network) runtime.Driver {
 			}),
 			runtime.WithCounterMapFactory[multiraftcountermapv1.CounterMapConfig](func(config multiraftcountermapv1.CounterMapConfig) (countermapv1.CounterMapServer, error) {
 				return countermapv1server.NewCounterMapServer(client.Protocol), nil
+			}),
+			runtime.WithLeaderElectionFactory[multiraftelectionv1.LeaderElectionConfig](func(config multiraftelectionv1.LeaderElectionConfig) (electionv1.LeaderElectionServer, error) {
+				return electionv1server.NewLeaderElectionServer(client.Protocol), nil
 			}),
 			runtime.WithLockFactory[multiraftlockv1.LockConfig](func(config multiraftlockv1.LockConfig) (lockv1.LockServer, error) {
 				return lockv1server.NewLockServer(client.Protocol), nil
