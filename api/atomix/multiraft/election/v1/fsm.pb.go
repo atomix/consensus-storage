@@ -24,6 +24,118 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type LeaderElectionSnapshot struct {
+	Term       github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index `protobuf:"varint,1,opt,name=term,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index" json:"term,omitempty"`
+	Leader     *LeaderElectionCandidate                                           `protobuf:"bytes,2,opt,name=leader,proto3" json:"leader,omitempty"`
+	Candidates []LeaderElectionCandidate                                          `protobuf:"bytes,3,rep,name=candidates,proto3" json:"candidates"`
+}
+
+func (m *LeaderElectionSnapshot) Reset()         { *m = LeaderElectionSnapshot{} }
+func (m *LeaderElectionSnapshot) String() string { return proto.CompactTextString(m) }
+func (*LeaderElectionSnapshot) ProtoMessage()    {}
+func (*LeaderElectionSnapshot) Descriptor() ([]byte, []int) {
+	return fileDescriptor_81052ad2c4b6f51c, []int{0}
+}
+func (m *LeaderElectionSnapshot) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LeaderElectionSnapshot) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LeaderElectionSnapshot.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LeaderElectionSnapshot) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LeaderElectionSnapshot.Merge(m, src)
+}
+func (m *LeaderElectionSnapshot) XXX_Size() int {
+	return m.Size()
+}
+func (m *LeaderElectionSnapshot) XXX_DiscardUnknown() {
+	xxx_messageInfo_LeaderElectionSnapshot.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LeaderElectionSnapshot proto.InternalMessageInfo
+
+func (m *LeaderElectionSnapshot) GetTerm() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index {
+	if m != nil {
+		return m.Term
+	}
+	return 0
+}
+
+func (m *LeaderElectionSnapshot) GetLeader() *LeaderElectionCandidate {
+	if m != nil {
+		return m.Leader
+	}
+	return nil
+}
+
+func (m *LeaderElectionSnapshot) GetCandidates() []LeaderElectionCandidate {
+	if m != nil {
+		return m.Candidates
+	}
+	return nil
+}
+
+type LeaderElectionCandidate struct {
+	Name      string                                                                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	SessionID github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.SessionID `protobuf:"varint,2,opt,name=session_id,json=sessionId,proto3,casttype=github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.SessionID" json:"session_id,omitempty"`
+}
+
+func (m *LeaderElectionCandidate) Reset()         { *m = LeaderElectionCandidate{} }
+func (m *LeaderElectionCandidate) String() string { return proto.CompactTextString(m) }
+func (*LeaderElectionCandidate) ProtoMessage()    {}
+func (*LeaderElectionCandidate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_81052ad2c4b6f51c, []int{1}
+}
+func (m *LeaderElectionCandidate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LeaderElectionCandidate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LeaderElectionCandidate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LeaderElectionCandidate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LeaderElectionCandidate.Merge(m, src)
+}
+func (m *LeaderElectionCandidate) XXX_Size() int {
+	return m.Size()
+}
+func (m *LeaderElectionCandidate) XXX_DiscardUnknown() {
+	xxx_messageInfo_LeaderElectionCandidate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LeaderElectionCandidate proto.InternalMessageInfo
+
+func (m *LeaderElectionCandidate) GetName() string {
+	if m != nil {
+		return m.Name
+	}
+	return ""
+}
+
+func (m *LeaderElectionCandidate) GetSessionID() github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.SessionID {
+	if m != nil {
+		return m.SessionID
+	}
+	return 0
+}
+
 type LeaderElectionInput struct {
 	// Types that are valid to be assigned to Input:
 	//	*LeaderElectionInput_Enter
@@ -40,7 +152,7 @@ func (m *LeaderElectionInput) Reset()         { *m = LeaderElectionInput{} }
 func (m *LeaderElectionInput) String() string { return proto.CompactTextString(m) }
 func (*LeaderElectionInput) ProtoMessage()    {}
 func (*LeaderElectionInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{0}
+	return fileDescriptor_81052ad2c4b6f51c, []int{2}
 }
 func (m *LeaderElectionInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -190,7 +302,7 @@ func (m *LeaderElectionOutput) Reset()         { *m = LeaderElectionOutput{} }
 func (m *LeaderElectionOutput) String() string { return proto.CompactTextString(m) }
 func (*LeaderElectionOutput) ProtoMessage()    {}
 func (*LeaderElectionOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{1}
+	return fileDescriptor_81052ad2c4b6f51c, []int{3}
 }
 func (m *LeaderElectionOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -332,7 +444,7 @@ func (m *EnterInput) Reset()         { *m = EnterInput{} }
 func (m *EnterInput) String() string { return proto.CompactTextString(m) }
 func (*EnterInput) ProtoMessage()    {}
 func (*EnterInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{2}
+	return fileDescriptor_81052ad2c4b6f51c, []int{4}
 }
 func (m *EnterInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -376,7 +488,7 @@ func (m *EnterOutput) Reset()         { *m = EnterOutput{} }
 func (m *EnterOutput) String() string { return proto.CompactTextString(m) }
 func (*EnterOutput) ProtoMessage()    {}
 func (*EnterOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{3}
+	return fileDescriptor_81052ad2c4b6f51c, []int{5}
 }
 func (m *EnterOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -420,7 +532,7 @@ func (m *WithdrawInput) Reset()         { *m = WithdrawInput{} }
 func (m *WithdrawInput) String() string { return proto.CompactTextString(m) }
 func (*WithdrawInput) ProtoMessage()    {}
 func (*WithdrawInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{4}
+	return fileDescriptor_81052ad2c4b6f51c, []int{6}
 }
 func (m *WithdrawInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -464,7 +576,7 @@ func (m *WithdrawOutput) Reset()         { *m = WithdrawOutput{} }
 func (m *WithdrawOutput) String() string { return proto.CompactTextString(m) }
 func (*WithdrawOutput) ProtoMessage()    {}
 func (*WithdrawOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{5}
+	return fileDescriptor_81052ad2c4b6f51c, []int{7}
 }
 func (m *WithdrawOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -508,7 +620,7 @@ func (m *AnointInput) Reset()         { *m = AnointInput{} }
 func (m *AnointInput) String() string { return proto.CompactTextString(m) }
 func (*AnointInput) ProtoMessage()    {}
 func (*AnointInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{6}
+	return fileDescriptor_81052ad2c4b6f51c, []int{8}
 }
 func (m *AnointInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -552,7 +664,7 @@ func (m *AnointOutput) Reset()         { *m = AnointOutput{} }
 func (m *AnointOutput) String() string { return proto.CompactTextString(m) }
 func (*AnointOutput) ProtoMessage()    {}
 func (*AnointOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{7}
+	return fileDescriptor_81052ad2c4b6f51c, []int{9}
 }
 func (m *AnointOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -596,7 +708,7 @@ func (m *PromoteInput) Reset()         { *m = PromoteInput{} }
 func (m *PromoteInput) String() string { return proto.CompactTextString(m) }
 func (*PromoteInput) ProtoMessage()    {}
 func (*PromoteInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{8}
+	return fileDescriptor_81052ad2c4b6f51c, []int{10}
 }
 func (m *PromoteInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -640,7 +752,7 @@ func (m *PromoteOutput) Reset()         { *m = PromoteOutput{} }
 func (m *PromoteOutput) String() string { return proto.CompactTextString(m) }
 func (*PromoteOutput) ProtoMessage()    {}
 func (*PromoteOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{9}
+	return fileDescriptor_81052ad2c4b6f51c, []int{11}
 }
 func (m *PromoteOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -684,7 +796,7 @@ func (m *EvictInput) Reset()         { *m = EvictInput{} }
 func (m *EvictInput) String() string { return proto.CompactTextString(m) }
 func (*EvictInput) ProtoMessage()    {}
 func (*EvictInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{10}
+	return fileDescriptor_81052ad2c4b6f51c, []int{12}
 }
 func (m *EvictInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -728,7 +840,7 @@ func (m *EvictOutput) Reset()         { *m = EvictOutput{} }
 func (m *EvictOutput) String() string { return proto.CompactTextString(m) }
 func (*EvictOutput) ProtoMessage()    {}
 func (*EvictOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{11}
+	return fileDescriptor_81052ad2c4b6f51c, []int{13}
 }
 func (m *EvictOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -771,7 +883,7 @@ func (m *GetTermInput) Reset()         { *m = GetTermInput{} }
 func (m *GetTermInput) String() string { return proto.CompactTextString(m) }
 func (*GetTermInput) ProtoMessage()    {}
 func (*GetTermInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{12}
+	return fileDescriptor_81052ad2c4b6f51c, []int{14}
 }
 func (m *GetTermInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -808,7 +920,7 @@ func (m *GetTermOutput) Reset()         { *m = GetTermOutput{} }
 func (m *GetTermOutput) String() string { return proto.CompactTextString(m) }
 func (*GetTermOutput) ProtoMessage()    {}
 func (*GetTermOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{13}
+	return fileDescriptor_81052ad2c4b6f51c, []int{15}
 }
 func (m *GetTermOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -851,7 +963,7 @@ func (m *WatchInput) Reset()         { *m = WatchInput{} }
 func (m *WatchInput) String() string { return proto.CompactTextString(m) }
 func (*WatchInput) ProtoMessage()    {}
 func (*WatchInput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{14}
+	return fileDescriptor_81052ad2c4b6f51c, []int{16}
 }
 func (m *WatchInput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -888,7 +1000,7 @@ func (m *WatchOutput) Reset()         { *m = WatchOutput{} }
 func (m *WatchOutput) String() string { return proto.CompactTextString(m) }
 func (*WatchOutput) ProtoMessage()    {}
 func (*WatchOutput) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{15}
+	return fileDescriptor_81052ad2c4b6f51c, []int{17}
 }
 func (m *WatchOutput) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -934,7 +1046,7 @@ func (m *Term) Reset()         { *m = Term{} }
 func (m *Term) String() string { return proto.CompactTextString(m) }
 func (*Term) ProtoMessage()    {}
 func (*Term) Descriptor() ([]byte, []int) {
-	return fileDescriptor_81052ad2c4b6f51c, []int{16}
+	return fileDescriptor_81052ad2c4b6f51c, []int{18}
 }
 func (m *Term) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -985,6 +1097,8 @@ func (m *Term) GetIndex() github_com_atomix_multi_raft_storage_api_atomix_multir
 }
 
 func init() {
+	proto.RegisterType((*LeaderElectionSnapshot)(nil), "atomix.multiraft.election.v1.LeaderElectionSnapshot")
+	proto.RegisterType((*LeaderElectionCandidate)(nil), "atomix.multiraft.election.v1.LeaderElectionCandidate")
 	proto.RegisterType((*LeaderElectionInput)(nil), "atomix.multiraft.election.v1.LeaderElectionInput")
 	proto.RegisterType((*LeaderElectionOutput)(nil), "atomix.multiraft.election.v1.LeaderElectionOutput")
 	proto.RegisterType((*EnterInput)(nil), "atomix.multiraft.election.v1.EnterInput")
@@ -1009,47 +1123,143 @@ func init() {
 }
 
 var fileDescriptor_81052ad2c4b6f51c = []byte{
-	// 634 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x96, 0xcb, 0x6e, 0xda, 0x40,
-	0x14, 0x86, 0x31, 0x31, 0xb7, 0x03, 0xc9, 0xc2, 0x8d, 0x2a, 0xab, 0x8a, 0x9c, 0xc8, 0x8b, 0x8a,
-	0x4b, 0xb0, 0x45, 0xbb, 0xed, 0xa2, 0xd0, 0x26, 0x84, 0x36, 0xbd, 0x08, 0x55, 0xca, 0xa6, 0x52,
-	0xe5, 0xc0, 0xc4, 0x58, 0xc2, 0x1e, 0x64, 0x06, 0xc8, 0x0b, 0x74, 0x5b, 0xf5, 0x01, 0xfa, 0x40,
-	0x59, 0x66, 0xd9, 0x55, 0x54, 0xc1, 0x5b, 0x74, 0x15, 0xcd, 0x18, 0x8f, 0x6d, 0x90, 0xc8, 0x48,
-	0xde, 0xe1, 0xd1, 0x7f, 0xfe, 0xf3, 0xfb, 0xf8, 0xf3, 0x31, 0xf0, 0xd2, 0x22, 0xd8, 0x75, 0x6e,
-	0x4d, 0x77, 0x36, 0x26, 0x8e, 0x6f, 0xdd, 0x10, 0x13, 0x8d, 0xd1, 0x80, 0x38, 0xd8, 0x33, 0xe7,
-	0x2d, 0xf3, 0x66, 0xea, 0x1a, 0x13, 0x1f, 0x13, 0xac, 0x1c, 0x05, 0x3a, 0x83, 0xeb, 0x8c, 0x50,
-	0x67, 0xcc, 0x5b, 0x2f, 0x0e, 0x6d, 0x6c, 0x63, 0x26, 0x34, 0xe9, 0xaf, 0xa0, 0x46, 0xff, 0x29,
-	0xc3, 0xb3, 0x4b, 0x64, 0x0d, 0x91, 0x7f, 0xb6, 0xd6, 0xf6, 0xbc, 0xc9, 0x8c, 0x28, 0x6f, 0x21,
-	0x87, 0x3c, 0x82, 0x7c, 0x55, 0x3a, 0x91, 0xaa, 0xe5, 0x57, 0x55, 0x63, 0x97, 0xb7, 0x71, 0x46,
-	0xa5, 0xac, 0xf0, 0x22, 0xd3, 0x0f, 0x0a, 0x95, 0x1e, 0x14, 0x17, 0x0e, 0x19, 0x0d, 0x7d, 0x6b,
-	0xa1, 0x66, 0x99, 0x49, 0x63, 0xb7, 0xc9, 0xd5, 0x5a, 0x1d, 0xfa, 0xf0, 0x72, 0xe5, 0x1d, 0xe4,
-	0x2d, 0x0f, 0x3b, 0x1e, 0x51, 0xf7, 0x98, 0x51, 0x6d, 0xb7, 0x51, 0x9b, 0x69, 0x43, 0x9b, 0x75,
-	0xa9, 0x72, 0x0e, 0x85, 0x89, 0x8f, 0x5d, 0x4c, 0x90, 0x2a, 0x33, 0x97, 0xfa, 0x6e, 0x97, 0xaf,
-	0x81, 0x38, 0xb4, 0x09, 0x8b, 0xd9, 0x64, 0xe6, 0xce, 0x80, 0xa8, 0x39, 0xa1, 0xc9, 0x50, 0x69,
-	0x34, 0x19, 0x7a, 0xa5, 0x74, 0xa1, 0x68, 0x23, 0xf2, 0x83, 0x20, 0xdf, 0x55, 0xf3, 0x22, 0x51,
-	0xba, 0x88, 0x7c, 0x43, 0xbe, 0xcb, 0xa3, 0xd8, 0xc1, 0x35, 0x8d, 0xb2, 0xb0, 0xc8, 0x60, 0xa4,
-	0x16, 0x44, 0xa2, 0x5c, 0x51, 0x29, 0x8f, 0xc2, 0x0a, 0x3b, 0x05, 0xc8, 0x39, 0xf4, 0x44, 0xff,
-	0x25, 0xc3, 0x61, 0x92, 0x83, 0x2f, 0x33, 0x42, 0x41, 0x68, 0x27, 0x41, 0xa8, 0x09, 0x80, 0x10,
-	0x54, 0x46, 0x24, 0x7c, 0xd8, 0x22, 0xe1, 0x54, 0x8c, 0x04, 0x6e, 0x14, 0xa1, 0xf0, 0x7e, 0x03,
-	0x85, 0xba, 0x08, 0x0a, 0xdc, 0x27, 0x64, 0xa1, 0xbb, 0xc9, 0x42, 0x43, 0x88, 0x05, 0xee, 0xc3,
-	0x61, 0x68, 0x27, 0x61, 0xa8, 0x09, 0xc0, 0x10, 0x9b, 0x0e, 0xa3, 0xe1, 0x62, 0x8b, 0x86, 0x86,
-	0x10, 0x0d, 0x51, 0x98, 0x10, 0x87, 0x76, 0x12, 0x87, 0x9a, 0x00, 0x0e, 0x51, 0x98, 0x80, 0x87,
-	0x22, 0xe4, 0x31, 0x3b, 0xd2, 0xeb, 0x00, 0xd1, 0x5b, 0xad, 0x1c, 0x41, 0x69, 0x60, 0x79, 0x43,
-	0x67, 0x68, 0x11, 0xc4, 0x48, 0x28, 0xf5, 0xa3, 0x03, 0xfd, 0x23, 0x94, 0x63, 0x0f, 0x5e, 0x79,
-	0x03, 0x32, 0xbb, 0x9b, 0x80, 0x18, 0x7d, 0x77, 0x0c, 0x9a, 0xbc, 0x23, 0xdf, 0x3d, 0x1c, 0x67,
-	0xfa, 0xac, 0x4a, 0x6f, 0xc2, 0x7e, 0x62, 0x13, 0x3c, 0xd1, 0xfb, 0x33, 0x1c, 0x24, 0x71, 0x49,
-	0xd9, 0xbe, 0x01, 0xe5, 0xd8, 0xfe, 0x78, 0xa2, 0xf9, 0x25, 0x54, 0xe2, 0x84, 0xa5, 0x6c, 0x7d,
-	0x0a, 0x95, 0xf8, 0xd2, 0x49, 0xf6, 0xce, 0x6e, 0xf6, 0xfe, 0x04, 0xfb, 0x09, 0x2c, 0x53, 0x36,
-	0xa7, 0xcf, 0x9b, 0xef, 0x2a, 0x81, 0xe7, 0x1d, 0xa1, 0x9c, 0xb2, 0xf1, 0x01, 0x54, 0xe2, 0xfb,
-	0x8d, 0xde, 0x57, 0x82, 0xf0, 0x94, 0xf6, 0x15, 0x80, 0x68, 0xf1, 0xd1, 0xe4, 0x31, 0xee, 0x53,
-	0x5a, 0xff, 0x91, 0x40, 0x66, 0x2f, 0xde, 0x73, 0xc8, 0x8f, 0xd9, 0xee, 0x5c, 0x8f, 0x6a, 0x7d,
-	0xa5, 0x68, 0x00, 0x7c, 0x68, 0x53, 0x35, 0x7b, 0xb2, 0x57, 0x2d, 0xf5, 0x63, 0x27, 0xca, 0x77,
-	0xba, 0x7d, 0x87, 0xe8, 0x96, 0xed, 0x32, 0xb9, 0x73, 0xfe, 0xff, 0xe1, 0xb8, 0x63, 0x3b, 0x64,
-	0x34, 0xbb, 0x36, 0x06, 0xd8, 0x35, 0xe3, 0x9f, 0xfd, 0x26, 0x8d, 0xd3, 0x9c, 0x12, 0xec, 0x5b,
-	0x36, 0x32, 0xad, 0x89, 0x63, 0x6e, 0xfd, 0x29, 0x98, 0xb7, 0x8c, 0x1e, 0x75, 0xeb, 0x07, 0xa6,
-	0x1d, 0xf5, 0x6e, 0xa9, 0x49, 0xf7, 0x4b, 0x4d, 0xfa, 0xb7, 0xd4, 0xa4, 0xdf, 0x2b, 0x2d, 0x73,
-	0xbf, 0xd2, 0x32, 0x7f, 0x57, 0x5a, 0xe6, 0x3a, 0xcf, 0xbe, 0xfd, 0xaf, 0x1f, 0x03, 0x00, 0x00,
-	0xff, 0xff, 0x62, 0x24, 0x9d, 0x59, 0x59, 0x08, 0x00, 0x00,
+	// 751 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0xcf, 0x4e, 0xdb, 0x4e,
+	0x10, 0xc7, 0xe3, 0xc4, 0x04, 0x32, 0x09, 0x1c, 0xf6, 0x87, 0xf8, 0x59, 0x15, 0x72, 0x22, 0x1f,
+	0xaa, 0x84, 0x80, 0x2d, 0xa8, 0x7a, 0xeb, 0xa1, 0x09, 0x7f, 0xd3, 0x42, 0x5b, 0x85, 0x4a, 0x48,
+	0x6d, 0x25, 0x64, 0xe2, 0x25, 0xb1, 0x84, 0xbd, 0x91, 0xbd, 0x09, 0xbc, 0x40, 0xaf, 0x55, 0x1f,
+	0xa0, 0x87, 0x5e, 0xfa, 0x2e, 0x1c, 0x39, 0xf6, 0x14, 0x55, 0xe1, 0x2d, 0x38, 0x55, 0xbb, 0xfe,
+	0x0f, 0x6a, 0xb0, 0xea, 0xde, 0xe2, 0xd5, 0xcc, 0x77, 0xbe, 0x9e, 0xfd, 0x78, 0x32, 0xf0, 0x54,
+	0xa7, 0xc4, 0x32, 0xaf, 0x34, 0x6b, 0x74, 0x41, 0x4d, 0x47, 0x3f, 0xa7, 0x1a, 0xbe, 0xc0, 0x3d,
+	0x6a, 0x12, 0x5b, 0x1b, 0x6f, 0x6a, 0xe7, 0xae, 0xa5, 0x0e, 0x1d, 0x42, 0x09, 0x5a, 0xf5, 0xe2,
+	0xd4, 0x30, 0x4e, 0x0d, 0xe2, 0xd4, 0xf1, 0xe6, 0x93, 0xe5, 0x3e, 0xe9, 0x13, 0x1e, 0xa8, 0xb1,
+	0x5f, 0x5e, 0x8e, 0xf2, 0x3d, 0x0f, 0x2b, 0x87, 0x58, 0x37, 0xb0, 0xb3, 0xeb, 0xc7, 0x1e, 0xdb,
+	0xfa, 0xd0, 0x1d, 0x10, 0x8a, 0x3e, 0x80, 0x48, 0xb1, 0x63, 0x49, 0x42, 0x4d, 0xa8, 0x8b, 0xed,
+	0xbd, 0xbb, 0x49, 0xb5, 0xdd, 0x37, 0xe9, 0x60, 0x74, 0xa6, 0xf6, 0x88, 0xa5, 0xc5, 0x3d, 0x6d,
+	0xb0, 0x62, 0x1b, 0x2e, 0x25, 0x8e, 0xde, 0xc7, 0x9a, 0x3e, 0x34, 0xb5, 0x07, 0x8e, 0xc7, 0x9b,
+	0x6a, 0xc7, 0x36, 0xf0, 0x55, 0x97, 0x6b, 0xa2, 0x23, 0x28, 0x5e, 0xf0, 0xaa, 0x52, 0xbe, 0x26,
+	0xd4, 0xcb, 0x5b, 0xcf, 0xd5, 0x59, 0xde, 0xd5, 0xa4, 0xc3, 0x6d, 0xdd, 0x36, 0x4c, 0x43, 0xa7,
+	0xb8, 0xeb, 0x8b, 0xa0, 0x8f, 0x00, 0xbd, 0xe0, 0xd0, 0x95, 0x0a, 0xb5, 0xc2, 0x5f, 0x4b, 0xb6,
+	0xc5, 0xeb, 0x49, 0x35, 0xd7, 0x8d, 0xc9, 0x29, 0x3f, 0x04, 0xf8, 0xff, 0x0f, 0xd1, 0x08, 0x81,
+	0x68, 0xeb, 0x16, 0xe6, 0x3d, 0x2a, 0x75, 0xf9, 0x6f, 0x34, 0x06, 0x70, 0xb1, 0xeb, 0x9a, 0xc4,
+	0x3e, 0x35, 0x0d, 0xfe, 0x7e, 0x62, 0xfb, 0x64, 0x3a, 0xa9, 0x96, 0x8e, 0xbd, 0xd3, 0xce, 0xce,
+	0xdd, 0xa4, 0xba, 0x97, 0xa9, 0x95, 0xa1, 0x52, 0xb7, 0xe4, 0x97, 0xea, 0x18, 0xca, 0x67, 0x11,
+	0xfe, 0x4b, 0xfa, 0xec, 0xd8, 0xc3, 0x11, 0x45, 0x2f, 0x61, 0x0e, 0xdb, 0x14, 0x3b, 0xdc, 0x64,
+	0x79, 0xab, 0x3e, 0xbb, 0x2f, 0xbb, 0x2c, 0x94, 0x27, 0x1e, 0xe4, 0xba, 0x5e, 0x22, 0xea, 0xc0,
+	0xc2, 0xa5, 0x49, 0x07, 0x86, 0xa3, 0x5f, 0xfa, 0xf7, 0xd5, 0x9c, 0x2d, 0x72, 0xe2, 0x47, 0x07,
+	0x3a, 0x61, 0x3a, 0xda, 0x86, 0xa2, 0x6e, 0x13, 0xd3, 0xa6, 0x52, 0x81, 0x0b, 0x35, 0x66, 0x0b,
+	0xb5, 0x78, 0x6c, 0x20, 0xe3, 0xa7, 0xa2, 0x3d, 0x98, 0x1f, 0x3a, 0xc4, 0x22, 0x14, 0x4b, 0x22,
+	0x57, 0x59, 0x9b, 0xad, 0xf2, 0xce, 0x0b, 0x0e, 0x64, 0x82, 0x64, 0xde, 0x99, 0xb1, 0xd9, 0xa3,
+	0xd2, 0x5c, 0xaa, 0xce, 0xb0, 0xd0, 0xa8, 0x33, 0xec, 0x09, 0xed, 0xc3, 0x42, 0x1f, 0xd3, 0x53,
+	0xfe, 0x9d, 0x14, 0xd3, 0x58, 0xd9, 0xc7, 0xf4, 0x3d, 0x76, 0xac, 0xd0, 0x4a, 0xdf, 0x7b, 0x66,
+	0x56, 0x2e, 0x75, 0xda, 0x1b, 0x48, 0xf3, 0x69, 0xac, 0x9c, 0xb0, 0xd0, 0xd0, 0x0a, 0x4f, 0x6c,
+	0xcf, 0xc3, 0x9c, 0xc9, 0x4e, 0x94, 0x2f, 0x22, 0x2c, 0x27, 0x39, 0x78, 0x3b, 0xa2, 0x0c, 0x84,
+	0x56, 0x12, 0x84, 0x46, 0x0a, 0x10, 0xbc, 0xcc, 0x88, 0x84, 0x57, 0x0f, 0x48, 0x58, 0x4f, 0x47,
+	0x42, 0x28, 0x14, 0xa1, 0xb0, 0x73, 0x0f, 0x85, 0xb5, 0x34, 0x28, 0x84, 0x3a, 0x01, 0x0b, 0xfb,
+	0xf7, 0x59, 0x68, 0xa6, 0x62, 0x21, 0xd4, 0x09, 0x61, 0x68, 0x25, 0x61, 0x68, 0xa4, 0x80, 0x21,
+	0xd6, 0x1d, 0x4e, 0xc3, 0xc1, 0x03, 0x1a, 0x9a, 0xa9, 0x68, 0x88, 0xcc, 0x04, 0x38, 0xb4, 0x92,
+	0x38, 0x34, 0x52, 0xe0, 0x10, 0x99, 0xf1, 0x78, 0x58, 0x80, 0x22, 0xe1, 0x47, 0xca, 0x1a, 0x40,
+	0xf4, 0x55, 0xa3, 0x55, 0x28, 0x85, 0xc3, 0xcd, 0x9f, 0x5b, 0xd1, 0x81, 0xf2, 0x1a, 0xca, 0xb1,
+	0x8b, 0x47, 0x2f, 0x62, 0xff, 0x01, 0xe5, 0x2d, 0x65, 0xb6, 0x0d, 0xe6, 0xdc, 0x9f, 0x9f, 0x3c,
+	0x4b, 0xd9, 0x80, 0xc5, 0xc4, 0x24, 0x78, 0xa4, 0xf6, 0x1b, 0x58, 0x4a, 0xe2, 0x92, 0xb1, 0x7c,
+	0x13, 0xca, 0xb1, 0xf9, 0xf1, 0x48, 0xf1, 0x43, 0xa8, 0xc4, 0x09, 0xcb, 0x58, 0x7a, 0x1d, 0x2a,
+	0xf1, 0xa1, 0x93, 0xac, 0x9d, 0xbf, 0x5f, 0xfb, 0x08, 0x16, 0x13, 0x58, 0x66, 0x2c, 0xce, 0xee,
+	0x3b, 0x9c, 0x55, 0x29, 0xee, 0x3b, 0x42, 0x39, 0x63, 0xe1, 0x25, 0xa8, 0xc4, 0xe7, 0x1b, 0x7b,
+	0xaf, 0x04, 0xe1, 0x19, 0xe5, 0x2b, 0x00, 0xd1, 0xe0, 0x63, 0xce, 0x63, 0xdc, 0x67, 0x94, 0xfe,
+	0x26, 0x80, 0xc8, 0x3f, 0xbc, 0x95, 0x70, 0x31, 0xf1, 0x5a, 0x15, 0x6c, 0x18, 0x72, 0x62, 0xc3,
+	0xc8, 0xd7, 0x0a, 0xf5, 0x52, 0x7c, 0x49, 0x40, 0x9f, 0xd8, 0xf4, 0x35, 0xf0, 0x15, 0x9f, 0x65,
+	0xff, 0x6e, 0x5b, 0xf2, 0x44, 0xdb, 0xd2, 0xf5, 0x54, 0x16, 0x6e, 0xa6, 0xb2, 0xf0, 0x6b, 0x2a,
+	0x0b, 0x5f, 0x6f, 0xe5, 0xdc, 0xcd, 0xad, 0x9c, 0xfb, 0x79, 0x2b, 0xe7, 0xce, 0x8a, 0x7c, 0x8d,
+	0x7b, 0xf6, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x04, 0x28, 0xa5, 0xbf, 0x24, 0x0a, 0x00, 0x00,
+}
+
+func (m *LeaderElectionSnapshot) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LeaderElectionSnapshot) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LeaderElectionSnapshot) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Candidates) > 0 {
+		for iNdEx := len(m.Candidates) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Candidates[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintFsm(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.Leader != nil {
+		{
+			size, err := m.Leader.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintFsm(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Term != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.Term))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LeaderElectionCandidate) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LeaderElectionCandidate) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LeaderElectionCandidate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.SessionID != 0 {
+		i = encodeVarintFsm(dAtA, i, uint64(m.SessionID))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Name) > 0 {
+		i -= len(m.Name)
+		copy(dAtA[i:], m.Name)
+		i = encodeVarintFsm(dAtA, i, uint64(len(m.Name)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *LeaderElectionInput) Marshal() (dAtA []byte, err error) {
@@ -1892,6 +2102,44 @@ func encodeVarintFsm(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *LeaderElectionSnapshot) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Term != 0 {
+		n += 1 + sovFsm(uint64(m.Term))
+	}
+	if m.Leader != nil {
+		l = m.Leader.Size()
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	if len(m.Candidates) > 0 {
+		for _, e := range m.Candidates {
+			l = e.Size()
+			n += 1 + l + sovFsm(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *LeaderElectionCandidate) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovFsm(uint64(l))
+	}
+	if m.SessionID != 0 {
+		n += 1 + sovFsm(uint64(m.SessionID))
+	}
+	return n
+}
+
 func (m *LeaderElectionInput) Size() (n int) {
 	if m == nil {
 		return 0
@@ -2271,6 +2519,246 @@ func sovFsm(x uint64) (n int) {
 }
 func sozFsm(x uint64) (n int) {
 	return sovFsm(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *LeaderElectionSnapshot) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFsm
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LeaderElectionSnapshot: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LeaderElectionSnapshot: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Term", wireType)
+			}
+			m.Term = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Term |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.Index(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Leader", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Leader == nil {
+				m.Leader = &LeaderElectionCandidate{}
+			}
+			if err := m.Leader.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Candidates", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Candidates = append(m.Candidates, LeaderElectionCandidate{})
+			if err := m.Candidates[len(m.Candidates)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFsm(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LeaderElectionCandidate) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowFsm
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LeaderElectionCandidate: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LeaderElectionCandidate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthFsm
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SessionID", wireType)
+			}
+			m.SessionID = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowFsm
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SessionID |= github_com_atomix_multi_raft_storage_api_atomix_multiraft_v1.SessionID(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipFsm(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthFsm
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *LeaderElectionInput) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)

@@ -12,8 +12,10 @@
     - [EvictOutput](#atomix-multiraft-election-v1-EvictOutput)
     - [GetTermInput](#atomix-multiraft-election-v1-GetTermInput)
     - [GetTermOutput](#atomix-multiraft-election-v1-GetTermOutput)
+    - [LeaderElectionCandidate](#atomix-multiraft-election-v1-LeaderElectionCandidate)
     - [LeaderElectionInput](#atomix-multiraft-election-v1-LeaderElectionInput)
     - [LeaderElectionOutput](#atomix-multiraft-election-v1-LeaderElectionOutput)
+    - [LeaderElectionSnapshot](#atomix-multiraft-election-v1-LeaderElectionSnapshot)
     - [PromoteInput](#atomix-multiraft-election-v1-PromoteInput)
     - [PromoteOutput](#atomix-multiraft-election-v1-PromoteOutput)
     - [Term](#atomix-multiraft-election-v1-Term)
@@ -148,6 +150,22 @@
 
 
 
+<a name="atomix-multiraft-election-v1-LeaderElectionCandidate"></a>
+
+### LeaderElectionCandidate
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| name | [string](#string) |  |  |
+| session_id | [uint64](#uint64) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-election-v1-LeaderElectionInput"></a>
 
 ### LeaderElectionInput
@@ -184,6 +202,23 @@
 | evict | [EvictOutput](#atomix-multiraft-election-v1-EvictOutput) |  |  |
 | get_term | [GetTermOutput](#atomix-multiraft-election-v1-GetTermOutput) |  |  |
 | watch | [WatchOutput](#atomix-multiraft-election-v1-WatchOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-election-v1-LeaderElectionSnapshot"></a>
+
+### LeaderElectionSnapshot
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| term | [uint64](#uint64) |  |  |
+| leader | [LeaderElectionCandidate](#atomix-multiraft-election-v1-LeaderElectionCandidate) |  |  |
+| candidates | [LeaderElectionCandidate](#atomix-multiraft-election-v1-LeaderElectionCandidate) | repeated |  |
 
 
 

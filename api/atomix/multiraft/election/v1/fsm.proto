@@ -10,6 +10,24 @@ package atomix.multiraft.election.v1;
 
 import "gogoproto/gogo.proto";
 
+message LeaderElectionSnapshot {
+    uint64 term = 1 [
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
+    ];
+    LeaderElectionCandidate leader = 2;
+    repeated LeaderElectionCandidate candidates = 3 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message LeaderElectionCandidate {
+    string name = 1;
+    uint64 session_id = 2 [
+        (gogoproto.customname) = "SessionID",
+        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.SessionID"
+    ];
+}
+
 message LeaderElectionInput {
     oneof input {
         EnterInput enter = 1;
@@ -85,7 +103,7 @@ message EvictOutput {
 }
 
 message GetTermInput {
-    
+
 }
 
 message GetTermOutput {
@@ -95,7 +113,7 @@ message GetTermOutput {
 }
 
 message WatchInput {
-    
+
 }
 
 message WatchOutput {
