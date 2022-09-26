@@ -27,24 +27,32 @@ message MultiMapEntry {
 message MultiMapInput {
     oneof input {
         SizeInput size = 1;
-        AddInput add = 2;
-        GetInput get = 3;
-        RemoveInput remove = 4;
-        ClearInput clear = 5;
-        EntriesInput entries = 6;
-        EventsInput events = 7;
+        PutInput put = 2;
+        PutAllInput put_all = 3;
+        ReplaceInput replace = 4;
+        ContainsInput contains = 5;
+        GetInput get = 6;
+        RemoveInput remove = 7;
+        RemoveAllInput remove_all = 8;
+        ClearInput clear = 9;
+        EntriesInput entries = 10;
+        EventsInput events = 11;
     }
 }
 
 message MultiMapOutput {
     oneof output {
         SizeOutput size = 1;
-        AddOutput add = 2;
-        GetOutput get = 3;
-        RemoveOutput remove = 4;
-        ClearOutput clear = 5;
-        EntriesOutput entries = 6;
-        EventsOutput events = 7;
+        PutOutput put = 2;
+        PutAllOutput put_all = 3;
+        ReplaceOutput replace = 4;
+        ContainsOutput contains = 5;
+        GetOutput get = 6;
+        RemoveOutput remove = 7;
+        RemoveAllOutput remove_all = 8;
+        ClearOutput clear = 9;
+        EntriesOutput entries = 10;
+        EventsOutput events = 11;
     }
 }
 
@@ -56,13 +64,31 @@ message SizeOutput {
     uint32 size = 1;
 }
 
-message AddInput {
+message PutInput {
+    string key = 1;
+    string value = 2;
+}
+
+message PutOutput {
+
+}
+
+message PutAllInput {
     string key = 1;
     repeated string values = 2;
 }
 
-message AddOutput {
+message PutAllOutput {
+    bool updated = 1;
+}
 
+message ReplaceInput {
+    string key = 1;
+    repeated string values = 2;
+}
+
+message ReplaceOutput {
+    repeated string prev_values = 1;
 }
 
 message GetInput {
@@ -73,17 +99,34 @@ message GetOutput {
     repeated string values = 1;
 }
 
+message ContainsInput {
+    string key = 1;
+    string value = 2;
+}
+
+message ContainsOutput {
+    bool result = 1;
+}
+
 message RemoveInput {
     string key = 1;
-    repeated string values = 2;
+    string value = 2;
 }
 
 message RemoveOutput {
 
 }
 
+message RemoveAllInput {
+    string key = 1;
+}
+
+message RemoveAllOutput {
+    repeated string values = 1;
+}
+
 message ClearInput {
-    
+
 }
 
 message ClearOutput {

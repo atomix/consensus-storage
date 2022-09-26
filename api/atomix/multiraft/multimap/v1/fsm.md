@@ -4,10 +4,10 @@
 ## Table of Contents
 
 - [atomix/multiraft/multimap/v1/fsm.proto](#atomix_multiraft_multimap_v1_fsm-proto)
-    - [AddInput](#atomix-multiraft-multimap-v1-AddInput)
-    - [AddOutput](#atomix-multiraft-multimap-v1-AddOutput)
     - [ClearInput](#atomix-multiraft-multimap-v1-ClearInput)
     - [ClearOutput](#atomix-multiraft-multimap-v1-ClearOutput)
+    - [ContainsInput](#atomix-multiraft-multimap-v1-ContainsInput)
+    - [ContainsOutput](#atomix-multiraft-multimap-v1-ContainsOutput)
     - [EntriesInput](#atomix-multiraft-multimap-v1-EntriesInput)
     - [EntriesOutput](#atomix-multiraft-multimap-v1-EntriesOutput)
     - [Entry](#atomix-multiraft-multimap-v1-Entry)
@@ -23,8 +23,16 @@
     - [MultiMapInput](#atomix-multiraft-multimap-v1-MultiMapInput)
     - [MultiMapListener](#atomix-multiraft-multimap-v1-MultiMapListener)
     - [MultiMapOutput](#atomix-multiraft-multimap-v1-MultiMapOutput)
+    - [PutAllInput](#atomix-multiraft-multimap-v1-PutAllInput)
+    - [PutAllOutput](#atomix-multiraft-multimap-v1-PutAllOutput)
+    - [PutInput](#atomix-multiraft-multimap-v1-PutInput)
+    - [PutOutput](#atomix-multiraft-multimap-v1-PutOutput)
+    - [RemoveAllInput](#atomix-multiraft-multimap-v1-RemoveAllInput)
+    - [RemoveAllOutput](#atomix-multiraft-multimap-v1-RemoveAllOutput)
     - [RemoveInput](#atomix-multiraft-multimap-v1-RemoveInput)
     - [RemoveOutput](#atomix-multiraft-multimap-v1-RemoveOutput)
+    - [ReplaceInput](#atomix-multiraft-multimap-v1-ReplaceInput)
+    - [ReplaceOutput](#atomix-multiraft-multimap-v1-ReplaceOutput)
     - [SizeInput](#atomix-multiraft-multimap-v1-SizeInput)
     - [SizeOutput](#atomix-multiraft-multimap-v1-SizeOutput)
   
@@ -36,32 +44,6 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## atomix/multiraft/multimap/v1/fsm.proto
-
-
-
-<a name="atomix-multiraft-multimap-v1-AddInput"></a>
-
-### AddInput
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| key | [string](#string) |  |  |
-| values | [string](#string) | repeated |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-multimap-v1-AddOutput"></a>
-
-### AddOutput
-
-
-
-
 
 
 
@@ -79,6 +61,37 @@
 
 ### ClearOutput
 
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-ContainsInput"></a>
+
+### ContainsInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| value | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-ContainsOutput"></a>
+
+### ContainsOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| result | [bool](#bool) |  |  |
 
 
 
@@ -280,9 +293,13 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | size | [SizeInput](#atomix-multiraft-multimap-v1-SizeInput) |  |  |
-| add | [AddInput](#atomix-multiraft-multimap-v1-AddInput) |  |  |
+| put | [PutInput](#atomix-multiraft-multimap-v1-PutInput) |  |  |
+| put_all | [PutAllInput](#atomix-multiraft-multimap-v1-PutAllInput) |  |  |
+| replace | [ReplaceInput](#atomix-multiraft-multimap-v1-ReplaceInput) |  |  |
+| contains | [ContainsInput](#atomix-multiraft-multimap-v1-ContainsInput) |  |  |
 | get | [GetInput](#atomix-multiraft-multimap-v1-GetInput) |  |  |
 | remove | [RemoveInput](#atomix-multiraft-multimap-v1-RemoveInput) |  |  |
+| remove_all | [RemoveAllInput](#atomix-multiraft-multimap-v1-RemoveAllInput) |  |  |
 | clear | [ClearInput](#atomix-multiraft-multimap-v1-ClearInput) |  |  |
 | entries | [EntriesInput](#atomix-multiraft-multimap-v1-EntriesInput) |  |  |
 | events | [EventsInput](#atomix-multiraft-multimap-v1-EventsInput) |  |  |
@@ -317,12 +334,103 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | size | [SizeOutput](#atomix-multiraft-multimap-v1-SizeOutput) |  |  |
-| add | [AddOutput](#atomix-multiraft-multimap-v1-AddOutput) |  |  |
+| put | [PutOutput](#atomix-multiraft-multimap-v1-PutOutput) |  |  |
+| put_all | [PutAllOutput](#atomix-multiraft-multimap-v1-PutAllOutput) |  |  |
+| replace | [ReplaceOutput](#atomix-multiraft-multimap-v1-ReplaceOutput) |  |  |
+| contains | [ContainsOutput](#atomix-multiraft-multimap-v1-ContainsOutput) |  |  |
 | get | [GetOutput](#atomix-multiraft-multimap-v1-GetOutput) |  |  |
 | remove | [RemoveOutput](#atomix-multiraft-multimap-v1-RemoveOutput) |  |  |
+| remove_all | [RemoveAllOutput](#atomix-multiraft-multimap-v1-RemoveAllOutput) |  |  |
 | clear | [ClearOutput](#atomix-multiraft-multimap-v1-ClearOutput) |  |  |
 | entries | [EntriesOutput](#atomix-multiraft-multimap-v1-EntriesOutput) |  |  |
 | events | [EventsOutput](#atomix-multiraft-multimap-v1-EventsOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-PutAllInput"></a>
+
+### PutAllInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| values | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-PutAllOutput"></a>
+
+### PutAllOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| updated | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-PutInput"></a>
+
+### PutInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| value | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-PutOutput"></a>
+
+### PutOutput
+
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-RemoveAllInput"></a>
+
+### RemoveAllInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-RemoveAllOutput"></a>
+
+### RemoveAllOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| values | [string](#string) | repeated |  |
 
 
 
@@ -338,7 +446,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| values | [string](#string) | repeated |  |
+| value | [string](#string) |  |  |
 
 
 
@@ -349,6 +457,37 @@
 
 ### RemoveOutput
 
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-ReplaceInput"></a>
+
+### ReplaceInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key | [string](#string) |  |  |
+| values | [string](#string) | repeated |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-ReplaceOutput"></a>
+
+### ReplaceOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| prev_values | [string](#string) | repeated |  |
 
 
 
