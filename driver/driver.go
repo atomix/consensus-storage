@@ -11,6 +11,7 @@ import (
 	multiraftelectionv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/election/v1"
 	multiraftlockv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/lock/v1"
 	multiraftmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
+	multiraftmultimapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/multimap/v1"
 	multiraftsetv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/set/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	multiraftvaluev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/value/v1"
@@ -20,6 +21,7 @@ import (
 	electionv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/election/v1"
 	lockv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/lock/v1"
 	mapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/map/v1"
+	multimapv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/multimap/v1"
 	setv1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/set/v1"
 	valuev1server "github.com/atomix/multi-raft-storage/driver/pkg/primitives/value/v1"
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
@@ -27,6 +29,7 @@ import (
 	electionv1 "github.com/atomix/runtime/api/atomix/runtime/election/v1"
 	lockv1 "github.com/atomix/runtime/api/atomix/runtime/lock/v1"
 	mapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
+	multimapv1 "github.com/atomix/runtime/api/atomix/runtime/multimap/v1"
 	setv1 "github.com/atomix/runtime/api/atomix/runtime/set/v1"
 	valuev1 "github.com/atomix/runtime/api/atomix/runtime/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
@@ -58,6 +61,9 @@ func New(network runtime.Network) runtime.Driver {
 			}),
 			runtime.WithMapFactory[multiraftmapv1.MapConfig](func(config multiraftmapv1.MapConfig) (mapv1.MapServer, error) {
 				return mapv1server.NewMapServer(client.Protocol, config), nil
+			}),
+			runtime.WithMultiMapFactory[multiraftmultimapv1.MultiMapConfig](func(config multiraftmultimapv1.MultiMapConfig) (multimapv1.MultiMapServer, error) {
+				return multimapv1server.NewMultiMapServer(client.Protocol), nil
 			}),
 			runtime.WithSetFactory[multiraftsetv1.SetConfig](func(config multiraftsetv1.SetConfig) (setv1.SetServer, error) {
 				return setv1server.NewSetServer(client.Protocol, config), nil
