@@ -12,9 +12,8 @@
     - [EntriesOutput](#atomix-multiraft-multimap-v1-EntriesOutput)
     - [Entry](#atomix-multiraft-multimap-v1-Entry)
     - [Event](#atomix-multiraft-multimap-v1-Event)
-    - [Event.Inserted](#atomix-multiraft-multimap-v1-Event-Inserted)
+    - [Event.Added](#atomix-multiraft-multimap-v1-Event-Added)
     - [Event.Removed](#atomix-multiraft-multimap-v1-Event-Removed)
-    - [Event.Updated](#atomix-multiraft-multimap-v1-Event-Updated)
     - [EventsInput](#atomix-multiraft-multimap-v1-EventsInput)
     - [EventsOutput](#atomix-multiraft-multimap-v1-EventsOutput)
     - [GetInput](#atomix-multiraft-multimap-v1-GetInput)
@@ -153,8 +152,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| inserted | [Event.Inserted](#atomix-multiraft-multimap-v1-Event-Inserted) |  |  |
-| updated | [Event.Updated](#atomix-multiraft-multimap-v1-Event-Updated) |  |  |
+| added | [Event.Added](#atomix-multiraft-multimap-v1-Event-Added) |  |  |
 | removed | [Event.Removed](#atomix-multiraft-multimap-v1-Event-Removed) |  |  |
 
 
@@ -162,15 +160,15 @@
 
 
 
-<a name="atomix-multiraft-multimap-v1-Event-Inserted"></a>
+<a name="atomix-multiraft-multimap-v1-Event-Added"></a>
 
-### Event.Inserted
+### Event.Added
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| values | [string](#string) | repeated |  |
+| value | [string](#string) |  |  |
 
 
 
@@ -185,23 +183,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| values | [string](#string) | repeated |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-multimap-v1-Event-Updated"></a>
-
-### Event.Updated
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| values | [string](#string) | repeated |  |
-| prev_values | [string](#string) | repeated |  |
+| value | [string](#string) |  |  |
 
 
 
