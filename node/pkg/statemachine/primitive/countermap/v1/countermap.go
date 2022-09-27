@@ -582,9 +582,6 @@ func (s *MapStateMachine) doClear(proposal primitive.Proposal[*countermapv1.Clea
 }
 
 func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*countermapv1.EventsInput, *countermapv1.EventsOutput]) {
-	// Output an empty event to ack the request
-	proposal.Output(&countermapv1.EventsOutput{})
-
 	listener := &countermapv1.CounterMapListener{
 		Key: proposal.Input().Key,
 	}
