@@ -627,8 +627,8 @@ func (s *multiRaftMultiMapServer) Entries(request *atomicmultimapv1.EntriesReque
 			}
 			response := &atomicmultimapv1.EntriesResponse{
 				Entry: atomicmultimapv1.Entry{
-					Key:    output.Entry.Key,
-					Values: output.Entry.Values,
+					Key:   output.Entry.Key,
+					Value: output.Entry.Value,
 				},
 			}
 			log.Debugw("Entries",
