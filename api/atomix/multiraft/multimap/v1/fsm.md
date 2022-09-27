@@ -137,7 +137,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
-| values | [string](#string) | repeated |  |
+| value | [string](#string) |  |  |
 
 
 
