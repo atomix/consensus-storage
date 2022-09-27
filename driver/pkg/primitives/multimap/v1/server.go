@@ -530,25 +530,13 @@ func (s *multiRaftMultiMapServer) Events(request *atomicmultimapv1.EventsRequest
 			}
 			var response *atomicmultimapv1.EventsResponse
 			switch e := output.Event.Event.(type) {
-			case *api.Event_Inserted_:
+			case *api.Event_Added_:
 				response = &atomicmultimapv1.EventsResponse{
 					Event: atomicmultimapv1.Event{
 						Key: output.Event.Key,
-						Event: &atomicmultimapv1.Event_Inserted_{
-							Inserted: &atomicmultimapv1.Event_Inserted{
-								Values: e.Inserted.Values,
-							},
-						},
-					},
-				}
-			case *api.Event_Updated_:
-				response = &atomicmultimapv1.EventsResponse{
-					Event: atomicmultimapv1.Event{
-						Key: output.Event.Key,
-						Event: &atomicmultimapv1.Event_Updated_{
-							Updated: &atomicmultimapv1.Event_Updated{
-								Values:     e.Updated.Values,
-								PrevValues: e.Updated.PrevValues,
+						Event: &atomicmultimapv1.Event_Added_{
+							Added: &atomicmultimapv1.Event_Added{
+								Value: e.Added.Value,
 							},
 						},
 					},
@@ -559,7 +547,7 @@ func (s *multiRaftMultiMapServer) Events(request *atomicmultimapv1.EventsRequest
 						Key: output.Event.Key,
 						Event: &atomicmultimapv1.Event_Removed_{
 							Removed: &atomicmultimapv1.Event_Removed{
-								Values: e.Removed.Values,
+								Value: e.Removed.Value,
 							},
 						},
 					},
