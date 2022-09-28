@@ -584,7 +584,9 @@ func (s *MultiMapStateMachine) doContains(query primitive.Query[*multimapv1.Cont
 	defer query.Close()
 	values, ok := s.entries[query.Input().Key]
 	if !ok {
-		query.Error(errors.NewNotFound("entry not found"))
+		query.Output(&multimapv1.ContainsOutput{
+			Result: false,
+		})
 	} else if _, ok := values[query.Input().Value]; !ok {
 		query.Output(&multimapv1.ContainsOutput{
 			Result: false,
