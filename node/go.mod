@@ -18,7 +18,7 @@ require (
 
 require (
 	github.com/atomix/multi-raft-storage/api v0.5.5
-	github.com/atomix/runtime/sdk v0.5.3
+	github.com/atomix/runtime/sdk v0.5.4
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.1.2

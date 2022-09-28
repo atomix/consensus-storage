@@ -14,7 +14,7 @@ import (
 	"sync"
 )
 
-const Service = "atomix.runtime.map.v1.CounterMap"
+const Service = "atomix.runtime.countermap.v1.CounterMap"
 
 func Register(registry *primitive.TypeRegistry) {
 	primitive.RegisterType[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](registry)(Type)
