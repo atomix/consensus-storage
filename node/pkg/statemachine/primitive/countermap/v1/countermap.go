@@ -35,7 +35,7 @@ var counterMapCodec = primitive.NewCodec[*countermapv1.CounterMapInput, *counter
 	})
 
 func newMapStateMachine(ctx primitive.Context[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) primitive.Primitive[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput] {
-	sm := &MapStateMachine{
+	sm := &CounterMapStateMachine{
 		Context:   ctx,
 		listeners: make(map[statemachine.ProposalID]*countermapv1.CounterMapListener),
 		entries:   make(map[string]int64),
@@ -45,13 +45,13 @@ func newMapStateMachine(ctx primitive.Context[*countermapv1.CounterMapInput, *co
 	return sm
 }
 
-type MapStateMachine struct {
+type CounterMapStateMachine struct {
 	primitive.Context[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]
 	listeners map[statemachine.ProposalID]*countermapv1.CounterMapListener
 	entries   map[string]int64
 	watchers  map[statemachine.QueryID]statemachine.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]
 	mu        sync.RWMutex
-	put       primitive.Proposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput]
+	set       primitive.Proposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput]
 	insert    primitive.Proposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.InsertInput, *countermapv1.InsertOutput]
 	update    primitive.Proposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.UpdateInput, *countermapv1.UpdateOutput]
 	remove    primitive.Proposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.RemoveInput, *countermapv1.RemoveOutput]
@@ -64,8 +64,8 @@ type MapStateMachine struct {
 	list      primitive.Querier[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.EntriesInput, *countermapv1.EntriesOutput]
 }
 
-func (s *MapStateMachine) init() {
-	s.put = primitive.NewProposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput](s).
+func (s *CounterMapStateMachine) init() {
+	s.set = primitive.NewProposer[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput, *countermapv1.SetInput, *countermapv1.SetOutput](s).
 		Name("Set").
 		Decoder(func(input *countermapv1.CounterMapInput) (*countermapv1.SetInput, bool) {
 			if put, ok := input.Input.(*countermapv1.CounterMapInput_Set); ok {
@@ -243,7 +243,7 @@ func (s *MapStateMachine) init() {
 		Build(s.doEntries)
 }
 
-func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
+func (s *CounterMapStateMachine) Snapshot(writer *snapshot.Writer) error {
 	s.Log().Infow("Persisting CounterMap to snapshot")
 	if err := writer.WriteVarInt(len(s.listeners)); err != nil {
 		return err
@@ -271,7 +271,7 @@ func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
 	return nil
 }
 
-func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
+func (s *CounterMapStateMachine) Recover(reader *snapshot.Reader) error {
 	s.Log().Infow("Recovering CounterMap from snapshot")
 	n, err := reader.ReadVarInt()
 	if err != nil {
@@ -316,14 +316,18 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *MapStateMachine) Propose(proposal primitive.Proposal[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) {
+func (s *CounterMapStateMachine) Propose(proposal primitive.Proposal[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *countermapv1.CounterMapInput_Set:
-		s.put.Execute(proposal)
+		s.set.Execute(proposal)
 	case *countermapv1.CounterMapInput_Insert:
 		s.insert.Execute(proposal)
 	case *countermapv1.CounterMapInput_Update:
 		s.update.Execute(proposal)
+	case *countermapv1.CounterMapInput_Increment:
+		s.increment.Execute(proposal)
+	case *countermapv1.CounterMapInput_Decrement:
+		s.decrement.Execute(proposal)
 	case *countermapv1.CounterMapInput_Remove:
 		s.remove.Execute(proposal)
 	case *countermapv1.CounterMapInput_Clear:
@@ -336,7 +340,7 @@ func (s *MapStateMachine) Propose(proposal primitive.Proposal[*countermapv1.Coun
 	}
 }
 
-func (s *MapStateMachine) doSet(proposal primitive.Proposal[*countermapv1.SetInput, *countermapv1.SetOutput]) {
+func (s *CounterMapStateMachine) doSet(proposal primitive.Proposal[*countermapv1.SetInput, *countermapv1.SetOutput]) {
 	defer proposal.Close()
 
 	key := proposal.Input().Key
@@ -377,7 +381,7 @@ func (s *MapStateMachine) doSet(proposal primitive.Proposal[*countermapv1.SetInp
 	}
 }
 
-func (s *MapStateMachine) doInsert(proposal primitive.Proposal[*countermapv1.InsertInput, *countermapv1.InsertOutput]) {
+func (s *CounterMapStateMachine) doInsert(proposal primitive.Proposal[*countermapv1.InsertInput, *countermapv1.InsertOutput]) {
 	defer proposal.Close()
 
 	key := proposal.Input().Key
@@ -403,7 +407,7 @@ func (s *MapStateMachine) doInsert(proposal primitive.Proposal[*countermapv1.Ins
 	proposal.Output(&countermapv1.InsertOutput{})
 }
 
-func (s *MapStateMachine) doUpdate(proposal primitive.Proposal[*countermapv1.UpdateInput, *countermapv1.UpdateOutput]) {
+func (s *CounterMapStateMachine) doUpdate(proposal primitive.Proposal[*countermapv1.UpdateInput, *countermapv1.UpdateOutput]) {
 	defer proposal.Close()
 
 	key := proposal.Input().Key
@@ -412,6 +416,11 @@ func (s *MapStateMachine) doUpdate(proposal primitive.Proposal[*countermapv1.Upd
 	oldValue, updated := s.entries[key]
 	if !updated {
 		proposal.Error(errors.NewNotFound("key '%s' not found", key))
+		return
+	}
+
+	if oldValue != proposal.Input().PrevValue {
+		proposal.Error(errors.NewConflict("optimistic lock failure"))
 		return
 	}
 
@@ -434,7 +443,7 @@ func (s *MapStateMachine) doUpdate(proposal primitive.Proposal[*countermapv1.Upd
 	})
 }
 
-func (s *MapStateMachine) doIncrement(proposal primitive.Proposal[*countermapv1.IncrementInput, *countermapv1.IncrementOutput]) {
+func (s *CounterMapStateMachine) doIncrement(proposal primitive.Proposal[*countermapv1.IncrementInput, *countermapv1.IncrementOutput]) {
 	defer proposal.Close()
 
 	key := proposal.Input().Key
@@ -444,11 +453,6 @@ func (s *MapStateMachine) doIncrement(proposal primitive.Proposal[*countermapv1.
 	}
 
 	oldValue, updated := s.entries[key]
-	if !updated {
-		proposal.Error(errors.NewNotFound("key '%s' not found", key))
-		return
-	}
-
 	newValue := oldValue + delta
 	s.entries[key] = newValue
 
@@ -482,7 +486,7 @@ func (s *MapStateMachine) doIncrement(proposal primitive.Proposal[*countermapv1.
 	})
 }
 
-func (s *MapStateMachine) doDecrement(proposal primitive.Proposal[*countermapv1.DecrementInput, *countermapv1.DecrementOutput]) {
+func (s *CounterMapStateMachine) doDecrement(proposal primitive.Proposal[*countermapv1.DecrementInput, *countermapv1.DecrementOutput]) {
 	defer proposal.Close()
 
 	key := proposal.Input().Key
@@ -492,11 +496,6 @@ func (s *MapStateMachine) doDecrement(proposal primitive.Proposal[*countermapv1.
 	}
 
 	oldValue, updated := s.entries[key]
-	if !updated {
-		proposal.Error(errors.NewNotFound("key '%s' not found", key))
-		return
-	}
-
 	newValue := oldValue - delta
 	s.entries[key] = newValue
 
@@ -530,7 +529,7 @@ func (s *MapStateMachine) doDecrement(proposal primitive.Proposal[*countermapv1.
 	})
 }
 
-func (s *MapStateMachine) doRemove(proposal primitive.Proposal[*countermapv1.RemoveInput, *countermapv1.RemoveOutput]) {
+func (s *CounterMapStateMachine) doRemove(proposal primitive.Proposal[*countermapv1.RemoveInput, *countermapv1.RemoveOutput]) {
 	defer proposal.Close()
 
 	key := proposal.Input().Key
@@ -563,7 +562,7 @@ func (s *MapStateMachine) doRemove(proposal primitive.Proposal[*countermapv1.Rem
 	})
 }
 
-func (s *MapStateMachine) doClear(proposal primitive.Proposal[*countermapv1.ClearInput, *countermapv1.ClearOutput]) {
+func (s *CounterMapStateMachine) doClear(proposal primitive.Proposal[*countermapv1.ClearInput, *countermapv1.ClearOutput]) {
 	defer proposal.Close()
 	for key, value := range s.entries {
 		s.notify(key, value, &countermapv1.EventsOutput{
@@ -581,19 +580,19 @@ func (s *MapStateMachine) doClear(proposal primitive.Proposal[*countermapv1.Clea
 	proposal.Output(&countermapv1.ClearOutput{})
 }
 
-func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*countermapv1.EventsInput, *countermapv1.EventsOutput]) {
+func (s *CounterMapStateMachine) doEvents(proposal primitive.Proposal[*countermapv1.EventsInput, *countermapv1.EventsOutput]) {
 	listener := &countermapv1.CounterMapListener{
 		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
 	proposal.Watch(func(phase primitive.ProposalPhase) {
-		if phase == primitive.ProposalComplete {
+		if phase == primitive.ProposalComplete || phase == primitive.ProposalCanceled {
 			delete(s.listeners, proposal.ID())
 		}
 	})
 }
 
-func (s *MapStateMachine) Query(query primitive.Query[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) {
+func (s *CounterMapStateMachine) Query(query primitive.Query[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput]) {
 	switch query.Input().Input.(type) {
 	case *countermapv1.CounterMapInput_Size_:
 		s.size.Execute(query)
@@ -606,14 +605,14 @@ func (s *MapStateMachine) Query(query primitive.Query[*countermapv1.CounterMapIn
 	}
 }
 
-func (s *MapStateMachine) doSize(query primitive.Query[*countermapv1.SizeInput, *countermapv1.SizeOutput]) {
+func (s *CounterMapStateMachine) doSize(query primitive.Query[*countermapv1.SizeInput, *countermapv1.SizeOutput]) {
 	defer query.Close()
 	query.Output(&countermapv1.SizeOutput{
 		Size_: uint32(len(s.entries)),
 	})
 }
 
-func (s *MapStateMachine) doGet(query primitive.Query[*countermapv1.GetInput, *countermapv1.GetOutput]) {
+func (s *CounterMapStateMachine) doGet(query primitive.Query[*countermapv1.GetInput, *countermapv1.GetOutput]) {
 	defer query.Close()
 	value, ok := s.entries[query.Input().Key]
 	if !ok {
@@ -625,7 +624,7 @@ func (s *MapStateMachine) doGet(query primitive.Query[*countermapv1.GetInput, *c
 	}
 }
 
-func (s *MapStateMachine) doEntries(query primitive.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]) {
+func (s *CounterMapStateMachine) doEntries(query primitive.Query[*countermapv1.EntriesInput, *countermapv1.EntriesOutput]) {
 	for key, value := range s.entries {
 		query.Output(&countermapv1.EntriesOutput{
 			Entry: countermapv1.Entry{
@@ -651,7 +650,7 @@ func (s *MapStateMachine) doEntries(query primitive.Query[*countermapv1.EntriesI
 	}
 }
 
-func (s *MapStateMachine) notify(key string, value int64, event *countermapv1.EventsOutput) {
+func (s *CounterMapStateMachine) notify(key string, value int64, event *countermapv1.EventsOutput) {
 	for proposalID, listener := range s.listeners {
 		if listener.Key == "" || listener.Key == event.Event.Key {
 			proposal, ok := s.events.Proposals().Get(proposalID)
