@@ -29,7 +29,7 @@ message LockOutput {
 
 message AcquireInput {
     google.protobuf.Duration timeout = 1 [
-        (gogoproto.stdtime) = true
+        (gogoproto.stdduration) = true
     ];
 }
 
