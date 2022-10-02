@@ -282,6 +282,10 @@ message SessionProposalSnapshot {
     uint64 last_output_sequence_num = 5 [
         (gogoproto.casttype) = "SequenceNum"
     ];
+    google.protobuf.Timestamp timestamp = 6 [
+        (gogoproto.stdtime) = true,
+        (gogoproto.nullable) = false
+    ];
 
     enum Phase {
         PENDING = 0;

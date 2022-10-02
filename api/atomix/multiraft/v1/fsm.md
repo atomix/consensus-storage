@@ -383,6 +383,7 @@
 | input | [SessionProposalInput](#atomix-multiraft-v1-SessionProposalInput) |  |  |
 | pending_outputs | [SessionProposalOutput](#atomix-multiraft-v1-SessionProposalOutput) | repeated |  |
 | last_output_sequence_num | [uint64](#uint64) |  |  |
+| timestamp | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
 
 
 
