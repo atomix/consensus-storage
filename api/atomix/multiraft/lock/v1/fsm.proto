@@ -9,6 +9,7 @@ syntax = "proto3";
 package atomix.multiraft.lock.v1;
 
 import "gogoproto/gogo.proto";
+import "google/protobuf/duration.proto";
 
 message LockInput {
     oneof input {
@@ -27,7 +28,9 @@ message LockOutput {
 }
 
 message AcquireInput {
-
+    google.protobuf.Duration timeout = 1 [
+        (gogoproto.stdtime) = true
+    ];
 }
 
 message AcquireOutput {
