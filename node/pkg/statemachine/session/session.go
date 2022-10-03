@@ -22,25 +22,25 @@ import (
 
 func newManagedSession(manager *sessionManager) *managedSession {
 	return &managedSession{
-		manager:          manager,
-		sessionProposals: make(map[multiraftv1.SequenceNum]*sessionProposal),
-		sessionQueries:   make(map[multiraftv1.SequenceNum]*sessionQuery),
-		watchers:         make(map[uuid.UUID]WatchFunc[State]),
+		manager:   manager,
+		proposals: make(map[multiraftv1.SequenceNum]*sessionProposal),
+		queries:   make(map[multiraftv1.SequenceNum]*sessionQuery),
+		watchers:  make(map[uuid.UUID]WatchFunc[State]),
 	}
 }
 
 type managedSession struct {
-	manager          *sessionManager
-	sessionProposals map[multiraftv1.SequenceNum]*sessionProposal
-	sessionQueries   map[multiraftv1.SequenceNum]*sessionQuery
-	sessionQueriesMu sync.Mutex
-	log              logging.Logger
-	id               ID
-	state            State
-	watchers         map[uuid.UUID]WatchFunc[State]
-	timeout          time.Duration
-	lastUpdated      time.Time
-	expireTimer      statemachine.Timer
+	manager     *sessionManager
+	proposals   map[multiraftv1.SequenceNum]*sessionProposal
+	queries     map[multiraftv1.SequenceNum]*sessionQuery
+	queriesMu   sync.Mutex
+	log         logging.Logger
+	id          ID
+	state       State
+	watchers    map[uuid.UUID]WatchFunc[State]
+	timeout     time.Duration
+	lastUpdated time.Time
+	expireTimer statemachine.Timer
 }
 
 func (s *managedSession) Log() logging.Logger {
@@ -64,11 +64,11 @@ func (s *managedSession) Watch(f WatchFunc[State]) CancelFunc {
 }
 
 func (s *managedSession) propose(parent statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]) {
-	if proposal, ok := s.sessionProposals[parent.Input().SequenceNum]; ok {
+	if proposal, ok := s.proposals[parent.Input().SequenceNum]; ok {
 		proposal.replay(parent)
 	} else {
 		proposal := newSessionProposal(s)
-		s.sessionProposals[parent.Input().SequenceNum] = proposal
+		s.proposals[parent.Input().SequenceNum] = proposal
 		proposal.execute(parent)
 	}
 }
@@ -77,9 +77,9 @@ func (s *managedSession) query(parent statemachine.Query[*multiraftv1.SessionQue
 	query := newSessionQuery(s)
 	query.execute(parent)
 	if query.phase == Running {
-		s.sessionQueriesMu.Lock()
-		s.sessionQueries[query.Input().SequenceNum] = query
-		s.sessionQueriesMu.Unlock()
+		s.queriesMu.Lock()
+		s.queries[query.Input().SequenceNum] = query
+		s.queriesMu.Unlock()
 	}
 }
 
@@ -104,10 +104,10 @@ func (s *managedSession) Snapshot(writer *snapshot.Writer) error {
 		return err
 	}
 
-	if err := writer.WriteVarInt(len(s.sessionProposals)); err != nil {
+	if err := writer.WriteVarInt(len(s.proposals)); err != nil {
 		return err
 	}
-	for _, proposal := range s.sessionProposals {
+	for _, proposal := range s.proposals {
 		if err := proposal.snapshot(writer); err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func (s *managedSession) Recover(reader *snapshot.Reader) error {
 		if err := proposal.recover(reader); err != nil {
 			return err
 		}
-		s.sessionProposals[proposal.input.SequenceNum] = proposal
+		s.proposals[proposal.input.SequenceNum] = proposal
 	}
 
 	switch snapshot.State {
@@ -155,7 +155,7 @@ func (s *managedSession) expire() {
 	s.Log().Warnf("Session expired after %s", s.manager.Time().Sub(s.lastUpdated))
 	s.manager.sessions.remove(s.id)
 	s.state = Closed
-	for _, proposal := range s.sessionProposals {
+	for _, proposal := range s.proposals {
 		proposal.cancel()
 	}
 	for _, watcher := range s.watchers {
@@ -198,7 +198,7 @@ func (s *managedSession) keepAlive(keepAlive statemachine.Proposal[*multiraftv1.
 	}
 
 	s.Log().Debug("Processing keep-alive")
-	for _, proposal := range s.sessionProposals {
+	for _, proposal := range s.proposals {
 		if keepAlive.Input().LastInputSequenceNum < proposal.Input().SequenceNum {
 			continue
 		}
@@ -206,7 +206,7 @@ func (s *managedSession) keepAlive(keepAlive statemachine.Proposal[*multiraftv1.
 		binary.BigEndian.PutUint64(sequenceNumBytes, uint64(proposal.Input().SequenceNum))
 		if !openInputs.Test(sequenceNumBytes) {
 			proposal.cancel()
-			delete(s.sessionProposals, proposal.Input().SequenceNum)
+			delete(s.proposals, proposal.Input().SequenceNum)
 		} else {
 			if outputSequenceNum, ok := keepAlive.Input().LastOutputSequenceNums[proposal.Input().SequenceNum]; ok {
 				proposal.ack(outputSequenceNum)
@@ -214,8 +214,8 @@ func (s *managedSession) keepAlive(keepAlive statemachine.Proposal[*multiraftv1.
 		}
 	}
 
-	s.sessionQueriesMu.Lock()
-	for _, query := range s.sessionQueries {
+	s.queriesMu.Lock()
+	for _, query := range s.queries {
 		if keepAlive.Input().LastInputSequenceNum < query.Input().SequenceNum {
 			continue
 		}
@@ -223,10 +223,10 @@ func (s *managedSession) keepAlive(keepAlive statemachine.Proposal[*multiraftv1.
 		binary.BigEndian.PutUint64(sequenceNumBytes, uint64(query.Input().SequenceNum))
 		if !openInputs.Test(sequenceNumBytes) {
 			query.cancel()
-			delete(s.sessionQueries, query.Input().SequenceNum)
+			delete(s.queries, query.Input().SequenceNum)
 		}
 	}
-	s.sessionQueriesMu.Unlock()
+	s.queriesMu.Unlock()
 
 	keepAlive.Output(&multiraftv1.KeepAliveOutput{})
 
@@ -239,7 +239,7 @@ func (s *managedSession) close(close statemachine.Proposal[*multiraftv1.CloseSes
 	s.manager.sessions.remove(s.id)
 	s.expireTimer.Cancel()
 	s.state = Closed
-	for _, proposal := range s.sessionProposals {
+	for _, proposal := range s.proposals {
 		proposal.cancel()
 	}
 	for _, watcher := range s.watchers {
