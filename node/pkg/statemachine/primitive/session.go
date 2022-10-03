@@ -14,6 +14,32 @@ import (
 	"sync"
 )
 
+const truncLen = 150
+
+type CancelFunc = session.CancelFunc
+
+type SessionID = session.ID
+
+type SessionState = session.State
+
+const (
+	SessionOpen   = session.Open
+	SessionClosed = session.Closed
+)
+
+type Session = session.Session
+
+type Sessions = session.Sessions
+
+type CallState = session.CallState
+
+const (
+	Pending  = session.Pending
+	Running  = session.Running
+	Complete = session.Complete
+	Canceled = session.Canceled
+)
+
 func newPrimitiveSession[I, O any](primitive *primitiveExecutor[I, O]) *primitiveSession[I, O] {
 	s := &primitiveSession[I, O]{
 		primitive: primitive,

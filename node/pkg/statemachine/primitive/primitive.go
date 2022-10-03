@@ -6,11 +6,80 @@ package primitive
 
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 )
+
+type NewPrimitiveFunc[I, O any] func(Context[I, O]) Primitive[I, O]
+
+type Primitive[I, O any] interface {
+	snapshot.Recoverable
+	Propose(proposal Proposal[I, O])
+	Query(query Query[I, O])
+}
+
+type AnyPrimitive Primitive[any, any]
+
+type Type[I, O any] interface {
+	Service() string
+	Codec() Codec[I, O]
+	NewStateMachine(Context[I, O]) Primitive[I, O]
+}
+
+type AnyType Type[any, any]
+
+func NewType[I, O any](service string, codec Codec[I, O], factory NewPrimitiveFunc[I, O]) Type[I, O] {
+	return &primitiveType[I, O]{
+		service: service,
+		codec:   codec,
+		factory: factory,
+	}
+}
+
+type primitiveType[I, O any] struct {
+	service string
+	codec   Codec[I, O]
+	factory func(Context[I, O]) Primitive[I, O]
+}
+
+func (t *primitiveType[I, O]) Service() string {
+	return t.service
+}
+
+func (t *primitiveType[I, O]) Codec() Codec[I, O] {
+	return t.codec
+}
+
+func (t *primitiveType[I, O]) NewStateMachine(context Context[I, O]) Primitive[I, O] {
+	return t.factory(context)
+}
+
+type Info interface {
+	// ID returns the service identifier
+	ID() ID
+	// Service returns the service name
+	Service() string
+	// Namespace returns the service namespace
+	Namespace() string
+	// Name returns the service name
+	Name() string
+}
+
+type Context[I, O any] interface {
+	statemachine.SessionManagerContext
+	Info
+	// Sessions returns the open sessions
+	Sessions() session.Sessions
+	// Proposals returns the pending proposals
+	Proposals() Proposals[I, O]
+}
+
+type AnyContext Context[any, any]
+
+type ID uint64
 
 type managedPrimitive interface {
 	snapshot.Recoverable

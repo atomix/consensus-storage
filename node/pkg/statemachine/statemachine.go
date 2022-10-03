@@ -14,6 +14,15 @@ import (
 
 var log = logging.GetLogger()
 
+type Index uint64
+
+type Scheduler interface {
+	Time() time.Time
+	Await(index Index, f func()) CancelFunc
+	Delay(d time.Duration, f func()) CancelFunc
+	Schedule(t time.Time, f func()) CancelFunc
+}
+
 type Context interface {
 	// Index returns the current service index
 	Index() Index
@@ -103,7 +112,7 @@ func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachinePropos
 
 	switch p := proposal.Input().Input.(type) {
 	case *multiraftv1.StateMachineProposalInput_Proposal:
-		s.sm.Propose(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput](
+		s.sm.Propose(newTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput](
 			proposal,
 			p.Proposal,
 			func(output *multiraftv1.SessionProposalOutput) *multiraftv1.StateMachineProposalOutput {
@@ -115,7 +124,7 @@ func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachinePropos
 				}
 			}))
 	case *multiraftv1.StateMachineProposalInput_OpenSession:
-		s.sm.OpenSession(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput](
+		s.sm.OpenSession(newTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.OpenSessionInput, *multiraftv1.OpenSessionOutput](
 			proposal,
 			p.OpenSession,
 			func(output *multiraftv1.OpenSessionOutput) *multiraftv1.StateMachineProposalOutput {
@@ -127,7 +136,7 @@ func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachinePropos
 				}
 			}))
 	case *multiraftv1.StateMachineProposalInput_KeepAlive:
-		s.sm.KeepAlive(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.KeepAliveInput, *multiraftv1.KeepAliveOutput](
+		s.sm.KeepAlive(newTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.KeepAliveInput, *multiraftv1.KeepAliveOutput](
 			proposal,
 			p.KeepAlive,
 			func(output *multiraftv1.KeepAliveOutput) *multiraftv1.StateMachineProposalOutput {
@@ -139,7 +148,7 @@ func (s *StateMachine) Propose(proposal Proposal[*multiraftv1.StateMachinePropos
 				}
 			}))
 	case *multiraftv1.StateMachineProposalInput_CloseSession:
-		s.sm.CloseSession(NewTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput](
+		s.sm.CloseSession(newTranscodingProposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput, *multiraftv1.CloseSessionInput, *multiraftv1.CloseSessionOutput](
 			proposal,
 			p.CloseSession,
 			func(output *multiraftv1.CloseSessionOutput) *multiraftv1.StateMachineProposalOutput {
@@ -162,7 +171,7 @@ func (s *StateMachine) Query(query Query[*multiraftv1.StateMachineQueryInput, *m
 		s.Scheduler().Await(minIndex, func() {
 			switch q := query.Input().Input.(type) {
 			case *multiraftv1.StateMachineQueryInput_Query:
-				s.sm.Query(NewTranscodingQuery[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput, *multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput](
+				s.sm.Query(newTranscodingQuery[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput, *multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput](
 					query,
 					q.Query,
 					func(output *multiraftv1.SessionQueryOutput) *multiraftv1.StateMachineQueryOutput {
@@ -178,7 +187,7 @@ func (s *StateMachine) Query(query Query[*multiraftv1.StateMachineQueryInput, *m
 	} else {
 		switch q := query.Input().Input.(type) {
 		case *multiraftv1.StateMachineQueryInput_Query:
-			s.sm.Query(NewTranscodingQuery[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput, *multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput](
+			s.sm.Query(newTranscodingQuery[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput, *multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput](
 				query,
 				q.Query,
 				func(output *multiraftv1.SessionQueryOutput) *multiraftv1.StateMachineQueryOutput {

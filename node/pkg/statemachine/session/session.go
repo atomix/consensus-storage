@@ -18,6 +18,37 @@ import (
 	"time"
 )
 
+type ID uint64
+
+type State int
+
+const (
+	Open State = iota
+	Closed
+)
+
+type CancelFunc = statemachine.CancelFunc
+
+// Session is a service session
+type Session interface {
+	// Log returns the session log
+	Log() logging.Logger
+	// ID returns the session identifier
+	ID() ID
+	// State returns the current session state
+	State() State
+	// Watch watches the session state for changes
+	Watch(watcher func(State)) CancelFunc
+}
+
+// Sessions provides access to open sessions
+type Sessions interface {
+	// Get gets a session by ID
+	Get(ID) (Session, bool)
+	// List lists all open sessions
+	List() []Session
+}
+
 func newManagedSession(manager *sessionManager) *managedSession {
 	return &managedSession{
 		manager:   manager,

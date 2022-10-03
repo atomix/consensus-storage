@@ -14,6 +14,21 @@ import (
 	"time"
 )
 
+type ProposalID = session.ProposalID
+
+type ProposalState = session.ProposalState
+
+// Proposal is a proposal operation
+type Proposal[I, O any] session.Proposal[I, O]
+
+// Proposals provides access to pending proposals
+type Proposals[I, O any] interface {
+	// Get gets a proposal by ID
+	Get(id ProposalID) (Proposal[I, O], bool)
+	// List lists all open proposals
+	List() []Proposal[I, O]
+}
+
 func newPrimitiveProposal[I, O any](session *primitiveSession[I, O]) *primitiveProposal[I, O] {
 	return &primitiveProposal[I, O]{
 		session: session,

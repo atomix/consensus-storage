@@ -14,6 +14,21 @@ import (
 	"time"
 )
 
+type ProposalID = statemachine.ProposalID
+
+type ProposalState = CallState
+
+// Proposal is a proposal operation
+type Proposal[I, O any] Call[ProposalID, I, O]
+
+// Proposals provides access to pending proposals
+type Proposals interface {
+	// Get gets a proposal by ID
+	Get(id ProposalID) (PrimitiveProposal, bool)
+	// List lists all open proposals
+	List() []PrimitiveProposal
+}
+
 func newPrimitiveProposals() *primitiveProposals {
 	return &primitiveProposals{
 		proposals: make(map[statemachine.ProposalID]*primitiveProposal),

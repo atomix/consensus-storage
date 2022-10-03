@@ -13,6 +13,13 @@ import (
 	"time"
 )
 
+type QueryID = session.QueryID
+
+type QueryState = session.QueryState
+
+// Query is a read operation
+type Query[I, O any] session.Query[I, O]
+
 func newPrimitiveQuery[I, O any](session *primitiveSession[I, O]) *primitiveQuery[I, O] {
 	return &primitiveQuery[I, O]{
 		session: session,

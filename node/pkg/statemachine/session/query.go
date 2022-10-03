@@ -14,6 +14,13 @@ import (
 	"time"
 )
 
+type QueryID = statemachine.QueryID
+
+type QueryState = CallState
+
+// Query is a read operation
+type Query[I, O any] Call[QueryID, I, O]
+
 func newSessionQuery(session *managedSession) *sessionQuery {
 	return &sessionQuery{
 		session: session,
