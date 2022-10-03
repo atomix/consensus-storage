@@ -11,10 +11,13 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"github.com/gogo/protobuf/proto"
 )
 
 var log = logging.GetLogger()
+
+const truncLen = 250
 
 var mapCodec = protocol.NewCodec[*mapv1.MapInput, *mapv1.MapOutput](
 	func(input *mapv1.MapInput) ([]byte, error) {
@@ -40,7 +43,7 @@ type MapServer struct {
 
 func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv1.SizeResponse, error) {
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Size_{
 			Size_: request.SizeInput,
@@ -50,7 +53,7 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Size",
-			logging.Stringer("SizeRequest", request),
+			logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -59,14 +62,14 @@ func (s *MapServer) Size(ctx context.Context, request *mapv1.SizeRequest) (*mapv
 		SizeOutput: output.GetSize_(),
 	}
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request),
-		logging.Stringer("SizeResponse", response))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SizeResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.PutResponse, error) {
 	log.Debugw("Put",
-		logging.Stringer("PutRequest", request))
+		logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Put{
 			Put: request.PutInput,
@@ -76,7 +79,7 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Put",
-			logging.Stringer("PutRequest", request),
+			logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -85,14 +88,14 @@ func (s *MapServer) Put(ctx context.Context, request *mapv1.PutRequest) (*mapv1.
 		PutOutput: output.GetPut(),
 	}
 	log.Debugw("Put",
-		logging.Stringer("PutRequest", request),
-		logging.Stringer("PutResponse", response))
+		logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("PutResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*mapv1.InsertResponse, error) {
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Insert{
 			Insert: request.InsertInput,
@@ -102,7 +105,7 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -111,14 +114,14 @@ func (s *MapServer) Insert(ctx context.Context, request *mapv1.InsertRequest) (*
 		InsertOutput: output.GetInsert(),
 	}
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request),
-		logging.Stringer("InsertResponse", response))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("InsertResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*mapv1.UpdateResponse, error) {
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Update{
 			Update: request.UpdateInput,
@@ -128,7 +131,7 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -137,14 +140,14 @@ func (s *MapServer) Update(ctx context.Context, request *mapv1.UpdateRequest) (*
 		UpdateOutput: output.GetUpdate(),
 	}
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request),
-		logging.Stringer("UpdateResponse", response))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UpdateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Get{
 			Get: request.GetInput,
@@ -154,7 +157,7 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -163,14 +166,14 @@ func (s *MapServer) Get(ctx context.Context, request *mapv1.GetRequest) (*mapv1.
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*mapv1.RemoveResponse, error) {
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Remove{
 			Remove: request.RemoveInput,
@@ -180,7 +183,7 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -189,14 +192,14 @@ func (s *MapServer) Remove(ctx context.Context, request *mapv1.RemoveRequest) (*
 		RemoveOutput: output.GetRemove(),
 	}
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request),
-		logging.Stringer("RemoveResponse", response))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*mapv1.ClearResponse, error) {
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Clear{
 			Clear: request.ClearInput,
@@ -206,7 +209,7 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Clear",
-			logging.Stringer("ClearRequest", request),
+			logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -215,14 +218,14 @@ func (s *MapServer) Clear(ctx context.Context, request *mapv1.ClearRequest) (*ma
 		ClearOutput: output.GetClear(),
 	}
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request),
-		logging.Stringer("ClearResponse", response))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ClearResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv1.LockResponse, error) {
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Lock{
 			Lock: request.LockInput,
@@ -232,7 +235,7 @@ func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Lock",
-			logging.Stringer("LockRequest", request),
+			logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -241,14 +244,14 @@ func (s *MapServer) Lock(ctx context.Context, request *mapv1.LockRequest) (*mapv
 		LockOutput: output.GetLock(),
 	}
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request),
-		logging.Stringer("LockResponse", response))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("LockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*mapv1.UnlockResponse, error) {
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Unlock{
 			Unlock: request.UnlockInput,
@@ -258,7 +261,7 @@ func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Unlock",
-			logging.Stringer("UnlockRequest", request),
+			logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -267,14 +270,14 @@ func (s *MapServer) Unlock(ctx context.Context, request *mapv1.UnlockRequest) (*
 		UnlockOutput: output.GetUnlock(),
 	}
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request),
-		logging.Stringer("UnlockResponse", response))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UnlockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_EventsServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Events{
 			Events: request.EventsInput,
@@ -287,7 +290,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			stream.Error(err)
 			stream.Close()
@@ -303,7 +306,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -313,11 +316,11 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 			EventsOutput: result.Value.Output.GetEvents(),
 		}
 		log.Debugw("Events",
-			logging.Stringer("EventsRequest", request),
-			logging.Stringer("EventsResponse", response))
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -326,7 +329,7 @@ func (s *MapServer) Events(request *mapv1.EventsRequest, server mapv1.Map_Events
 
 func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_EntriesServer) error {
 	log.Debugw("Entries",
-		logging.Stringer("EntriesRequest", request))
+		logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)))
 	input := &mapv1.MapInput{
 		Input: &mapv1.MapInput_Entries{
 			Entries: request.EntriesInput,
@@ -339,7 +342,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			stream.Error(err)
 			stream.Close()
@@ -355,7 +358,7 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -365,11 +368,11 @@ func (s *MapServer) Entries(request *mapv1.EntriesRequest, server mapv1.Map_Entr
 			EntriesOutput: result.Value.Output.GetEntries(),
 		}
 		log.Debugw("Entries",
-			logging.Stringer("EntriesRequest", request),
-			logging.Stringer("EntriesResponse", response))
+			logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EntriesResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}

@@ -10,10 +10,13 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"github.com/gogo/protobuf/proto"
 )
 
 var log = logging.GetLogger()
+
+const truncLen = 250
 
 var counterCodec = protocol.NewCodec[*counterv1.CounterInput, *counterv1.CounterOutput](
 	func(input *counterv1.CounterInput) ([]byte, error) {
@@ -39,7 +42,7 @@ type CounterServer struct {
 
 func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) (*counterv1.SetResponse, error) {
 	log.Debugw("Set",
-		logging.Stringer("SetRequest", request))
+		logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Set{
 			Set: request.SetInput,
@@ -49,7 +52,7 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
+			logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -58,14 +61,14 @@ func (s *CounterServer) Set(ctx context.Context, request *counterv1.SetRequest) 
 		SetOutput: output.GetSet(),
 	}
 	log.Debugw("Set",
-		logging.Stringer("SetRequest", request),
-		logging.Stringer("SetResponse", response))
+		logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateRequest) (*counterv1.UpdateResponse, error) {
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Update{
 			Update: request.UpdateInput,
@@ -75,7 +78,7 @@ func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateReq
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -84,14 +87,14 @@ func (s *CounterServer) Update(ctx context.Context, request *counterv1.UpdateReq
 		UpdateOutput: output.GetUpdate(),
 	}
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request),
-		logging.Stringer("UpdateResponse", response))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UpdateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) (*counterv1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Get{
 			Get: request.GetInput,
@@ -101,7 +104,7 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -110,14 +113,14 @@ func (s *CounterServer) Get(ctx context.Context, request *counterv1.GetRequest) 
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterServer) Increment(ctx context.Context, request *counterv1.IncrementRequest) (*counterv1.IncrementResponse, error) {
 	log.Debugw("Increment",
-		logging.Stringer("IncrementRequest", request))
+		logging.Stringer("IncrementRequest", stringer.Truncate(request, truncLen)))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Increment{
 			Increment: request.IncrementInput,
@@ -127,7 +130,7 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Increment",
-			logging.Stringer("IncrementRequest", request),
+			logging.Stringer("IncrementRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -136,14 +139,14 @@ func (s *CounterServer) Increment(ctx context.Context, request *counterv1.Increm
 		IncrementOutput: output.GetIncrement(),
 	}
 	log.Debugw("Increment",
-		logging.Stringer("IncrementRequest", request),
-		logging.Stringer("IncrementResponse", response))
+		logging.Stringer("IncrementRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("IncrementResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.DecrementRequest) (*counterv1.DecrementResponse, error) {
 	log.Debugw("Decrement",
-		logging.Stringer("DecrementRequest", request))
+		logging.Stringer("DecrementRequest", stringer.Truncate(request, truncLen)))
 	input := &counterv1.CounterInput{
 		Input: &counterv1.CounterInput_Decrement{
 			Decrement: request.DecrementInput,
@@ -153,7 +156,7 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Decrement",
-			logging.Stringer("DecrementRequest", request),
+			logging.Stringer("DecrementRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -162,8 +165,8 @@ func (s *CounterServer) Decrement(ctx context.Context, request *counterv1.Decrem
 		DecrementOutput: output.GetDecrement(),
 	}
 	log.Debugw("Decrement",
-		logging.Stringer("DecrementRequest", request),
-		logging.Stringer("DecrementResponse", response))
+		logging.Stringer("DecrementRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("DecrementResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 

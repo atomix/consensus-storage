@@ -11,10 +11,13 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"github.com/gogo/protobuf/proto"
 )
 
 var log = logging.GetLogger()
+
+const truncLen = 250
 
 var counterMapCodec = protocol.NewCodec[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput](
 	func(input *multimapv1.MultiMapInput) ([]byte, error) {
@@ -40,7 +43,7 @@ type MultiMapServer struct {
 
 func (s *MultiMapServer) Size(ctx context.Context, request *multimapv1.SizeRequest) (*multimapv1.SizeResponse, error) {
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Size_{
 			Size_: request.SizeInput,
@@ -50,7 +53,7 @@ func (s *MultiMapServer) Size(ctx context.Context, request *multimapv1.SizeReque
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Size",
-			logging.Stringer("SizeRequest", request),
+			logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -59,14 +62,14 @@ func (s *MultiMapServer) Size(ctx context.Context, request *multimapv1.SizeReque
 		SizeOutput: output.GetSize_(),
 	}
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request),
-		logging.Stringer("SizeResponse", response))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SizeResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Put(ctx context.Context, request *multimapv1.PutRequest) (*multimapv1.PutResponse, error) {
 	log.Debugw("Put",
-		logging.Stringer("PutRequest", request))
+		logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Put{
 			Put: request.PutInput,
@@ -76,7 +79,7 @@ func (s *MultiMapServer) Put(ctx context.Context, request *multimapv1.PutRequest
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Put",
-			logging.Stringer("PutRequest", request),
+			logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -85,14 +88,14 @@ func (s *MultiMapServer) Put(ctx context.Context, request *multimapv1.PutRequest
 		PutOutput: output.GetPut(),
 	}
 	log.Debugw("Put",
-		logging.Stringer("PutRequest", request),
-		logging.Stringer("PutResponse", response))
+		logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("PutResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) PutAll(ctx context.Context, request *multimapv1.PutAllRequest) (*multimapv1.PutAllResponse, error) {
 	log.Debugw("PutAll",
-		logging.Stringer("PutAllRequest", request))
+		logging.Stringer("PutAllRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_PutAll{
 			PutAll: request.PutAllInput,
@@ -102,7 +105,7 @@ func (s *MultiMapServer) PutAll(ctx context.Context, request *multimapv1.PutAllR
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("PutAll",
-			logging.Stringer("PutAllRequest", request),
+			logging.Stringer("PutAllRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -111,14 +114,14 @@ func (s *MultiMapServer) PutAll(ctx context.Context, request *multimapv1.PutAllR
 		PutAllOutput: output.GetPutAll(),
 	}
 	log.Debugw("PutAll",
-		logging.Stringer("PutAllRequest", request),
-		logging.Stringer("PutAllResponse", response))
+		logging.Stringer("PutAllRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("PutAllResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Replace(ctx context.Context, request *multimapv1.ReplaceRequest) (*multimapv1.ReplaceResponse, error) {
 	log.Debugw("Replace",
-		logging.Stringer("ReplaceRequest", request))
+		logging.Stringer("ReplaceRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Replace{
 			Replace: request.ReplaceInput,
@@ -128,7 +131,7 @@ func (s *MultiMapServer) Replace(ctx context.Context, request *multimapv1.Replac
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Replace",
-			logging.Stringer("ReplaceRequest", request),
+			logging.Stringer("ReplaceRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -137,14 +140,14 @@ func (s *MultiMapServer) Replace(ctx context.Context, request *multimapv1.Replac
 		ReplaceOutput: output.GetReplace(),
 	}
 	log.Debugw("Replace",
-		logging.Stringer("ReplaceRequest", request),
-		logging.Stringer("ReplaceResponse", response))
+		logging.Stringer("ReplaceRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ReplaceResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Contains(ctx context.Context, request *multimapv1.ContainsRequest) (*multimapv1.ContainsResponse, error) {
 	log.Debugw("Contains",
-		logging.Stringer("ContainsRequest", request))
+		logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Contains{
 			Contains: request.ContainsInput,
@@ -154,7 +157,7 @@ func (s *MultiMapServer) Contains(ctx context.Context, request *multimapv1.Conta
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Contains",
-			logging.Stringer("ContainsRequest", request),
+			logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -163,14 +166,14 @@ func (s *MultiMapServer) Contains(ctx context.Context, request *multimapv1.Conta
 		ContainsOutput: output.GetContains(),
 	}
 	log.Debugw("Contains",
-		logging.Stringer("ContainsRequest", request),
-		logging.Stringer("ContainsResponse", response))
+		logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ContainsResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Get(ctx context.Context, request *multimapv1.GetRequest) (*multimapv1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Get{
 			Get: request.GetInput,
@@ -180,7 +183,7 @@ func (s *MultiMapServer) Get(ctx context.Context, request *multimapv1.GetRequest
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -189,14 +192,14 @@ func (s *MultiMapServer) Get(ctx context.Context, request *multimapv1.GetRequest
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Remove(ctx context.Context, request *multimapv1.RemoveRequest) (*multimapv1.RemoveResponse, error) {
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Remove{
 			Remove: request.RemoveInput,
@@ -206,7 +209,7 @@ func (s *MultiMapServer) Remove(ctx context.Context, request *multimapv1.RemoveR
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -215,14 +218,14 @@ func (s *MultiMapServer) Remove(ctx context.Context, request *multimapv1.RemoveR
 		RemoveOutput: output.GetRemove(),
 	}
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request),
-		logging.Stringer("RemoveResponse", response))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) RemoveAll(ctx context.Context, request *multimapv1.RemoveAllRequest) (*multimapv1.RemoveAllResponse, error) {
 	log.Debugw("RemoveAll",
-		logging.Stringer("RemoveAllRequest", request))
+		logging.Stringer("RemoveAllRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_RemoveAll{
 			RemoveAll: request.RemoveAllInput,
@@ -232,7 +235,7 @@ func (s *MultiMapServer) RemoveAll(ctx context.Context, request *multimapv1.Remo
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("RemoveAll",
-			logging.Stringer("RemoveAllRequest", request),
+			logging.Stringer("RemoveAllRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -241,14 +244,14 @@ func (s *MultiMapServer) RemoveAll(ctx context.Context, request *multimapv1.Remo
 		RemoveAllOutput: output.GetRemoveAll(),
 	}
 	log.Debugw("RemoveAll",
-		logging.Stringer("RemoveAllRequest", request),
-		logging.Stringer("RemoveAllResponse", response))
+		logging.Stringer("RemoveAllRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveAllResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Clear(ctx context.Context, request *multimapv1.ClearRequest) (*multimapv1.ClearResponse, error) {
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Clear{
 			Clear: request.ClearInput,
@@ -258,7 +261,7 @@ func (s *MultiMapServer) Clear(ctx context.Context, request *multimapv1.ClearReq
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Clear",
-			logging.Stringer("ClearRequest", request),
+			logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -267,14 +270,14 @@ func (s *MultiMapServer) Clear(ctx context.Context, request *multimapv1.ClearReq
 		ClearOutput: output.GetClear(),
 	}
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request),
-		logging.Stringer("ClearResponse", response))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ClearResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *MultiMapServer) Events(request *multimapv1.EventsRequest, server multimapv1.MultiMap_EventsServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Events{
 			Events: request.EventsInput,
@@ -287,7 +290,7 @@ func (s *MultiMapServer) Events(request *multimapv1.EventsRequest, server multim
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			stream.Error(err)
 			stream.Close()
@@ -303,7 +306,7 @@ func (s *MultiMapServer) Events(request *multimapv1.EventsRequest, server multim
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -313,11 +316,11 @@ func (s *MultiMapServer) Events(request *multimapv1.EventsRequest, server multim
 			EventsOutput: result.Value.Output.GetEvents(),
 		}
 		log.Debugw("Events",
-			logging.Stringer("EventsRequest", request),
-			logging.Stringer("EventsResponse", response))
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -326,7 +329,7 @@ func (s *MultiMapServer) Events(request *multimapv1.EventsRequest, server multim
 
 func (s *MultiMapServer) Entries(request *multimapv1.EntriesRequest, server multimapv1.MultiMap_EntriesServer) error {
 	log.Debugw("Entries",
-		logging.Stringer("EntriesRequest", request))
+		logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)))
 	input := &multimapv1.MultiMapInput{
 		Input: &multimapv1.MultiMapInput_Entries{
 			Entries: request.EntriesInput,
@@ -339,7 +342,7 @@ func (s *MultiMapServer) Entries(request *multimapv1.EntriesRequest, server mult
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			stream.Error(err)
 			stream.Close()
@@ -355,7 +358,7 @@ func (s *MultiMapServer) Entries(request *multimapv1.EntriesRequest, server mult
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -365,11 +368,11 @@ func (s *MultiMapServer) Entries(request *multimapv1.EntriesRequest, server mult
 			EntriesOutput: result.Value.Output.GetEntries(),
 		}
 		log.Debugw("Entries",
-			logging.Stringer("EntriesRequest", request),
-			logging.Stringer("EntriesResponse", response))
+			logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EntriesResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}

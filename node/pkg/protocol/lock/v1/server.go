@@ -10,10 +10,13 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"github.com/gogo/protobuf/proto"
 )
 
 var log = logging.GetLogger()
+
+const truncLen = 250
 
 var lockCodec = protocol.NewCodec[*lockv1.LockInput, *lockv1.LockOutput](
 	func(input *lockv1.LockInput) ([]byte, error) {
@@ -39,7 +42,7 @@ type LockServer struct {
 
 func (s *LockServer) Acquire(ctx context.Context, request *lockv1.AcquireRequest) (*lockv1.AcquireResponse, error) {
 	log.Debugw("Acquire",
-		logging.Stringer("AcquireRequest", request))
+		logging.Stringer("AcquireRequest", stringer.Truncate(request, truncLen)))
 	input := &lockv1.LockInput{
 		Input: &lockv1.LockInput_Acquire{
 			Acquire: request.AcquireInput,
@@ -49,7 +52,7 @@ func (s *LockServer) Acquire(ctx context.Context, request *lockv1.AcquireRequest
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Acquire",
-			logging.Stringer("AcquireRequest", request),
+			logging.Stringer("AcquireRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -58,14 +61,14 @@ func (s *LockServer) Acquire(ctx context.Context, request *lockv1.AcquireRequest
 		AcquireOutput: output.GetAcquire(),
 	}
 	log.Debugw("Acquire",
-		logging.Stringer("AcquireRequest", request),
-		logging.Stringer("AcquireResponse", response))
+		logging.Stringer("AcquireRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("AcquireResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *LockServer) Release(ctx context.Context, request *lockv1.ReleaseRequest) (*lockv1.ReleaseResponse, error) {
 	log.Debugw("Release",
-		logging.Stringer("ReleaseRequest", request))
+		logging.Stringer("ReleaseRequest", stringer.Truncate(request, truncLen)))
 	input := &lockv1.LockInput{
 		Input: &lockv1.LockInput_Release{
 			Release: request.ReleaseInput,
@@ -75,7 +78,7 @@ func (s *LockServer) Release(ctx context.Context, request *lockv1.ReleaseRequest
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Release",
-			logging.Stringer("ReleaseRequest", request),
+			logging.Stringer("ReleaseRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -84,14 +87,14 @@ func (s *LockServer) Release(ctx context.Context, request *lockv1.ReleaseRequest
 		ReleaseOutput: output.GetRelease(),
 	}
 	log.Debugw("Release",
-		logging.Stringer("ReleaseRequest", request),
-		logging.Stringer("ReleaseResponse", response))
+		logging.Stringer("ReleaseRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ReleaseResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *LockServer) Get(ctx context.Context, request *lockv1.GetRequest) (*lockv1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	input := &lockv1.LockInput{
 		Input: &lockv1.LockInput_Get{
 			Get: request.GetInput,
@@ -101,7 +104,7 @@ func (s *LockServer) Get(ctx context.Context, request *lockv1.GetRequest) (*lock
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -110,8 +113,8 @@ func (s *LockServer) Get(ctx context.Context, request *lockv1.GetRequest) (*lock
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 

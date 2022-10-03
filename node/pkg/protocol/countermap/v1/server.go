@@ -11,10 +11,13 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	streams "github.com/atomix/runtime/sdk/pkg/stream"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"github.com/gogo/protobuf/proto"
 )
 
 var log = logging.GetLogger()
+
+const truncLen = 250
 
 var counterMapCodec = protocol.NewCodec[*countermapv1.CounterMapInput, *countermapv1.CounterMapOutput](
 	func(input *countermapv1.CounterMapInput) ([]byte, error) {
@@ -40,7 +43,7 @@ type CounterMapServer struct {
 
 func (s *CounterMapServer) Size(ctx context.Context, request *countermapv1.SizeRequest) (*countermapv1.SizeResponse, error) {
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Size_{
 			Size_: request.SizeInput,
@@ -50,7 +53,7 @@ func (s *CounterMapServer) Size(ctx context.Context, request *countermapv1.SizeR
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Size",
-			logging.Stringer("SizeRequest", request),
+			logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -59,14 +62,14 @@ func (s *CounterMapServer) Size(ctx context.Context, request *countermapv1.SizeR
 		SizeOutput: output.GetSize_(),
 	}
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request),
-		logging.Stringer("SizeResponse", response))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SizeResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Set(ctx context.Context, request *countermapv1.SetRequest) (*countermapv1.SetResponse, error) {
 	log.Debugw("Set",
-		logging.Stringer("SetRequest", request))
+		logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Set{
 			Set: request.SetInput,
@@ -76,7 +79,7 @@ func (s *CounterMapServer) Set(ctx context.Context, request *countermapv1.SetReq
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
+			logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -85,14 +88,14 @@ func (s *CounterMapServer) Set(ctx context.Context, request *countermapv1.SetReq
 		SetOutput: output.GetSet(),
 	}
 	log.Debugw("Set",
-		logging.Stringer("SetRequest", request),
-		logging.Stringer("SetResponse", response))
+		logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Insert(ctx context.Context, request *countermapv1.InsertRequest) (*countermapv1.InsertResponse, error) {
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Insert{
 			Insert: request.InsertInput,
@@ -102,7 +105,7 @@ func (s *CounterMapServer) Insert(ctx context.Context, request *countermapv1.Ins
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -111,14 +114,14 @@ func (s *CounterMapServer) Insert(ctx context.Context, request *countermapv1.Ins
 		InsertOutput: output.GetInsert(),
 	}
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request),
-		logging.Stringer("InsertResponse", response))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("InsertResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Update(ctx context.Context, request *countermapv1.UpdateRequest) (*countermapv1.UpdateResponse, error) {
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Update{
 			Update: request.UpdateInput,
@@ -128,7 +131,7 @@ func (s *CounterMapServer) Update(ctx context.Context, request *countermapv1.Upd
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -137,14 +140,14 @@ func (s *CounterMapServer) Update(ctx context.Context, request *countermapv1.Upd
 		UpdateOutput: output.GetUpdate(),
 	}
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request),
-		logging.Stringer("UpdateResponse", response))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UpdateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Increment(ctx context.Context, request *countermapv1.IncrementRequest) (*countermapv1.IncrementResponse, error) {
 	log.Debugw("Increment",
-		logging.Stringer("IncrementRequest", request))
+		logging.Stringer("IncrementRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Increment{
 			Increment: request.IncrementInput,
@@ -154,7 +157,7 @@ func (s *CounterMapServer) Increment(ctx context.Context, request *countermapv1.
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Increment",
-			logging.Stringer("IncrementRequest", request),
+			logging.Stringer("IncrementRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -163,14 +166,14 @@ func (s *CounterMapServer) Increment(ctx context.Context, request *countermapv1.
 		IncrementOutput: output.GetIncrement(),
 	}
 	log.Debugw("Increment",
-		logging.Stringer("IncrementRequest", request),
-		logging.Stringer("IncrementResponse", response))
+		logging.Stringer("IncrementRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("IncrementResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Decrement(ctx context.Context, request *countermapv1.DecrementRequest) (*countermapv1.DecrementResponse, error) {
 	log.Debugw("Decrement",
-		logging.Stringer("DecrementRequest", request))
+		logging.Stringer("DecrementRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Decrement{
 			Decrement: request.DecrementInput,
@@ -180,7 +183,7 @@ func (s *CounterMapServer) Decrement(ctx context.Context, request *countermapv1.
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Decrement",
-			logging.Stringer("DecrementRequest", request),
+			logging.Stringer("DecrementRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -189,14 +192,14 @@ func (s *CounterMapServer) Decrement(ctx context.Context, request *countermapv1.
 		DecrementOutput: output.GetDecrement(),
 	}
 	log.Debugw("Decrement",
-		logging.Stringer("DecrementRequest", request),
-		logging.Stringer("DecrementResponse", response))
+		logging.Stringer("DecrementRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("DecrementResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Get(ctx context.Context, request *countermapv1.GetRequest) (*countermapv1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Get{
 			Get: request.GetInput,
@@ -206,7 +209,7 @@ func (s *CounterMapServer) Get(ctx context.Context, request *countermapv1.GetReq
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -215,14 +218,14 @@ func (s *CounterMapServer) Get(ctx context.Context, request *countermapv1.GetReq
 		GetOutput: output.GetGet(),
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Remove(ctx context.Context, request *countermapv1.RemoveRequest) (*countermapv1.RemoveResponse, error) {
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Remove{
 			Remove: request.RemoveInput,
@@ -232,7 +235,7 @@ func (s *CounterMapServer) Remove(ctx context.Context, request *countermapv1.Rem
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -241,14 +244,14 @@ func (s *CounterMapServer) Remove(ctx context.Context, request *countermapv1.Rem
 		RemoveOutput: output.GetRemove(),
 	}
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request),
-		logging.Stringer("RemoveResponse", response))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Clear(ctx context.Context, request *countermapv1.ClearRequest) (*countermapv1.ClearResponse, error) {
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Clear{
 			Clear: request.ClearInput,
@@ -258,7 +261,7 @@ func (s *CounterMapServer) Clear(ctx context.Context, request *countermapv1.Clea
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Clear",
-			logging.Stringer("ClearRequest", request),
+			logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -267,14 +270,14 @@ func (s *CounterMapServer) Clear(ctx context.Context, request *countermapv1.Clea
 		ClearOutput: output.GetClear(),
 	}
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request),
-		logging.Stringer("ClearResponse", response))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ClearResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Lock(ctx context.Context, request *countermapv1.LockRequest) (*countermapv1.LockResponse, error) {
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Lock{
 			Lock: request.LockInput,
@@ -284,7 +287,7 @@ func (s *CounterMapServer) Lock(ctx context.Context, request *countermapv1.LockR
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Lock",
-			logging.Stringer("LockRequest", request),
+			logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -293,14 +296,14 @@ func (s *CounterMapServer) Lock(ctx context.Context, request *countermapv1.LockR
 		LockOutput: output.GetLock(),
 	}
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request),
-		logging.Stringer("LockResponse", response))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("LockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Unlock(ctx context.Context, request *countermapv1.UnlockRequest) (*countermapv1.UnlockResponse, error) {
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Unlock{
 			Unlock: request.UnlockInput,
@@ -310,7 +313,7 @@ func (s *CounterMapServer) Unlock(ctx context.Context, request *countermapv1.Unl
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Unlock",
-			logging.Stringer("UnlockRequest", request),
+			logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, err
 	}
@@ -319,14 +322,14 @@ func (s *CounterMapServer) Unlock(ctx context.Context, request *countermapv1.Unl
 		UnlockOutput: output.GetUnlock(),
 	}
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request),
-		logging.Stringer("UnlockResponse", response))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UnlockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server countermapv1.CounterMap_EventsServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Events{
 			Events: request.EventsInput,
@@ -339,7 +342,7 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			stream.Error(err)
 			stream.Close()
@@ -355,7 +358,7 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -365,11 +368,11 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 			EventsOutput: result.Value.Output.GetEvents(),
 		}
 		log.Debugw("Events",
-			logging.Stringer("EventsRequest", request),
-			logging.Stringer("EventsResponse", response))
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -378,7 +381,7 @@ func (s *CounterMapServer) Events(request *countermapv1.EventsRequest, server co
 
 func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server countermapv1.CounterMap_EntriesServer) error {
 	log.Debugw("Entries",
-		logging.Stringer("EntriesRequest", request))
+		logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)))
 	input := &countermapv1.CounterMapInput{
 		Input: &countermapv1.CounterMapInput_Entries{
 			Entries: request.EntriesInput,
@@ -391,7 +394,7 @@ func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server 
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			stream.Error(err)
 			stream.Close()
@@ -407,7 +410,7 @@ func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server 
 		if result.Failed() {
 			err := errors.ToProto(result.Error)
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -417,11 +420,11 @@ func (s *CounterMapServer) Entries(request *countermapv1.EntriesRequest, server 
 			EntriesOutput: result.Value.Output.GetEntries(),
 		}
 		log.Debugw("Entries",
-			logging.Stringer("EntriesRequest", request),
-			logging.Stringer("EntriesResponse", response))
+			logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EntriesResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
