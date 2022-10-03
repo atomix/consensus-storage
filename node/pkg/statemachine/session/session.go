@@ -155,6 +155,9 @@ func (s *managedSession) expire() {
 	s.Log().Warnf("Session expired after %s", s.manager.Time().Sub(s.lastUpdated))
 	s.manager.sessions.remove(s.id)
 	s.state = Closed
+	for _, proposal := range s.sessionProposals {
+		proposal.cancel()
+	}
 	for _, watcher := range s.watchers {
 		watcher(Closed)
 	}
@@ -236,6 +239,9 @@ func (s *managedSession) close(close statemachine.Proposal[*multiraftv1.CloseSes
 	s.manager.sessions.remove(s.id)
 	s.expireTimer.Cancel()
 	s.state = Closed
+	for _, proposal := range s.sessionProposals {
+		proposal.cancel()
+	}
 	for _, watcher := range s.watchers {
 		watcher(Closed)
 	}
