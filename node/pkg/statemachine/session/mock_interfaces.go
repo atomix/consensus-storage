@@ -293,6 +293,20 @@ func (mr *MockCreatePrimitiveProposalMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).ID))
 }
 
+// Time mocks base method.
+func (m *MockCreatePrimitiveProposal) Time() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Time")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// Time indicates an expected call of Time.
+func (mr *MockCreatePrimitiveProposalMockRecorder) Time() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).Time))
+}
+
 // Input mocks base method.
 func (m *MockCreatePrimitiveProposal) Input() *v1.CreatePrimitiveInput {
 	m.ctrl.T.Helper()
@@ -434,6 +448,20 @@ func (mr *MockClosePrimitiveProposalMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockClosePrimitiveProposal)(nil).ID))
 }
 
+// Time mocks base method.
+func (m *MockClosePrimitiveProposal) Time() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Time")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// Time indicates an expected call of Time.
+func (mr *MockClosePrimitiveProposalMockRecorder) Time() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockClosePrimitiveProposal)(nil).Time))
+}
+
 // Input mocks base method.
 func (m *MockClosePrimitiveProposal) Input() *v1.ClosePrimitiveInput {
 	m.ctrl.T.Helper()
@@ -573,6 +601,20 @@ func (m *MockPrimitiveProposal) ID() statemachine.ProposalID {
 func (mr *MockPrimitiveProposalMockRecorder) ID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockPrimitiveProposal)(nil).ID))
+}
+
+// Time mocks base method.
+func (m *MockPrimitiveProposal) Time() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Time")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// Time indicates an expected call of Time.
+func (mr *MockPrimitiveProposalMockRecorder) Time() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockPrimitiveProposal)(nil).Time))
 }
 
 // Input mocks base method.
@@ -766,6 +808,20 @@ func (m *MockPrimitiveQuery) ID() statemachine.QueryID {
 func (mr *MockPrimitiveQueryMockRecorder) ID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockPrimitiveQuery)(nil).ID))
+}
+
+// Time mocks base method.
+func (m *MockPrimitiveQuery) Time() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Time")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// Time indicates an expected call of Time.
+func (mr *MockPrimitiveQueryMockRecorder) Time() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockPrimitiveQuery)(nil).Time))
 }
 
 // Input mocks base method.

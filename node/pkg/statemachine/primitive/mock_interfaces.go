@@ -149,10 +149,10 @@ func (mr *MockAnyContextMockRecorder) Service() *gomock.Call {
 }
 
 // Sessions mocks base method.
-func (m *MockAnyContext) Sessions() Sessions[interface{}, interface{}] {
+func (m *MockAnyContext) Sessions() Sessions {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Sessions")
-	ret0, _ := ret[0].(Sessions[interface{}, interface{}])
+	ret0, _ := ret[0].(Sessions)
 	return ret0
 }
 
@@ -417,6 +417,20 @@ func (mr *MockAnyProposalMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockAnyProposal)(nil).ID))
 }
 
+// Time mocks base method.
+func (m *MockAnyProposal) Time() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Time")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// Time indicates an expected call of Time.
+func (mr *MockAnyProposalMockRecorder) Time() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockAnyProposal)(nil).Time))
+}
+
 // Input mocks base method.
 func (m *MockAnyProposal) Input() interface{} {
 	m.ctrl.T.Helper()
@@ -458,10 +472,10 @@ func (mr *MockAnyProposalMockRecorder) Output(arg0 interface{}) *gomock.Call {
 }
 
 // Session mocks base method.
-func (m *MockAnyProposal) Session() Session[interface{}, interface{}] {
+func (m *MockAnyProposal) Session() Session {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Session")
-	ret0, _ := ret[0].(Session[interface{}, interface{}])
+	ret0, _ := ret[0].(Session)
 	return ret0
 }
 
@@ -558,6 +572,20 @@ func (mr *MockAnyQueryMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockAnyQuery)(nil).ID))
 }
 
+// Time mocks base method.
+func (m *MockAnyQuery) Time() time.Time {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Time")
+	ret0, _ := ret[0].(time.Time)
+	return ret0
+}
+
+// Time indicates an expected call of Time.
+func (mr *MockAnyQueryMockRecorder) Time() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockAnyQuery)(nil).Time))
+}
+
 // Input mocks base method.
 func (m *MockAnyQuery) Input() interface{} {
 	m.ctrl.T.Helper()
@@ -599,10 +627,10 @@ func (mr *MockAnyQueryMockRecorder) Output(arg0 interface{}) *gomock.Call {
 }
 
 // Session mocks base method.
-func (m *MockAnyQuery) Session() Session[interface{}, interface{}] {
+func (m *MockAnyQuery) Session() Session {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Session")
-	ret0, _ := ret[0].(Session[interface{}, interface{}])
+	ret0, _ := ret[0].(Session)
 	return ret0
 }
 

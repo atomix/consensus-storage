@@ -66,8 +66,6 @@ type Session interface {
 	ID() ID
 	// State returns the current session state
 	State() State
-	// Proposals returns the session proposals
-	Proposals() Proposals
 }
 
 // Sessions provides access to open sessions

@@ -23,7 +23,6 @@ import (
 func newManagedSession(manager *sessionManager) *managedSession {
 	return &managedSession{
 		manager:          manager,
-		proposals:        newPrimitiveProposals(),
 		sessionProposals: make(map[multiraftv1.SequenceNum]*sessionProposal),
 		sessionQueries:   make(map[multiraftv1.SequenceNum]*sessionQuery),
 		watchers:         make(map[uuid.UUID]WatchFunc[State]),
@@ -32,7 +31,6 @@ func newManagedSession(manager *sessionManager) *managedSession {
 
 type managedSession struct {
 	manager          *sessionManager
-	proposals        *primitiveProposals
 	sessionProposals map[multiraftv1.SequenceNum]*sessionProposal
 	sessionQueries   map[multiraftv1.SequenceNum]*sessionQuery
 	sessionQueriesMu sync.Mutex
@@ -63,10 +61,6 @@ func (s *managedSession) Watch(f WatchFunc[State]) CancelFunc {
 	return func() {
 		delete(s.watchers, id)
 	}
-}
-
-func (s *managedSession) Proposals() Proposals {
-	return s.proposals
 }
 
 func (s *managedSession) propose(parent statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]) {
@@ -390,7 +384,6 @@ func (p *sessionProposal) execute(parent statemachine.Proposal[*multiraftv1.Sess
 	case *multiraftv1.SessionProposalInput_Proposal:
 		proposal := newPrimitiveProposal(p)
 		p.session.manager.proposals.add(proposal)
-		p.session.proposals.add(proposal)
 		p.session.manager.sm.Propose(proposal)
 	case *multiraftv1.SessionProposalInput_CreatePrimitive:
 		p.session.manager.sm.CreatePrimitive(newCreatePrimitiveProposal(p))
@@ -473,7 +466,6 @@ func (p *sessionProposal) recover(reader *snapshot.Reader) error {
 		case *multiraftv1.SessionProposalInput_Proposal:
 			proposal := newPrimitiveProposal(p)
 			p.session.manager.proposals.add(proposal)
-			p.session.proposals.add(proposal)
 		}
 	case multiraftv1.SessionProposalSnapshot_COMPLETE:
 		p.phase = Complete
@@ -541,7 +533,6 @@ func (p *sessionProposal) close(phase ProposalPhase) {
 	}
 	p.phase = phase
 	p.session.manager.proposals.remove(p.id)
-	p.session.proposals.remove(p.id)
 	if p.watchers != nil {
 		for _, watcher := range p.watchers {
 			watcher(phase)

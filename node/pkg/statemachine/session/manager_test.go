@@ -251,7 +251,6 @@ func TestCreateClosePrimitive(t *testing.T) {
 	proposal.EXPECT().Close()
 	primitives.EXPECT().CreatePrimitive(gomock.Any()).Do(func(proposal CreatePrimitiveProposal) {
 		assert.Equal(t, sessionID, proposal.Session().ID())
-		assert.Len(t, proposal.Session().Proposals().List(), 0)
 		assert.Len(t, manager.(Context).Proposals().List(), 0)
 		proposal.Output(&multiraftv1.CreatePrimitiveOutput{
 			PrimitiveID: 1,
@@ -408,19 +407,14 @@ func TestUnaryProposal(t *testing.T) {
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
 		assert.Equal(t, proposalID1, proposal.ID())
 		assert.Equal(t, sessionID, proposal.Session().ID())
-		assert.Len(t, proposal.Session().Proposals().List(), 1)
-		p, ok := proposal.Session().Proposals().Get(proposalID1)
-		assert.True(t, ok)
-		assert.Equal(t, proposalID1, p.ID())
 		assert.Len(t, manager.(Context).Proposals().List(), 1)
-		p, ok = manager.(Context).Proposals().Get(proposalID1)
+		p, ok := manager.(Context).Proposals().Get(proposalID1)
 		assert.True(t, ok)
 		assert.Equal(t, proposalID1, p.ID())
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
 			Payload: []byte("bar"),
 		})
 		proposal.Close()
-		assert.Len(t, proposal.Session().Proposals().List(), 0)
 		assert.Len(t, manager.(Context).Proposals().List(), 0)
 	})
 	manager.Propose(proposal1)
@@ -444,7 +438,6 @@ func TestUnaryProposal(t *testing.T) {
 
 	// Take a snapshot of the manager and create a new manager from the snapshot
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 	buf := &bytes.Buffer{}
 	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
 	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
@@ -456,7 +449,6 @@ func TestUnaryProposal(t *testing.T) {
 	assert.Len(t, manager.(Context).Sessions().List(), 1)
 	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 
 	// Retry the same primitive proposal again after the snapshot
 	proposal1 = statemachine.NewMockSessionProposal(ctrl)
@@ -495,19 +487,14 @@ func TestUnaryProposal(t *testing.T) {
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
 		assert.Equal(t, proposalID2, proposal.ID())
 		assert.Equal(t, sessionID, proposal.Session().ID())
-		assert.Len(t, proposal.Session().Proposals().List(), 1)
-		p, ok := proposal.Session().Proposals().Get(proposalID2)
-		assert.True(t, ok)
-		assert.Equal(t, proposalID2, p.ID())
 		assert.Len(t, manager.(Context).Proposals().List(), 1)
-		p, ok = manager.(Context).Proposals().Get(proposalID2)
+		p, ok := manager.(Context).Proposals().Get(proposalID2)
 		assert.True(t, ok)
 		assert.Equal(t, proposalID2, p.ID())
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
 			Payload: []byte("baz"),
 		})
 		proposal.Close()
-		assert.Len(t, proposal.Session().Proposals().List(), 0)
 		assert.Len(t, manager.(Context).Proposals().List(), 0)
 	})
 	manager.Propose(proposal2)
@@ -624,12 +611,8 @@ func TestStreamingProposal(t *testing.T) {
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
 		assert.Equal(t, streamProposalID, proposal.ID())
 		assert.Equal(t, sessionID, proposal.Session().ID())
-		assert.Len(t, proposal.Session().Proposals().List(), 1)
-		p, ok := proposal.Session().Proposals().Get(streamProposalID)
-		assert.True(t, ok)
-		assert.Equal(t, streamProposalID, p.ID())
 		assert.Len(t, manager.(Context).Proposals().List(), 1)
-		p, ok = manager.(Context).Proposals().Get(streamProposalID)
+		p, ok := manager.(Context).Proposals().Get(streamProposalID)
 		assert.True(t, ok)
 		assert.Equal(t, streamProposalID, p.ID())
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
@@ -666,7 +649,6 @@ func TestStreamingProposal(t *testing.T) {
 
 	// Take a snapshot of the manager and create a new manager from the snapshot
 	assert.Len(t, manager.(Context).Proposals().List(), 1)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
 	buf := &bytes.Buffer{}
 	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
 	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
@@ -678,7 +660,6 @@ func TestStreamingProposal(t *testing.T) {
 	assert.Len(t, manager.(Context).Sessions().List(), 1)
 	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
 	assert.Len(t, manager.(Context).Proposals().List(), 1)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 1)
 
 	// Retry the same primitive proposal again after the snapshot
 	streamProposal = statemachine.NewMockSessionProposal(ctrl)
@@ -722,7 +703,7 @@ func TestStreamingProposal(t *testing.T) {
 	})
 	proposal.EXPECT().Close()
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
-		streamProposal, ok := proposal.Session().Proposals().Get(streamProposalID)
+		streamProposal, ok := manager.(Context).Proposals().Get(streamProposalID)
 		assert.True(t, ok)
 		streamProposal.Output(&multiraftv1.PrimitiveProposalOutput{
 			Payload: []byte("c"),
@@ -818,7 +799,7 @@ func TestStreamingProposal(t *testing.T) {
 	streamProposal.EXPECT().Close()
 	proposal.EXPECT().Close()
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
-		streamProposal, ok := proposal.Session().Proposals().Get(streamProposalID)
+		streamProposal, ok := manager.(Context).Proposals().Get(streamProposalID)
 		assert.True(t, ok)
 		streamProposal.Close()
 		proposal.Close()
@@ -851,7 +832,6 @@ func TestStreamingProposal(t *testing.T) {
 
 	// Take a snapshot of the manager and create a new manager from the snapshot
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 	buf = &bytes.Buffer{}
 	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
 	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
@@ -863,7 +843,6 @@ func TestStreamingProposal(t *testing.T) {
 	assert.Len(t, manager.(Context).Sessions().List(), 1)
 	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 
 	// Retry the streaming proposal to verify outputs again
 	streamProposal = statemachine.NewMockSessionProposal(ctrl)
@@ -928,7 +907,6 @@ func TestStreamingProposal(t *testing.T) {
 
 	// Take a snapshot of the manager and create a new manager from the snapshot
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 	buf = &bytes.Buffer{}
 	primitives.EXPECT().Snapshot(gomock.Any()).Return(nil)
 	assert.NoError(t, manager.Snapshot(snapshot.NewWriter(buf)))
@@ -940,7 +918,6 @@ func TestStreamingProposal(t *testing.T) {
 	assert.Len(t, manager.(Context).Sessions().List(), 1)
 	assert.Equal(t, sessionID, manager.(Context).Sessions().List()[0].ID())
 	assert.Len(t, manager.(Context).Proposals().List(), 0)
-	assert.Len(t, manager.(Context).Sessions().List()[0].Proposals().List(), 0)
 
 	// Retry the streaming proposal to verify the close is replayed
 	streamProposal = statemachine.NewMockSessionProposal(ctrl)
@@ -1054,12 +1031,8 @@ func TestStreamingProposalCancel(t *testing.T) {
 	primitives.EXPECT().Propose(gomock.Any()).Do(func(proposal PrimitiveProposal) {
 		assert.Equal(t, streamProposalID, proposal.ID())
 		assert.Equal(t, sessionID, proposal.Session().ID())
-		assert.Len(t, proposal.Session().Proposals().List(), 1)
-		p, ok := proposal.Session().Proposals().Get(streamProposalID)
-		assert.True(t, ok)
-		assert.Equal(t, streamProposalID, p.ID())
 		assert.Len(t, manager.(Context).Proposals().List(), 1)
-		p, ok = manager.(Context).Proposals().Get(streamProposalID)
+		p, ok := manager.(Context).Proposals().Get(streamProposalID)
 		assert.True(t, ok)
 		assert.Equal(t, streamProposalID, p.ID())
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{

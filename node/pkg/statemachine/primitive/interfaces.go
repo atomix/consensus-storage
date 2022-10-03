@@ -67,7 +67,7 @@ type Context[I, O any] interface {
 	// Name returns the service name
 	Name() string
 	// Sessions returns the open sessions
-	Sessions() Sessions[I, O]
+	Sessions() Sessions
 	// Proposals returns the pending proposals
 	Proposals() Proposals[I, O]
 }
@@ -86,8 +86,8 @@ const (
 )
 
 // Sessionized is an interface for types that are associated with a session
-type Sessionized[I, O any] interface {
-	Session() Session[I, O]
+type Sessionized interface {
+	Session() Session
 }
 
 type WatchFunc[T any] func(T)
@@ -99,7 +99,7 @@ type Watchable[T any] interface {
 }
 
 // Session is a service session
-type Session[I, O any] interface {
+type Session interface {
 	Watchable[SessionState]
 	// Log returns the session log
 	Log() logging.Logger
@@ -107,23 +107,21 @@ type Session[I, O any] interface {
 	ID() SessionID
 	// State returns the current session state
 	State() SessionState
-	// Proposals returns the session proposals
-	Proposals() Proposals[I, O]
 }
 
 // Sessions provides access to open sessions
-type Sessions[I, O any] interface {
+type Sessions interface {
 	// Get gets a session by ID
-	Get(SessionID) (Session[I, O], bool)
+	Get(SessionID) (Session, bool)
 	// List lists all open sessions
-	List() []Session[I, O]
+	List() []Session
 }
 
 // Execution is a proposal or query execution
 type Execution[T statemachine.ExecutionID, I, O any] interface {
 	statemachine.Execution[T, I, O]
 	Time() time.Time
-	Sessionized[I, O]
+	Sessionized
 }
 
 type ProposalPhase int
@@ -320,40 +318,6 @@ func (q *transcodingQuerier[I1, O1, I2, O2]) Execute(parent Query[I1, O1]) {
 	q.f(query)
 }
 
-func newTranscodingSession[I1, O1, I2, O2 any](parent Session[I1, O1], decoder func(I1) (I2, bool), encoder func(O2) O1) Session[I2, O2] {
-	return &transcodingSession[I1, O1, I2, O2]{
-		parent:  parent,
-		decoder: decoder,
-		encoder: encoder,
-	}
-}
-
-type transcodingSession[I1, O1, I2, O2 any] struct {
-	parent  Session[I1, O1]
-	decoder func(I1) (I2, bool)
-	encoder func(O2) O1
-}
-
-func (s *transcodingSession[I1, O1, I2, O2]) Log() logging.Logger {
-	return s.parent.Log()
-}
-
-func (s *transcodingSession[I1, O1, I2, O2]) ID() SessionID {
-	return s.parent.ID()
-}
-
-func (s *transcodingSession[I1, O1, I2, O2]) State() SessionState {
-	return s.parent.State()
-}
-
-func (s *transcodingSession[I1, O1, I2, O2]) Watch(watcher WatchFunc[SessionState]) CancelFunc {
-	return s.parent.Watch(watcher)
-}
-
-func (s *transcodingSession[I1, O1, I2, O2]) Proposals() Proposals[I2, O2] {
-	return newTranscodingProposals[I1, O1, I2, O2](s.parent.Proposals(), s.decoder, s.encoder)
-}
-
 func newTranscodingProposals[I1, O1, I2, O2 any](parent Proposals[I1, O1], decoder func(I1) (I2, bool), encoder func(O2) O1) Proposals[I2, O2] {
 	return &transcodingProposals[I1, O1, I2, O2]{
 		parent:  parent,
@@ -425,8 +389,8 @@ func (p *transcodingExecution[T, I1, O1, I2, O2]) Time() time.Time {
 	return p.parent.Time()
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Session() Session[I2, O2] {
-	return newTranscodingSession[I1, O1, I2, O2](p.parent.Session(), p.decoder, p.encoder)
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Session() Session {
+	return p.parent.Session()
 }
 
 func (p *transcodingExecution[T, I1, O1, I2, O2]) Input() I2 {
