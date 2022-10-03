@@ -6,6 +6,8 @@
 - [atomix/multiraft/election/v1/service.proto](#atomix_multiraft_election_v1_service-proto)
     - [AnointRequest](#atomix-multiraft-election-v1-AnointRequest)
     - [AnointResponse](#atomix-multiraft-election-v1-AnointResponse)
+    - [DemoteRequest](#atomix-multiraft-election-v1-DemoteRequest)
+    - [DemoteResponse](#atomix-multiraft-election-v1-DemoteResponse)
     - [EnterRequest](#atomix-multiraft-election-v1-EnterRequest)
     - [EnterResponse](#atomix-multiraft-election-v1-EnterResponse)
     - [EvictRequest](#atomix-multiraft-election-v1-EvictRequest)
@@ -58,6 +60,38 @@
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
 | output | [AnointOutput](#atomix-multiraft-election-v1-AnointOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-election-v1-DemoteRequest"></a>
+
+### DemoteRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [DemoteInput](#atomix-multiraft-election-v1-DemoteInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-election-v1-DemoteResponse"></a>
+
+### DemoteResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [DemoteOutput](#atomix-multiraft-election-v1-DemoteOutput) |  |  |
 
 
 
@@ -273,6 +307,7 @@ LeaderElection is a service for a leader election primitive
 | Withdraw | [WithdrawRequest](#atomix-multiraft-election-v1-WithdrawRequest) | [WithdrawResponse](#atomix-multiraft-election-v1-WithdrawResponse) | Withdraw withdraws a candidate from the leader election |
 | Anoint | [AnointRequest](#atomix-multiraft-election-v1-AnointRequest) | [AnointResponse](#atomix-multiraft-election-v1-AnointResponse) | Anoint anoints a candidate leader |
 | Promote | [PromoteRequest](#atomix-multiraft-election-v1-PromoteRequest) | [PromoteResponse](#atomix-multiraft-election-v1-PromoteResponse) | Promote promotes a candidate |
+| Demote | [DemoteRequest](#atomix-multiraft-election-v1-DemoteRequest) | [DemoteResponse](#atomix-multiraft-election-v1-DemoteResponse) | Demote demotes a candidate |
 | Evict | [EvictRequest](#atomix-multiraft-election-v1-EvictRequest) | [EvictResponse](#atomix-multiraft-election-v1-EvictResponse) | Evict evicts a candidate from the election |
 | GetTerm | [GetTermRequest](#atomix-multiraft-election-v1-GetTermRequest) | [GetTermResponse](#atomix-multiraft-election-v1-GetTermResponse) | GetTerm gets the current leadership term |
 | Watch | [WatchRequest](#atomix-multiraft-election-v1-WatchRequest) | [WatchResponse](#atomix-multiraft-election-v1-WatchResponse) stream | Watch watches the election for events |

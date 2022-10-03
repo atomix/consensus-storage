@@ -6,6 +6,8 @@
 - [atomix/multiraft/election/v1/fsm.proto](#atomix_multiraft_election_v1_fsm-proto)
     - [AnointInput](#atomix-multiraft-election-v1-AnointInput)
     - [AnointOutput](#atomix-multiraft-election-v1-AnointOutput)
+    - [DemoteInput](#atomix-multiraft-election-v1-DemoteInput)
+    - [DemoteOutput](#atomix-multiraft-election-v1-DemoteOutput)
     - [EnterInput](#atomix-multiraft-election-v1-EnterInput)
     - [EnterOutput](#atomix-multiraft-election-v1-EnterOutput)
     - [EvictInput](#atomix-multiraft-election-v1-EvictInput)
@@ -53,6 +55,36 @@
 <a name="atomix-multiraft-election-v1-AnointOutput"></a>
 
 ### AnointOutput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| term | [Term](#atomix-multiraft-election-v1-Term) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-election-v1-DemoteInput"></a>
+
+### DemoteInput
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| candidate | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-election-v1-DemoteOutput"></a>
+
+### DemoteOutput
 
 
 
@@ -178,6 +210,7 @@
 | withdraw | [WithdrawInput](#atomix-multiraft-election-v1-WithdrawInput) |  |  |
 | anoint | [AnointInput](#atomix-multiraft-election-v1-AnointInput) |  |  |
 | promote | [PromoteInput](#atomix-multiraft-election-v1-PromoteInput) |  |  |
+| demote | [DemoteInput](#atomix-multiraft-election-v1-DemoteInput) |  |  |
 | evict | [EvictInput](#atomix-multiraft-election-v1-EvictInput) |  |  |
 | get_term | [GetTermInput](#atomix-multiraft-election-v1-GetTermInput) |  |  |
 | watch | [WatchInput](#atomix-multiraft-election-v1-WatchInput) |  |  |
@@ -199,6 +232,7 @@
 | withdraw | [WithdrawOutput](#atomix-multiraft-election-v1-WithdrawOutput) |  |  |
 | anoint | [AnointOutput](#atomix-multiraft-election-v1-AnointOutput) |  |  |
 | promote | [PromoteOutput](#atomix-multiraft-election-v1-PromoteOutput) |  |  |
+| demote | [DemoteOutput](#atomix-multiraft-election-v1-DemoteOutput) |  |  |
 | evict | [EvictOutput](#atomix-multiraft-election-v1-EvictOutput) |  |  |
 | get_term | [GetTermOutput](#atomix-multiraft-election-v1-GetTermOutput) |  |  |
 | watch | [WatchOutput](#atomix-multiraft-election-v1-WatchOutput) |  |  |

@@ -35,6 +35,11 @@ service LeaderElection {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
+    // Demote demotes a candidate
+    rpc Demote (DemoteRequest) returns (DemoteResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
     // Evict evicts a candidate from the election
     rpc Evict (EvictRequest) returns (EvictResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
@@ -126,6 +131,26 @@ message PromoteResponse {
         (atomix.multiraft.v1.headers) = true
     ];
     PromoteOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message DemoteRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    DemoteInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message DemoteResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    DemoteOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

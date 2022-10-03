@@ -34,6 +34,7 @@ message LeaderElectionInput {
         WithdrawInput withdraw = 2;
         AnointInput anoint = 3;
         PromoteInput promote = 4;
+        DemoteInput demote = 8;
         EvictInput evict = 5;
         GetTermInput get_term = 6;
         WatchInput watch = 7;
@@ -46,6 +47,7 @@ message LeaderElectionOutput {
         WithdrawOutput withdraw = 2;
         AnointOutput anoint = 3;
         PromoteOutput promote = 4;
+        DemoteOutput demote = 8;
         EvictOutput evict = 5;
         GetTermOutput get_term = 6;
         WatchOutput watch = 7;
@@ -87,6 +89,16 @@ message PromoteInput {
 }
 
 message PromoteOutput {
+    Term term = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message DemoteInput {
+    string candidate = 2;
+}
+
+message DemoteOutput {
     Term term = 1 [
         (gogoproto.nullable) = false
     ];
