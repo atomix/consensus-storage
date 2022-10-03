@@ -49,6 +49,7 @@ type LeaderElectionStateMachine struct {
 	withdraw primitive.Proposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.WithdrawInput, *electionv1.WithdrawOutput]
 	anoint   primitive.Proposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.AnointInput, *electionv1.AnointOutput]
 	promote  primitive.Proposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.PromoteInput, *electionv1.PromoteOutput]
+	demote   primitive.Proposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.DemoteInput, *electionv1.DemoteOutput]
 	evict    primitive.Proposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.EvictInput, *electionv1.EvictOutput]
 	getTerm  primitive.Querier[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.GetTermInput, *electionv1.GetTermOutput]
 	watch    primitive.Querier[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.WatchInput, *electionv1.WatchOutput]
@@ -123,6 +124,22 @@ func (s *LeaderElectionStateMachine) init() {
 			}
 		}).
 		Build(s.doPromote)
+	s.demote = primitive.NewProposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.DemoteInput, *electionv1.DemoteOutput](s).
+		Name("Demote").
+		Decoder(func(input *electionv1.LeaderElectionInput) (*electionv1.DemoteInput, bool) {
+			if set, ok := input.Input.(*electionv1.LeaderElectionInput_Demote); ok {
+				return set.Demote, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *electionv1.DemoteOutput) *electionv1.LeaderElectionOutput {
+			return &electionv1.LeaderElectionOutput{
+				Output: &electionv1.LeaderElectionOutput_Demote{
+					Demote: output,
+				},
+			}
+		}).
+		Build(s.doDemote)
 	s.evict = primitive.NewProposer[*electionv1.LeaderElectionInput, *electionv1.LeaderElectionOutput, *electionv1.EvictInput, *electionv1.EvictOutput](s).
 		Name("Evict").
 		Decoder(func(input *electionv1.LeaderElectionInput) (*electionv1.EvictInput, bool) {
@@ -241,6 +258,8 @@ func (s *LeaderElectionStateMachine) Propose(proposal primitive.Proposal[*electi
 		s.anoint.Execute(proposal)
 	case *electionv1.LeaderElectionInput_Promote:
 		s.promote.Execute(proposal)
+	case *electionv1.LeaderElectionInput_Demote:
+		s.demote.Execute(proposal)
 	case *electionv1.LeaderElectionInput_Evict:
 		s.evict.Execute(proposal)
 	default:
@@ -379,6 +398,57 @@ func (s *LeaderElectionStateMachine) doPromote(proposal primitive.Proposal[*elec
 	term := s.term()
 	s.notify(term)
 	proposal.Output(&electionv1.PromoteOutput{
+		Term: term,
+	})
+}
+
+func (s *LeaderElectionStateMachine) doDemote(proposal primitive.Proposal[*electionv1.DemoteInput, *electionv1.DemoteOutput]) {
+	defer proposal.Close()
+	if s.Leader == nil || s.Leader.Name == proposal.Input().Candidate || !s.candidateExists(proposal.Input().Candidate) {
+		proposal.Output(&electionv1.DemoteOutput{
+			Term: s.term(),
+		})
+		return
+	}
+
+	if s.Leader != nil && s.Leader.Name == proposal.Input().Candidate {
+		if len(s.Candidates) == 0 {
+			proposal.Output(&electionv1.DemoteOutput{
+				Term: s.term(),
+			})
+			return
+		}
+		leader := s.Leader
+		s.Term++
+		s.Leader = &s.Candidates[0]
+		s.Candidates = append([]electionv1.LeaderElectionCandidate{*leader}, s.Candidates[1:]...)
+	} else if s.Candidates[len(s.Candidates)-1].Name != proposal.Input().Candidate {
+		var index int
+		for i, candidate := range s.Candidates {
+			if candidate.Name == proposal.Input().Candidate {
+				index = i
+				break
+			}
+		}
+
+		candidates := make([]electionv1.LeaderElectionCandidate, 0, len(s.Candidates))
+		for i, candidate := range s.Candidates {
+			if i < index+1 {
+				candidates[i] = candidate
+			} else if i == index+1 {
+				candidates[i] = s.Candidates[index]
+			} else if i == index {
+				candidates[i] = s.Candidates[i+1]
+			} else {
+				candidates[i] = candidate
+			}
+		}
+		s.Candidates = candidates
+	}
+
+	term := s.term()
+	s.notify(term)
+	proposal.Output(&electionv1.DemoteOutput{
 		Term: term,
 	})
 }

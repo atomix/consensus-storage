@@ -17,8 +17,8 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.5.5
-	github.com/atomix/runtime/sdk v0.5.4
+	github.com/atomix/multi-raft-storage/api v0.5.9
+	github.com/atomix/runtime/sdk v0.5.5
 	github.com/bits-and-blooms/bloom/v3 v3.2.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.1.2
@@ -30,7 +30,7 @@ require (
 require (
 	github.com/VictoriaMetrics/metrics v1.6.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
-	github.com/atomix/runtime/api v0.5.4 // indirect
+	github.com/atomix/runtime/api v0.5.5 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/cockroachdb/errors v1.7.5 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect

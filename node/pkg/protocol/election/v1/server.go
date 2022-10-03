@@ -142,6 +142,32 @@ func (s *LeaderElectionServer) Promote(ctx context.Context, request *electionv1.
 	return response, nil
 }
 
+func (s *LeaderElectionServer) Demote(ctx context.Context, request *electionv1.DemoteRequest) (*electionv1.DemoteResponse, error) {
+	log.Debugw("Demote",
+		logging.Stringer("DemoteRequest", request))
+	input := &electionv1.LeaderElectionInput{
+		Input: &electionv1.LeaderElectionInput_Demote{
+			Demote: request.DemoteInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("Demote",
+			logging.Stringer("DemoteRequest", request),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &electionv1.DemoteResponse{
+		Headers:      headers,
+		DemoteOutput: output.GetDemote(),
+	}
+	log.Debugw("Demote",
+		logging.Stringer("DemoteRequest", request),
+		logging.Stringer("DemoteResponse", response))
+	return response, nil
+}
+
 func (s *LeaderElectionServer) Evict(ctx context.Context, request *electionv1.EvictRequest) (*electionv1.EvictResponse, error) {
 	log.Debugw("Evict",
 		logging.Stringer("EvictRequest", request))
