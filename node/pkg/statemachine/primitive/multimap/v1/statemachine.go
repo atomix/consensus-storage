@@ -37,9 +37,9 @@ var multiMapCodec = primitive.NewCodec[*multimapv1.MultiMapInput, *multimapv1.Mu
 func newMultiMapStateMachine(ctx primitive.Context[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput]) primitive.Primitive[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput] {
 	sm := &MultiMapStateMachine{
 		Context:   ctx,
-		listeners: make(map[statemachine.ProposalID]*multimapv1.MultiMapListener),
+		listeners: make(map[primitive.ProposalID]*multimapv1.MultiMapListener),
 		entries:   make(map[string]map[string]bool),
-		watchers:  make(map[statemachine.QueryID]statemachine.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]),
+		watchers:  make(map[primitive.QueryID]primitive.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]),
 	}
 	sm.init()
 	return sm
@@ -47,9 +47,9 @@ func newMultiMapStateMachine(ctx primitive.Context[*multimapv1.MultiMapInput, *m
 
 type MultiMapStateMachine struct {
 	primitive.Context[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput]
-	listeners map[statemachine.ProposalID]*multimapv1.MultiMapListener
+	listeners map[primitive.ProposalID]*multimapv1.MultiMapListener
 	entries   map[string]map[string]bool
-	watchers  map[statemachine.QueryID]statemachine.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]
+	watchers  map[primitive.QueryID]primitive.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]
 	mu        sync.RWMutex
 	put       primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutInput, *multimapv1.PutOutput]
 	putAll    primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutAllInput, *multimapv1.PutAllOutput]
@@ -296,8 +296,8 @@ func (s *MultiMapStateMachine) Recover(reader *snapshot.Reader) error {
 			return err
 		}
 		s.listeners[proposal.ID()] = listener
-		proposal.Watch(func(phase primitive.ProposalPhase) {
-			if phase == primitive.ProposalComplete {
+		proposal.Watch(func(state primitive.ProposalState) {
+			if state == primitive.Complete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -551,8 +551,8 @@ func (s *MultiMapStateMachine) doEvents(proposal primitive.Proposal[*multimapv1.
 		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
-	proposal.Watch(func(phase primitive.ProposalPhase) {
-		if phase == primitive.ProposalComplete {
+	proposal.Watch(func(state primitive.ProposalState) {
+		if state == primitive.Complete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -630,8 +630,8 @@ func (s *MultiMapStateMachine) doEntries(query primitive.Query[*multimapv1.Entri
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
-		query.Watch(func(phase primitive.QueryPhase) {
-			if phase == primitive.QueryComplete {
+		query.Watch(func(state primitive.QueryState) {
+			if state == primitive.Complete {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()

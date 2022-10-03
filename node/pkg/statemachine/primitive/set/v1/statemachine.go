@@ -6,7 +6,6 @@ package v1
 
 import (
 	setv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/set/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -37,10 +36,10 @@ var setCodec = primitive.NewCodec[*setv1.SetInput, *setv1.SetOutput](
 func newSetStateMachine(ctx primitive.Context[*setv1.SetInput, *setv1.SetOutput]) primitive.Primitive[*setv1.SetInput, *setv1.SetOutput] {
 	sm := &SetStateMachine{
 		Context:   ctx,
-		listeners: make(map[statemachine.ProposalID]bool),
+		listeners: make(map[primitive.ProposalID]bool),
 		entries:   make(map[string]*setv1.SetElement),
-		timers:    make(map[string]statemachine.Timer),
-		watchers:  make(map[statemachine.QueryID]primitive.Query[*setv1.ElementsInput, *setv1.ElementsOutput]),
+		timers:    make(map[string]primitive.CancelFunc),
+		watchers:  make(map[primitive.QueryID]primitive.Query[*setv1.ElementsInput, *setv1.ElementsOutput]),
 	}
 	sm.init()
 	return sm
@@ -48,10 +47,10 @@ func newSetStateMachine(ctx primitive.Context[*setv1.SetInput, *setv1.SetOutput]
 
 type SetStateMachine struct {
 	primitive.Context[*setv1.SetInput, *setv1.SetOutput]
-	listeners map[statemachine.ProposalID]bool
+	listeners map[primitive.ProposalID]bool
 	entries   map[string]*setv1.SetElement
-	timers    map[string]statemachine.Timer
-	watchers  map[statemachine.QueryID]primitive.Query[*setv1.ElementsInput, *setv1.ElementsOutput]
+	timers    map[string]primitive.CancelFunc
+	watchers  map[primitive.QueryID]primitive.Query[*setv1.ElementsInput, *setv1.ElementsOutput]
 	mu        sync.RWMutex
 	add       primitive.Proposer[*setv1.SetInput, *setv1.SetOutput, *setv1.AddInput, *setv1.AddOutput]
 	remove    primitive.Proposer[*setv1.SetInput, *setv1.SetOutput, *setv1.RemoveInput, *setv1.RemoveOutput]
@@ -213,8 +212,8 @@ func (s *SetStateMachine) Recover(reader *snapshot.Reader) error {
 			return errors.NewFault("cannot find proposal %d", proposalID)
 		}
 		s.listeners[proposal.ID()] = true
-		proposal.Watch(func(phase primitive.ProposalPhase) {
-			if phase == primitive.ProposalComplete {
+		proposal.Watch(func(state primitive.ProposalState) {
+			if state == primitive.Complete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -338,8 +337,8 @@ func (s *SetStateMachine) doClear(proposal primitive.Proposal[*setv1.ClearInput,
 
 func (s *SetStateMachine) doEvents(proposal primitive.Proposal[*setv1.EventsInput, *setv1.EventsOutput]) {
 	s.listeners[proposal.ID()] = true
-	proposal.Watch(func(phase primitive.ProposalPhase) {
-		if phase == primitive.ProposalComplete {
+	proposal.Watch(func(state primitive.ProposalState) {
+		if state == primitive.Complete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -392,8 +391,8 @@ func (s *SetStateMachine) doElements(query primitive.Query[*setv1.ElementsInput,
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
-		query.Watch(func(phase primitive.QueryPhase) {
-			if phase == primitive.QueryComplete {
+		query.Watch(func(state primitive.QueryState) {
+			if state == primitive.Complete {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()
@@ -447,8 +446,8 @@ func (s *SetStateMachine) scheduleTTL(value string, element *setv1.SetElement) {
 }
 
 func (s *SetStateMachine) cancelTTL(key string) {
-	timer, ok := s.timers[key]
+	ttlCancelFunc, ok := s.timers[key]
 	if ok {
-		timer.Cancel()
+		ttlCancelFunc()
 	}
 }

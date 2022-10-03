@@ -108,7 +108,7 @@ func (s *stateMachine) Close() error {
 	return nil
 }
 
-func newExecution[T statemachine.ExecutionID, I, O proto.Message](id T, input I, stream streams.WriteStream[O]) *stateMachineExecution[T, I, O] {
+func newExecution[T statemachine.CallID, I, O proto.Message](id T, input I, stream streams.WriteStream[O]) *stateMachineExecution[T, I, O] {
 	return &stateMachineExecution[T, I, O]{
 		id:     id,
 		input:  input,
@@ -116,7 +116,7 @@ func newExecution[T statemachine.ExecutionID, I, O proto.Message](id T, input I,
 	}
 }
 
-type stateMachineExecution[T statemachine.ExecutionID, I, O proto.Message] struct {
+type stateMachineExecution[T statemachine.CallID, I, O proto.Message] struct {
 	id     T
 	input  I
 	stream streams.WriteStream[O]

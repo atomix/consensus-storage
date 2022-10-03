@@ -37,9 +37,8 @@ func TestPrimitive(t *testing.T) {
 	})
 	RegisterType[any, any](registry)(primitiveType)
 
-	timer := statemachine.NewMockTimer(ctrl)
 	scheduler := statemachine.NewMockScheduler(ctrl)
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 
 	context := session.NewMockContext(ctrl)
 	context.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
@@ -91,6 +90,7 @@ func TestPrimitive(t *testing.T) {
 
 	unusedProposal := session.NewMockPrimitiveProposal(ctrl)
 	unusedProposal.EXPECT().ID().Return(statemachine.ProposalID(2)).AnyTimes()
+	unusedProposal.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
 	unusedProposal.EXPECT().Session().Return(session1).AnyTimes()
 	unusedProposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
 		PrimitiveID: 0,
@@ -99,6 +99,7 @@ func TestPrimitive(t *testing.T) {
 	proposal := session.NewMockPrimitiveProposal(ctrl)
 	context.EXPECT().Index().Return(statemachine.Index(3)).AnyTimes()
 	proposal.EXPECT().ID().Return(statemachine.ProposalID(3)).AnyTimes()
+	proposal.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
 	proposal.EXPECT().Session().Return(session1).AnyTimes()
 	proposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
 		PrimitiveID: primitiveID,
@@ -140,6 +141,7 @@ func TestPrimitive(t *testing.T) {
 
 	query := session.NewMockPrimitiveQuery(ctrl)
 	query.EXPECT().ID().Return(statemachine.QueryID(1)).AnyTimes()
+	query.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
 	query.EXPECT().Session().Return(session1).AnyTimes()
 	query.EXPECT().Input().Return(&multiraftv1.PrimitiveQueryInput{
 		PrimitiveID: primitiveID,
@@ -198,6 +200,7 @@ func TestPrimitive(t *testing.T) {
 	proposal = session.NewMockPrimitiveProposal(ctrl)
 	context.EXPECT().Index().Return(statemachine.Index(4)).AnyTimes()
 	proposal.EXPECT().ID().Return(statemachine.ProposalID(4)).AnyTimes()
+	proposal.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
 	proposal.EXPECT().Session().Return(session1).AnyTimes()
 	proposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
 		PrimitiveID: primitiveID,
@@ -239,13 +242,13 @@ func TestPrimitive(t *testing.T) {
 
 	query = session.NewMockPrimitiveQuery(ctrl)
 	query.EXPECT().ID().Return(statemachine.QueryID(1)).AnyTimes()
+	query.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
 	query.EXPECT().Session().Return(session1).AnyTimes()
 	query.EXPECT().Input().Return(&multiraftv1.PrimitiveQueryInput{
 		PrimitiveID: primitiveID,
 		Payload:     []byte("Hello"),
 	}).AnyTimes()
 	query.EXPECT().Output(gomock.Any())
-	query.EXPECT().Close()
 	primitive.EXPECT().Query(gomock.Any()).Do(func(query Query[any, any]) {
 		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
 		assert.Len(t, primitiveCtx.Sessions().List(), 1)
@@ -253,9 +256,11 @@ func TestPrimitive(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, SessionID(1), session.ID())
 		query.Output("world!")
-		query.Close()
 	})
 	manager.Query(query)
+
+	proposal.EXPECT().Cancel()
+	query.EXPECT().Cancel()
 
 	closePrimitive := session.NewMockClosePrimitiveProposal(ctrl)
 	context.EXPECT().Index().Return(statemachine.Index(5)).AnyTimes()

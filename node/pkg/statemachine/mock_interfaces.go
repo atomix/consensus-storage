@@ -829,10 +829,10 @@ func (m *MockScheduler) EXPECT() *MockSchedulerMockRecorder {
 }
 
 // Await mocks base method.
-func (m *MockScheduler) Await(arg0 Index, arg1 func()) Timer {
+func (m *MockScheduler) Await(arg0 Index, arg1 func()) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Await", arg0, arg1)
-	ret0, _ := ret[0].(Timer)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -843,10 +843,10 @@ func (mr *MockSchedulerMockRecorder) Await(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // Delay mocks base method.
-func (m *MockScheduler) Delay(arg0 time.Duration, arg1 func()) Timer {
+func (m *MockScheduler) Delay(arg0 time.Duration, arg1 func()) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delay", arg0, arg1)
-	ret0, _ := ret[0].(Timer)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -857,10 +857,10 @@ func (mr *MockSchedulerMockRecorder) Delay(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // Schedule mocks base method.
-func (m *MockScheduler) Schedule(arg0 time.Time, arg1 func()) Timer {
+func (m *MockScheduler) Schedule(arg0 time.Time, arg1 func()) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Schedule", arg0, arg1)
-	ret0, _ := ret[0].(Timer)
+	ret0, _ := ret[0].(CancelFunc)
 	return ret0
 }
 
@@ -882,39 +882,4 @@ func (m *MockScheduler) Time() time.Time {
 func (mr *MockSchedulerMockRecorder) Time() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Time", reflect.TypeOf((*MockScheduler)(nil).Time))
-}
-
-// MockTimer is a mock of Timer interface.
-type MockTimer struct {
-	ctrl     *gomock.Controller
-	recorder *MockTimerMockRecorder
-}
-
-// MockTimerMockRecorder is the mock recorder for MockTimer.
-type MockTimerMockRecorder struct {
-	mock *MockTimer
-}
-
-// NewMockTimer creates a new mock instance.
-func NewMockTimer(ctrl *gomock.Controller) *MockTimer {
-	mock := &MockTimer{ctrl: ctrl}
-	mock.recorder = &MockTimerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTimer) EXPECT() *MockTimerMockRecorder {
-	return m.recorder
-}
-
-// Cancel mocks base method.
-func (m *MockTimer) Cancel() {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Cancel")
-}
-
-// Cancel indicates an expected call of Cancel.
-func (mr *MockTimerMockRecorder) Cancel() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Cancel", reflect.TypeOf((*MockTimer)(nil).Cancel))
 }

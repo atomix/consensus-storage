@@ -7,7 +7,6 @@ package v1
 import (
 	lockv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/lock/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -38,7 +37,7 @@ func newLockStateMachine(ctx primitive.Context[*lockv1.LockInput, *lockv1.LockOu
 	sm := &LockStateMachine{
 		Context:   ctx,
 		proposals: make(map[primitive.ProposalID]primitive.CancelFunc),
-		timers:    make(map[primitive.ProposalID]statemachine.Timer),
+		timers:    make(map[primitive.ProposalID]primitive.CancelFunc),
 	}
 	sm.init()
 	return sm
@@ -55,7 +54,7 @@ type LockStateMachine struct {
 	lock      *lock
 	queue     []primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
 	proposals map[primitive.ProposalID]primitive.CancelFunc
-	timers    map[primitive.ProposalID]statemachine.Timer
+	timers    map[primitive.ProposalID]primitive.CancelFunc
 	acquire   primitive.Proposer[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.AcquireInput, *lockv1.AcquireOutput]
 	release   primitive.Proposer[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.ReleaseInput, *lockv1.ReleaseOutput]
 	get       primitive.Querier[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.GetInput, *lockv1.GetOutput]
@@ -240,8 +239,8 @@ func (s *LockStateMachine) nextRequest() {
 }
 
 func (s *LockStateMachine) watchRequest(proposal primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]) {
-	s.proposals[proposal.ID()] = proposal.Watch(func(phase primitive.ProposalPhase) {
-		if phase == primitive.ProposalCanceled {
+	s.proposals[proposal.ID()] = proposal.Watch(func(state primitive.ProposalState) {
+		if state == primitive.Canceled {
 			s.dequeueRequest(proposal)
 		}
 	})
@@ -260,8 +259,8 @@ func (s *LockStateMachine) unwatchRequest(proposalID primitive.ProposalID) {
 		cancel()
 		delete(s.proposals, proposalID)
 	}
-	if timer, ok := s.timers[proposalID]; ok {
-		timer.Cancel()
+	if cancel, ok := s.timers[proposalID]; ok {
+		cancel()
 		delete(s.timers, proposalID)
 	}
 }

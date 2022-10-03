@@ -44,28 +44,18 @@ const (
 	Closed
 )
 
-// Sessionized is an interface for types that are associated with a session
-type Sessionized interface {
-	Session() Session
-}
-
-type WatchFunc[T any] func(T)
-
-type CancelFunc func()
-
-type Watchable[T any] interface {
-	Watch(watcher WatchFunc[T]) CancelFunc
-}
+type CancelFunc = statemachine.CancelFunc
 
 // Session is a service session
 type Session interface {
-	Watchable[State]
 	// Log returns the session log
 	Log() logging.Logger
 	// ID returns the session identifier
 	ID() ID
 	// State returns the current session state
 	State() State
+	// Watch watches the session state for changes
+	Watch(watcher func(State)) CancelFunc
 }
 
 // Sessions provides access to open sessions
@@ -76,43 +66,48 @@ type Sessions interface {
 	List() []Session
 }
 
-type Phase int
+type CallState int
 
 const (
-	Pending Phase = iota
+	Pending CallState = iota
 	Running
 	Complete
 	Canceled
 )
 
-// Execution is a proposal or query execution
-type Execution[T statemachine.ExecutionID, I, O any] interface {
-	statemachine.Execution[T, I, O]
-	// Time returns the state machine time at the time of execution
+// Call is a proposal or query call
+type Call[T statemachine.CallID, I, O any] interface {
+	statemachine.Call[T, I, O]
+	// Time returns the state machine time at the time of the call
 	Time() time.Time
-	Sessionized
+	// Session returns the call session
+	Session() Session
+	// State returns the call state
+	State() CallState
+	// Watch watches the call state for changes
+	Watch(watcher func(CallState)) CancelFunc
+	// Cancel cancels the call
+	Cancel()
 }
 
-type ProposalPhase = Phase
+type ProposalID = statemachine.ProposalID
+
+type ProposalState = CallState
 
 // Proposal is a proposal operation
-type Proposal[I, O any] interface {
-	Execution[statemachine.ProposalID, I, O]
-	Watchable[ProposalPhase]
-}
+type Proposal[I, O any] Call[ProposalID, I, O]
 
 // Proposals provides access to pending proposals
 type Proposals interface {
 	// Get gets a proposal by ID
-	Get(statemachine.ProposalID) (PrimitiveProposal, bool)
+	Get(id ProposalID) (PrimitiveProposal, bool)
 	// List lists all open proposals
 	List() []PrimitiveProposal
 }
 
-type QueryPhase = Phase
+type QueryID = statemachine.QueryID
+
+type QueryState = CallState
 
 // Query is a read operation
-type Query[I, O any] interface {
-	Execution[statemachine.QueryID, I, O]
-	Watchable[QueryPhase]
-}
+type Query[I, O any] Call[QueryID, I, O]

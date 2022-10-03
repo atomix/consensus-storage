@@ -63,9 +63,8 @@ func TestOpenCloseSession(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
 	scheduler := statemachine.NewMockScheduler(ctrl)
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -110,7 +109,6 @@ func TestOpenCloseSession(t *testing.T) {
 	assert.Equal(t, sessionID, session.ID())
 
 	// Close the session and verify it is removed from the session manager context
-	timer.EXPECT().Cancel()
 	closeSession := statemachine.NewMockCloseSessionProposal(ctrl)
 	proposalID = context.nextProposalID()
 	closeSession.EXPECT().ID().Return(proposalID).AnyTimes()
@@ -133,14 +131,13 @@ func TestExpireSession(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
 	var expireFunc func()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).DoAndReturn(func(expire time.Time, f func()) statemachine.Timer {
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).DoAndReturn(func(expire time.Time, f func()) CancelFunc {
 		assert.Equal(t, time.UnixMilli(0).Add(time.Minute), expire)
 		expireFunc = f
-		return timer
+		return func() {}
 	})
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
@@ -192,10 +189,9 @@ func TestCreateClosePrimitive(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -342,11 +338,9 @@ func TestUnaryProposal(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	timer.EXPECT().Cancel().AnyTimes()
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -559,11 +553,9 @@ func TestStreamingProposal(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	timer.EXPECT().Cancel().AnyTimes()
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -978,11 +970,9 @@ func TestStreamingProposalCancel(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	timer.EXPECT().Cancel().AnyTimes()
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -1041,7 +1031,7 @@ func TestStreamingProposalCancel(t *testing.T) {
 		proposal.Output(&multiraftv1.PrimitiveProposalOutput{
 			Payload: []byte("b"),
 		})
-		proposal.Watch(func(phase ProposalPhase) {
+		proposal.Watch(func(phase ProposalState) {
 			streamProposalClosed = true
 		})
 	})
@@ -1073,11 +1063,9 @@ func TestUnaryQuery(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	timer.EXPECT().Cancel().AnyTimes()
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -1145,11 +1133,9 @@ func TestStreamingQuery(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	timer.EXPECT().Cancel().AnyTimes()
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -1219,7 +1205,7 @@ func TestStreamingQuery(t *testing.T) {
 		query.Output(&multiraftv1.PrimitiveQueryOutput{
 			Payload: []byte("b"),
 		})
-		query.Watch(func(phase QueryPhase) {
+		query.Watch(func(phase QueryState) {
 			streamingQueryComplete = phase == Complete
 		})
 		streamingQuery = query
@@ -1279,11 +1265,9 @@ func TestStreamingQueryCancel(t *testing.T) {
 	defer ctrl.Finish()
 
 	context := newManagerTestContext(ctrl)
-	timer := statemachine.NewMockTimer(ctrl)
-	timer.EXPECT().Cancel().AnyTimes()
 	scheduler := statemachine.NewMockScheduler(ctrl)
 	scheduler.EXPECT().Time().Return(time.UnixMilli(0)).AnyTimes()
-	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(timer).AnyTimes()
+	scheduler.EXPECT().Schedule(gomock.Any(), gomock.Any()).Return(func() {}).AnyTimes()
 	context.EXPECT().Scheduler().Return(scheduler).AnyTimes()
 
 	primitives := NewMockPrimitiveManager(ctrl)
@@ -1332,7 +1316,7 @@ func TestStreamingQueryCancel(t *testing.T) {
 		query.Output(&multiraftv1.PrimitiveQueryOutput{
 			Payload: []byte("b"),
 		})
-		query.Watch(func(phase QueryPhase) {
+		query.Watch(func(phase QueryState) {
 			streamingQueryCanceled = phase == Canceled
 		})
 	})

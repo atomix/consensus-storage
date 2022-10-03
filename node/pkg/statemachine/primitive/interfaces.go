@@ -6,11 +6,15 @@ package primitive
 
 import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/session"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"github.com/gogo/protobuf/proto"
 	"time"
 )
+
+const truncLen = 150
 
 type NewPrimitiveFunc[I, O any] func(Context[I, O]) Primitive[I, O]
 
@@ -56,8 +60,7 @@ func (t *primitiveType[I, O]) NewStateMachine(context Context[I, O]) Primitive[I
 	return t.factory(context)
 }
 
-type Context[I, O any] interface {
-	statemachine.SessionManagerContext
+type Info interface {
 	// ID returns the service identifier
 	ID() ID
 	// Service returns the service name
@@ -66,8 +69,13 @@ type Context[I, O any] interface {
 	Namespace() string
 	// Name returns the service name
 	Name() string
+}
+
+type Context[I, O any] interface {
+	statemachine.SessionManagerContext
+	Info
 	// Sessions returns the open sessions
-	Sessions() Sessions
+	Sessions() session.Sessions
 	// Proposals returns the pending proposals
 	Proposals() Proposals[I, O]
 }
@@ -76,97 +84,53 @@ type AnyContext Context[any, any]
 
 type ID uint64
 
-type SessionID uint64
+type CancelFunc = session.CancelFunc
 
-type SessionState int
+type SessionID = session.ID
 
-const (
-	SessionOpen SessionState = iota
-	SessionClosed
-)
-
-// Sessionized is an interface for types that are associated with a session
-type Sessionized interface {
-	Session() Session
-}
-
-type WatchFunc[T any] func(T)
-
-type CancelFunc func()
-
-type Watchable[T any] interface {
-	Watch(watcher WatchFunc[T]) CancelFunc
-}
-
-// Session is a service session
-type Session interface {
-	Watchable[SessionState]
-	// Log returns the session log
-	Log() logging.Logger
-	// ID returns the session identifier
-	ID() SessionID
-	// State returns the current session state
-	State() SessionState
-}
-
-// Sessions provides access to open sessions
-type Sessions interface {
-	// Get gets a session by ID
-	Get(SessionID) (Session, bool)
-	// List lists all open sessions
-	List() []Session
-}
-
-// Execution is a proposal or query execution
-type Execution[T statemachine.ExecutionID, I, O any] interface {
-	statemachine.Execution[T, I, O]
-	Time() time.Time
-	Sessionized
-}
-
-type ProposalPhase int
+type SessionState = session.State
 
 const (
-	ProposalPending ProposalPhase = iota
-	ProposalRunning
-	ProposalComplete
-	ProposalCanceled
+	SessionOpen   = session.Open
+	SessionClosed = session.Closed
 )
 
-type ProposalID = statemachine.ProposalID
+type Session = session.Session
+
+type Sessions = session.Sessions
+
+type CallState = session.CallState
+
+const (
+	Pending  = session.Pending
+	Running  = session.Running
+	Complete = session.Complete
+	Canceled = session.Canceled
+)
+
+type ProposalID = session.ProposalID
+
+type ProposalState = session.ProposalState
 
 // Proposal is a proposal operation
-type Proposal[I, O any] interface {
-	Execution[ProposalID, I, O]
-	Watchable[ProposalPhase]
-}
+type Proposal[I, O any] session.Proposal[I, O]
 
 // Proposals provides access to pending proposals
 type Proposals[I, O any] interface {
 	// Get gets a proposal by ID
-	Get(ProposalID) (Proposal[I, O], bool)
+	Get(id ProposalID) (Proposal[I, O], bool)
 	// List lists all open proposals
 	List() []Proposal[I, O]
 }
 
-type QueryPhase int
+type QueryID = session.QueryID
 
-const (
-	QueryPending QueryPhase = iota
-	QueryRunning
-	QueryComplete
-	QueryCanceled
-)
-
-type QueryID = statemachine.QueryID
+type QueryState = session.QueryState
 
 // Query is a read operation
-type Query[I, O any] interface {
-	Execution[QueryID, I, O]
-	Watchable[QueryPhase]
-}
+type Query[I, O any] session.Query[I, O]
 
-type Executor[T Execution[U, I, O], U statemachine.ExecutionID, I, O any] interface {
+type Executor[T statemachine.Call[U, I, O], U statemachine.CallID, I, O any] interface {
 	Execute(T)
 }
 
@@ -221,8 +185,8 @@ var _ ExecutorBuilder[
 	Proposer[proto.Message, proto.Message, proto.Message, proto.Message]] = (*ProposerBuilder[proto.Message, proto.Message, proto.Message, proto.Message])(nil)
 
 type ExecutorBuilder[
-	T Execution[U, I, O],
-	U statemachine.ExecutionID,
+	T session.Call[U, I, O],
+	U statemachine.CallID,
 	I proto.Message,
 	O proto.Message,
 	E Executor[T, U, I, O]] interface {
@@ -296,7 +260,7 @@ func (p *transcodingProposer[I1, O1, I2, O2]) Execute(parent Proposal[I1, O1]) {
 		return
 	}
 	proposal := newTranscodingProposal[I1, O1, I2, O2](parent, input, p.decoder, p.encoder, parent.Log().WithFields(logging.String("Method", p.name)))
-	proposal.Log().Debugw("Applying proposal", logging.Stringer("Input", proposal.Input()))
+	proposal.Log().Debugw("Applying proposal", logging.Stringer("Input", stringer.Truncate(proposal.Input(), truncLen)))
 	p.f(proposal)
 }
 
@@ -314,7 +278,7 @@ func (q *transcodingQuerier[I1, O1, I2, O2]) Execute(parent Query[I1, O1]) {
 		return
 	}
 	query := newTranscodingQuery[I1, O1, I2, O2](parent, input, q.decoder, q.encoder, parent.Log().WithFields(logging.String("Method", q.name)))
-	query.Log().Debugw("Applying query", logging.Stringer("Input", query.Input()))
+	query.Log().Debugw("Applying query", logging.Stringer("Input", stringer.Truncate(query.Input(), truncLen)))
 	q.f(query)
 }
 
@@ -332,7 +296,7 @@ type transcodingProposals[I1, O1, I2, O2 any] struct {
 	encoder func(O2) O1
 }
 
-func (p *transcodingProposals[I1, O1, I2, O2]) Get(id statemachine.ProposalID) (Proposal[I2, O2], bool) {
+func (p *transcodingProposals[I1, O1, I2, O2]) Get(id ProposalID) (Proposal[I2, O2], bool) {
 	parent, ok := p.parent.Get(id)
 	if !ok {
 		return nil, false
@@ -348,19 +312,20 @@ func (p *transcodingProposals[I1, O1, I2, O2]) List() []Proposal[I2, O2] {
 	proposals := make([]Proposal[I2, O2], 0, len(parents))
 	for _, parent := range parents {
 		if input, ok := p.decoder(parent.Input()); ok {
-			proposals = append(proposals, newTranscodingProposal[I1, O1, I2, O2](parent, input, p.decoder, p.encoder, parent.Log()))
+			proposal := newTranscodingProposal[I1, O1, I2, O2](parent, input, p.decoder, p.encoder, parent.Log())
+			proposals = append(proposals, proposal)
 		}
 	}
 	return proposals
 }
 
-func newTranscodingExecution[T statemachine.ExecutionID, I1, O1, I2, O2 any](
-	parent Execution[T, I1, O1],
+func newTranscodingCall[T statemachine.CallID, I1, O1, I2, O2 any](
+	parent session.Call[T, I1, O1],
 	input I2,
 	decoder func(I1) (I2, bool),
 	encoder func(O2) O1,
-	log logging.Logger) Execution[T, I2, O2] {
-	return &transcodingExecution[T, I1, O1, I2, O2]{
+	log logging.Logger) session.Call[T, I2, O2] {
+	return &transcodingCall[T, I1, O1, I2, O2]{
 		parent:  parent,
 		input:   input,
 		decoder: decoder,
@@ -369,43 +334,55 @@ func newTranscodingExecution[T statemachine.ExecutionID, I1, O1, I2, O2 any](
 	}
 }
 
-type transcodingExecution[T statemachine.ExecutionID, I1, O1, I2, O2 any] struct {
-	parent  Execution[T, I1, O1]
+type transcodingCall[T statemachine.CallID, I1, O1, I2, O2 any] struct {
+	parent  session.Call[T, I1, O1]
 	input   I2
 	decoder func(I1) (I2, bool)
 	encoder func(O2) O1
 	log     logging.Logger
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) ID() T {
+func (p *transcodingCall[T, I1, O1, I2, O2]) ID() T {
 	return p.parent.ID()
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Log() logging.Logger {
+func (p *transcodingCall[T, I1, O1, I2, O2]) Log() logging.Logger {
 	return p.log
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Time() time.Time {
+func (p *transcodingCall[T, I1, O1, I2, O2]) Time() time.Time {
 	return p.parent.Time()
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Session() Session {
+func (p *transcodingCall[T, I1, O1, I2, O2]) Session() session.Session {
 	return p.parent.Session()
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Input() I2 {
+func (p *transcodingCall[T, I1, O1, I2, O2]) State() session.CallState {
+	return p.parent.State()
+}
+
+func (p *transcodingCall[T, I1, O1, I2, O2]) Watch(watcher func(state session.CallState)) session.CancelFunc {
+	return p.parent.Watch(watcher)
+}
+
+func (p *transcodingCall[T, I1, O1, I2, O2]) Input() I2 {
 	return p.input
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Output(output O2) {
+func (p *transcodingCall[T, I1, O1, I2, O2]) Output(output O2) {
 	p.parent.Output(p.encoder(output))
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Error(err error) {
+func (p *transcodingCall[T, I1, O1, I2, O2]) Error(err error) {
 	p.parent.Error(err)
 }
 
-func (p *transcodingExecution[T, I1, O1, I2, O2]) Close() {
+func (p *transcodingCall[T, I1, O1, I2, O2]) Cancel() {
+	p.parent.Cancel()
+}
+
+func (p *transcodingCall[T, I1, O1, I2, O2]) Close() {
 	p.parent.Close()
 }
 
@@ -415,19 +392,7 @@ func newTranscodingProposal[I1, O1, I2, O2 any](
 	decoder func(I1) (I2, bool),
 	encoder func(O2) O1,
 	log logging.Logger) Proposal[I2, O2] {
-	return &transcodingProposal[I1, O1, I2, O2]{
-		Execution: newTranscodingExecution[statemachine.ProposalID, I1, O1, I2, O2](parent, input, decoder, encoder, log),
-		parent:    parent,
-	}
-}
-
-type transcodingProposal[I1, O1, I2, O2 any] struct {
-	Execution[statemachine.ProposalID, I2, O2]
-	parent Proposal[I1, O1]
-}
-
-func (p *transcodingProposal[I1, O1, I2, O2]) Watch(watcher WatchFunc[ProposalPhase]) CancelFunc {
-	return p.parent.Watch(watcher)
+	return newTranscodingCall[statemachine.ProposalID, I1, O1, I2, O2](parent, input, decoder, encoder, log)
 }
 
 func newTranscodingQuery[I1, O1, I2, O2 any](
@@ -436,17 +401,5 @@ func newTranscodingQuery[I1, O1, I2, O2 any](
 	decoder func(I1) (I2, bool),
 	encoder func(O2) O1,
 	log logging.Logger) Query[I2, O2] {
-	return &transcodingQuery[I1, O1, I2, O2]{
-		Execution: newTranscodingExecution[statemachine.QueryID, I1, O1, I2, O2](parent, input, decoder, encoder, log),
-		parent:    parent,
-	}
-}
-
-type transcodingQuery[I1, O1, I2, O2 any] struct {
-	Execution[statemachine.QueryID, I2, O2]
-	parent Query[I1, O1]
-}
-
-func (q *transcodingQuery[I1, O1, I2, O2]) Watch(watcher WatchFunc[QueryPhase]) CancelFunc {
-	return q.parent.Watch(watcher)
+	return newTranscodingCall[statemachine.QueryID, I1, O1, I2, O2](parent, input, decoder, encoder, log)
 }

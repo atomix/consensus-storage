@@ -331,7 +331,7 @@ func (mr *MockAnySessionMockRecorder) State() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockAnySession) Watch(arg0 WatchFunc[SessionState]) CancelFunc {
+func (m *MockAnySession) Watch(arg0 func(SessionState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)
@@ -486,7 +486,7 @@ func (mr *MockAnyProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockAnyProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
+func (m *MockAnyProposal) Watch(arg0 func(ProposalState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)
@@ -641,7 +641,7 @@ func (mr *MockAnyQueryMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockAnyQuery) Watch(arg0 WatchFunc[QueryPhase]) CancelFunc {
+func (m *MockAnyQuery) Watch(arg0 func(QueryState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)

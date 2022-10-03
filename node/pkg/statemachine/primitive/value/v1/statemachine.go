@@ -7,7 +7,6 @@ package v1
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	valuev1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/value/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -36,32 +35,32 @@ var valueCodec = primitive.NewCodec[*valuev1.ValueInput, *valuev1.ValueOutput](
 	})
 
 func newMapStateMachine(ctx primitive.Context[*valuev1.ValueInput, *valuev1.ValueOutput]) primitive.Primitive[*valuev1.ValueInput, *valuev1.ValueOutput] {
-	sm := &MapStateMachine{
+	sm := &ValueStateMachine{
 		Context:   ctx,
-		listeners: make(map[statemachine.ProposalID]bool),
-		watchers:  make(map[statemachine.QueryID]primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]),
+		listeners: make(map[primitive.ProposalID]bool),
+		watchers:  make(map[primitive.QueryID]primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]),
 	}
 	sm.init()
 	return sm
 }
 
-type MapStateMachine struct {
+type ValueStateMachine struct {
 	primitive.Context[*valuev1.ValueInput, *valuev1.ValueOutput]
-	value     *valuev1.ValueState
-	listeners map[statemachine.ProposalID]bool
-	timer     statemachine.Timer
-	watchers  map[statemachine.QueryID]primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]
-	mu        sync.RWMutex
-	set       primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.SetInput, *valuev1.SetOutput]
-	insert    primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.InsertInput, *valuev1.InsertOutput]
-	update    primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.UpdateInput, *valuev1.UpdateOutput]
-	delete    primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.DeleteInput, *valuev1.DeleteOutput]
-	events    primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.EventsInput, *valuev1.EventsOutput]
-	get       primitive.Querier[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.GetInput, *valuev1.GetOutput]
-	watch     primitive.Querier[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.WatchInput, *valuev1.WatchOutput]
+	value         *valuev1.ValueState
+	listeners     map[primitive.ProposalID]bool
+	ttlCancelFunc primitive.CancelFunc
+	watchers      map[primitive.QueryID]primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]
+	mu            sync.RWMutex
+	set           primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.SetInput, *valuev1.SetOutput]
+	insert        primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.InsertInput, *valuev1.InsertOutput]
+	update        primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.UpdateInput, *valuev1.UpdateOutput]
+	delete        primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.DeleteInput, *valuev1.DeleteOutput]
+	events        primitive.Proposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.EventsInput, *valuev1.EventsOutput]
+	get           primitive.Querier[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.GetInput, *valuev1.GetOutput]
+	watch         primitive.Querier[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.WatchInput, *valuev1.WatchOutput]
 }
 
-func (s *MapStateMachine) init() {
+func (s *ValueStateMachine) init() {
 	s.set = primitive.NewProposer[*valuev1.ValueInput, *valuev1.ValueOutput, *valuev1.SetInput, *valuev1.SetOutput](s).
 		Name("Set").
 		Decoder(func(input *valuev1.ValueInput) (*valuev1.SetInput, bool) {
@@ -176,7 +175,7 @@ func (s *MapStateMachine) init() {
 		Build(s.doWatch)
 }
 
-func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
+func (s *ValueStateMachine) Snapshot(writer *snapshot.Writer) error {
 	s.Log().Infow("Persisting Value to snapshot")
 	if err := writer.WriteVarInt(len(s.listeners)); err != nil {
 		return err
@@ -201,7 +200,7 @@ func (s *MapStateMachine) Snapshot(writer *snapshot.Writer) error {
 	return nil
 }
 
-func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
+func (s *ValueStateMachine) Recover(reader *snapshot.Reader) error {
 	s.Log().Infow("Recovering Value from snapshot")
 	n, err := reader.ReadVarInt()
 	if err != nil {
@@ -217,8 +216,8 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 			return errors.NewFault("cannot find proposal %d", proposalID)
 		}
 		s.listeners[proposal.ID()] = true
-		proposal.Watch(func(phase primitive.ProposalPhase) {
-			if phase == primitive.ProposalComplete {
+		proposal.Watch(func(state primitive.ProposalState) {
+			if state == primitive.Complete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -242,7 +241,7 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 	return nil
 }
 
-func (s *MapStateMachine) Propose(proposal primitive.Proposal[*valuev1.ValueInput, *valuev1.ValueOutput]) {
+func (s *ValueStateMachine) Propose(proposal primitive.Proposal[*valuev1.ValueInput, *valuev1.ValueOutput]) {
 	switch proposal.Input().Input.(type) {
 	case *valuev1.ValueInput_Set:
 		s.set.Execute(proposal)
@@ -260,7 +259,7 @@ func (s *MapStateMachine) Propose(proposal primitive.Proposal[*valuev1.ValueInpu
 	}
 }
 
-func (s *MapStateMachine) doSet(proposal primitive.Proposal[*valuev1.SetInput, *valuev1.SetOutput]) {
+func (s *ValueStateMachine) doSet(proposal primitive.Proposal[*valuev1.SetInput, *valuev1.SetOutput]) {
 	defer proposal.Close()
 
 	oldValue := s.value
@@ -311,7 +310,7 @@ func (s *MapStateMachine) doSet(proposal primitive.Proposal[*valuev1.SetInput, *
 	}
 }
 
-func (s *MapStateMachine) doInsert(proposal primitive.Proposal[*valuev1.InsertInput, *valuev1.InsertOutput]) {
+func (s *ValueStateMachine) doInsert(proposal primitive.Proposal[*valuev1.InsertInput, *valuev1.InsertOutput]) {
 	defer proposal.Close()
 
 	if s.value != nil {
@@ -350,7 +349,7 @@ func (s *MapStateMachine) doInsert(proposal primitive.Proposal[*valuev1.InsertIn
 	})
 }
 
-func (s *MapStateMachine) doUpdate(proposal primitive.Proposal[*valuev1.UpdateInput, *valuev1.UpdateOutput]) {
+func (s *ValueStateMachine) doUpdate(proposal primitive.Proposal[*valuev1.UpdateInput, *valuev1.UpdateOutput]) {
 	defer proposal.Close()
 
 	if s.value == nil {
@@ -396,7 +395,7 @@ func (s *MapStateMachine) doUpdate(proposal primitive.Proposal[*valuev1.UpdateIn
 	})
 }
 
-func (s *MapStateMachine) doDelete(proposal primitive.Proposal[*valuev1.DeleteInput, *valuev1.DeleteOutput]) {
+func (s *ValueStateMachine) doDelete(proposal primitive.Proposal[*valuev1.DeleteInput, *valuev1.DeleteOutput]) {
 	defer proposal.Close()
 
 	if s.value == nil {
@@ -428,16 +427,16 @@ func (s *MapStateMachine) doDelete(proposal primitive.Proposal[*valuev1.DeleteIn
 	})
 }
 
-func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*valuev1.EventsInput, *valuev1.EventsOutput]) {
+func (s *ValueStateMachine) doEvents(proposal primitive.Proposal[*valuev1.EventsInput, *valuev1.EventsOutput]) {
 	s.listeners[proposal.ID()] = true
-	proposal.Watch(func(phase primitive.ProposalPhase) {
-		if phase == primitive.ProposalComplete {
+	proposal.Watch(func(state primitive.ProposalState) {
+		if state == primitive.Complete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
 }
 
-func (s *MapStateMachine) Query(query primitive.Query[*valuev1.ValueInput, *valuev1.ValueOutput]) {
+func (s *ValueStateMachine) Query(query primitive.Query[*valuev1.ValueInput, *valuev1.ValueOutput]) {
 	switch query.Input().Input.(type) {
 	case *valuev1.ValueInput_Get:
 		s.get.Execute(query)
@@ -448,7 +447,7 @@ func (s *MapStateMachine) Query(query primitive.Query[*valuev1.ValueInput, *valu
 	}
 }
 
-func (s *MapStateMachine) doGet(query primitive.Query[*valuev1.GetInput, *valuev1.GetOutput]) {
+func (s *ValueStateMachine) doGet(query primitive.Query[*valuev1.GetInput, *valuev1.GetOutput]) {
 	defer query.Close()
 	if s.value == nil {
 		query.Error(errors.NewNotFound("value not set"))
@@ -459,7 +458,7 @@ func (s *MapStateMachine) doGet(query primitive.Query[*valuev1.GetInput, *valuev
 	}
 }
 
-func (s *MapStateMachine) doWatch(query primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]) {
+func (s *ValueStateMachine) doWatch(query primitive.Query[*valuev1.WatchInput, *valuev1.WatchOutput]) {
 	if s.value != nil {
 		query.Output(&valuev1.WatchOutput{
 			Value: s.value.Value,
@@ -469,8 +468,8 @@ func (s *MapStateMachine) doWatch(query primitive.Query[*valuev1.WatchInput, *va
 	s.mu.Lock()
 	s.watchers[query.ID()] = query
 	s.mu.Unlock()
-	query.Watch(func(phase primitive.QueryPhase) {
-		if phase == primitive.QueryComplete {
+	query.Watch(func(state primitive.QueryState) {
+		if state == primitive.Complete {
 			s.mu.Lock()
 			delete(s.watchers, query.ID())
 			s.mu.Unlock()
@@ -478,7 +477,7 @@ func (s *MapStateMachine) doWatch(query primitive.Query[*valuev1.WatchInput, *va
 	})
 }
 
-func (s *MapStateMachine) notify(value *valuev1.IndexedValue, event *valuev1.EventsOutput) {
+func (s *ValueStateMachine) notify(value *valuev1.IndexedValue, event *valuev1.EventsOutput) {
 	for proposalID := range s.listeners {
 		proposal, ok := s.events.Proposals().Get(proposalID)
 		if ok {
@@ -497,10 +496,10 @@ func (s *MapStateMachine) notify(value *valuev1.IndexedValue, event *valuev1.Eve
 	}
 }
 
-func (s *MapStateMachine) scheduleTTL(state *valuev1.ValueState) {
+func (s *ValueStateMachine) scheduleTTL(state *valuev1.ValueState) {
 	s.cancelTTL()
 	if state.Expire != nil {
-		s.timer = s.Scheduler().Schedule(*state.Expire, func() {
+		s.ttlCancelFunc = s.Scheduler().Schedule(*state.Expire, func() {
 			s.value = nil
 			s.notify(state.Value, &valuev1.EventsOutput{
 				Event: valuev1.Event{
@@ -516,9 +515,9 @@ func (s *MapStateMachine) scheduleTTL(state *valuev1.ValueState) {
 	}
 }
 
-func (s *MapStateMachine) cancelTTL() {
-	if s.timer != nil {
-		s.timer.Cancel()
-		s.timer = nil
+func (s *ValueStateMachine) cancelTTL() {
+	if s.ttlCancelFunc != nil {
+		s.ttlCancelFunc()
+		s.ttlCancelFunc = nil
 	}
 }

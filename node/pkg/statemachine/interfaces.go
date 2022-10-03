@@ -40,25 +40,21 @@ type SessionManagerContext interface {
 	Scheduler() Scheduler
 }
 
-// Timer is a cancellable timer
-type Timer interface {
-	// Cancel cancels the timer, preventing it from running in the future
-	Cancel()
-}
+type CancelFunc func()
 
 type Scheduler interface {
 	Time() time.Time
-	Await(index Index, f func()) Timer
-	Delay(d time.Duration, f func()) Timer
-	Schedule(t time.Time, f func()) Timer
+	Await(index Index, f func()) CancelFunc
+	Delay(d time.Duration, f func()) CancelFunc
+	Schedule(t time.Time, f func()) CancelFunc
 }
 
-type ExecutionID interface {
+type CallID interface {
 	ProposalID | QueryID
 }
 
-// Execution is a proposal or query execution context
-type Execution[T ExecutionID, I, O any] interface {
+// Call is a proposal or query call context
+type Call[T CallID, I, O any] interface {
 	// ID returns the execution identifier
 	ID() T
 	// Log returns the operation log
@@ -77,17 +73,17 @@ type ProposalID uint64
 
 // Proposal is a proposal operation
 type Proposal[I, O any] interface {
-	Execution[ProposalID, I, O]
+	Call[ProposalID, I, O]
 }
 
 type QueryID uint64
 
 // Query is a read operation
 type Query[I, O any] interface {
-	Execution[QueryID, I, O]
+	Call[QueryID, I, O]
 }
 
-func NewTranscodingExecution[T ExecutionID, I1, O1, I2, O2 any](execution Execution[T, I1, O1], input I2, transcoder func(O2) O1) Execution[T, I2, O2] {
+func NewTranscodingExecution[T CallID, I1, O1, I2, O2 any](execution Call[T, I1, O1], input I2, transcoder func(O2) O1) Call[T, I2, O2] {
 	return &transcodingExecution[T, I1, O1, I2, O2]{
 		parent:     execution,
 		input:      input,
@@ -95,8 +91,8 @@ func NewTranscodingExecution[T ExecutionID, I1, O1, I2, O2 any](execution Execut
 	}
 }
 
-type transcodingExecution[T ExecutionID, I1, O1, I2, O2 any] struct {
-	parent     Execution[T, I1, O1]
+type transcodingExecution[T CallID, I1, O1, I2, O2 any] struct {
+	parent     Call[T, I1, O1]
 	input      I2
 	transcoder func(O2) O1
 }
@@ -127,20 +123,20 @@ func (e *transcodingExecution[T, I1, O1, I2, O2]) Close() {
 
 func NewTranscodingProposal[I1, O1, I2, O2 any](proposal Proposal[I1, O1], input I2, transcoder func(O2) O1) Proposal[I2, O2] {
 	return &transcodingProposal[I1, O1, I2, O2]{
-		Execution: NewTranscodingExecution[ProposalID, I1, O1, I2, O2](proposal, input, transcoder),
+		Call: NewTranscodingExecution[ProposalID, I1, O1, I2, O2](proposal, input, transcoder),
 	}
 }
 
 type transcodingProposal[I1, O1, I2, O2 any] struct {
-	Execution[ProposalID, I2, O2]
+	Call[ProposalID, I2, O2]
 }
 
 func NewTranscodingQuery[I1, O1, I2, O2 any](proposal Query[I1, O1], input I2, transcoder func(O2) O1) Query[I2, O2] {
 	return &transcodingQuery[I1, O1, I2, O2]{
-		Execution: NewTranscodingExecution[QueryID, I1, O1, I2, O2](proposal, input, transcoder),
+		Call: NewTranscodingExecution[QueryID, I1, O1, I2, O2](proposal, input, transcoder),
 	}
 }
 
 type transcodingQuery[I1, O1, I2, O2 any] struct {
-	Execution[QueryID, I2, O2]
+	Call[QueryID, I2, O2]
 }

@@ -293,6 +293,20 @@ func (mr *MockCreatePrimitiveProposalMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).ID))
 }
 
+// State mocks base method.
+func (m *MockCreatePrimitiveProposal) State() ProposalState {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "State")
+	ret0, _ := ret[0].(ProposalState)
+	return ret0
+}
+
+// State indicates an expected call of State.
+func (mr *MockCreatePrimitiveProposalMockRecorder) State() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).State))
+}
+
 // Time mocks base method.
 func (m *MockCreatePrimitiveProposal) Time() time.Time {
 	m.ctrl.T.Helper()
@@ -362,7 +376,7 @@ func (mr *MockCreatePrimitiveProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockCreatePrimitiveProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
+func (m *MockCreatePrimitiveProposal) Watch(arg0 func(ProposalState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)
@@ -448,6 +462,20 @@ func (mr *MockClosePrimitiveProposalMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockClosePrimitiveProposal)(nil).ID))
 }
 
+// State mocks base method.
+func (m *MockClosePrimitiveProposal) State() ProposalState {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "State")
+	ret0, _ := ret[0].(ProposalState)
+	return ret0
+}
+
+// State indicates an expected call of State.
+func (mr *MockClosePrimitiveProposalMockRecorder) State() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).State))
+}
+
 // Time mocks base method.
 func (m *MockClosePrimitiveProposal) Time() time.Time {
 	m.ctrl.T.Helper()
@@ -517,7 +545,7 @@ func (mr *MockClosePrimitiveProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockClosePrimitiveProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
+func (m *MockClosePrimitiveProposal) Watch(arg0 func(ProposalState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)
@@ -603,6 +631,21 @@ func (mr *MockPrimitiveProposalMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockPrimitiveProposal)(nil).ID))
 }
 
+// State mocks base method.
+func (m *MockPrimitiveProposal) State() ProposalState {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "State")
+	ret0, _ := ret[0].(ProposalState)
+	return ret0
+}
+
+// State indicates an expected call of State.
+func (mr *MockPrimitiveProposalMockRecorder) State() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).State))
+}
+
+// Time mocks b
 // Time mocks base method.
 func (m *MockPrimitiveProposal) Time() time.Time {
 	m.ctrl.T.Helper()
@@ -672,7 +715,7 @@ func (mr *MockPrimitiveProposalMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockPrimitiveProposal) Watch(arg0 WatchFunc[ProposalPhase]) CancelFunc {
+func (m *MockPrimitiveProposal) Watch(arg0 func(ProposalState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)
@@ -810,6 +853,20 @@ func (mr *MockPrimitiveQueryMockRecorder) ID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ID", reflect.TypeOf((*MockPrimitiveQuery)(nil).ID))
 }
 
+// State mocks base method.
+func (m *MockPrimitiveQuery) State() QueryState {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "State")
+	ret0, _ := ret[0].(QueryState)
+	return ret0
+}
+
+// State indicates an expected call of State.
+func (mr *MockPrimitiveQueryMockRecorder) State() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "State", reflect.TypeOf((*MockCreatePrimitiveProposal)(nil).State))
+}
+
 // Time mocks base method.
 func (m *MockPrimitiveQuery) Time() time.Time {
 	m.ctrl.T.Helper()
@@ -879,7 +936,7 @@ func (mr *MockPrimitiveQueryMockRecorder) Session() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockPrimitiveQuery) Watch(arg0 WatchFunc[QueryPhase]) CancelFunc {
+func (m *MockPrimitiveQuery) Watch(arg0 func(QueryState)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)
@@ -1024,7 +1081,7 @@ func (mr *MockSessionMockRecorder) State() *gomock.Call {
 }
 
 // Watch mocks base method.
-func (m *MockSession) Watch(arg0 WatchFunc[State]) CancelFunc {
+func (m *MockSession) Watch(arg0 func(State)) CancelFunc {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Watch", arg0)
 	ret0, _ := ret[0].(CancelFunc)

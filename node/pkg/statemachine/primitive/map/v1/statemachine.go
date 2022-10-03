@@ -8,7 +8,6 @@ import (
 	"bytes"
 	mapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
@@ -41,7 +40,7 @@ func newMapStateMachine(ctx primitive.Context[*mapv1.MapInput, *mapv1.MapOutput]
 		Context:   ctx,
 		listeners: make(map[primitive.ProposalID]*mapv1.MapListener),
 		entries:   make(map[string]*mapv1.MapEntry),
-		timers:    make(map[string]statemachine.Timer),
+		timers:    make(map[string]primitive.CancelFunc),
 		watchers:  make(map[primitive.QueryID]primitive.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]),
 	}
 	sm.init()
@@ -52,7 +51,7 @@ type MapStateMachine struct {
 	primitive.Context[*mapv1.MapInput, *mapv1.MapOutput]
 	listeners map[primitive.ProposalID]*mapv1.MapListener
 	entries   map[string]*mapv1.MapEntry
-	timers    map[string]statemachine.Timer
+	timers    map[string]primitive.CancelFunc
 	watchers  map[primitive.QueryID]primitive.Query[*mapv1.EntriesInput, *mapv1.EntriesOutput]
 	mu        sync.RWMutex
 	put       primitive.Proposer[*mapv1.MapInput, *mapv1.MapOutput, *mapv1.PutInput, *mapv1.PutOutput]
@@ -258,8 +257,8 @@ func (s *MapStateMachine) Recover(reader *snapshot.Reader) error {
 			return err
 		}
 		s.listeners[proposal.ID()] = listener
-		proposal.Watch(func(phase primitive.ProposalPhase) {
-			if phase == primitive.ProposalComplete {
+		proposal.Watch(func(state primitive.ProposalState) {
+			if state == primitive.Complete {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -554,8 +553,8 @@ func (s *MapStateMachine) doEvents(proposal primitive.Proposal[*mapv1.EventsInpu
 		Key: proposal.Input().Key,
 	}
 	s.listeners[proposal.ID()] = listener
-	proposal.Watch(func(phase primitive.ProposalPhase) {
-		if phase == primitive.ProposalComplete {
+	proposal.Watch(func(state primitive.ProposalState) {
+		if state == primitive.Complete {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -613,8 +612,8 @@ func (s *MapStateMachine) doEntries(query primitive.Query[*mapv1.EntriesInput, *
 		s.mu.Lock()
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
-		query.Watch(func(phase primitive.QueryPhase) {
-			if phase == primitive.QueryCanceled {
+		query.Watch(func(state primitive.QueryState) {
+			if state == primitive.Canceled {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()
@@ -684,8 +683,8 @@ func (s *MapStateMachine) scheduleTTL(key string, entry *mapv1.MapEntry) {
 }
 
 func (s *MapStateMachine) cancelTTL(key string) {
-	timer, ok := s.timers[key]
+	ttlCancelFunc, ok := s.timers[key]
 	if ok {
-		timer.Cancel()
+		ttlCancelFunc()
 	}
 }

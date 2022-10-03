@@ -29,28 +29,28 @@ func (s *stateMachineScheduler) Time() time.Time {
 	return s.time.Load().(time.Time)
 }
 
-func (s *stateMachineScheduler) Await(index Index, f func()) Timer {
+func (s *stateMachineScheduler) Await(index Index, f func()) CancelFunc {
 	task := &indexTask{
 		scheduler: s,
 		index:     index,
 		callback:  f,
 	}
 	task.schedule()
-	return task
+	return task.cancel
 }
 
-func (s *stateMachineScheduler) Delay(d time.Duration, f func()) Timer {
+func (s *stateMachineScheduler) Delay(d time.Duration, f func()) CancelFunc {
 	return s.Schedule(s.Time().Add(d), f)
 }
 
-func (s *stateMachineScheduler) Schedule(t time.Time, f func()) Timer {
+func (s *stateMachineScheduler) Schedule(t time.Time, f func()) CancelFunc {
 	task := &timeTask{
 		scheduler: s,
 		time:      t,
 		callback:  f,
 	}
 	task.schedule()
-	return task
+	return task.cancel
 }
 
 // tick runs the scheduled time-based tasks
@@ -121,7 +121,7 @@ func (t *timeTask) run() {
 	t.callback()
 }
 
-func (t *timeTask) Cancel() {
+func (t *timeTask) cancel() {
 	if t.elem != nil {
 		t.scheduler.scheduledTasks.Remove(t.elem)
 	}
@@ -148,7 +148,7 @@ func (t *indexTask) run() {
 	t.callback()
 }
 
-func (t *indexTask) Cancel() {
+func (t *indexTask) cancel() {
 	if t.elem != nil {
 		if tasks, ok := t.scheduler.indexedTasks[t.index]; ok {
 			tasks.Remove(t.elem)
