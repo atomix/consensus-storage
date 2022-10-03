@@ -265,6 +265,52 @@ func (s *multiRaftLeaderElectionServer) Promote(ctx context.Context, request *el
 	return response, nil
 }
 
+func (s *multiRaftLeaderElectionServer) Demote(ctx context.Context, request *electionv1.DemoteRequest) (*electionv1.DemoteResponse, error) {
+	log.Debugw("Demote",
+		logging.Stringer("DemoteRequest", request))
+	partition := s.PartitionBy([]byte(request.ID.Name))
+	session, err := partition.GetSession(ctx)
+	if err != nil {
+		log.Warnw("Demote",
+			logging.Stringer("DemoteRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	primitive, err := session.GetPrimitive(request.ID.Name)
+	if err != nil {
+		log.Warnw("Demote",
+			logging.Stringer("DemoteRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	query := client.Command[*api.DemoteResponse](primitive)
+	output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.DemoteResponse, error) {
+		return api.NewLeaderElectionClient(conn).Demote(ctx, &api.DemoteRequest{
+			Headers: headers,
+			DemoteInput: &api.DemoteInput{
+				Candidate: request.Candidate,
+			},
+		})
+	})
+	if err != nil {
+		log.Warnw("Demote",
+			logging.Stringer("DemoteRequest", request),
+			logging.Error("Error", err))
+		return nil, errors.ToProto(err)
+	}
+	response := &electionv1.DemoteResponse{
+		Term: electionv1.Term{
+			Term:       uint64(output.Term.Index),
+			Leader:     output.Term.Leader,
+			Candidates: output.Term.Candidates,
+		},
+	}
+	log.Debugw("Demote",
+		logging.Stringer("DemoteRequest", request),
+		logging.Stringer("DemoteResponse", response))
+	return response, nil
+}
+
 func (s *multiRaftLeaderElectionServer) Evict(ctx context.Context, request *electionv1.EvictRequest) (*electionv1.EvictResponse, error) {
 	log.Debugw("Evict",
 		logging.Stringer("EvictRequest", request))
