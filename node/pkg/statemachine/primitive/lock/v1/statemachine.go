@@ -7,11 +7,11 @@ package v1
 import (
 	lockv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/lock/v1"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/gogo/protobuf/proto"
-	"time"
 )
 
 const Service = "atomix.runtime.lock.v1.Lock"
@@ -38,23 +38,24 @@ func newLockStateMachine(ctx primitive.Context[*lockv1.LockInput, *lockv1.LockOu
 	sm := &LockStateMachine{
 		Context:   ctx,
 		proposals: make(map[primitive.ProposalID]primitive.CancelFunc),
-		sessions:  make(map[primitive.SessionID]primitive.CancelFunc),
+		timers:    make(map[primitive.ProposalID]statemachine.Timer),
 	}
 	sm.init()
 	return sm
 }
 
-type Waiter struct {
-	primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
-	expire *time.Time
+type lock struct {
+	proposalID primitive.ProposalID
+	sessionID  primitive.SessionID
+	watcher    primitive.CancelFunc
 }
 
 type LockStateMachine struct {
 	primitive.Context[*lockv1.LockInput, *lockv1.LockOutput]
-	lock      primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
+	lock      *lock
 	queue     []primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
 	proposals map[primitive.ProposalID]primitive.CancelFunc
-	sessions  map[primitive.SessionID]primitive.CancelFunc
+	timers    map[primitive.ProposalID]statemachine.Timer
 	acquire   primitive.Proposer[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.AcquireInput, *lockv1.AcquireOutput]
 	release   primitive.Proposer[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.ReleaseInput, *lockv1.ReleaseOutput]
 	get       primitive.Querier[*lockv1.LockInput, *lockv1.LockOutput, *lockv1.GetInput, *lockv1.GetOutput]
@@ -116,7 +117,10 @@ func (s *LockStateMachine) Snapshot(writer *snapshot.Writer) error {
 		if err := writer.WriteBool(true); err != nil {
 			return err
 		}
-		if err := writer.WriteVarUint64(uint64(s.lock.ID())); err != nil {
+		if err := writer.WriteVarUint64(uint64(s.lock.proposalID)); err != nil {
+			return err
+		}
+		if err := writer.WriteVarUint64(uint64(s.lock.sessionID)); err != nil {
 			return err
 		}
 		if err := writer.WriteVarInt(len(s.queue)); err != nil {
@@ -146,11 +150,25 @@ func (s *LockStateMachine) Recover(reader *snapshot.Reader) error {
 		if err != nil {
 			return err
 		}
-		proposal, ok := s.acquire.Proposals().Get(primitive.ProposalID(proposalID))
-		if !ok {
-			return errors.NewFault("proposal not found")
+		sessionID, err := reader.ReadVarUint64()
+		if err != nil {
+			return err
 		}
-		s.lock = proposal
+
+		session, ok := s.Sessions().Get(primitive.SessionID(sessionID))
+		if !ok {
+			return errors.NewFault("session not found")
+		}
+
+		s.lock = &lock{
+			proposalID: primitive.ProposalID(proposalID),
+			sessionID:  primitive.SessionID(sessionID),
+			watcher: session.Watch(func(state primitive.SessionState) {
+				if state == primitive.SessionClosed {
+					s.nextRequest()
+				}
+			}),
+		}
 
 		n, err := reader.ReadVarInt()
 		if err != nil {
@@ -165,7 +183,7 @@ func (s *LockStateMachine) Recover(reader *snapshot.Reader) error {
 			if !ok {
 				return errors.NewFault("proposal not found")
 			}
-			s.queue = append(s.queue, proposal)
+			s.enqueueRequest(proposal)
 		}
 	}
 	return nil
@@ -182,75 +200,100 @@ func (s *LockStateMachine) Propose(proposal primitive.Proposal[*lockv1.LockInput
 	}
 }
 
+func (s *LockStateMachine) enqueueRequest(proposal primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]) {
+	s.queue = append(s.queue, proposal)
+	s.watchRequest(proposal)
+}
+
+func (s *LockStateMachine) dequeueRequest(proposal primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]) {
+	s.unwatchRequest(proposal.ID())
+	queue := make([]primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput], 0, len(s.queue))
+	for _, waiter := range s.queue {
+		if waiter.ID() != proposal.ID() {
+			queue = append(queue, waiter)
+		}
+	}
+	s.queue = queue
+}
+
+func (s *LockStateMachine) nextRequest() {
+	s.lock = nil
+	if s.queue == nil {
+		return
+	}
+	proposal := s.queue[0]
+	s.lock = &lock{
+		proposalID: proposal.ID(),
+		sessionID:  proposal.Session().ID(),
+		watcher: proposal.Session().Watch(func(state primitive.SessionState) {
+			if state == primitive.SessionClosed {
+				s.nextRequest()
+			}
+		}),
+	}
+	s.queue = s.queue[1:]
+	s.unwatchRequest(proposal.ID())
+	proposal.Output(&lockv1.AcquireOutput{
+		Index: multiraftv1.Index(proposal.ID()),
+	})
+	proposal.Close()
+}
+
+func (s *LockStateMachine) watchRequest(proposal primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]) {
+	s.proposals[proposal.ID()] = proposal.Watch(func(phase primitive.ProposalPhase) {
+		if phase == primitive.ProposalCanceled {
+			s.dequeueRequest(proposal)
+		}
+	})
+
+	if proposal.Input().Timeout != nil {
+		s.timers[proposal.ID()] = s.Scheduler().Delay(*proposal.Input().Timeout, func() {
+			s.dequeueRequest(proposal)
+			proposal.Error(errors.NewConflict("lock already held"))
+			proposal.Close()
+		})
+	}
+}
+
+func (s *LockStateMachine) unwatchRequest(proposalID primitive.ProposalID) {
+	if cancel, ok := s.proposals[proposalID]; ok {
+		cancel()
+		delete(s.proposals, proposalID)
+	}
+	if timer, ok := s.timers[proposalID]; ok {
+		timer.Cancel()
+		delete(s.timers, proposalID)
+	}
+}
+
 func (s *LockStateMachine) doAcquire(proposal primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]) {
 	if s.lock == nil {
-		defer proposal.Close()
-		s.lock = proposal
+		s.lock = &lock{
+			proposalID: proposal.ID(),
+			sessionID:  proposal.Session().ID(),
+			watcher: proposal.Session().Watch(func(state primitive.SessionState) {
+				if state == primitive.SessionClosed {
+					s.nextRequest()
+				}
+			}),
+		}
 		proposal.Output(&lockv1.AcquireOutput{
 			Index: multiraftv1.Index(proposal.ID()),
 		})
+		proposal.Close()
 	} else {
-		s.proposals[proposal.ID()] = proposal.Watch(func(phase primitive.ProposalPhase) {
-			if phase == primitive.ProposalCanceled {
-				for i, waiter := range s.queue {
-					if waiter.ID() == proposal.ID() {
-						s.queue = append(s.queue[:i], s.queue[i+1:]...)
-						break
-					}
-				}
-			}
-			delete(s.proposals, proposal.ID())
-		})
-		if _, ok := s.sessions[proposal.Session().ID()]; !ok {
-			s.sessions[proposal.Session().ID()] = proposal.Session().Watch(func(state primitive.SessionState) {
-				if state == primitive.SessionClosed {
-					var queue []primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]
-					for _, waiter := range s.queue {
-						if waiter.Session().ID() == proposal.Session().ID() {
-							queue = append(queue, waiter)
-						}
-					}
-					s.queue = queue
-					if s.lock != nil && s.lock.Session().ID() == proposal.Session().ID() {
-						s.lock = nil
-						if s.queue != nil {
-							s.lock = s.queue[0]
-							s.queue = s.queue[1:]
-							s.lock.Output(&lockv1.AcquireOutput{
-								Index: multiraftv1.Index(s.lock.ID()),
-							})
-							s.lock.Close()
-						}
-					}
-				}
-				delete(s.sessions, proposal.Session().ID())
-			})
-		}
-		s.queue = append(s.queue, proposal)
+		s.enqueueRequest(proposal)
 	}
 }
 
 func (s *LockStateMachine) doRelease(proposal primitive.Proposal[*lockv1.ReleaseInput, *lockv1.ReleaseOutput]) {
 	defer proposal.Close()
-	if s.lock == nil {
+	if s.lock == nil || s.lock.sessionID != proposal.Session().ID() {
 		proposal.Error(errors.NewConflict("lock not held by client"))
 		return
 	}
-
-	if multiraftv1.Index(s.lock.ID()) != proposal.Input().Index {
-		proposal.Error(errors.NewConflict("lock not held by client"))
-		return
-	}
-
-	s.lock = nil
-	if s.queue != nil {
-		s.lock = s.queue[0]
-		s.queue = s.queue[1:]
-		s.lock.Output(&lockv1.AcquireOutput{
-			Index: multiraftv1.Index(s.lock.ID()),
-		})
-		s.lock.Close()
-	}
+	s.nextRequest()
+	proposal.Output(&lockv1.ReleaseOutput{})
 }
 
 func (s *LockStateMachine) Query(query primitive.Query[*lockv1.LockInput, *lockv1.LockOutput]) {
@@ -266,7 +309,7 @@ func (s *LockStateMachine) doGet(query primitive.Query[*lockv1.GetInput, *lockv1
 	defer query.Close()
 	if s.lock != nil {
 		query.Output(&lockv1.GetOutput{
-			Index: multiraftv1.Index(s.lock.ID()),
+			Index: multiraftv1.Index(s.lock.proposalID),
 		})
 	} else {
 		query.Error(errors.NewNotFound("local not held"))

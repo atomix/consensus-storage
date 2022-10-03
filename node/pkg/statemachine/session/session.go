@@ -342,6 +342,7 @@ type sessionProposal struct {
 	session      *managedSession
 	id           statemachine.ProposalID
 	input        *multiraftv1.SessionProposalInput
+	timestamp    time.Time
 	phase        Phase
 	parent       statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]
 	watchers     map[uuid.UUID]WatchFunc[ProposalPhase]
@@ -362,6 +363,10 @@ func (p *sessionProposal) Session() Session {
 	return p.session
 }
 
+func (p *sessionProposal) Time() time.Time {
+	return p.timestamp
+}
+
 func (p *sessionProposal) Watch(watcher WatchFunc[ProposalPhase]) CancelFunc {
 	if p.watchers == nil {
 		p.watchers = make(map[uuid.UUID]WatchFunc[ProposalPhase])
@@ -376,6 +381,7 @@ func (p *sessionProposal) Watch(watcher WatchFunc[ProposalPhase]) CancelFunc {
 func (p *sessionProposal) execute(parent statemachine.Proposal[*multiraftv1.SessionProposalInput, *multiraftv1.SessionProposalOutput]) {
 	p.id = parent.ID()
 	p.input = parent.Input()
+	p.timestamp = p.session.manager.Time()
 	p.phase = Running
 	p.log = p.session.Log().WithFields(logging.Uint64("Proposal", uint64(parent.ID())))
 	p.parent = parent
@@ -436,6 +442,7 @@ func (p *sessionProposal) snapshot(writer *snapshot.Writer) error {
 		Input:                 p.input,
 		PendingOutputs:        pendingOutputs,
 		LastOutputSequenceNum: p.outputSeqNum,
+		Timestamp:             p.timestamp,
 	}
 	return writer.WriteMessage(snapshot)
 }
@@ -447,6 +454,7 @@ func (p *sessionProposal) recover(reader *snapshot.Reader) error {
 	}
 	p.id = statemachine.ProposalID(snapshot.Index)
 	p.input = snapshot.Input
+	p.timestamp = snapshot.Timestamp
 	p.log = p.session.Log().WithFields(logging.Uint64("Proposal", uint64(snapshot.Index)))
 	p.Log().Info("Recovering command from snapshot")
 	p.outputs = list.New()
@@ -623,13 +631,14 @@ func newSessionQuery(session *managedSession) *sessionQuery {
 }
 
 type sessionQuery struct {
-	session  *managedSession
-	parent   statemachine.Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput]
-	phase    QueryPhase
-	watching atomic.Bool
-	watchers map[uuid.UUID]WatchFunc[QueryPhase]
-	mu       sync.RWMutex
-	log      logging.Logger
+	session   *managedSession
+	parent    statemachine.Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput]
+	timestamp time.Time
+	phase     QueryPhase
+	watching  atomic.Bool
+	watchers  map[uuid.UUID]WatchFunc[QueryPhase]
+	mu        sync.RWMutex
+	log       logging.Logger
 }
 
 func (q *sessionQuery) ID() statemachine.QueryID {
@@ -642,6 +651,10 @@ func (q *sessionQuery) Log() logging.Logger {
 
 func (q *sessionQuery) Session() Session {
 	return q.session
+}
+
+func (q *sessionQuery) Time() time.Time {
+	return q.timestamp
 }
 
 func (q *sessionQuery) Watch(watcher WatchFunc[QueryPhase]) CancelFunc {
@@ -663,6 +676,7 @@ func (q *sessionQuery) Watch(watcher WatchFunc[QueryPhase]) CancelFunc {
 func (q *sessionQuery) execute(parent statemachine.Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQueryOutput]) {
 	q.phase = Running
 	q.parent = parent
+	q.timestamp = q.session.manager.Time()
 	q.log = q.session.Log().WithFields(logging.Uint64("Query", uint64(parent.ID())))
 	switch parent.Input().Input.(type) {
 	case *multiraftv1.SessionQueryInput_Query:

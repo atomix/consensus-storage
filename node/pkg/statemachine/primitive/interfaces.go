@@ -9,6 +9,7 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/gogo/protobuf/proto"
+	"time"
 )
 
 type NewPrimitiveFunc[I, O any] func(Context[I, O]) Primitive[I, O]
@@ -121,6 +122,7 @@ type Sessions[I, O any] interface {
 // Execution is a proposal or query execution
 type Execution[T statemachine.ExecutionID, I, O any] interface {
 	statemachine.Execution[T, I, O]
+	Time() time.Time
 	Sessionized[I, O]
 }
 
@@ -417,6 +419,10 @@ func (p *transcodingExecution[T, I1, O1, I2, O2]) ID() T {
 
 func (p *transcodingExecution[T, I1, O1, I2, O2]) Log() logging.Logger {
 	return p.log
+}
+
+func (p *transcodingExecution[T, I1, O1, I2, O2]) Time() time.Time {
+	return p.parent.Time()
 }
 
 func (p *transcodingExecution[T, I1, O1, I2, O2]) Session() Session[I2, O2] {

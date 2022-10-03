@@ -9,6 +9,7 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"time"
 )
 
 type NewPrimitiveManagerFunc func(Context) PrimitiveManager
@@ -89,6 +90,8 @@ const (
 // Execution is a proposal or query execution
 type Execution[T statemachine.ExecutionID, I, O any] interface {
 	statemachine.Execution[T, I, O]
+	// Time returns the state machine time at the time of execution
+	Time() time.Time
 	Sessionized
 }
 

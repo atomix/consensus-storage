@@ -11,6 +11,7 @@ import (
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"time"
 )
 
 type primitiveDelegate interface {
@@ -189,6 +190,10 @@ func (e *genericProposal[I, O]) Log() logging.Logger {
 	return e.parent.Log()
 }
 
+func (e *genericProposal[I, O]) Time() time.Time {
+	return e.parent.Time()
+}
+
 func (e *genericProposal[I, O]) Session() Session[I, O] {
 	return newGenericSession[I, O](e.primitive, e.parent.Session())
 }
@@ -250,6 +255,10 @@ func (e *genericQuery[I, O]) ID() statemachine.QueryID {
 
 func (e *genericQuery[I, O]) Log() logging.Logger {
 	return e.parent.Log()
+}
+
+func (e *genericQuery[I, O]) Time() time.Time {
+	return e.parent.Time()
 }
 
 func (e *genericQuery[I, O]) Session() Session[I, O] {
