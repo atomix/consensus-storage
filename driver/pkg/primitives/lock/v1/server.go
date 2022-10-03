@@ -101,8 +101,10 @@ func (s *multiRaftLockServer) Lock(ctx context.Context, request *lockv1.LockRequ
 	query := client.Command[*api.AcquireResponse](primitive)
 	output, err := query.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.AcquireResponse, error) {
 		return api.NewLockClient(conn).Acquire(ctx, &api.AcquireRequest{
-			Headers:      headers,
-			AcquireInput: &api.AcquireInput{},
+			Headers: headers,
+			AcquireInput: &api.AcquireInput{
+				Timeout: request.Timeout,
+			},
 		})
 	})
 	if err != nil {
