@@ -119,11 +119,6 @@
 
 
 
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
-
-
 
 
 

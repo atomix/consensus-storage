@@ -40,9 +40,7 @@ message AcquireOutput {
 }
 
 message ReleaseInput {
-    uint64 index = 1 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
+
 }
 
 message ReleaseOutput {
