@@ -190,7 +190,11 @@ func (p *primitiveExecutor[I, O]) Recover(reader *snapshot.Reader) error {
 
 func (p *primitiveExecutor[I, O]) open(proposal session.Proposal[*multiraftv1.CreatePrimitiveInput, *multiraftv1.CreatePrimitiveOutput]) {
 	session := newPrimitiveSession[I, O](p)
-	session.open(proposal)
+	session.open(proposal.Session())
+	proposal.Output(&multiraftv1.CreatePrimitiveOutput{
+		PrimitiveID: multiraftv1.PrimitiveID(p.ID()),
+	})
+	proposal.Close()
 }
 
 func (p *primitiveExecutor[I, O]) close(proposal session.Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput]) {
@@ -199,7 +203,9 @@ func (p *primitiveExecutor[I, O]) close(proposal session.Proposal[*multiraftv1.C
 		proposal.Error(errors.NewForbidden("session not found"))
 		proposal.Close()
 	} else {
-		session.close(proposal)
+		session.close()
+		proposal.Output(&multiraftv1.ClosePrimitiveOutput{})
+		proposal.Close()
 	}
 }
 

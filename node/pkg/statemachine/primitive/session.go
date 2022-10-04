@@ -114,7 +114,7 @@ func (s *primitiveSession[I, O]) Recover(reader *snapshot.Reader) error {
 	if !ok {
 		return errors.NewFault("session not found")
 	}
-	s.init(parent)
+	s.open(parent)
 	for _, sessionProposal := range s.primitive.Context.Proposals().List() {
 		if ID(sessionProposal.Input().PrimitiveID) == s.primitive.ID() {
 			proposal := newPrimitiveProposal[I, O](s)
@@ -146,24 +146,16 @@ func (s *primitiveSession[I, O]) unregisterQuery(queryID QueryID) {
 	s.queriesMu.Unlock()
 }
 
-func (s *primitiveSession[I, O]) init(parent session.Session) {
+func (s *primitiveSession[I, O]) open(parent session.Session) {
 	s.parent = parent
 	s.state = SessionOpen
 	s.log = s.primitive.Log().WithFields(logging.Uint64("SessionID", uint64(parent.ID())))
 	s.cancel = parent.Watch(func(state session.State) {
 		if state == session.Closed {
-			s.destroy()
+			s.close()
 		}
 	})
 	s.primitive.sessions.add(s)
-}
-
-func (s *primitiveSession[I, O]) open(proposal session.Proposal[*multiraftv1.CreatePrimitiveInput, *multiraftv1.CreatePrimitiveOutput]) {
-	s.init(proposal.Session())
-	proposal.Output(&multiraftv1.CreatePrimitiveOutput{
-		PrimitiveID: multiraftv1.PrimitiveID(s.ID()),
-	})
-	proposal.Close()
 }
 
 func (s *primitiveSession[I, O]) propose(parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) {
@@ -176,13 +168,7 @@ func (s *primitiveSession[I, O]) query(parent session.Query[*multiraftv1.Primiti
 	query.execute(parent)
 }
 
-func (s *primitiveSession[I, O]) close(proposal session.Proposal[*multiraftv1.ClosePrimitiveInput, *multiraftv1.ClosePrimitiveOutput]) {
-	s.destroy()
-	proposal.Output(&multiraftv1.ClosePrimitiveOutput{})
-	proposal.Close()
-}
-
-func (s *primitiveSession[I, O]) destroy() {
+func (s *primitiveSession[I, O]) close() {
 	s.cancel()
 	s.primitive.sessions.remove(s.ID())
 	s.state = SessionClosed
