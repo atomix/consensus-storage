@@ -121,8 +121,12 @@ func (q *sessionQuery) close(phase QueryState) {
 	q.parent.Close()
 	if q.watching.Load() {
 		q.mu.RLock()
-		defer q.mu.RUnlock()
+		watchers := make([]func(QueryState), 0, len(q.watchers))
 		for _, watcher := range q.watchers {
+			watchers = append(watchers, watcher)
+		}
+		q.mu.RUnlock()
+		for _, watcher := range watchers {
 			watcher(phase)
 		}
 	}

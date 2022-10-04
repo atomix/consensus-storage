@@ -10,6 +10,7 @@ import (
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/google/uuid"
+	"sync/atomic"
 	"time"
 )
 
@@ -27,13 +28,14 @@ func newPrimitiveQuery[I, O any](session *primitiveSession[I, O]) *primitiveQuer
 }
 
 type primitiveQuery[I, O any] struct {
-	parent   session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]
-	session  *primitiveSession[I, O]
-	input    I
-	state    CallState
-	watchers map[uuid.UUID]func(CallState)
-	cancel   session.CancelFunc
-	log      logging.Logger
+	parent     session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput]
+	session    *primitiveSession[I, O]
+	input      I
+	state      CallState
+	watchers   map[uuid.UUID]func(CallState)
+	registered atomic.Bool
+	cancel     session.CancelFunc
+	log        logging.Logger
 }
 
 func (q *primitiveQuery[I, O]) ID() QueryID {
@@ -108,6 +110,7 @@ func (q *primitiveQuery[I, O]) execute(parent session.Query[*multiraftv1.Primiti
 		q.session.primitive.sm.Query(q)
 		if q.state == Running {
 			q.session.registerQuery(q)
+			q.registered.Store(true)
 		}
 	}
 }
@@ -157,7 +160,9 @@ func (q *primitiveQuery[I, O]) Close() {
 func (q *primitiveQuery[I, O]) destroy(state QueryState) {
 	q.cancel()
 	q.state = state
-	q.session.unregisterQuery(q.ID())
+	if q.registered.Load() {
+		q.session.unregisterQuery(q.ID())
+	}
 	if q.watchers != nil {
 		for _, watcher := range q.watchers {
 			watcher(state)
