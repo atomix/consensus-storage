@@ -96,30 +96,28 @@ func TestPrimitive(t *testing.T) {
 		PrimitiveID: 0,
 	}).AnyTimes()
 
-	proposal := session.NewMockPrimitiveProposal(ctrl)
+	proposal1 := session.NewMockPrimitiveProposal(ctrl)
 	context.EXPECT().Index().Return(statemachine.Index(3)).AnyTimes()
-	proposal.EXPECT().ID().Return(statemachine.ProposalID(3)).AnyTimes()
-	proposal.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
-	proposal.EXPECT().Session().Return(session1).AnyTimes()
-	proposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
+	proposal1.EXPECT().ID().Return(statemachine.ProposalID(3)).AnyTimes()
+	proposal1.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
+	proposal1.EXPECT().Session().Return(session1).AnyTimes()
+	proposal1.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
 		PrimitiveID: primitiveID,
 		Payload:     []byte("Hello"),
 	}).AnyTimes()
-	proposal.EXPECT().Output(gomock.Any())
-	proposal.EXPECT().Close()
+	proposal1.EXPECT().Output(gomock.Any())
 	proposals := session.NewMockProposals(ctrl)
 	proposals.EXPECT().Get(gomock.Any()).DoAndReturn(func(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
 		if id == 2 {
 			return unusedProposal, true
 		}
 		if id == 3 {
-			return proposal, true
+			return proposal1, true
 		}
 		return nil, false
 	}).AnyTimes()
-	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal, unusedProposal}).AnyTimes()
+	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal1, unusedProposal}).AnyTimes()
 	context.EXPECT().Proposals().Return(proposals).AnyTimes()
-	session1.EXPECT().Proposals().Return(proposals).AnyTimes()
 	primitive.EXPECT().Propose(gomock.Any()).Do(func(proposal Proposal[any, any]) {
 		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
 		assert.Len(t, primitiveCtx.Sessions().List(), 1)
@@ -135,9 +133,8 @@ func TestPrimitive(t *testing.T) {
 		assert.Equal(t, SessionID(1), proposal.Session().ID())
 		assert.Equal(t, proposal.ID(), p.ID())
 		proposal.Output("world!")
-		proposal.Close()
 	})
-	manager.Propose(proposal)
+	manager.Propose(proposal1)
 
 	query := session.NewMockPrimitiveQuery(ctrl)
 	query.EXPECT().ID().Return(statemachine.QueryID(1)).AnyTimes()
@@ -193,42 +190,63 @@ func TestPrimitive(t *testing.T) {
 	sessions.EXPECT().List().Return([]session.Session{session1, session2}).AnyTimes()
 	context.EXPECT().Sessions().Return(sessions).AnyTimes()
 
-	manager = NewManager(context, registry)
-	primitive.EXPECT().Recover(gomock.Any()).Return(nil)
-	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
-
-	proposal = session.NewMockPrimitiveProposal(ctrl)
-	context.EXPECT().Index().Return(statemachine.Index(4)).AnyTimes()
-	proposal.EXPECT().ID().Return(statemachine.ProposalID(4)).AnyTimes()
-	proposal.EXPECT().Watch(gomock.Any()).Return(func() {}).AnyTimes()
-	proposal.EXPECT().Session().Return(session1).AnyTimes()
-	proposal.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
-		PrimitiveID: primitiveID,
-		Payload:     []byte("Hello"),
-	}).AnyTimes()
-	proposal.EXPECT().Output(gomock.Any())
-	proposal.EXPECT().Close()
 	proposals = session.NewMockProposals(ctrl)
 	proposals.EXPECT().Get(gomock.Any()).DoAndReturn(func(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
 		if id == 2 {
 			return unusedProposal, true
 		}
-		if id == 4 {
-			return proposal, true
+		if id == 3 {
+			return proposal1, true
 		}
 		return nil, false
 	}).AnyTimes()
-	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal, unusedProposal}).AnyTimes()
+	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal1, unusedProposal}).AnyTimes()
 	context.EXPECT().Proposals().Return(proposals).AnyTimes()
-	session1.EXPECT().Proposals().Return(proposals).AnyTimes()
+
+	manager = NewManager(context, registry)
+	primitive.EXPECT().Recover(gomock.Any()).Return(nil)
+	assert.NoError(t, manager.Recover(snapshot.NewReader(buf)))
+
+	proposal2 := session.NewMockPrimitiveProposal(ctrl)
+	context.EXPECT().Index().Return(statemachine.Index(4)).AnyTimes()
+	proposal2.EXPECT().ID().Return(statemachine.ProposalID(4)).AnyTimes()
+	var watcher2 func(ProposalState)
+	proposal2.EXPECT().Watch(gomock.Any()).DoAndReturn(func(watcher func(ProposalState)) CancelFunc {
+		watcher2 = watcher
+		return func() {}
+	}).AnyTimes()
+	proposal2.EXPECT().Session().Return(session1).AnyTimes()
+	proposal2.EXPECT().Input().Return(&multiraftv1.PrimitiveProposalInput{
+		PrimitiveID: primitiveID,
+		Payload:     []byte("Hello"),
+	}).AnyTimes()
+	proposal2.EXPECT().Output(gomock.Any())
+	proposal2.EXPECT().Close().Do(func() {
+		watcher2(Complete)
+	})
+	proposals = session.NewMockProposals(ctrl)
+	proposals.EXPECT().Get(gomock.Any()).DoAndReturn(func(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
+		if id == 2 {
+			return unusedProposal, true
+		}
+		if id == 3 {
+			return proposal1, true
+		}
+		if id == 4 {
+			return proposal2, true
+		}
+		return nil, false
+	}).AnyTimes()
+	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal1, proposal2, unusedProposal}).AnyTimes()
+	context.EXPECT().Proposals().Return(proposals).AnyTimes()
 	primitive.EXPECT().Propose(gomock.Any()).Do(func(proposal Proposal[any, any]) {
 		assert.Equal(t, ID(primitiveID), primitiveCtx.ID())
 		assert.Len(t, primitiveCtx.Sessions().List(), 1)
 		session, ok := primitiveCtx.Sessions().Get(1)
 		assert.True(t, ok)
 		assert.Equal(t, SessionID(1), session.ID())
-		assert.Len(t, primitiveCtx.Proposals().List(), 1)
-		assert.Equal(t, proposal.ID(), primitiveCtx.Proposals().List()[0].ID())
+		assert.Len(t, primitiveCtx.Proposals().List(), 2)
+		assert.Equal(t, proposal.ID(), primitiveCtx.Proposals().List()[1].ID())
 		p, ok := primitiveCtx.Proposals().Get(proposal.ID())
 		assert.True(t, ok)
 		assert.Equal(t, proposal.ID(), p.ID())
@@ -238,7 +256,7 @@ func TestPrimitive(t *testing.T) {
 		proposal.Output("world!")
 		proposal.Close()
 	})
-	manager.Propose(proposal)
+	manager.Propose(proposal2)
 
 	query = session.NewMockPrimitiveQuery(ctrl)
 	query.EXPECT().ID().Return(statemachine.QueryID(1)).AnyTimes()
@@ -259,7 +277,20 @@ func TestPrimitive(t *testing.T) {
 	})
 	manager.Query(query)
 
-	proposal.EXPECT().Cancel()
+	proposals = session.NewMockProposals(ctrl)
+	proposals.EXPECT().Get(gomock.Any()).DoAndReturn(func(id statemachine.ProposalID) (session.PrimitiveProposal, bool) {
+		if id == 2 {
+			return unusedProposal, true
+		}
+		if id == 3 {
+			return proposal1, true
+		}
+		return nil, false
+	}).AnyTimes()
+	proposals.EXPECT().List().Return([]session.PrimitiveProposal{proposal1, unusedProposal}).AnyTimes()
+	context.EXPECT().Proposals().Return(proposals).AnyTimes()
+
+	proposal1.EXPECT().Cancel()
 	query.EXPECT().Cancel()
 
 	closePrimitive := session.NewMockClosePrimitiveProposal(ctrl)

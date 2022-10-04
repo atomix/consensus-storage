@@ -99,6 +99,14 @@ func (s *primitiveSession[I, O]) Recover(reader *snapshot.Reader) error {
 		return errors.NewFault("session not found")
 	}
 	s.init(parent)
+	for _, sessionProposal := range s.primitive.Context.Proposals().List() {
+		if ID(sessionProposal.Input().PrimitiveID) == s.primitive.ID() {
+			proposal := newPrimitiveProposal[I, O](s)
+			if proposal.init(sessionProposal) {
+				s.registerProposal(proposal)
+			}
+		}
+	}
 	return nil
 }
 

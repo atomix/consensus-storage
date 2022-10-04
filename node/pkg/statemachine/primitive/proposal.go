@@ -80,10 +80,13 @@ func (p *primitiveProposal[I, O]) Session() Session {
 	return p.session
 }
 
-func (p *primitiveProposal[I, O]) init(parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) error {
+func (p *primitiveProposal[I, O]) init(parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) bool {
 	input, err := p.session.primitive.codec.DecodeInput(parent.Input().Payload)
 	if err != nil {
-		return err
+		p.Log().Errorw("Failed decoding proposal", logging.Error("Error", err))
+		parent.Error(errors.NewInternal("failed decoding proposal: %s", err.Error()))
+		parent.Close()
+		return false
 	}
 
 	p.parent = parent
@@ -102,8 +105,7 @@ func (p *primitiveProposal[I, O]) init(parent session.Proposal[*multiraftv1.Prim
 		}
 	})
 	p.session.primitive.proposals.add(p)
-	p.session.proposals[p.ID()] = p
-	return nil
+	return true
 }
 
 func (p *primitiveProposal[I, O]) execute(parent session.Proposal[*multiraftv1.PrimitiveProposalInput, *multiraftv1.PrimitiveProposalOutput]) {
@@ -111,11 +113,7 @@ func (p *primitiveProposal[I, O]) execute(parent session.Proposal[*multiraftv1.P
 		return
 	}
 
-	if err := p.init(parent); err != nil {
-		p.Log().Errorw("Failed decoding proposal", logging.Error("Error", err))
-		parent.Error(errors.NewInternal("failed decoding proposal: %s", err.Error()))
-		parent.Close()
-	} else {
+	if p.init(parent) {
 		p.session.primitive.sm.Propose(p)
 		if p.state == Running {
 			p.session.registerProposal(p)

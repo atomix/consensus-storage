@@ -1052,20 +1052,6 @@ func (mr *MockSessionMockRecorder) Log() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Log", reflect.TypeOf((*MockSession)(nil).Log))
 }
 
-// Proposals mocks base method.
-func (m *MockSession) Proposals() Proposals {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Proposals")
-	ret0, _ := ret[0].(Proposals)
-	return ret0
-}
-
-// Proposals indicates an expected call of Proposals.
-func (mr *MockSessionMockRecorder) Proposals() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Proposals", reflect.TypeOf((*MockSession)(nil).Proposals))
-}
-
 // State mocks base method.
 func (m *MockSession) State() State {
 	m.ctrl.T.Helper()
