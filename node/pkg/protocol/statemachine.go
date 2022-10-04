@@ -108,65 +108,65 @@ func (s *stateMachine) Close() error {
 	return nil
 }
 
-func newExecution[T statemachine.CallID, I, O proto.Message](id T, input I, stream streams.WriteStream[O]) *stateMachineExecution[T, I, O] {
-	return &stateMachineExecution[T, I, O]{
+func newCall[T statemachine.CallID, I, O proto.Message](id T, input I, stream streams.WriteStream[O]) *stateMachineCall[T, I, O] {
+	return &stateMachineCall[T, I, O]{
 		id:     id,
 		input:  input,
 		stream: stream,
 	}
 }
 
-type stateMachineExecution[T statemachine.CallID, I, O proto.Message] struct {
+type stateMachineCall[T statemachine.CallID, I, O proto.Message] struct {
 	id     T
 	input  I
 	stream streams.WriteStream[O]
 	state  atomic.Int32
 }
 
-func (e stateMachineExecution[T, I, O]) ID() T {
-	return e.id
+func (c stateMachineCall[T, I, O]) ID() T {
+	return c.id
 }
 
-func (e stateMachineExecution[T, I, O]) Log() logging.Logger {
+func (c stateMachineCall[T, I, O]) Log() logging.Logger {
 	return log
 }
 
-func (e stateMachineExecution[T, I, O]) Input() I {
-	return e.input
+func (c stateMachineCall[T, I, O]) Input() I {
+	return c.input
 }
 
-func (e stateMachineExecution[T, I, O]) Output(output O) {
-	e.stream.Value(output)
+func (c stateMachineCall[T, I, O]) Output(output O) {
+	c.stream.Value(output)
 }
 
-func (e stateMachineExecution[T, I, O]) Error(err error) {
-	e.stream.Error(err)
+func (c stateMachineCall[T, I, O]) Error(err error) {
+	c.stream.Error(err)
 }
 
-func (e stateMachineExecution[T, I, O]) Close() {
-	e.stream.Close()
+func (c stateMachineCall[T, I, O]) Close() {
+	c.stream.Close()
 }
 
 func newProposal(id statemachine.ProposalID, input *multiraftv1.StateMachineProposalInput, stream streams.WriteStream[*multiraftv1.StateMachineProposalOutput]) *stateMachineProposal {
 	return &stateMachineProposal{
-		stateMachineExecution: newExecution[statemachine.ProposalID](id, input, stream),
+		stateMachineCall: newCall[statemachine.ProposalID](id, input, stream),
 	}
 }
 
 type stateMachineProposal struct {
-	*stateMachineExecution[statemachine.ProposalID, *multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput]
+	*stateMachineCall[statemachine.ProposalID, *multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput]
 }
 
 var _ statemachine.Proposal[*multiraftv1.StateMachineProposalInput, *multiraftv1.StateMachineProposalOutput] = (*stateMachineProposal)(nil)
 
 func newQuery(id statemachine.QueryID, input *multiraftv1.StateMachineQueryInput, stream streams.WriteStream[*multiraftv1.StateMachineQueryOutput]) *stateMachineQuery {
 	return &stateMachineQuery{
-		stateMachineExecution: newExecution[statemachine.QueryID, *multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput](id, input, stream),
+		stateMachineCall: newCall[statemachine.QueryID, *multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput](id, input, stream),
 	}
 }
 
 type stateMachineQuery struct {
-	*stateMachineExecution[statemachine.QueryID, *multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput]
+	*stateMachineCall[statemachine.QueryID, *multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput]
 }
 
 var _ statemachine.Query[*multiraftv1.StateMachineQueryInput, *multiraftv1.StateMachineQueryOutput] = (*stateMachineQuery)(nil)
