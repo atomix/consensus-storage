@@ -154,7 +154,7 @@ func (s *managedSession) Recover(reader *snapshot.Reader) error {
 	s.timeout = snapshot.Timeout
 	s.lastUpdated = snapshot.LastUpdated
 
-	s.log = s.manager.Log().WithFields(logging.Uint64("Session", uint64(s.id)))
+	s.log = log.WithFields(logging.Uint64("Session", uint64(s.id)))
 	s.Log().Debug("Recovering session from snapshot")
 
 	n, err := reader.ReadVarInt()
@@ -200,7 +200,7 @@ func (s *managedSession) open(open statemachine.Proposal[*multiraftv1.OpenSessio
 	s.state = Open
 	s.lastUpdated = s.manager.Time()
 	s.timeout = open.Input().Timeout
-	s.log = s.manager.Log().WithFields(logging.Uint64("Session", uint64(s.id)))
+	s.log = log.WithFields(logging.Uint64("Session", uint64(s.id)))
 	s.manager.sessions.add(s)
 	s.scheduleExpireTimer()
 	s.Log().Infow("Opened session", logging.Duration("Timeout", s.timeout))

@@ -7,7 +7,6 @@ package statemachine
 import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/statemachine/snapshot"
-	"github.com/atomix/runtime/sdk/pkg/logging"
 	"time"
 )
 
@@ -30,8 +29,6 @@ type SessionQuery Query[*multiraftv1.SessionQueryInput, *multiraftv1.SessionQuer
 
 type SessionManagerContext interface {
 	Context
-	// Log returns the primitive logger
-	Log() logging.Logger
 	// Time returns the current service time
 	Time() time.Time
 	// Scheduler returns the service scheduler

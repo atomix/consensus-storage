@@ -60,6 +60,8 @@ func (t *primitiveType[I, O]) NewStateMachine(context Context[I, O]) Primitive[I
 type Info interface {
 	// ID returns the service identifier
 	ID() ID
+	// Log returns the service logger
+	Log() logging.Logger
 	// Service returns the service name
 	Service() string
 	// Namespace returns the service namespace
@@ -100,7 +102,7 @@ func newPrimitiveContext[I, O any](parent session.Context, id ID, namespace stri
 		sessions:  newPrimitiveSessions[I, O](),
 		proposals: newPrimitiveProposals[I, O](),
 		codec:     primitiveType.Codec(),
-		log: parent.Log().WithFields(
+		log: log.WithFields(
 			logging.String("Service", primitiveType.Service()),
 			logging.Uint64("Primitive", uint64(id)),
 			logging.String("Namespace", namespace),
