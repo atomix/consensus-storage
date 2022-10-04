@@ -213,7 +213,7 @@ func (s *SetStateMachine) Recover(reader *snapshot.Reader) error {
 		}
 		s.listeners[proposal.ID()] = true
 		proposal.Watch(func(state primitive.ProposalState) {
-			if state == primitive.Complete {
+			if primitive.IsDone(state) {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -338,7 +338,7 @@ func (s *SetStateMachine) doClear(proposal primitive.Proposal[*setv1.ClearInput,
 func (s *SetStateMachine) doEvents(proposal primitive.Proposal[*setv1.EventsInput, *setv1.EventsOutput]) {
 	s.listeners[proposal.ID()] = true
 	proposal.Watch(func(state primitive.ProposalState) {
-		if state == primitive.Complete {
+		if primitive.IsDone(state) {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -392,7 +392,7 @@ func (s *SetStateMachine) doElements(query primitive.Query[*setv1.ElementsInput,
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
 		query.Watch(func(state primitive.QueryState) {
-			if state == primitive.Complete {
+			if primitive.IsDone(state) {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()

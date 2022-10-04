@@ -40,6 +40,22 @@ const (
 	Canceled = session.Canceled
 )
 
+func IsRunning(state CallState) bool {
+	return state == Running
+}
+
+func IsComplete(state CallState) bool {
+	return state == Complete
+}
+
+func IsCanceled(state CallState) bool {
+	return state == Canceled
+}
+
+func IsDone(state CallState) bool {
+	return state >= Complete
+}
+
 func newPrimitiveSession[I, O any](primitive *primitiveExecutor[I, O]) *primitiveSession[I, O] {
 	s := &primitiveSession[I, O]{
 		primitive: primitive,

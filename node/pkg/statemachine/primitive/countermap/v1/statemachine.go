@@ -292,7 +292,7 @@ func (s *CounterMapStateMachine) Recover(reader *snapshot.Reader) error {
 		}
 		s.listeners[proposal.ID()] = listener
 		proposal.Watch(func(state primitive.ProposalState) {
-			if state == primitive.Complete {
+			if primitive.IsDone(state) {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -586,7 +586,7 @@ func (s *CounterMapStateMachine) doEvents(proposal primitive.Proposal[*counterma
 	}
 	s.listeners[proposal.ID()] = listener
 	proposal.Watch(func(state primitive.ProposalState) {
-		if state == primitive.Complete || state == primitive.Canceled {
+		if primitive.IsDone(state) {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -639,7 +639,7 @@ func (s *CounterMapStateMachine) doEntries(query primitive.Query[*countermapv1.E
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
 		query.Watch(func(state primitive.QueryState) {
-			if state == primitive.Complete {
+			if primitive.IsDone(state) {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()

@@ -240,7 +240,7 @@ func (s *LockStateMachine) nextRequest() {
 
 func (s *LockStateMachine) watchRequest(proposal primitive.Proposal[*lockv1.AcquireInput, *lockv1.AcquireOutput]) {
 	s.proposals[proposal.ID()] = proposal.Watch(func(state primitive.ProposalState) {
-		if state == primitive.Canceled {
+		if primitive.IsDone(state) {
 			s.dequeueRequest(proposal)
 		}
 	})
@@ -289,10 +289,10 @@ func (s *LockStateMachine) doRelease(proposal primitive.Proposal[*lockv1.Release
 	defer proposal.Close()
 	if s.lock == nil || s.lock.sessionID != proposal.Session().ID() {
 		proposal.Error(errors.NewConflict("lock not held by client"))
-		return
+	} else {
+		s.nextRequest()
+		proposal.Output(&lockv1.ReleaseOutput{})
 	}
-	s.nextRequest()
-	proposal.Output(&lockv1.ReleaseOutput{})
 }
 
 func (s *LockStateMachine) Query(query primitive.Query[*lockv1.LockInput, *lockv1.LockOutput]) {

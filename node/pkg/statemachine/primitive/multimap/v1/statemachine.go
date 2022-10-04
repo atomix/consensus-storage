@@ -297,7 +297,7 @@ func (s *MultiMapStateMachine) Recover(reader *snapshot.Reader) error {
 		}
 		s.listeners[proposal.ID()] = listener
 		proposal.Watch(func(state primitive.ProposalState) {
-			if state == primitive.Complete {
+			if primitive.IsDone(state) {
 				delete(s.listeners, proposal.ID())
 			}
 		})
@@ -552,7 +552,7 @@ func (s *MultiMapStateMachine) doEvents(proposal primitive.Proposal[*multimapv1.
 	}
 	s.listeners[proposal.ID()] = listener
 	proposal.Watch(func(state primitive.ProposalState) {
-		if state == primitive.Complete {
+		if primitive.IsDone(state) {
 			delete(s.listeners, proposal.ID())
 		}
 	})
@@ -631,7 +631,7 @@ func (s *MultiMapStateMachine) doEntries(query primitive.Query[*multimapv1.Entri
 		s.watchers[query.ID()] = query
 		s.mu.Unlock()
 		query.Watch(func(state primitive.QueryState) {
-			if state == primitive.Complete {
+			if primitive.IsDone(state) {
 				s.mu.Lock()
 				delete(s.watchers, query.ID())
 				s.mu.Unlock()
