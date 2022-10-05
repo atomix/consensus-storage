@@ -24,18 +24,6 @@ type RaftGroupSpec struct {
 	RaftConfig `json:",inline"`
 }
 
-// RaftConfig is the configuration of a Raft group
-type RaftConfig struct {
-	// QuorumSize is the number of replicas in the group
-	QuorumSize *int32 `json:"quorumSize,omitempty"`
-	// ReadReplicas is the number of read-only replicas in the group
-	ReadReplicas            *int32           `json:"readReplicas,omitempty"`
-	HeartbeatPeriod         *metav1.Duration `json:"heartbeatPeriod,omitempty"`
-	ElectionTimeout         *metav1.Duration `json:"electionTimeout,omitempty"`
-	SnapshotEntryThreshold  *int64           `json:"snapshotEntryThreshold,omitempty"`
-	CompactionRetainEntries *int64           `json:"compactionRetainEntries,omitempty"`
-}
-
 // RaftGroupStatus defines the status of a RaftGroup
 type RaftGroupStatus struct {
 	State     RaftGroupState                `json:"state,omitempty"`

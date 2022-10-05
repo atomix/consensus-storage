@@ -42,8 +42,8 @@ type MultiRaftStoreSpec struct {
 	// VolumeClaimTemplate is the volume claim template for Raft logs
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 
-	// Raft is the Raft protocol configuration
-	RaftConfig RaftConfig `json:"raftConfig,omitempty"`
+	// Config is the store configuration
+	Config Config `json:"config,omitempty"`
 }
 
 // MultiRaftStoreStatus defines the status of a MultiRaftStore

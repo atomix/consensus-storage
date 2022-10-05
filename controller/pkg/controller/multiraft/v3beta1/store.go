@@ -13,6 +13,7 @@ import (
 	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"gopkg.in/yaml.v3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -55,9 +56,10 @@ const (
 )
 
 const (
-	configPath     = "/etc/atomix"
-	raftConfigFile = "raft.json"
-	dataPath       = "/var/lib/atomix"
+	configPath        = "/etc/atomix"
+	raftConfigFile    = "raft.json"
+	loggingConfigFile = "logging.yaml"
+	dataPath          = "/var/lib/atomix"
 )
 
 const (
@@ -231,6 +233,11 @@ func (r *MultiRaftStoreReconciler) reconcileConfigMap(ctx context.Context, store
 
 func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating raft ConfigMap", "Name", store.Name, "Namespace", store.Namespace)
+	loggingConfig, err := yaml.Marshal(&store.Spec.Config.Logging)
+	if err != nil {
+		return err
+	}
+
 	raftConfig, err := newRaftConfigString(store)
 	if err != nil {
 		return err
@@ -244,7 +251,8 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *stor
 			Annotations: newStoreAnnotations(store),
 		},
 		Data: map[string]string{
-			raftConfigFile: raftConfig,
+			raftConfigFile:    string(raftConfig),
+			loggingConfigFile: string(loggingConfig),
 		},
 	}
 
@@ -255,38 +263,34 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *stor
 }
 
 // newRaftConfigString creates a protocol configuration string for the given store and protocol
-func newRaftConfigString(store *storagev3beta1.MultiRaftStore) (string, error) {
+func newRaftConfigString(store *storagev3beta1.MultiRaftStore) ([]byte, error) {
 	config := multiraftv1.MultiRaftConfig{}
 
-	electionTimeout := store.Spec.RaftConfig.ElectionTimeout
+	electionTimeout := store.Spec.Config.Raft.ElectionTimeout
 	if electionTimeout != nil {
 		config.ElectionTimeout = &electionTimeout.Duration
 	}
 
-	heartbeatPeriod := store.Spec.RaftConfig.HeartbeatPeriod
+	heartbeatPeriod := store.Spec.Config.Raft.HeartbeatPeriod
 	if heartbeatPeriod != nil {
 		config.HeartbeatPeriod = &heartbeatPeriod.Duration
 	}
 
-	entryThreshold := store.Spec.RaftConfig.SnapshotEntryThreshold
+	entryThreshold := store.Spec.Config.Raft.SnapshotEntryThreshold
 	if entryThreshold != nil {
 		config.SnapshotEntryThreshold = uint64(*entryThreshold)
 	} else {
 		config.SnapshotEntryThreshold = 10000
 	}
 
-	retainEntries := store.Spec.RaftConfig.CompactionRetainEntries
+	retainEntries := store.Spec.Config.Raft.CompactionRetainEntries
 	if retainEntries != nil {
 		config.CompactionRetainEntries = uint64(*retainEntries)
 	} else {
 		config.CompactionRetainEntries = 1000
 	}
 
-	bytes, err := json.Marshal(&config)
-	if err != nil {
-		return "", err
-	}
-	return string(bytes), nil
+	return json.Marshal(&config)
 }
 
 func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
@@ -584,7 +588,7 @@ func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *st
 				Labels:    store.Labels,
 			},
 			Spec: storagev3beta1.RaftGroupSpec{
-				RaftConfig: store.Spec.RaftConfig,
+				RaftConfig: store.Spec.Config.Raft,
 			},
 		}
 		if err := controllerutil.SetControllerReference(store, group, r.scheme); err != nil {
@@ -1004,17 +1008,17 @@ func getNumMembers(store *storagev3beta1.MultiRaftStore) int {
 }
 
 func getNumVotingMembers(store *storagev3beta1.MultiRaftStore) int {
-	if store.Spec.RaftConfig.QuorumSize == nil {
+	if store.Spec.Config.Raft.QuorumSize == nil {
 		return getNumReplicas(store)
 	}
-	return int(*store.Spec.RaftConfig.QuorumSize)
+	return int(*store.Spec.Config.Raft.QuorumSize)
 }
 
 func getNumNonVotingMembers(store *storagev3beta1.MultiRaftStore) int {
-	if store.Spec.RaftConfig.ReadReplicas == nil {
+	if store.Spec.Config.Raft.ReadReplicas == nil {
 		return 0
 	}
-	return int(*store.Spec.RaftConfig.ReadReplicas)
+	return int(*store.Spec.Config.Raft.ReadReplicas)
 }
 
 // getStoreResourceName returns the given resource name for the given store
