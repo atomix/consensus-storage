@@ -9,7 +9,6 @@ import (
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/node"
-	"github.com/atomix/runtime/sdk/pkg/logging"
 	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/spf13/cobra"
@@ -20,8 +19,6 @@ import (
 )
 
 func main() {
-	logging.SetLevel(logging.DebugLevel)
-
 	cmd := &cobra.Command{
 		Use: "atomix-multi-raft-node",
 		Run: func(cmd *cobra.Command, args []string) {
