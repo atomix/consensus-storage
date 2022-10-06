@@ -12,6 +12,7 @@ import (
 	valuev1 "github.com/atomix/runtime/api/atomix/runtime/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
 )
@@ -19,6 +20,8 @@ import (
 var log = logging.GetLogger()
 
 const Service = "atomix.runtime.value.v1.Value"
+
+const truncLen = 200
 
 func NewValueServer(protocol *client.Protocol, config api.ValueConfig) valuev1.ValueServer {
 	return &multiRaftValueServer{
@@ -32,67 +35,67 @@ type multiRaftValueServer struct {
 
 func (s *multiRaftValueServer) Create(ctx context.Context, request *valuev1.CreateRequest) (*valuev1.CreateResponse, error) {
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Create",
-			logging.Stringer("CreateRequest", request),
+			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	if err := session.CreatePrimitive(ctx, request.ID.Name, Service); err != nil {
 		log.Warnw("Create",
-			logging.Stringer("CreateRequest", request),
+			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &valuev1.CreateResponse{}
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request),
-		logging.Stringer("CreateResponse", response))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CreateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Close(ctx context.Context, request *valuev1.CloseRequest) (*valuev1.CloseResponse, error) {
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Close",
-			logging.Stringer("CloseRequest", request),
+			logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	if err := session.ClosePrimitive(ctx, request.ID.Name); err != nil {
 		log.Warnw("Close",
-			logging.Stringer("CloseRequest", request),
+			logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &valuev1.CloseResponse{}
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request),
-		logging.Stringer("CloseResponse", response))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CloseResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Set(ctx context.Context, request *valuev1.SetRequest) (*valuev1.SetResponse, error) {
 	log.Debugw("Set",
-		logging.Stringer("SetRequest", request))
+		logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
+			logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
+			logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -107,7 +110,7 @@ func (s *multiRaftValueServer) Set(ctx context.Context, request *valuev1.SetRequ
 	})
 	if err != nil {
 		log.Warnw("Set",
-			logging.Stringer("SetRequest", request),
+			logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -115,26 +118,26 @@ func (s *multiRaftValueServer) Set(ctx context.Context, request *valuev1.SetRequ
 		Version: uint64(output.Index),
 	}
 	log.Debugw("Set",
-		logging.Stringer("SetRequest", request),
-		logging.Stringer("SetResponse", response))
+		logging.Stringer("SetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Insert(ctx context.Context, request *valuev1.InsertRequest) (*valuev1.InsertResponse, error) {
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -149,7 +152,7 @@ func (s *multiRaftValueServer) Insert(ctx context.Context, request *valuev1.Inse
 	})
 	if err != nil {
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -157,26 +160,26 @@ func (s *multiRaftValueServer) Insert(ctx context.Context, request *valuev1.Inse
 		Version: uint64(output.Index),
 	}
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request),
-		logging.Stringer("InsertResponse", response))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("InsertResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Get(ctx context.Context, request *valuev1.GetRequest) (*valuev1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -189,7 +192,7 @@ func (s *multiRaftValueServer) Get(ctx context.Context, request *valuev1.GetRequ
 	})
 	if err != nil {
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -200,26 +203,26 @@ func (s *multiRaftValueServer) Get(ctx context.Context, request *valuev1.GetRequ
 		},
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Update(ctx context.Context, request *valuev1.UpdateRequest) (*valuev1.UpdateResponse, error) {
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -236,7 +239,7 @@ func (s *multiRaftValueServer) Update(ctx context.Context, request *valuev1.Upda
 	})
 	if err != nil {
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -248,26 +251,26 @@ func (s *multiRaftValueServer) Update(ctx context.Context, request *valuev1.Upda
 		},
 	}
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request),
-		logging.Stringer("UpdateResponse", response))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UpdateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Delete(ctx context.Context, request *valuev1.DeleteRequest) (*valuev1.DeleteResponse, error) {
 	log.Debugw("Delete",
-		logging.Stringer("DeleteRequest", request))
+		logging.Stringer("DeleteRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Delete",
-			logging.Stringer("DeleteRequest", request),
+			logging.Stringer("DeleteRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Delete",
-			logging.Stringer("DeleteRequest", request),
+			logging.Stringer("DeleteRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -282,7 +285,7 @@ func (s *multiRaftValueServer) Delete(ctx context.Context, request *valuev1.Dele
 	})
 	if err != nil {
 		log.Warnw("Delete",
-			logging.Stringer("DeleteRequest", request),
+			logging.Stringer("DeleteRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -293,26 +296,26 @@ func (s *multiRaftValueServer) Delete(ctx context.Context, request *valuev1.Dele
 		},
 	}
 	log.Debugw("Delete",
-		logging.Stringer("DeleteRequest", request),
-		logging.Stringer("DeleteResponse", response))
+		logging.Stringer("DeleteRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("DeleteResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server valuev1.Value_EventsServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(server.Context())
 	if err != nil {
 		log.Warnw("Events",
-			logging.Stringer("EventsRequest", request),
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Events",
-			logging.Stringer("EventsRequest", request),
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
@@ -326,7 +329,7 @@ func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server val
 	if err != nil {
 		err = errors.ToProto(err)
 		log.Warnw("Events",
-			logging.Stringer("EventsRequest", request),
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return err
 	}
@@ -334,13 +337,13 @@ func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server val
 		output, err := stream.Recv()
 		if err == io.EOF {
 			log.Debugw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.String("State", "Done"))
 			return nil
 		}
 		if err != nil {
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
@@ -392,12 +395,12 @@ func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server val
 			}
 		}
 		log.Debugw("Events",
-			logging.Stringer("EventsRequest", request),
-			logging.Stringer("EventsResponse", response))
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
-				logging.Stringer("EventsResponse", response),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+				logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -406,19 +409,19 @@ func (s *multiRaftValueServer) Events(request *valuev1.EventsRequest, server val
 
 func (s *multiRaftValueServer) Watch(request *valuev1.WatchRequest, server valuev1.Value_WatchServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(server.Context())
 	if err != nil {
 		log.Warnw("Events",
-			logging.Stringer("EventsRequest", request),
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Events",
-			logging.Stringer("EventsRequest", request),
+			logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
@@ -431,7 +434,7 @@ func (s *multiRaftValueServer) Watch(request *valuev1.WatchRequest, server value
 	})
 	if err != nil {
 		log.Warnw("Watch",
-			logging.Stringer("WatchRequest", request),
+			logging.Stringer("WatchRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return errors.ToProto(err)
 	}
@@ -442,7 +445,7 @@ func (s *multiRaftValueServer) Watch(request *valuev1.WatchRequest, server value
 		}
 		if err != nil {
 			log.Warnw("Watch",
-				logging.Stringer("WatchRequest", request),
+				logging.Stringer("WatchRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
@@ -453,12 +456,12 @@ func (s *multiRaftValueServer) Watch(request *valuev1.WatchRequest, server value
 			},
 		}
 		log.Debugw("Watch",
-			logging.Stringer("WatchRequest", request),
-			logging.Stringer("WatchResponse", response))
+			logging.Stringer("WatchRequest", stringer.Truncate(request, truncLen)),
+			logging.Stringer("WatchResponse", stringer.Truncate(response, truncLen)))
 		if err := server.Send(response); err != nil {
 			log.Warnw("Watch",
-				logging.Stringer("WatchRequest", request),
-				logging.Stringer("WatchResponse", response),
+				logging.Stringer("WatchRequest", stringer.Truncate(request, truncLen)),
+				logging.Stringer("WatchResponse", stringer.Truncate(response, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}

@@ -13,11 +13,14 @@ import (
 	atomicmapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
 )
 
 const Service = "atomix.runtime.map.v1.Map"
+
+const truncLen = 200
 
 func newMultiRaftMapServer(protocol *client.Protocol) atomicmapv1.MapServer {
 	return &multiRaftMapServer{
@@ -31,7 +34,7 @@ type multiRaftMapServer struct {
 
 func (s *multiRaftMapServer) Create(ctx context.Context, request *atomicmapv1.CreateRequest) (*atomicmapv1.CreateResponse, error) {
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -43,20 +46,20 @@ func (s *multiRaftMapServer) Create(ctx context.Context, request *atomicmapv1.Cr
 	})
 	if err != nil {
 		log.Warnw("Create",
-			logging.Stringer("CreateRequest", request),
+			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.CreateResponse{}
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request),
-		logging.Stringer("CreateResponse", response))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CreateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Close(ctx context.Context, request *atomicmapv1.CloseRequest) (*atomicmapv1.CloseResponse, error) {
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -68,34 +71,34 @@ func (s *multiRaftMapServer) Close(ctx context.Context, request *atomicmapv1.Clo
 	})
 	if err != nil {
 		log.Warnw("Close",
-			logging.Stringer("CloseRequest", request),
+			logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmapv1.CloseResponse{}
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request),
-		logging.Stringer("CloseResponse", response))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CloseResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Size(ctx context.Context, request *atomicmapv1.SizeRequest) (*atomicmapv1.SizeResponse, error) {
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	sizes, err := async.ExecuteAsync[int](len(partitions), func(i int) (int, error) {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
 			log.Warnw("Size",
-				logging.Stringer("SizeRequest", request),
+				logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return 0, err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Size",
-				logging.Stringer("SizeRequest", request),
+				logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return 0, err
 		}
@@ -108,7 +111,7 @@ func (s *multiRaftMapServer) Size(ctx context.Context, request *atomicmapv1.Size
 		})
 		if err != nil {
 			log.Warnw("Size",
-				logging.Stringer("SizeRequest", request),
+				logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return 0, err
 		}
@@ -125,26 +128,26 @@ func (s *multiRaftMapServer) Size(ctx context.Context, request *atomicmapv1.Size
 		Size_: uint32(size),
 	}
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request),
-		logging.Stringer("SizeResponse", response))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SizeResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Put(ctx context.Context, request *atomicmapv1.PutRequest) (*atomicmapv1.PutResponse, error) {
 	log.Debugw("Put",
-		logging.Stringer("PutRequest", request))
+		logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Put",
-			logging.Stringer("PutRequest", request),
+			logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Put",
-			logging.Stringer("PutRequest", request),
+			logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -163,7 +166,7 @@ func (s *multiRaftMapServer) Put(ctx context.Context, request *atomicmapv1.PutRe
 	})
 	if err != nil {
 		log.Warnw("Put",
-			logging.Stringer("PutRequest", request),
+			logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -177,26 +180,26 @@ func (s *multiRaftMapServer) Put(ctx context.Context, request *atomicmapv1.PutRe
 		}
 	}
 	log.Debugw("Put",
-		logging.Stringer("PutRequest", request),
-		logging.Stringer("PutResponse", response))
+		logging.Stringer("PutRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("PutResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Insert(ctx context.Context, request *atomicmapv1.InsertRequest) (*atomicmapv1.InsertResponse, error) {
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -213,7 +216,7 @@ func (s *multiRaftMapServer) Insert(ctx context.Context, request *atomicmapv1.In
 	})
 	if err != nil {
 		log.Warnw("Insert",
-			logging.Stringer("InsertRequest", request),
+			logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -221,26 +224,26 @@ func (s *multiRaftMapServer) Insert(ctx context.Context, request *atomicmapv1.In
 		Version: uint64(output.Index),
 	}
 	log.Debugw("Insert",
-		logging.Stringer("InsertRequest", request),
-		logging.Stringer("InsertResponse", response))
+		logging.Stringer("InsertRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("InsertResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Update(ctx context.Context, request *atomicmapv1.UpdateRequest) (*atomicmapv1.UpdateResponse, error) {
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -259,7 +262,7 @@ func (s *multiRaftMapServer) Update(ctx context.Context, request *atomicmapv1.Up
 	})
 	if err != nil {
 		log.Warnw("Update",
-			logging.Stringer("UpdateRequest", request),
+			logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -271,26 +274,26 @@ func (s *multiRaftMapServer) Update(ctx context.Context, request *atomicmapv1.Up
 		},
 	}
 	log.Debugw("Update",
-		logging.Stringer("UpdateRequest", request),
-		logging.Stringer("UpdateResponse", response))
+		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UpdateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Get(ctx context.Context, request *atomicmapv1.GetRequest) (*atomicmapv1.GetResponse, error) {
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -305,7 +308,7 @@ func (s *multiRaftMapServer) Get(ctx context.Context, request *atomicmapv1.GetRe
 	})
 	if err != nil {
 		log.Warnw("Get",
-			logging.Stringer("GetRequest", request),
+			logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -316,26 +319,26 @@ func (s *multiRaftMapServer) Get(ctx context.Context, request *atomicmapv1.GetRe
 		},
 	}
 	log.Debugw("Get",
-		logging.Stringer("GetRequest", request),
-		logging.Stringer("GetResponse", response))
+		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Remove(ctx context.Context, request *atomicmapv1.RemoveRequest) (*atomicmapv1.RemoveResponse, error) {
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Key))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -352,7 +355,7 @@ func (s *multiRaftMapServer) Remove(ctx context.Context, request *atomicmapv1.Re
 	})
 	if err != nil {
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -363,28 +366,28 @@ func (s *multiRaftMapServer) Remove(ctx context.Context, request *atomicmapv1.Re
 		},
 	}
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request),
-		logging.Stringer("RemoveResponse", response))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Clear(ctx context.Context, request *atomicmapv1.ClearRequest) (*atomicmapv1.ClearResponse, error) {
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
 			log.Warnw("Clear",
-				logging.Stringer("ClearRequest", request),
+				logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Clear",
-				logging.Stringer("ClearRequest", request),
+				logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -397,7 +400,7 @@ func (s *multiRaftMapServer) Clear(ctx context.Context, request *atomicmapv1.Cle
 		})
 		if err != nil {
 			log.Warnw("Clear",
-				logging.Stringer("ClearRequest", request),
+				logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -408,14 +411,14 @@ func (s *multiRaftMapServer) Clear(ctx context.Context, request *atomicmapv1.Cle
 	}
 	response := &atomicmapv1.ClearResponse{}
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request),
-		logging.Stringer("ClearResponse", response))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ClearResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Lock(ctx context.Context, request *atomicmapv1.LockRequest) (*atomicmapv1.LockResponse, error) {
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)))
 
 	partitions := s.Partitions()
 	indexKeys := make(map[int][]string)
@@ -437,14 +440,14 @@ func (s *multiRaftMapServer) Lock(ctx context.Context, request *atomicmapv1.Lock
 		session, err := partition.GetSession(ctx)
 		if err != nil {
 			log.Warnw("Lock",
-				logging.Stringer("LockRequest", request),
+				logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Lock",
-				logging.Stringer("LockRequest", request),
+				logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -460,7 +463,7 @@ func (s *multiRaftMapServer) Lock(ctx context.Context, request *atomicmapv1.Lock
 		})
 		if err != nil {
 			log.Warnw("Lock",
-				logging.Stringer("LockRequest", request),
+				logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -471,28 +474,28 @@ func (s *multiRaftMapServer) Lock(ctx context.Context, request *atomicmapv1.Lock
 	}
 	response := &atomicmapv1.LockResponse{}
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request),
-		logging.Stringer("LockResponse", response))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("LockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Unlock(ctx context.Context, request *atomicmapv1.UnlockRequest) (*atomicmapv1.UnlockResponse, error) {
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
 			log.Warnw("Unlock",
-				logging.Stringer("UnlockRequest", request),
+				logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Unlock",
-				logging.Stringer("UnlockRequest", request),
+				logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -505,7 +508,7 @@ func (s *multiRaftMapServer) Unlock(ctx context.Context, request *atomicmapv1.Un
 		})
 		if err != nil {
 			log.Warnw("Unlock",
-				logging.Stringer("UnlockRequest", request),
+				logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -516,14 +519,14 @@ func (s *multiRaftMapServer) Unlock(ctx context.Context, request *atomicmapv1.Un
 	}
 	response := &atomicmapv1.UnlockResponse{}
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request),
-		logging.Stringer("UnlockResponse", response))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UnlockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server atomicmapv1.Map_EventsServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	return async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -531,7 +534,7 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -539,7 +542,7 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -555,7 +558,7 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -563,13 +566,13 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 			output, err := stream.Recv()
 			if err == io.EOF {
 				log.Debugw("Events",
-					logging.Stringer("EventsRequest", request),
+					logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 					logging.String("State", "Done"))
 				return nil
 			}
 			if err != nil {
 				log.Warnw("Events",
-					logging.Stringer("EventsRequest", request),
+					logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
@@ -624,12 +627,12 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 				}
 			}
 			log.Debugw("Events",
-				logging.Stringer("EventsRequest", request),
-				logging.Stringer("EventsResponse", response))
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+				logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)))
 			if err := server.Send(response); err != nil {
 				log.Warnw("Events",
-					logging.Stringer("EventsRequest", request),
-					logging.Stringer("EventsResponse", response),
+					logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+					logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)),
 					logging.Error("Error", err))
 				return err
 			}
@@ -639,21 +642,21 @@ func (s *multiRaftMapServer) Events(request *atomicmapv1.EventsRequest, server a
 
 func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server atomicmapv1.Map_EntriesServer) error {
 	log.Debugw("Entries",
-		logging.Stringer("EntriesRequest", request))
+		logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	return async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(server.Context())
 		if err != nil {
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
@@ -668,7 +671,7 @@ func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server
 		})
 		if err != nil {
 			log.Warnw("Entries",
-				logging.Stringer("EntriesRequest", request),
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
@@ -679,7 +682,7 @@ func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server
 			}
 			if err != nil {
 				log.Warnw("Entries",
-					logging.Stringer("EntriesRequest", request),
+					logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
@@ -695,12 +698,12 @@ func (s *multiRaftMapServer) Entries(request *atomicmapv1.EntriesRequest, server
 				}
 			}
 			log.Debugw("Entries",
-				logging.Stringer("EntriesRequest", request),
-				logging.Stringer("EntriesResponse", response))
+				logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Stringer("EntriesResponse", stringer.Truncate(response, truncLen)))
 			if err := server.Send(response); err != nil {
 				log.Warnw("Entries",
-					logging.Stringer("EntriesRequest", request),
-					logging.Stringer("EntriesResponse", response),
+					logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
+					logging.Stringer("EntriesResponse", stringer.Truncate(response, truncLen)),
 					logging.Error("Error", err))
 				return err
 			}

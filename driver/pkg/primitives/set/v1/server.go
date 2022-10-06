@@ -13,6 +13,7 @@ import (
 	atomicsetv1 "github.com/atomix/runtime/api/atomix/runtime/set/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
 )
@@ -20,6 +21,8 @@ import (
 var log = logging.GetLogger()
 
 const Service = "atomix.runtime.set.v1.Set"
+
+const truncLen = 200
 
 func NewSetServer(protocol *client.Protocol, config api.SetConfig) atomicsetv1.SetServer {
 	return &multiRaftSetServer{
@@ -33,7 +36,7 @@ type multiRaftSetServer struct {
 
 func (s *multiRaftSetServer) Create(ctx context.Context, request *atomicsetv1.CreateRequest) (*atomicsetv1.CreateResponse, error) {
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -45,20 +48,20 @@ func (s *multiRaftSetServer) Create(ctx context.Context, request *atomicsetv1.Cr
 	})
 	if err != nil {
 		log.Warnw("Create",
-			logging.Stringer("CreateRequest", request),
+			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicsetv1.CreateResponse{}
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request),
-		logging.Stringer("CreateResponse", response))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CreateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Close(ctx context.Context, request *atomicsetv1.CloseRequest) (*atomicsetv1.CloseResponse, error) {
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -70,34 +73,34 @@ func (s *multiRaftSetServer) Close(ctx context.Context, request *atomicsetv1.Clo
 	})
 	if err != nil {
 		log.Warnw("Close",
-			logging.Stringer("CloseRequest", request),
+			logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicsetv1.CloseResponse{}
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request),
-		logging.Stringer("CloseResponse", response))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CloseResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Size(ctx context.Context, request *atomicsetv1.SizeRequest) (*atomicsetv1.SizeResponse, error) {
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	sizes, err := async.ExecuteAsync[int](len(partitions), func(i int) (int, error) {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
 			log.Warnw("Size",
-				logging.Stringer("SizeRequest", request),
+				logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return 0, err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Size",
-				logging.Stringer("SizeRequest", request),
+				logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return 0, err
 		}
@@ -110,7 +113,7 @@ func (s *multiRaftSetServer) Size(ctx context.Context, request *atomicsetv1.Size
 		})
 		if err != nil {
 			log.Warnw("Size",
-				logging.Stringer("SizeRequest", request),
+				logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return 0, err
 		}
@@ -127,26 +130,26 @@ func (s *multiRaftSetServer) Size(ctx context.Context, request *atomicsetv1.Size
 		Size_: uint32(size),
 	}
 	log.Debugw("Size",
-		logging.Stringer("SizeRequest", request),
-		logging.Stringer("SizeResponse", response))
+		logging.Stringer("SizeRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("SizeResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Add(ctx context.Context, request *atomicsetv1.AddRequest) (*atomicsetv1.AddResponse, error) {
 	log.Debugw("Add",
-		logging.Stringer("AddRequest", request))
+		logging.Stringer("AddRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Element.Value))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Add",
-			logging.Stringer("AddRequest", request),
+			logging.Stringer("AddRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Add",
-			logging.Stringer("AddRequest", request),
+			logging.Stringer("AddRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -165,32 +168,32 @@ func (s *multiRaftSetServer) Add(ctx context.Context, request *atomicsetv1.AddRe
 	})
 	if err != nil {
 		log.Warnw("Add",
-			logging.Stringer("AddRequest", request),
+			logging.Stringer("AddRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicsetv1.AddResponse{}
 	log.Debugw("Add",
-		logging.Stringer("AddRequest", request),
-		logging.Stringer("AddResponse", response))
+		logging.Stringer("AddRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("AddResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Contains(ctx context.Context, request *atomicsetv1.ContainsRequest) (*atomicsetv1.ContainsResponse, error) {
 	log.Debugw("Contains",
-		logging.Stringer("ContainsRequest", request))
+		logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Element.Value))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Contains",
-			logging.Stringer("ContainsRequest", request),
+			logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Contains",
-			logging.Stringer("ContainsRequest", request),
+			logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -208,7 +211,7 @@ func (s *multiRaftSetServer) Contains(ctx context.Context, request *atomicsetv1.
 	})
 	if err != nil {
 		log.Warnw("Contains",
-			logging.Stringer("ContainsRequest", request),
+			logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -216,26 +219,26 @@ func (s *multiRaftSetServer) Contains(ctx context.Context, request *atomicsetv1.
 		Contains: output.Contains,
 	}
 	log.Debugw("Contains",
-		logging.Stringer("ContainsRequest", request),
-		logging.Stringer("ContainsResponse", response))
+		logging.Stringer("ContainsRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ContainsResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Remove(ctx context.Context, request *atomicsetv1.RemoveRequest) (*atomicsetv1.RemoveResponse, error) {
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.Element.Value))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -253,34 +256,34 @@ func (s *multiRaftSetServer) Remove(ctx context.Context, request *atomicsetv1.Re
 	})
 	if err != nil {
 		log.Warnw("Remove",
-			logging.Stringer("RemoveRequest", request),
+			logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicsetv1.RemoveResponse{}
 	log.Debugw("Remove",
-		logging.Stringer("RemoveRequest", request),
-		logging.Stringer("RemoveResponse", response))
+		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Clear(ctx context.Context, request *atomicsetv1.ClearRequest) (*atomicsetv1.ClearResponse, error) {
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(ctx)
 		if err != nil {
 			log.Warnw("Clear",
-				logging.Stringer("ClearRequest", request),
+				logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Clear",
-				logging.Stringer("ClearRequest", request),
+				logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -293,7 +296,7 @@ func (s *multiRaftSetServer) Clear(ctx context.Context, request *atomicsetv1.Cle
 		})
 		if err != nil {
 			log.Warnw("Clear",
-				logging.Stringer("ClearRequest", request),
+				logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -304,14 +307,14 @@ func (s *multiRaftSetServer) Clear(ctx context.Context, request *atomicsetv1.Cle
 	}
 	response := &atomicsetv1.ClearResponse{}
 	log.Debugw("Clear",
-		logging.Stringer("ClearRequest", request),
-		logging.Stringer("ClearResponse", response))
+		logging.Stringer("ClearRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("ClearResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server atomicsetv1.Set_EventsServer) error {
 	log.Debugw("Events",
-		logging.Stringer("EventsRequest", request))
+		logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	return async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -319,7 +322,7 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -327,7 +330,7 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -341,7 +344,7 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 		if err != nil {
 			err = errors.ToProto(err)
 			log.Warnw("Events",
-				logging.Stringer("EventsRequest", request),
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return err
 		}
@@ -349,13 +352,13 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 			output, err := stream.Recv()
 			if err == io.EOF {
 				log.Debugw("Events",
-					logging.Stringer("EventsRequest", request),
+					logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 					logging.String("State", "Done"))
 				return nil
 			}
 			if err != nil {
 				log.Warnw("Events",
-					logging.Stringer("EventsRequest", request),
+					logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
@@ -388,12 +391,12 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 				}
 			}
 			log.Debugw("Events",
-				logging.Stringer("EventsRequest", request),
-				logging.Stringer("EventsResponse", response))
+				logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+				logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)))
 			if err := server.Send(response); err != nil {
 				log.Warnw("Events",
-					logging.Stringer("EventsRequest", request),
-					logging.Stringer("EventsResponse", response),
+					logging.Stringer("EventsRequest", stringer.Truncate(request, truncLen)),
+					logging.Stringer("EventsResponse", stringer.Truncate(response, truncLen)),
 					logging.Error("Error", err))
 				return err
 			}
@@ -403,21 +406,21 @@ func (s *multiRaftSetServer) Events(request *atomicsetv1.EventsRequest, server a
 
 func (s *multiRaftSetServer) Elements(request *atomicsetv1.ElementsRequest, server atomicsetv1.Set_ElementsServer) error {
 	log.Debugw("Elements",
-		logging.Stringer("ElementsRequest", request))
+		logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	return async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
 		session, err := partition.GetSession(server.Context())
 		if err != nil {
 			log.Warnw("Elements",
-				logging.Stringer("ElementsRequest", request),
+				logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
 		primitive, err := session.GetPrimitive(request.ID.Name)
 		if err != nil {
 			log.Warnw("Elements",
-				logging.Stringer("ElementsRequest", request),
+				logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
@@ -432,7 +435,7 @@ func (s *multiRaftSetServer) Elements(request *atomicsetv1.ElementsRequest, serv
 		})
 		if err != nil {
 			log.Warnw("Elements",
-				logging.Stringer("ElementsRequest", request),
+				logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)),
 				logging.Error("Error", err))
 			return errors.ToProto(err)
 		}
@@ -443,7 +446,7 @@ func (s *multiRaftSetServer) Elements(request *atomicsetv1.ElementsRequest, serv
 			}
 			if err != nil {
 				log.Warnw("Elements",
-					logging.Stringer("ElementsRequest", request),
+					logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)),
 					logging.Error("Error", err))
 				return errors.ToProto(err)
 			}
@@ -453,12 +456,12 @@ func (s *multiRaftSetServer) Elements(request *atomicsetv1.ElementsRequest, serv
 				},
 			}
 			log.Debugw("Elements",
-				logging.Stringer("ElementsRequest", request),
-				logging.Stringer("ElementsResponse", response))
+				logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)),
+				logging.Stringer("ElementsResponse", stringer.Truncate(response, truncLen)))
 			if err := server.Send(response); err != nil {
 				log.Warnw("Elements",
-					logging.Stringer("ElementsRequest", request),
-					logging.Stringer("ElementsResponse", response),
+					logging.Stringer("ElementsRequest", stringer.Truncate(request, truncLen)),
+					logging.Stringer("ElementsResponse", stringer.Truncate(response, truncLen)),
 					logging.Error("Error", err))
 				return err
 			}

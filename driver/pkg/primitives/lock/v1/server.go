@@ -13,12 +13,15 @@ import (
 	lockv1 "github.com/atomix/runtime/api/atomix/runtime/lock/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 )
 
 var log = logging.GetLogger()
 
 const Service = "atomix.runtime.lock.v1.Lock"
+
+const truncLen = 200
 
 func NewLockServer(protocol *client.Protocol) lockv1.LockServer {
 	return &multiRaftLockServer{
@@ -32,7 +35,7 @@ type multiRaftLockServer struct {
 
 func (s *multiRaftLockServer) Create(ctx context.Context, request *lockv1.CreateRequest) (*lockv1.CreateResponse, error) {
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -44,20 +47,20 @@ func (s *multiRaftLockServer) Create(ctx context.Context, request *lockv1.Create
 	})
 	if err != nil {
 		log.Warnw("Create",
-			logging.Stringer("CreateRequest", request),
+			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &lockv1.CreateResponse{}
 	log.Debugw("Create",
-		logging.Stringer("CreateRequest", request),
-		logging.Stringer("CreateResponse", response))
+		logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CreateResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftLockServer) Close(ctx context.Context, request *lockv1.CloseRequest) (*lockv1.CloseResponse, error) {
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)))
 	partitions := s.Partitions()
 	err := async.IterAsync(len(partitions), func(i int) error {
 		partition := partitions[i]
@@ -69,32 +72,32 @@ func (s *multiRaftLockServer) Close(ctx context.Context, request *lockv1.CloseRe
 	})
 	if err != nil {
 		log.Warnw("Close",
-			logging.Stringer("CloseRequest", request),
+			logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &lockv1.CloseResponse{}
 	log.Debugw("Close",
-		logging.Stringer("CloseRequest", request),
-		logging.Stringer("CloseResponse", response))
+		logging.Stringer("CloseRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("CloseResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftLockServer) Lock(ctx context.Context, request *lockv1.LockRequest) (*lockv1.LockResponse, error) {
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Lock",
-			logging.Stringer("LockRequest", request),
+			logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Lock",
-			logging.Stringer("LockRequest", request),
+			logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -109,7 +112,7 @@ func (s *multiRaftLockServer) Lock(ctx context.Context, request *lockv1.LockRequ
 	})
 	if err != nil {
 		log.Warnw("Lock",
-			logging.Stringer("LockRequest", request),
+			logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -117,26 +120,26 @@ func (s *multiRaftLockServer) Lock(ctx context.Context, request *lockv1.LockRequ
 		Version: uint64(output.Index),
 	}
 	log.Debugw("Lock",
-		logging.Stringer("LockRequest", request),
-		logging.Stringer("LockResponse", response))
+		logging.Stringer("LockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("LockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftLockServer) Unlock(ctx context.Context, request *lockv1.UnlockRequest) (*lockv1.UnlockResponse, error) {
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("Unlock",
-			logging.Stringer("UnlockRequest", request),
+			logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("Unlock",
-			logging.Stringer("UnlockRequest", request),
+			logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -149,32 +152,32 @@ func (s *multiRaftLockServer) Unlock(ctx context.Context, request *lockv1.Unlock
 	})
 	if err != nil {
 		log.Warnw("Unlock",
-			logging.Stringer("UnlockRequest", request),
+			logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	response := &lockv1.UnlockResponse{}
 	log.Debugw("Unlock",
-		logging.Stringer("UnlockRequest", request),
-		logging.Stringer("UnlockResponse", response))
+		logging.Stringer("UnlockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("UnlockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
 func (s *multiRaftLockServer) GetLock(ctx context.Context, request *lockv1.GetLockRequest) (*lockv1.GetLockResponse, error) {
 	log.Debugw("GetLock",
-		logging.Stringer("GetLockRequest", request))
+		logging.Stringer("GetLockRequest", stringer.Truncate(request, truncLen)))
 	partition := s.PartitionBy([]byte(request.ID.Name))
 	session, err := partition.GetSession(ctx)
 	if err != nil {
 		log.Warnw("GetLock",
-			logging.Stringer("GetLockRequest", request),
+			logging.Stringer("GetLockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
 	primitive, err := session.GetPrimitive(request.ID.Name)
 	if err != nil {
 		log.Warnw("GetLock",
-			logging.Stringer("GetLockRequest", request),
+			logging.Stringer("GetLockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -187,7 +190,7 @@ func (s *multiRaftLockServer) GetLock(ctx context.Context, request *lockv1.GetLo
 	})
 	if err != nil {
 		log.Warnw("GetLock",
-			logging.Stringer("GetLockRequest", request),
+			logging.Stringer("GetLockRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
@@ -195,8 +198,8 @@ func (s *multiRaftLockServer) GetLock(ctx context.Context, request *lockv1.GetLo
 		Version: uint64(output.Index),
 	}
 	log.Debugw("GetLock",
-		logging.Stringer("GetLockRequest", request),
-		logging.Stringer("GetLockResponse", response))
+		logging.Stringer("GetLockRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("GetLockResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
