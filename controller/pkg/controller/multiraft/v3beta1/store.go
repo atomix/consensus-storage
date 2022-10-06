@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	atomixv3beta1 "github.com/atomix/runtime/controller/pkg/apis/storage/v3beta1"
+	atomixv3beta2 "github.com/atomix/runtime/controller/pkg/apis/storage/v3beta2"
 	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -124,7 +124,7 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Watch for changes to secondary resource Store
-	err = controller.Watch(&source.Kind{Type: &atomixv3beta1.Store{}}, &handler.EnqueueRequestForOwner{
+	err = controller.Watch(&source.Kind{Type: &atomixv3beta2.Store{}}, &handler.EnqueueRequestForOwner{
 		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
@@ -233,7 +233,7 @@ func (r *MultiRaftStoreReconciler) reconcileConfigMap(ctx context.Context, store
 
 func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating raft ConfigMap", "Name", store.Name, "Namespace", store.Namespace)
-	loggingConfig, err := yaml.Marshal(&store.Spec.Config.Logging)
+	loggingConfig, err := yaml.Marshal(&store.Spec.Logging)
 	if err != nil {
 		return err
 	}
@@ -266,24 +266,24 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *stor
 func newRaftConfigString(store *storagev3beta1.MultiRaftStore) ([]byte, error) {
 	config := multiraftv1.MultiRaftConfig{}
 
-	electionTimeout := store.Spec.Config.Raft.ElectionTimeout
+	electionTimeout := store.Spec.Raft.ElectionTimeout
 	if electionTimeout != nil {
 		config.ElectionTimeout = &electionTimeout.Duration
 	}
 
-	heartbeatPeriod := store.Spec.Config.Raft.HeartbeatPeriod
+	heartbeatPeriod := store.Spec.Raft.HeartbeatPeriod
 	if heartbeatPeriod != nil {
 		config.HeartbeatPeriod = &heartbeatPeriod.Duration
 	}
 
-	entryThreshold := store.Spec.Config.Raft.SnapshotEntryThreshold
+	entryThreshold := store.Spec.Raft.SnapshotEntryThreshold
 	if entryThreshold != nil {
 		config.SnapshotEntryThreshold = uint64(*entryThreshold)
 	} else {
 		config.SnapshotEntryThreshold = 10000
 	}
 
-	retainEntries := store.Spec.Config.Raft.CompactionRetainEntries
+	retainEntries := store.Spec.Raft.CompactionRetainEntries
 	if retainEntries != nil {
 		config.CompactionRetainEntries = uint64(*retainEntries)
 	} else {
@@ -588,7 +588,7 @@ func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *st
 				Labels:    store.Labels,
 			},
 			Spec: storagev3beta1.RaftGroupSpec{
-				RaftConfig: store.Spec.Config.Raft,
+				RaftConfig: store.Spec.Raft,
 			},
 		}
 		if err := controllerutil.SetControllerReference(store, group, r.scheme); err != nil {
@@ -786,7 +786,7 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 		return false, nil
 	}
 
-	atomixStore := &atomixv3beta1.Store{}
+	atomixStore := &atomixv3beta2.Store{}
 	atomixStoreName := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      store.Name,
@@ -803,14 +803,14 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 			return false, err
 		}
 
-		atomixStore = &atomixv3beta1.Store{
+		atomixStore = &atomixv3beta2.Store{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: atomixStoreName.Namespace,
 				Name:      atomixStoreName.Name,
 				Labels:    store.Labels,
 			},
-			Spec: atomixv3beta1.StoreSpec{
-				Driver: atomixv3beta1.Driver{
+			Spec: atomixv3beta2.StoreSpec{
+				Driver: atomixv3beta2.Driver{
 					Name:    driverName,
 					Version: driverVersion,
 				},
@@ -1008,17 +1008,17 @@ func getNumMembers(store *storagev3beta1.MultiRaftStore) int {
 }
 
 func getNumVotingMembers(store *storagev3beta1.MultiRaftStore) int {
-	if store.Spec.Config.Raft.QuorumSize == nil {
+	if store.Spec.Raft.QuorumSize == nil {
 		return getNumReplicas(store)
 	}
-	return int(*store.Spec.Config.Raft.QuorumSize)
+	return int(*store.Spec.Raft.QuorumSize)
 }
 
 func getNumNonVotingMembers(store *storagev3beta1.MultiRaftStore) int {
-	if store.Spec.Config.Raft.ReadReplicas == nil {
+	if store.Spec.Raft.ReadReplicas == nil {
 		return 0
 	}
-	return int(*store.Spec.Config.Raft.ReadReplicas)
+	return int(*store.Spec.Raft.ReadReplicas)
 }
 
 // getStoreResourceName returns the given resource name for the given store

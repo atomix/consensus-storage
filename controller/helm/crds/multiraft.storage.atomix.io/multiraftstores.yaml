@@ -46,6 +46,10 @@ spec:
                   type: string
                 imagePullPolicy:
                   type: string
+                  enum:
+                    - Never
+                    - IfNotPresent
+                    - Always
                 imagePullSecrets:
                   type: array
                   items:
@@ -61,94 +65,86 @@ spec:
                 volumeClaimTemplate:
                   x-kubernetes-preserve-unknown-fields: true
                   type: object
-                config:
+                raft:
                   type: object
                   properties:
-                    raft:
+                    quorumSize:
+                      type: integer
+                      nullable: true
+                    readReplicas:
+                      type: integer
+                      nullable: true
+                    heartbeatPeriod:
+                      type: string
+                    electionTimeout:
+                      type: string
+                    snapshotEntryThreshold:
+                      type: integer
+                      minimum: 1
+                      nullable: true
+                    compactionRetainEntries:
+                      type: integer
+                      minimum: 0
+                      nullable: true
+                logging:
+                  type: object
+                  properties:
+                    loggers:
                       type: object
-                      properties:
-                        quorumSize:
-                          type: integer
-                          nullable: true
-                        readReplicas:
-                          type: integer
-                          nullable: true
-                        heartbeatPeriod:
-                          type: string
-                        electionTimeout:
-                          type: string
-                        snapshotEntryThreshold:
-                          type: integer
-                          minimum: 1
-                          nullable: true
-                        compactionRetainEntries:
-                          type: integer
-                          minimum: 0
-                          nullable: true
-                    logging:
+                      additionalProperties:
+                        type: object
+                        properties:
+                          level:
+                            type: string
+                            nullable: true
+                            enum:
+                              - debug
+                              - info
+                              - warn
+                              - error
+                              - fatal
+                              - panic
+                          output:
+                            type: object
+                            additionalProperties:
+                              type: object
+                              properties:
+                                sink:
+                                  type: string
+                                level:
+                                  type: string
+                                  nullable: true
+                                  enum:
+                                    - debug
+                                    - info
+                                    - warn
+                                    - error
+                                    - fatal
+                                    - panic
+                    sinks:
                       type: object
-                      properties:
-                        loggers:
-                          type: object
-                          additionalProperties:
+                      additionalProperties:
+                        type: object
+                        properties:
+                          encoding:
+                            type: string
+                            nullable: true
+                            enum:
+                              - console
+                              - json
+                          stdout:
+                            type: object
+                            properties: {}
+                          stderr:
+                            type: object
+                            properties: {}
+                          file:
                             type: object
                             properties:
-                              level:
+                              path:
                                 type: string
-                                nullable: true
-                                enum:
-                                  - Debug
-                                  - Info
-                                  - Warn
-                                  - Error
-                                  - Fatal
-                                  - Panic
-                                  - DPanic
-                                  - Empty
-                              output:
-                                type: object
-                                additionalProperties:
-                                  type: object
-                                  properties:
-                                    sink:
-                                      type: string
-                                    level:
-                                      type: string
-                                      nullable: true
-                                      enum:
-                                        - Debug
-                                        - Info
-                                        - Warn
-                                        - Error
-                                        - Fatal
-                                        - Panic
-                                        - DPanic
-                                        - Empty
-                        sinks:
-                          type: object
-                          additionalProperties:
-                            type: object
-                            properties:
-                              encoding:
-                                type: string
-                                nullable: true
-                                enum:
-                                  - console
-                                  - json
-                              stdout:
-                                type: object
-                                properties: {}
-                              stderr:
-                                type: object
-                                properties: {}
-                              file:
-                                type: object
-                                properties:
-                                  path:
-                                    type: string
-                                required:
-                                  - path
-
+                            required:
+                              - path
             status:
               type: object
               properties:

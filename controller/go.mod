@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/atomix/multi-raft-storage/api v0.3.0
-	github.com/atomix/runtime/controller v0.4.0
+	github.com/atomix/runtime/controller v0.4.4-0.20221006011006-79c17af61d7f
 	github.com/atomix/runtime/sdk v0.5.9
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-logr/logr v1.2.0

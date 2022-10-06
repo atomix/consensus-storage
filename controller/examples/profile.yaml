@@ -1,4 +1,4 @@
-apiVersion: storage.atomix.io/v3beta1
+apiVersion: storage.atomix.io/v3beta2
 kind: Profile
 metadata:
   name: example-profile
@@ -10,7 +10,6 @@ spec:
         - services:
             - name: atomix.runtime.counter.v1.Counter
             - name: atomix.runtime.map.v1.Map
-            - name: atomix.runtime.atomic.map.v1.AtomicMap
               config:
                 cache:
                   enabled: true

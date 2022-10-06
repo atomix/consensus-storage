@@ -8,11 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type Config struct {
-	Raft    RaftConfig    `json:"raft,omitempty"`
-	Logging LoggingConfig `json:"logging,omitempty"`
-}
-
 // RaftConfig is the configuration of a Raft group
 type RaftConfig struct {
 	QuorumSize              *int32           `json:"quorumSize,omitempty"`
