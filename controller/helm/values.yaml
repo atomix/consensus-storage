@@ -8,7 +8,7 @@ controller:
   image:
     registry: ""
     repository: atomix/multi-raft-controller
-    tag: latest
+    tag: v0.4
     pullPolicy: ""
     pullSecrets: []
 
@@ -16,6 +16,6 @@ node:
   image:
     registry: ""
     repository: atomix/multi-raft-node
-    tag: latest
+    tag: v0.6
     pullPolicy: ""
     pullSecrets: []

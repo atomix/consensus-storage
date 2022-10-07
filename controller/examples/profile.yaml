@@ -3,19 +3,14 @@ kind: Profile
 metadata:
   name: example-profile
 spec:
-  routes:
+  bindings:
     - store:
         name: example-multi-raft-store
-      bindings:
-        - services:
-            - name: atomix.runtime.counter.v1.Counter
-            - name: atomix.runtime.map.v1.Map
-              config:
-                cache:
-                  enabled: true
-          matchRules:
-            - names:
-                - '*'
-              tags:
-                foo: bar
-                bar: baz
+      selector:
+        foo: bar
+        bar: baz
+      services:
+        - name: atomix.runtime.map.v1.Map
+          config:
+            cache:
+              enabled: true
