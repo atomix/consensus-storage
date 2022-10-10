@@ -16,10 +16,14 @@
     - [GetResponse](#atomix-multiraft-multimap-v1-GetResponse)
     - [PutAllRequest](#atomix-multiraft-multimap-v1-PutAllRequest)
     - [PutAllResponse](#atomix-multiraft-multimap-v1-PutAllResponse)
+    - [PutEntriesRequest](#atomix-multiraft-multimap-v1-PutEntriesRequest)
+    - [PutEntriesResponse](#atomix-multiraft-multimap-v1-PutEntriesResponse)
     - [PutRequest](#atomix-multiraft-multimap-v1-PutRequest)
     - [PutResponse](#atomix-multiraft-multimap-v1-PutResponse)
     - [RemoveAllRequest](#atomix-multiraft-multimap-v1-RemoveAllRequest)
     - [RemoveAllResponse](#atomix-multiraft-multimap-v1-RemoveAllResponse)
+    - [RemoveEntriesRequest](#atomix-multiraft-multimap-v1-RemoveEntriesRequest)
+    - [RemoveEntriesResponse](#atomix-multiraft-multimap-v1-RemoveEntriesResponse)
     - [RemoveRequest](#atomix-multiraft-multimap-v1-RemoveRequest)
     - [RemoveResponse](#atomix-multiraft-multimap-v1-RemoveResponse)
     - [ReplaceRequest](#atomix-multiraft-multimap-v1-ReplaceRequest)
@@ -232,6 +236,38 @@
 
 
 
+<a name="atomix-multiraft-multimap-v1-PutEntriesRequest"></a>
+
+### PutEntriesRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [PutEntriesInput](#atomix-multiraft-multimap-v1-PutEntriesInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-PutEntriesResponse"></a>
+
+### PutEntriesResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [PutEntriesOutput](#atomix-multiraft-multimap-v1-PutEntriesOutput) |  |  |
+
+
+
+
+
+
 <a name="atomix-multiraft-multimap-v1-PutRequest"></a>
 
 ### PutRequest
@@ -290,6 +326,38 @@
 | ----- | ---- | ----- | ----------- |
 | headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
 | output | [RemoveAllOutput](#atomix-multiraft-multimap-v1-RemoveAllOutput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-RemoveEntriesRequest"></a>
+
+### RemoveEntriesRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandRequestHeaders](#atomix-multiraft-v1-CommandRequestHeaders) |  |  |
+| input | [RemoveEntriesInput](#atomix-multiraft-multimap-v1-RemoveEntriesInput) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-multimap-v1-RemoveEntriesResponse"></a>
+
+### RemoveEntriesResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| headers | [atomix.multiraft.v1.CommandResponseHeaders](#atomix-multiraft-v1-CommandResponseHeaders) |  |  |
+| output | [RemoveEntriesOutput](#atomix-multiraft-multimap-v1-RemoveEntriesOutput) |  |  |
 
 
 
@@ -408,11 +476,13 @@ MultiMap is a service for a multimap primitive
 | Size | [SizeRequest](#atomix-multiraft-multimap-v1-SizeRequest) | [SizeResponse](#atomix-multiraft-multimap-v1-SizeResponse) | Size returns the size of the multimap |
 | Put | [PutRequest](#atomix-multiraft-multimap-v1-PutRequest) | [PutResponse](#atomix-multiraft-multimap-v1-PutResponse) | Put puts an entry into the multimap |
 | PutAll | [PutAllRequest](#atomix-multiraft-multimap-v1-PutAllRequest) | [PutAllResponse](#atomix-multiraft-multimap-v1-PutAllResponse) | PutAll puts an entry into the multimap |
+| PutEntries | [PutEntriesRequest](#atomix-multiraft-multimap-v1-PutEntriesRequest) | [PutEntriesResponse](#atomix-multiraft-multimap-v1-PutEntriesResponse) | PutEntries puts a set of entries into the multimap |
 | Replace | [ReplaceRequest](#atomix-multiraft-multimap-v1-ReplaceRequest) | [ReplaceResponse](#atomix-multiraft-multimap-v1-ReplaceResponse) | Replace replaces an entry in the multimap |
 | Contains | [ContainsRequest](#atomix-multiraft-multimap-v1-ContainsRequest) | [ContainsResponse](#atomix-multiraft-multimap-v1-ContainsResponse) | Contains checks if the multimap contains an entry |
 | Get | [GetRequest](#atomix-multiraft-multimap-v1-GetRequest) | [GetResponse](#atomix-multiraft-multimap-v1-GetResponse) | Get gets the entry for a key |
 | Remove | [RemoveRequest](#atomix-multiraft-multimap-v1-RemoveRequest) | [RemoveResponse](#atomix-multiraft-multimap-v1-RemoveResponse) | Remove removes an entry from the multimap |
 | RemoveAll | [RemoveAllRequest](#atomix-multiraft-multimap-v1-RemoveAllRequest) | [RemoveAllResponse](#atomix-multiraft-multimap-v1-RemoveAllResponse) | RemoveAll removes a key from the multimap |
+| RemoveEntries | [RemoveEntriesRequest](#atomix-multiraft-multimap-v1-RemoveEntriesRequest) | [RemoveEntriesResponse](#atomix-multiraft-multimap-v1-RemoveEntriesResponse) | RemoveEntries removes a set of entries from the multimap |
 | Clear | [ClearRequest](#atomix-multiraft-multimap-v1-ClearRequest) | [ClearResponse](#atomix-multiraft-multimap-v1-ClearResponse) | Clear removes all entries from the multimap |
 | Events | [EventsRequest](#atomix-multiraft-multimap-v1-EventsRequest) | [EventsResponse](#atomix-multiraft-multimap-v1-EventsResponse) stream | Events listens for change events |
 | Entries | [EntriesRequest](#atomix-multiraft-multimap-v1-EntriesRequest) | [EntriesResponse](#atomix-multiraft-multimap-v1-EntriesResponse) stream | Entries lists all entries in the multimap |

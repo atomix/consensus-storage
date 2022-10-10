@@ -30,6 +30,11 @@ service MultiMap {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
+    // PutEntries puts a set of entries into the multimap
+    rpc PutEntries (PutEntriesRequest) returns (PutEntriesResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
     // Replace replaces an entry in the multimap
     rpc Replace (ReplaceRequest) returns (ReplaceResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
@@ -52,6 +57,11 @@ service MultiMap {
 
     // RemoveAll removes a key from the multimap
     rpc RemoveAll (RemoveAllRequest) returns (RemoveAllResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
+    // RemoveEntries removes a set of entries from the multimap
+    rpc RemoveEntries (RemoveEntriesRequest) returns (RemoveEntriesResponse) {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
@@ -126,6 +136,26 @@ message PutAllResponse {
         (atomix.multiraft.v1.headers) = true
     ];
     PutAllOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message PutEntriesRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    PutEntriesInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message PutEntriesResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    PutEntriesOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];
@@ -226,6 +256,26 @@ message RemoveAllResponse {
         (atomix.multiraft.v1.headers) = true
     ];
     RemoveAllOutput output = 2 [
+        (atomix.multiraft.v1.output) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message RemoveEntriesRequest {
+    atomix.multiraft.v1.CommandRequestHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    RemoveEntriesInput input = 2 [
+        (atomix.multiraft.v1.input) = true,
+        (gogoproto.embed) = true
+    ];
+}
+
+message RemoveEntriesResponse {
+    atomix.multiraft.v1.CommandResponseHeaders headers = 1 [
+        (atomix.multiraft.v1.headers) = true
+    ];
+    RemoveEntriesOutput output = 2 [
         (atomix.multiraft.v1.output) = true,
         (gogoproto.embed) = true
     ];

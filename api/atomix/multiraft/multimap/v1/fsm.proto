@@ -29,11 +29,13 @@ message MultiMapInput {
         SizeInput size = 1;
         PutInput put = 2;
         PutAllInput put_all = 3;
+        PutEntriesInput put_entries = 12;
         ReplaceInput replace = 4;
         ContainsInput contains = 5;
         GetInput get = 6;
         RemoveInput remove = 7;
         RemoveAllInput remove_all = 8;
+        RemoveEntriesInput remove_entries = 13;
         ClearInput clear = 9;
         EntriesInput entries = 10;
         EventsInput events = 11;
@@ -45,11 +47,13 @@ message MultiMapOutput {
         SizeOutput size = 1;
         PutOutput put = 2;
         PutAllOutput put_all = 3;
+        PutEntriesOutput put_entries = 12;
         ReplaceOutput replace = 4;
         ContainsOutput contains = 5;
         GetOutput get = 6;
         RemoveOutput remove = 7;
         RemoveAllOutput remove_all = 8;
+        RemoveEntriesOutput remove_entries = 13;
         ClearOutput clear = 9;
         EntriesOutput entries = 10;
         EventsOutput events = 11;
@@ -79,6 +83,16 @@ message PutAllInput {
 }
 
 message PutAllOutput {
+    bool updated = 1;
+}
+
+message PutEntriesInput {
+    repeated Entry entries = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message PutEntriesOutput {
     bool updated = 1;
 }
 
@@ -114,15 +128,26 @@ message RemoveInput {
 }
 
 message RemoveOutput {
-
+    repeated string values = 1;
 }
 
 message RemoveAllInput {
     string key = 1;
+    repeated string values = 2;
 }
 
 message RemoveAllOutput {
-    repeated string values = 1;
+    bool updated = 2;
+}
+
+message RemoveEntriesInput {
+    repeated Entry entries = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message RemoveEntriesOutput {
+    bool updated = 1;
 }
 
 message ClearInput {
@@ -172,5 +197,5 @@ message Event {
 
 message Entry {
     string key = 1;
-    string value = 2;
+    repeated string values = 3;
 }
