@@ -173,12 +173,6 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 	r.watchers[address] = cancel
 
 	go func() {
-		defer func() {
-			r.mu.Lock()
-			defer r.mu.Unlock()
-			delete(r.watchers, address)
-		}()
-
 		for {
 			event, err := stream.Recv()
 			if err == io.EOF {

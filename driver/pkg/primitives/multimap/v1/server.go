@@ -221,6 +221,75 @@ func (s *multiRaftMultiMapServer) PutAll(ctx context.Context, request *atomicmul
 	return response, nil
 }
 
+func (s *multiRaftMultiMapServer) PutEntries(ctx context.Context, request *atomicmultimapv1.PutEntriesRequest) (*atomicmultimapv1.PutEntriesResponse, error) {
+	log.Debugw("PutEntries",
+		logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)))
+	entries := make(map[int][]api.Entry)
+	for _, entry := range request.Entries {
+		index := s.PartitionIndex([]byte(entry.Key))
+		entries[index] = append(entries[index], api.Entry{
+			Key:    entry.Key,
+			Values: entry.Values,
+		})
+	}
+
+	indexes := make([]int, 0, len(entries))
+	for index := range entries {
+		indexes = append(indexes, index)
+	}
+
+	partitions := s.Partitions()
+	results, err := async.ExecuteAsync[bool](len(indexes), func(i int) (bool, error) {
+		index := indexes[i]
+		partition := partitions[index]
+
+		session, err := partition.GetSession(ctx)
+		if err != nil {
+			log.Warnw("PutEntries",
+				logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Error("Error", err))
+			return false, err
+		}
+		primitive, err := session.GetPrimitive(request.ID.Name)
+		if err != nil {
+			log.Warnw("PutEntries",
+				logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Error("Error", err))
+			return false, err
+		}
+		command := client.Command[*api.PutEntriesResponse](primitive)
+		input := &api.PutEntriesInput{
+			Entries: entries[index],
+		}
+		output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.PutEntriesResponse, error) {
+			return api.NewMultiMapClient(conn).PutEntries(ctx, &api.PutEntriesRequest{
+				Headers:         headers,
+				PutEntriesInput: input,
+			})
+		})
+		if err != nil {
+			log.Warnw("PutEntries",
+				logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Error("Error", err))
+			return false, err
+		}
+		return output.Updated, nil
+	})
+	if err != nil {
+		return nil, errors.ToProto(err)
+	}
+	response := &atomicmultimapv1.PutEntriesResponse{}
+	for _, updated := range results {
+		if updated {
+			response.Updated = true
+		}
+	}
+	log.Debugw("PutEntries",
+		logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("PutEntriesResponse", stringer.Truncate(response, truncLen)))
+	return response, nil
+}
+
 func (s *multiRaftMultiMapServer) Replace(ctx context.Context, request *atomicmultimapv1.ReplaceRequest) (*atomicmultimapv1.ReplaceResponse, error) {
 	log.Debugw("Replace",
 		logging.Stringer("ReplaceRequest", stringer.Truncate(request, truncLen)))
@@ -368,7 +437,7 @@ func (s *multiRaftMultiMapServer) Remove(ctx context.Context, request *atomicmul
 		return nil, errors.ToProto(err)
 	}
 	command := client.Command[*api.RemoveResponse](primitive)
-	_, err = command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveResponse, error) {
+	output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveResponse, error) {
 		input := &api.RemoveRequest{
 			Headers: headers,
 			RemoveInput: &api.RemoveInput{
@@ -384,7 +453,9 @@ func (s *multiRaftMultiMapServer) Remove(ctx context.Context, request *atomicmul
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &atomicmultimapv1.RemoveResponse{}
+	response := &atomicmultimapv1.RemoveResponse{
+		Values: output.Values,
+	}
 	log.Debugw("Remove",
 		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
 		logging.Stringer("RemoveResponse", stringer.Truncate(response, truncLen)))
@@ -414,7 +485,8 @@ func (s *multiRaftMultiMapServer) RemoveAll(ctx context.Context, request *atomic
 		input := &api.RemoveAllRequest{
 			Headers: headers,
 			RemoveAllInput: &api.RemoveAllInput{
-				Key: request.Key,
+				Key:    request.Key,
+				Values: request.Values,
 			},
 		}
 		return api.NewMultiMapClient(conn).RemoveAll(ctx, input)
@@ -426,11 +498,80 @@ func (s *multiRaftMultiMapServer) RemoveAll(ctx context.Context, request *atomic
 		return nil, errors.ToProto(err)
 	}
 	response := &atomicmultimapv1.RemoveAllResponse{
-		Values: output.Values,
+		Updated: output.Updated,
 	}
 	log.Debugw("RemoveAll",
 		logging.Stringer("RemoveAllRequest", stringer.Truncate(request, truncLen)),
 		logging.Stringer("RemoveAllResponse", stringer.Truncate(response, truncLen)))
+	return response, nil
+}
+
+func (s *multiRaftMultiMapServer) RemoveEntries(ctx context.Context, request *atomicmultimapv1.RemoveEntriesRequest) (*atomicmultimapv1.RemoveEntriesResponse, error) {
+	log.Debugw("RemoveEntries",
+		logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)))
+	entries := make(map[int][]api.Entry)
+	for _, entry := range request.Entries {
+		index := s.PartitionIndex([]byte(entry.Key))
+		entries[index] = append(entries[index], api.Entry{
+			Key:    entry.Key,
+			Values: entry.Values,
+		})
+	}
+
+	indexes := make([]int, 0, len(entries))
+	for index := range entries {
+		indexes = append(indexes, index)
+	}
+
+	partitions := s.Partitions()
+	results, err := async.ExecuteAsync[bool](len(indexes), func(i int) (bool, error) {
+		index := indexes[i]
+		partition := partitions[index]
+
+		session, err := partition.GetSession(ctx)
+		if err != nil {
+			log.Warnw("RemoveEntries",
+				logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Error("Error", err))
+			return false, err
+		}
+		primitive, err := session.GetPrimitive(request.ID.Name)
+		if err != nil {
+			log.Warnw("RemoveEntries",
+				logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Error("Error", err))
+			return false, err
+		}
+		command := client.Command[*api.RemoveEntriesResponse](primitive)
+		input := &api.RemoveEntriesInput{
+			Entries: entries[index],
+		}
+		output, err := command.Run(func(conn *grpc.ClientConn, headers *multiraftv1.CommandRequestHeaders) (*api.RemoveEntriesResponse, error) {
+			return api.NewMultiMapClient(conn).RemoveEntries(ctx, &api.RemoveEntriesRequest{
+				Headers:            headers,
+				RemoveEntriesInput: input,
+			})
+		})
+		if err != nil {
+			log.Warnw("RemoveEntries",
+				logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)),
+				logging.Error("Error", err))
+			return false, err
+		}
+		return output.Updated, nil
+	})
+	if err != nil {
+		return nil, errors.ToProto(err)
+	}
+	response := &atomicmultimapv1.RemoveEntriesResponse{}
+	for _, updated := range results {
+		if updated {
+			response.Updated = true
+		}
+	}
+	log.Debugw("RemoveEntries",
+		logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveEntriesResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 
@@ -618,8 +759,8 @@ func (s *multiRaftMultiMapServer) Entries(request *atomicmultimapv1.EntriesReque
 			}
 			response := &atomicmultimapv1.EntriesResponse{
 				Entry: atomicmultimapv1.Entry{
-					Key:   output.Entry.Key,
-					Value: output.Entry.Value,
+					Key:    output.Entry.Key,
+					Values: output.Entry.Values,
 				},
 			}
 			log.Debugw("Entries",
