@@ -119,6 +119,32 @@ func (s *MultiMapServer) PutAll(ctx context.Context, request *multimapv1.PutAllR
 	return response, nil
 }
 
+func (s *MultiMapServer) PutEntries(ctx context.Context, request *multimapv1.PutEntriesRequest) (*multimapv1.PutEntriesResponse, error) {
+	log.Debugw("PutEntries",
+		logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)))
+	input := &multimapv1.MultiMapInput{
+		Input: &multimapv1.MultiMapInput_PutEntries{
+			PutEntries: request.PutEntriesInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("PutEntries",
+			logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &multimapv1.PutEntriesResponse{
+		Headers:          headers,
+		PutEntriesOutput: output.GetPutEntries(),
+	}
+	log.Debugw("PutEntries",
+		logging.Stringer("PutEntriesRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("PutEntriesResponse", stringer.Truncate(response, truncLen)))
+	return response, nil
+}
+
 func (s *MultiMapServer) Replace(ctx context.Context, request *multimapv1.ReplaceRequest) (*multimapv1.ReplaceResponse, error) {
 	log.Debugw("Replace",
 		logging.Stringer("ReplaceRequest", stringer.Truncate(request, truncLen)))
@@ -246,6 +272,32 @@ func (s *MultiMapServer) RemoveAll(ctx context.Context, request *multimapv1.Remo
 	log.Debugw("RemoveAll",
 		logging.Stringer("RemoveAllRequest", stringer.Truncate(request, truncLen)),
 		logging.Stringer("RemoveAllResponse", stringer.Truncate(response, truncLen)))
+	return response, nil
+}
+
+func (s *MultiMapServer) RemoveEntries(ctx context.Context, request *multimapv1.RemoveEntriesRequest) (*multimapv1.RemoveEntriesResponse, error) {
+	log.Debugw("RemoveEntries",
+		logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)))
+	input := &multimapv1.MultiMapInput{
+		Input: &multimapv1.MultiMapInput_RemoveEntries{
+			RemoveEntries: request.RemoveEntriesInput,
+		},
+	}
+	output, headers, err := s.protocol.Command(ctx, input, request.Headers)
+	if err != nil {
+		err = errors.ToProto(err)
+		log.Warnw("RemoveEntries",
+			logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)),
+			logging.Error("Error", err))
+		return nil, err
+	}
+	response := &multimapv1.RemoveEntriesResponse{
+		Headers:             headers,
+		RemoveEntriesOutput: output.GetRemoveEntries(),
+	}
+	log.Debugw("RemoveEntries",
+		logging.Stringer("RemoveEntriesRequest", stringer.Truncate(request, truncLen)),
+		logging.Stringer("RemoveEntriesResponse", stringer.Truncate(response, truncLen)))
 	return response, nil
 }
 

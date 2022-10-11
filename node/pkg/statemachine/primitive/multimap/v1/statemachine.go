@@ -47,21 +47,23 @@ func newMultiMapStateMachine(ctx primitive.Context[*multimapv1.MultiMapInput, *m
 
 type MultiMapStateMachine struct {
 	primitive.Context[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput]
-	listeners map[primitive.ProposalID]*multimapv1.MultiMapListener
-	entries   map[string]map[string]bool
-	watchers  map[primitive.QueryID]primitive.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]
-	mu        sync.RWMutex
-	put       primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutInput, *multimapv1.PutOutput]
-	putAll    primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutAllInput, *multimapv1.PutAllOutput]
-	replace   primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ReplaceInput, *multimapv1.ReplaceOutput]
-	remove    primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.RemoveInput, *multimapv1.RemoveOutput]
-	removeAll primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.RemoveAllInput, *multimapv1.RemoveAllOutput]
-	clear     primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ClearInput, *multimapv1.ClearOutput]
-	events    primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.EventsInput, *multimapv1.EventsOutput]
-	size      primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.SizeInput, *multimapv1.SizeOutput]
-	contains  primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ContainsInput, *multimapv1.ContainsOutput]
-	get       primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.GetInput, *multimapv1.GetOutput]
-	list      primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.EntriesInput, *multimapv1.EntriesOutput]
+	listeners     map[primitive.ProposalID]*multimapv1.MultiMapListener
+	entries       map[string]map[string]bool
+	watchers      map[primitive.QueryID]primitive.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]
+	mu            sync.RWMutex
+	put           primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutInput, *multimapv1.PutOutput]
+	putAll        primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutAllInput, *multimapv1.PutAllOutput]
+	putEntries    primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutEntriesInput, *multimapv1.PutEntriesOutput]
+	replace       primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ReplaceInput, *multimapv1.ReplaceOutput]
+	remove        primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.RemoveInput, *multimapv1.RemoveOutput]
+	removeAll     primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.RemoveAllInput, *multimapv1.RemoveAllOutput]
+	removeEntries primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.RemoveEntriesInput, *multimapv1.RemoveEntriesOutput]
+	clear         primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ClearInput, *multimapv1.ClearOutput]
+	events        primitive.Proposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.EventsInput, *multimapv1.EventsOutput]
+	size          primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.SizeInput, *multimapv1.SizeOutput]
+	contains      primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ContainsInput, *multimapv1.ContainsOutput]
+	get           primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.GetInput, *multimapv1.GetOutput]
+	list          primitive.Querier[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.EntriesInput, *multimapv1.EntriesOutput]
 }
 
 func (s *MultiMapStateMachine) init() {
@@ -97,6 +99,22 @@ func (s *MultiMapStateMachine) init() {
 			}
 		}).
 		Build(s.doPutAll)
+	s.putEntries = primitive.NewProposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.PutEntriesInput, *multimapv1.PutEntriesOutput](s).
+		Name("PutEntries").
+		Decoder(func(input *multimapv1.MultiMapInput) (*multimapv1.PutEntriesInput, bool) {
+			if put, ok := input.Input.(*multimapv1.MultiMapInput_PutEntries); ok {
+				return put.PutEntries, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *multimapv1.PutEntriesOutput) *multimapv1.MultiMapOutput {
+			return &multimapv1.MultiMapOutput{
+				Output: &multimapv1.MultiMapOutput_PutEntries{
+					PutEntries: output,
+				},
+			}
+		}).
+		Build(s.doPutEntries)
 	s.replace = primitive.NewProposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ReplaceInput, *multimapv1.ReplaceOutput](s).
 		Name("Replace").
 		Decoder(func(input *multimapv1.MultiMapInput) (*multimapv1.ReplaceInput, bool) {
@@ -145,6 +163,22 @@ func (s *MultiMapStateMachine) init() {
 			}
 		}).
 		Build(s.doRemoveAll)
+	s.removeEntries = primitive.NewProposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.RemoveEntriesInput, *multimapv1.RemoveEntriesOutput](s).
+		Name("RemoveEntries").
+		Decoder(func(input *multimapv1.MultiMapInput) (*multimapv1.RemoveEntriesInput, bool) {
+			if put, ok := input.Input.(*multimapv1.MultiMapInput_RemoveEntries); ok {
+				return put.RemoveEntries, true
+			}
+			return nil, false
+		}).
+		Encoder(func(output *multimapv1.RemoveEntriesOutput) *multimapv1.MultiMapOutput {
+			return &multimapv1.MultiMapOutput{
+				Output: &multimapv1.MultiMapOutput_RemoveEntries{
+					RemoveEntries: output,
+				},
+			}
+		}).
+		Build(s.doRemoveEntries)
 	s.clear = primitive.NewProposer[*multimapv1.MultiMapInput, *multimapv1.MultiMapOutput, *multimapv1.ClearInput, *multimapv1.ClearOutput](s).
 		Name("Clear").
 		Decoder(func(input *multimapv1.MultiMapInput) (*multimapv1.ClearInput, bool) {
@@ -335,12 +369,16 @@ func (s *MultiMapStateMachine) Propose(proposal primitive.Proposal[*multimapv1.M
 		s.put.Execute(proposal)
 	case *multimapv1.MultiMapInput_PutAll:
 		s.putAll.Execute(proposal)
+	case *multimapv1.MultiMapInput_PutEntries:
+		s.putEntries.Execute(proposal)
 	case *multimapv1.MultiMapInput_Replace:
 		s.replace.Execute(proposal)
 	case *multimapv1.MultiMapInput_Remove:
 		s.remove.Execute(proposal)
 	case *multimapv1.MultiMapInput_RemoveAll:
 		s.removeAll.Execute(proposal)
+	case *multimapv1.MultiMapInput_RemoveEntries:
+		s.removeEntries.Execute(proposal)
 	case *multimapv1.MultiMapInput_Clear:
 		s.clear.Execute(proposal)
 	case *multimapv1.MultiMapInput_Events:
@@ -367,7 +405,7 @@ func (s *MultiMapStateMachine) doPut(proposal primitive.Proposal[*multimapv1.Put
 
 	values[proposal.Input().Value] = true
 
-	s.notify(proposal.Input().Key, proposal.Input().Value, &multimapv1.EventsOutput{
+	s.notify(&multimapv1.EventsOutput{
 		Event: multimapv1.Event{
 			Key: proposal.Input().Key,
 			Event: &multimapv1.Event_Added_{
@@ -377,6 +415,8 @@ func (s *MultiMapStateMachine) doPut(proposal primitive.Proposal[*multimapv1.Put
 			},
 		},
 	})
+	s.broadcast(proposal.Input().Key, values)
+
 	proposal.Output(&multimapv1.PutOutput{})
 }
 
@@ -393,7 +433,7 @@ func (s *MultiMapStateMachine) doPutAll(proposal primitive.Proposal[*multimapv1.
 	for _, value := range proposal.Input().Values {
 		if _, ok := values[value]; !ok {
 			values[value] = true
-			s.notify(proposal.Input().Key, value, &multimapv1.EventsOutput{
+			s.notify(&multimapv1.EventsOutput{
 				Event: multimapv1.Event{
 					Key: proposal.Input().Key,
 					Event: &multimapv1.Event_Added_{
@@ -407,7 +447,49 @@ func (s *MultiMapStateMachine) doPutAll(proposal primitive.Proposal[*multimapv1.
 		}
 	}
 
+	if updated {
+		s.broadcast(proposal.Input().Key, values)
+	}
+
 	proposal.Output(&multimapv1.PutAllOutput{
+		Updated: updated,
+	})
+}
+
+func (s *MultiMapStateMachine) doPutEntries(proposal primitive.Proposal[*multimapv1.PutEntriesInput, *multimapv1.PutEntriesOutput]) {
+	defer proposal.Close()
+
+	updated := false
+	for _, entry := range proposal.Input().Entries {
+		values, ok := s.entries[entry.Key]
+		if !ok {
+			values = make(map[string]bool)
+			s.entries[entry.Key] = values
+		}
+
+		entryUpdated := false
+		for _, value := range entry.Values {
+			if _, ok := values[value]; !ok {
+				values[value] = true
+				s.notify(&multimapv1.EventsOutput{
+					Event: multimapv1.Event{
+						Key: entry.Key,
+						Event: &multimapv1.Event_Added_{
+							Added: &multimapv1.Event_Added{
+								Value: value,
+							},
+						},
+					},
+				})
+				entryUpdated = true
+			}
+		}
+		if entryUpdated {
+			s.broadcast(entry.Key, values)
+			updated = true
+		}
+	}
+	proposal.Output(&multimapv1.PutEntriesOutput{
 		Updated: updated,
 	})
 }
@@ -427,9 +509,10 @@ func (s *MultiMapStateMachine) doReplace(proposal primitive.Proposal[*multimapv1
 	newValues := make(map[string]bool)
 	s.entries[proposal.Input().Key] = newValues
 
+	updated := false
 	for _, value := range proposal.Input().Values {
 		if _, ok := oldValues[value]; !ok {
-			s.notify(proposal.Input().Key, value, &multimapv1.EventsOutput{
+			s.notify(&multimapv1.EventsOutput{
 				Event: multimapv1.Event{
 					Key: proposal.Input().Key,
 					Event: &multimapv1.Event_Added_{
@@ -439,6 +522,7 @@ func (s *MultiMapStateMachine) doReplace(proposal primitive.Proposal[*multimapv1
 					},
 				},
 			})
+			updated = true
 		}
 		newValues[value] = true
 	}
@@ -446,7 +530,7 @@ func (s *MultiMapStateMachine) doReplace(proposal primitive.Proposal[*multimapv1
 	prevValues := make([]string, 0, len(oldValues))
 	for value := range oldValues {
 		if _, ok := newValues[value]; !ok {
-			s.notify(proposal.Input().Key, value, &multimapv1.EventsOutput{
+			s.notify(&multimapv1.EventsOutput{
 				Event: multimapv1.Event{
 					Key: proposal.Input().Key,
 					Event: &multimapv1.Event_Removed_{
@@ -456,8 +540,13 @@ func (s *MultiMapStateMachine) doReplace(proposal primitive.Proposal[*multimapv1
 					},
 				},
 			})
+			updated = true
 		}
 		prevValues = append(prevValues, value)
+	}
+
+	if updated {
+		s.broadcast(proposal.Input().Key, newValues)
 	}
 
 	proposal.Output(&multimapv1.ReplaceOutput{
@@ -485,7 +574,7 @@ func (s *MultiMapStateMachine) doRemove(proposal primitive.Proposal[*multimapv1.
 		delete(s.entries, proposal.Input().Key)
 	}
 
-	s.notify(proposal.Input().Key, proposal.Input().Value, &multimapv1.EventsOutput{
+	s.notify(&multimapv1.EventsOutput{
 		Event: multimapv1.Event{
 			Key: proposal.Input().Key,
 			Event: &multimapv1.Event_Removed_{
@@ -495,6 +584,8 @@ func (s *MultiMapStateMachine) doRemove(proposal primitive.Proposal[*multimapv1.
 			},
 		},
 	})
+	s.broadcast(proposal.Input().Key, values)
+
 	proposal.Output(&multimapv1.RemoveOutput{})
 }
 
@@ -503,26 +594,71 @@ func (s *MultiMapStateMachine) doRemoveAll(proposal primitive.Proposal[*multimap
 
 	values, ok := s.entries[proposal.Input().Key]
 	if !ok {
-		proposal.Output(&multimapv1.RemoveAllOutput{})
+		proposal.Error(errors.NewNotFound("entry not found"))
 		return
 	}
 
-	removedValues := make([]string, 0, len(values))
-	for value := range values {
-		s.notify(proposal.Input().Key, value, &multimapv1.EventsOutput{
-			Event: multimapv1.Event{
-				Key: proposal.Input().Key,
-				Event: &multimapv1.Event_Removed_{
-					Removed: &multimapv1.Event_Removed{
-						Value: value,
+	updated := false
+	for _, value := range proposal.Input().Values {
+		if _, ok := values[value]; ok {
+			delete(values, value)
+			s.notify(&multimapv1.EventsOutput{
+				Event: multimapv1.Event{
+					Key: proposal.Input().Key,
+					Event: &multimapv1.Event_Removed_{
+						Removed: &multimapv1.Event_Removed{
+							Value: value,
+						},
 					},
 				},
-			},
-		})
-		removedValues = append(removedValues, value)
+			})
+			if len(values) == 0 {
+				delete(s.entries, proposal.Input().Key)
+			}
+			s.broadcast(proposal.Input().Key, values)
+			updated = true
+		}
 	}
+
 	proposal.Output(&multimapv1.RemoveAllOutput{
-		Values: removedValues,
+		Updated: updated,
+	})
+}
+
+func (s *MultiMapStateMachine) doRemoveEntries(proposal primitive.Proposal[*multimapv1.RemoveEntriesInput, *multimapv1.RemoveEntriesOutput]) {
+	defer proposal.Close()
+
+	updated := false
+	for _, entry := range proposal.Input().Entries {
+		if values, ok := s.entries[entry.Key]; ok {
+			entryUpdated := false
+			for _, value := range entry.Values {
+				if _, ok := values[value]; ok {
+					delete(values, value)
+					s.notify(&multimapv1.EventsOutput{
+						Event: multimapv1.Event{
+							Key: entry.Key,
+							Event: &multimapv1.Event_Removed_{
+								Removed: &multimapv1.Event_Removed{
+									Value: value,
+								},
+							},
+						},
+					})
+					entryUpdated = true
+				}
+			}
+			if entryUpdated {
+				if len(values) == 0 {
+					delete(s.entries, entry.Key)
+				}
+				s.broadcast(entry.Key, values)
+				updated = true
+			}
+		}
+	}
+	proposal.Output(&multimapv1.RemoveEntriesOutput{
+		Updated: updated,
 	})
 }
 
@@ -530,7 +666,7 @@ func (s *MultiMapStateMachine) doClear(proposal primitive.Proposal[*multimapv1.C
 	defer proposal.Close()
 	for key, values := range s.entries {
 		for value := range values {
-			s.notify(key, value, &multimapv1.EventsOutput{
+			s.notify(&multimapv1.EventsOutput{
 				Event: multimapv1.Event{
 					Key: key,
 					Event: &multimapv1.Event_Removed_{
@@ -542,6 +678,7 @@ func (s *MultiMapStateMachine) doClear(proposal primitive.Proposal[*multimapv1.C
 			})
 		}
 		delete(s.entries, key)
+		s.broadcast(key, nil)
 	}
 	proposal.Output(&multimapv1.ClearOutput{})
 }
@@ -615,15 +752,17 @@ func (s *MultiMapStateMachine) doGet(query primitive.Query[*multimapv1.GetInput,
 }
 
 func (s *MultiMapStateMachine) doEntries(query primitive.Query[*multimapv1.EntriesInput, *multimapv1.EntriesOutput]) {
-	for key, values := range s.entries {
-		for value := range values {
-			query.Output(&multimapv1.EntriesOutput{
-				Entry: multimapv1.Entry{
-					Key:   key,
-					Value: value,
-				},
-			})
+	for key, set := range s.entries {
+		values := make([]string, 0, len(set))
+		for value := range set {
+			values = append(values, value)
 		}
+		query.Output(&multimapv1.EntriesOutput{
+			Entry: multimapv1.Entry{
+				Key:    key,
+				Values: values,
+			},
+		})
 	}
 
 	if query.Input().Watch {
@@ -642,7 +781,7 @@ func (s *MultiMapStateMachine) doEntries(query primitive.Query[*multimapv1.Entri
 	}
 }
 
-func (s *MultiMapStateMachine) notify(key string, value string, event *multimapv1.EventsOutput) {
+func (s *MultiMapStateMachine) notify(event *multimapv1.EventsOutput) {
 	for proposalID, listener := range s.listeners {
 		if listener.Key == "" || listener.Key == event.Event.Key {
 			proposal, ok := s.events.Proposals().Get(proposalID)
@@ -653,14 +792,21 @@ func (s *MultiMapStateMachine) notify(key string, value string, event *multimapv
 			}
 		}
 	}
+}
+
+func (s *MultiMapStateMachine) broadcast(key string, valuesSet map[string]bool) {
+	values := make([]string, 0, len(valuesSet))
+	for value := range valuesSet {
+		values = append(values, value)
+	}
 
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	for _, watcher := range s.watchers {
 		watcher.Output(&multimapv1.EntriesOutput{
 			Entry: multimapv1.Entry{
-				Key:   key,
-				Value: value,
+				Key:    key,
+				Values: values,
 			},
 		})
 	}
