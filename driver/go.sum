@@ -2,8 +2,8 @@ cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMT
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
-github.com/atomix/multi-raft-storage/api v0.6.0 h1:JfTMd4QlNEEd5/Vgt75ZyPGL1YKBkTE4r4dTZSBkeFQ=
-github.com/atomix/multi-raft-storage/api v0.6.0/go.mod h1:d4NYqqKf8/chxB0fVfGatdsT3htAr108ewobUtCs0+E=
+github.com/atomix/multi-raft-storage/api v0.6.1 h1:ulCWXb0wbfqFliLyG9C2mHUyjvfw30yb+rhjYRMJxf0=
+github.com/atomix/multi-raft-storage/api v0.6.1/go.mod h1:d4NYqqKf8/chxB0fVfGatdsT3htAr108ewobUtCs0+E=
 github.com/atomix/runtime/api v0.6.0 h1:h6yLhwhlFCEFlRiByahmJ26PJn/2hIjFJrLSLmC1j2Y=
 github.com/atomix/runtime/api v0.6.0/go.mod h1:tjbd3w4yij89ZHCYdQUbmvZMC0HoHQQ/3/gVzQuOCH0=
 github.com/atomix/runtime/sdk v0.6.0 h1:lti62QvnvSfbCHjK37t8uY9Ccfl9Sfa5JfxakxomZjY=
