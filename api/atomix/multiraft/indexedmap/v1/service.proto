@@ -30,6 +30,11 @@ service IndexedMap {
         option (atomix.multiraft.v1.operation_type) = COMMAND;
     }
 
+    // Remove removes an entry from the map
+    rpc Remove (RemoveRequest) returns (RemoveResponse) {
+        option (atomix.multiraft.v1.operation_type) = COMMAND;
+    }
+
     // Get gets the entry for a key
     rpc Get (GetRequest) returns (GetResponse) {
         option (atomix.multiraft.v1.operation_type) = QUERY;

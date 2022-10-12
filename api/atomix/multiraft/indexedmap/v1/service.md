@@ -442,6 +442,7 @@ IndexedMap is a service for an indexed map primitive
 | Size | [SizeRequest](#atomix-multiraft-indexedmap-v1-SizeRequest) | [SizeResponse](#atomix-multiraft-indexedmap-v1-SizeResponse) | Size returns the size of the map |
 | Append | [AppendRequest](#atomix-multiraft-indexedmap-v1-AppendRequest) | [AppendResponse](#atomix-multiraft-indexedmap-v1-AppendResponse) | Append appends an entry to the map |
 | Update | [UpdateRequest](#atomix-multiraft-indexedmap-v1-UpdateRequest) | [UpdateResponse](#atomix-multiraft-indexedmap-v1-UpdateResponse) | Update updates an entry in the map |
+| Remove | [RemoveRequest](#atomix-multiraft-indexedmap-v1-RemoveRequest) | [RemoveResponse](#atomix-multiraft-indexedmap-v1-RemoveResponse) | Remove removes an entry from the map |
 | Get | [GetRequest](#atomix-multiraft-indexedmap-v1-GetRequest) | [GetResponse](#atomix-multiraft-indexedmap-v1-GetResponse) | Get gets the entry for a key |
 | FirstEntry | [FirstEntryRequest](#atomix-multiraft-indexedmap-v1-FirstEntryRequest) | [FirstEntryResponse](#atomix-multiraft-indexedmap-v1-FirstEntryResponse) | FirstEntry gets the first entry in the map |
 | LastEntry | [LastEntryRequest](#atomix-multiraft-indexedmap-v1-LastEntryRequest) | [LastEntryResponse](#atomix-multiraft-indexedmap-v1-LastEntryResponse) | LastEntry gets the last entry in the map |
