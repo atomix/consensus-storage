@@ -94,9 +94,7 @@ message UpdateInput {
         (gogoproto.customname) = "TTL",
         (gogoproto.stdduration) = true
     ];
-    uint64 prev_index = 5 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
+    uint64 prev_version = 5;
 }
 
 message UpdateOutput {
@@ -147,9 +145,7 @@ message NextEntryOutput {
 message RemoveInput {
     string key = 1;
     uint64 index = 2;
-    uint64 prev_index = 3 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
+    uint64 prev_version = 3;
 }
 
 message RemoveOutput {
