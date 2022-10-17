@@ -26,7 +26,6 @@
     - [IndexedMapListener](#atomix-multiraft-indexedmap-v1-IndexedMapListener)
     - [IndexedMapOutput](#atomix-multiraft-indexedmap-v1-IndexedMapOutput)
     - [IndexedMapValue](#atomix-multiraft-indexedmap-v1-IndexedMapValue)
-    - [IndexedValue](#atomix-multiraft-indexedmap-v1-IndexedValue)
     - [LastEntryInput](#atomix-multiraft-indexedmap-v1-LastEntryInput)
     - [LastEntryOutput](#atomix-multiraft-indexedmap-v1-LastEntryOutput)
     - [NextEntryInput](#atomix-multiraft-indexedmap-v1-NextEntryInput)
@@ -39,6 +38,7 @@
     - [SizeOutput](#atomix-multiraft-indexedmap-v1-SizeOutput)
     - [UpdateInput](#atomix-multiraft-indexedmap-v1-UpdateInput)
     - [UpdateOutput](#atomix-multiraft-indexedmap-v1-UpdateOutput)
+    - [Value](#atomix-multiraft-indexedmap-v1-Value)
   
 - [Scalar Value Types](#scalar-value-types)
 
@@ -143,7 +143,7 @@
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
 | index | [uint64](#uint64) |  |  |
-| value | [IndexedValue](#atomix-multiraft-indexedmap-v1-IndexedValue) |  |  |
+| value | [Value](#atomix-multiraft-indexedmap-v1-Value) |  |  |
 
 
 
@@ -177,7 +177,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [IndexedValue](#atomix-multiraft-indexedmap-v1-IndexedValue) |  |  |
+| value | [Value](#atomix-multiraft-indexedmap-v1-Value) |  |  |
 
 
 
@@ -192,7 +192,7 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [IndexedValue](#atomix-multiraft-indexedmap-v1-IndexedValue) |  |  |
+| value | [Value](#atomix-multiraft-indexedmap-v1-Value) |  |  |
 | expired | [bool](#bool) |  |  |
 
 
@@ -208,8 +208,8 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| value | [IndexedValue](#atomix-multiraft-indexedmap-v1-IndexedValue) |  |  |
-| prev_value | [IndexedValue](#atomix-multiraft-indexedmap-v1-IndexedValue) |  |  |
+| value | [Value](#atomix-multiraft-indexedmap-v1-Value) |  |  |
+| prev_value | [Value](#atomix-multiraft-indexedmap-v1-Value) |  |  |
 
 
 
@@ -311,6 +311,7 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | key | [string](#string) |  |  |
+| index | [uint64](#uint64) |  |  |
 | value | [IndexedMapValue](#atomix-multiraft-indexedmap-v1-IndexedMapValue) |  |  |
 
 
@@ -395,24 +396,8 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | value | [bytes](#bytes) |  |  |
-| index | [uint64](#uint64) |  |  |
+| version | [uint64](#uint64) |  |  |
 | expire | [google.protobuf.Timestamp](#google-protobuf-Timestamp) |  |  |
-
-
-
-
-
-
-<a name="atomix-multiraft-indexedmap-v1-IndexedValue"></a>
-
-### IndexedValue
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| value | [bytes](#bytes) |  |  |
-| index | [uint64](#uint64) |  |  |
 
 
 
@@ -589,6 +574,22 @@
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | entry | [Entry](#atomix-multiraft-indexedmap-v1-Entry) |  |  |
+
+
+
+
+
+
+<a name="atomix-multiraft-indexedmap-v1-Value"></a>
+
+### Value
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| value | [bytes](#bytes) |  |  |
+| version | [uint64](#uint64) |  |  |
 
 
 

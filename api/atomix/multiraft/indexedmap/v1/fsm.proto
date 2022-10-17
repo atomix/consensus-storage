@@ -13,22 +13,19 @@ import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
 message IndexedMapListener {
-    uint64 index = 1 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
+    uint64 index = 1;
     string key = 2;
 }
 
 message IndexedMapEntry {
     string key = 1;
-    IndexedMapValue value = 2;
+    uint64 index = 2;
+    IndexedMapValue value = 3;
 }
 
 message IndexedMapValue {
     bytes value = 1;
-    uint64 index = 2 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
+    uint64 version = 2;
     google.protobuf.Timestamp expire = 3 [
         (gogoproto.stdtime) = true
     ];
@@ -69,7 +66,7 @@ message IndexedMapOutput {
 }
 
 message SizeInput {
-    
+
 }
 
 message SizeOutput {
@@ -116,7 +113,7 @@ message GetOutput {
 }
 
 message FirstEntryInput {
-    
+
 }
 
 message FirstEntryOutput {
@@ -124,7 +121,7 @@ message FirstEntryOutput {
 }
 
 message LastEntryInput {
-    
+
 }
 
 message LastEntryOutput {
@@ -160,7 +157,7 @@ message RemoveOutput {
 }
 
 message ClearInput {
-    
+
 }
 
 message ClearOutput {
@@ -198,37 +195,35 @@ message Event {
     }
 
     message Inserted {
-        IndexedValue value = 1 [
+        Value value = 1 [
             (gogoproto.nullable) = false
         ];
     }
 
     message Updated {
-        IndexedValue value = 1 [
+        Value value = 1 [
             (gogoproto.nullable) = false
         ];
-        IndexedValue prev_value = 2 [
+        Value prev_value = 2 [
             (gogoproto.nullable) = false
         ];
     }
 
     message Removed {
-        IndexedValue value = 1 [
+        Value value = 1 [
             (gogoproto.nullable) = false
         ];
         bool expired = 2;
     }
 }
 
-message IndexedValue {
+message Value {
     bytes value = 1;
-    uint64 index = 2 [
-        (gogoproto.casttype) = "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1.Index"
-    ];
+    uint64 version = 2;
 }
 
 message Entry {
     string key = 1;
     uint64 index = 2;
-    IndexedValue value = 3;
+    Value value = 3;
 }
