@@ -13,6 +13,7 @@ import (
 	electionv1 "github.com/atomix/runtime/api/atomix/runtime/election/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -24,14 +25,16 @@ const Service = "atomix.runtime.election.v1.LeaderElection"
 
 const truncLen = 200
 
-func NewLeaderElectionServer(protocol *client.Protocol) electionv1.LeaderElectionServer {
+func NewLeaderElectionServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (electionv1.LeaderElectionServer, error) {
 	return &multiRaftLeaderElectionServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftLeaderElectionServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftLeaderElectionServer) Create(ctx context.Context, request *electionv1.CreateRequest) (*electionv1.CreateResponse, error) {
@@ -44,7 +47,7 @@ func (s *multiRaftLeaderElectionServer) Create(ctx context.Context, request *ele
 		if err != nil {
 			return err
 		}
-		return session.CreatePrimitive(ctx, request.ID.Name, Service)
+		return session.CreatePrimitive(ctx, s.PrimitiveSpec)
 	})
 	if err != nil {
 		log.Warnw("Create",

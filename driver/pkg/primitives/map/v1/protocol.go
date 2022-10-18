@@ -13,6 +13,7 @@ import (
 	atomicmapv1 "github.com/atomix/runtime/api/atomix/runtime/map/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -22,14 +23,16 @@ const Service = "atomix.runtime.map.v1.Map"
 
 const truncLen = 200
 
-func newMultiRaftMapServer(protocol *client.Protocol) atomicmapv1.MapServer {
+func newMultiRaftMapServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) atomicmapv1.MapServer {
 	return &multiRaftMapServer{
-		Protocol: protocol,
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
 	}
 }
 
 type multiRaftMapServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftMapServer) Create(ctx context.Context, request *atomicmapv1.CreateRequest) (*atomicmapv1.CreateResponse, error) {
@@ -42,7 +45,7 @@ func (s *multiRaftMapServer) Create(ctx context.Context, request *atomicmapv1.Cr
 		if err != nil {
 			return err
 		}
-		return session.CreatePrimitive(ctx, request.ID.Name, Service)
+		return session.CreatePrimitive(ctx, s.PrimitiveSpec)
 	})
 	if err != nil {
 		log.Warnw("Create",

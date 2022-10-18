@@ -13,6 +13,7 @@ import (
 	lockv1 "github.com/atomix/runtime/api/atomix/runtime/lock/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 )
@@ -23,14 +24,16 @@ const Service = "atomix.runtime.lock.v1.Lock"
 
 const truncLen = 200
 
-func NewLockServer(protocol *client.Protocol) lockv1.LockServer {
+func NewLockServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (lockv1.LockServer, error) {
 	return &multiRaftLockServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftLockServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftLockServer) Create(ctx context.Context, request *lockv1.CreateRequest) (*lockv1.CreateResponse, error) {
@@ -43,7 +46,7 @@ func (s *multiRaftLockServer) Create(ctx context.Context, request *lockv1.Create
 		if err != nil {
 			return err
 		}
-		return session.CreatePrimitive(ctx, request.ID.Name, Service)
+		return session.CreatePrimitive(ctx, s.PrimitiveSpec)
 	})
 	if err != nil {
 		log.Warnw("Create",

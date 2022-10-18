@@ -13,6 +13,7 @@ import (
 	atomicsetv1 "github.com/atomix/runtime/api/atomix/runtime/set/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -24,14 +25,16 @@ const Service = "atomix.runtime.set.v1.Set"
 
 const truncLen = 200
 
-func NewSetServer(protocol *client.Protocol, config api.SetConfig) atomicsetv1.SetServer {
+func NewSetServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (atomicsetv1.SetServer, error) {
 	return &multiRaftSetServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftSetServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftSetServer) Create(ctx context.Context, request *atomicsetv1.CreateRequest) (*atomicsetv1.CreateResponse, error) {
@@ -44,7 +47,7 @@ func (s *multiRaftSetServer) Create(ctx context.Context, request *atomicsetv1.Cr
 		if err != nil {
 			return err
 		}
-		return session.CreatePrimitive(ctx, request.ID.Name, Service)
+		return session.CreatePrimitive(ctx, s.PrimitiveSpec)
 	})
 	if err != nil {
 		log.Warnw("Create",

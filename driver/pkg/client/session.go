@@ -56,22 +56,23 @@ type SessionClient struct {
 	recorder     *Recorder
 }
 
-func (s *SessionClient) CreatePrimitive(ctx context.Context, name string, service string) error {
+func (s *SessionClient) CreatePrimitive(ctx context.Context, spec runtime.PrimitiveSpec) error {
 	s.primitivesMu.Lock()
 	defer s.primitivesMu.Unlock()
-	primitive, ok := s.primitives[name]
+	primitive, ok := s.primitives[spec.Name]
 	if ok {
 		return nil
 	}
 	primitive = newPrimitiveClient(s, multiraftv1.PrimitiveSpec{
-		Service:   service,
-		Namespace: runtime.GetNamespace(),
-		Name:      name,
+		Service:   spec.Service,
+		Namespace: spec.Namespace,
+		Profile:   spec.Profile,
+		Name:      spec.Name,
 	})
 	if err := primitive.open(ctx); err != nil {
 		return err
 	}
-	s.primitives[name] = primitive
+	s.primitives[spec.Name] = primitive
 	return nil
 }
 

@@ -12,6 +12,7 @@ import (
 	valuev1 "github.com/atomix/runtime/api/atomix/runtime/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -23,14 +24,16 @@ const Service = "atomix.runtime.value.v1.Value"
 
 const truncLen = 200
 
-func NewValueServer(protocol *client.Protocol, config api.ValueConfig) valuev1.ValueServer {
+func NewValueServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (valuev1.ValueServer, error) {
 	return &multiRaftValueServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftValueServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftValueServer) Create(ctx context.Context, request *valuev1.CreateRequest) (*valuev1.CreateResponse, error) {
@@ -44,7 +47,7 @@ func (s *multiRaftValueServer) Create(ctx context.Context, request *valuev1.Crea
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	if err := session.CreatePrimitive(ctx, request.ID.Name, Service); err != nil {
+	if err := session.CreatePrimitive(ctx, s.PrimitiveSpec); err != nil {
 		log.Warnw("Create",
 			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))

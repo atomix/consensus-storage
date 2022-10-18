@@ -6,7 +6,7 @@ package main
 
 import (
 	"github.com/atomix/multi-raft-storage/driver"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/network"
 )
 
-var Plugin = driver.New(runtime.NewNetwork())
+var Plugin = driver.New(network.NewNetwork())

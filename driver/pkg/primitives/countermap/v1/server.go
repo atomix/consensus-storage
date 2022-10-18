@@ -13,6 +13,7 @@ import (
 	atomiccountermapv1 "github.com/atomix/runtime/api/atomix/runtime/countermap/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -24,14 +25,16 @@ const Service = "atomix.runtime.countermap.v1.CounterMap"
 
 const truncLen = 200
 
-func NewCounterMapServer(protocol *client.Protocol) atomiccountermapv1.CounterMapServer {
+func NewCounterMapServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (atomiccountermapv1.CounterMapServer, error) {
 	return &multiRaftCounterMapServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftCounterMapServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftCounterMapServer) Create(ctx context.Context, request *atomiccountermapv1.CreateRequest) (*atomiccountermapv1.CreateResponse, error) {
@@ -44,7 +47,7 @@ func (s *multiRaftCounterMapServer) Create(ctx context.Context, request *atomicc
 		if err != nil {
 			return err
 		}
-		return session.CreatePrimitive(ctx, request.ID.Name, Service)
+		return session.CreatePrimitive(ctx, s.PrimitiveSpec)
 	})
 	if err != nil {
 		log.Warnw("Create",

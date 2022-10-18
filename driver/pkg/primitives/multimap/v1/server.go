@@ -13,6 +13,7 @@ import (
 	atomicmultimapv1 "github.com/atomix/runtime/api/atomix/runtime/multimap/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -24,14 +25,16 @@ const Service = "atomix.runtime.multimap.v1.MultiMap"
 
 const truncLen = 200
 
-func NewMultiMapServer(protocol *client.Protocol) atomicmultimapv1.MultiMapServer {
+func NewMultiMapServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (atomicmultimapv1.MultiMapServer, error) {
 	return &multiRaftMultiMapServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftMultiMapServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftMultiMapServer) Create(ctx context.Context, request *atomicmultimapv1.CreateRequest) (*atomicmultimapv1.CreateResponse, error) {
@@ -44,7 +47,7 @@ func (s *multiRaftMultiMapServer) Create(ctx context.Context, request *atomicmul
 		if err != nil {
 			return err
 		}
-		return session.CreatePrimitive(ctx, request.ID.Name, Service)
+		return session.CreatePrimitive(ctx, s.PrimitiveSpec)
 	})
 	if err != nil {
 		log.Warnw("Create",

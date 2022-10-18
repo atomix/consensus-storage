@@ -12,6 +12,7 @@ import (
 	indexedmapv1 "github.com/atomix/runtime/api/atomix/runtime/indexedmap/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 	"io"
@@ -23,14 +24,16 @@ const Service = "atomix.runtime.indexedmap.v1.IndexedMap"
 
 const truncLen = 200
 
-func NewIndexedMapServer(protocol *client.Protocol, config api.IndexedMapConfig) indexedmapv1.IndexedMapServer {
+func NewIndexedMapServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (indexedmapv1.IndexedMapServer, error) {
 	return &multiRaftIndexedMapServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftIndexedMapServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftIndexedMapServer) Create(ctx context.Context, request *indexedmapv1.CreateRequest) (*indexedmapv1.CreateResponse, error) {
@@ -44,7 +47,7 @@ func (s *multiRaftIndexedMapServer) Create(ctx context.Context, request *indexed
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	if err := session.CreatePrimitive(ctx, request.ID.Name, Service); err != nil {
+	if err := session.CreatePrimitive(ctx, s.PrimitiveSpec); err != nil {
 		log.Warnw("Create",
 			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))

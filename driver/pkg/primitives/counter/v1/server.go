@@ -12,6 +12,7 @@ import (
 	counterv1 "github.com/atomix/runtime/api/atomix/runtime/counter/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
+	"github.com/atomix/runtime/sdk/pkg/runtime"
 	"github.com/atomix/runtime/sdk/pkg/stringer"
 	"google.golang.org/grpc"
 )
@@ -22,14 +23,16 @@ const Service = "atomix.runtime.counter.v1.Counter"
 
 const truncLen = 200
 
-func NewCounterServer(protocol *client.Protocol, config api.CounterConfig) counterv1.CounterServer {
+func NewCounterServer(protocol *client.Protocol, spec runtime.PrimitiveSpec) (counterv1.CounterServer, error) {
 	return &multiRaftCounterServer{
-		Protocol: protocol,
-	}
+		Protocol:      protocol,
+		PrimitiveSpec: spec,
+	}, nil
 }
 
 type multiRaftCounterServer struct {
 	*client.Protocol
+	runtime.PrimitiveSpec
 }
 
 func (s *multiRaftCounterServer) Create(ctx context.Context, request *counterv1.CreateRequest) (*counterv1.CreateResponse, error) {
@@ -43,7 +46,7 @@ func (s *multiRaftCounterServer) Create(ctx context.Context, request *counterv1.
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	if err := session.CreatePrimitive(ctx, request.ID.Name, Service); err != nil {
+	if err := session.CreatePrimitive(ctx, s.PrimitiveSpec); err != nil {
 		log.Warnw("Create",
 			logging.Stringer("CreateRequest", stringer.Truncate(request, truncLen)),
 			logging.Error("Error", err))

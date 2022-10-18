@@ -10,7 +10,7 @@ import (
 	"encoding/json"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/network"
 	"github.com/bits-and-blooms/bloom/v3"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +28,7 @@ func TestPrimitiveCreateClose(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()
@@ -201,7 +201,7 @@ func TestUnaryCommand(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()
@@ -350,7 +350,7 @@ func TestStreamCommand(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()
@@ -588,7 +588,7 @@ func TestStreamCommandCancel(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()
@@ -824,7 +824,7 @@ func TestUnaryQuery(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()
@@ -972,7 +972,7 @@ func TestStreamQuery(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()
@@ -1205,7 +1205,7 @@ func TestStreamQueryCancel(t *testing.T) {
 	sessionServer := NewMockSessionServer(ctrl)
 	testServer := NewMockTestServer(ctrl)
 
-	network := runtime.NewLocalNetwork()
+	network := network.NewLocalNetwork()
 	lis, err := network.Listen("localhost:5678")
 
 	server := grpc.NewServer()

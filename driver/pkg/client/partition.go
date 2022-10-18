@@ -10,7 +10,7 @@ import (
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/grpc/retry"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/network"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,7 +18,7 @@ import (
 	"time"
 )
 
-func newPartitionClient(id multiraftv1.PartitionID, network runtime.Network, sessionTimeout time.Duration) *PartitionClient {
+func newPartitionClient(id multiraftv1.PartitionID, network network.Network, sessionTimeout time.Duration) *PartitionClient {
 	return &PartitionClient{
 		network:        network,
 		id:             id,
@@ -27,7 +27,7 @@ func newPartitionClient(id multiraftv1.PartitionID, network runtime.Network, ses
 }
 
 type PartitionClient struct {
-	network        runtime.Network
+	network        network.Network
 	id             multiraftv1.PartitionID
 	sessionTimeout time.Duration
 	state          *PartitionState
