@@ -309,6 +309,7 @@
 | service | [string](#string) |  |  |
 | namespace | [string](#string) |  |  |
 | name | [string](#string) |  |  |
+| profile | [string](#string) |  |  |
 
 
 

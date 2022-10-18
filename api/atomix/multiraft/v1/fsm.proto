@@ -249,6 +249,7 @@ message PrimitiveSpec {
     string service = 1;
     string namespace = 2;
     string name = 3;
+    string profile = 4;
 }
 
 message SessionSnapshot {
