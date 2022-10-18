@@ -38,14 +38,14 @@ import (
 	setsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/set/v1"
 	valuesmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/value/v1"
 	"github.com/atomix/runtime/sdk/pkg/logging"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/network"
 	"google.golang.org/grpc"
 	"os"
 )
 
 var log = logging.GetLogger()
 
-func New(network runtime.Network, opts ...Option) *MultiRaftNode {
+func New(network network.Network, opts ...Option) *MultiRaftNode {
 	var options Options
 	options.apply(opts...)
 	registry := primitive.NewTypeRegistry()
@@ -68,7 +68,7 @@ func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 
 type MultiRaftNode struct {
 	Options
-	network  runtime.Network
+	network  network.Network
 	protocol *protocol.Node
 	server   *grpc.Server
 }

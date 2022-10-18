@@ -83,7 +83,7 @@ func (s *primitiveSession[I, O]) Log() logging.Logger {
 }
 
 func (s *primitiveSession[I, O]) ID() SessionID {
-	return SessionID(s.parent.ID())
+	return s.parent.ID()
 }
 
 func (s *primitiveSession[I, O]) State() SessionState {

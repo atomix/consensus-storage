@@ -62,12 +62,14 @@ type Info interface {
 	ID() ID
 	// Log returns the service logger
 	Log() logging.Logger
-	// Service returns the service name
+	// Service returns the primitive service name
 	Service() string
-	// Namespace returns the service namespace
+	// Namespace returns the primitive namespace
 	Namespace() string
-	// Name returns the service name
+	// Name returns the primitive name
 	Name() string
+	// Profile returns the profile in which the primitive was created
+	Profile() string
 }
 
 type Context[I, O any] interface {
@@ -92,30 +94,27 @@ type managedPrimitive interface {
 	query(query session.Query[*multiraftv1.PrimitiveQueryInput, *multiraftv1.PrimitiveQueryOutput])
 }
 
-func newPrimitiveContext[I, O any](parent session.Context, id ID, namespace string, name string, primitiveType Type[I, O]) *primitiveContext[I, O] {
+func newPrimitiveContext[I, O any](parent session.Context, id ID, spec multiraftv1.PrimitiveSpec, primitiveType Type[I, O]) *primitiveContext[I, O] {
 	return &primitiveContext[I, O]{
 		Context:   parent,
 		id:        id,
-		namespace: namespace,
-		name:      name,
-		service:   primitiveType.Service(),
+		spec:      spec,
 		sessions:  newPrimitiveSessions[I, O](),
 		proposals: newPrimitiveProposals[I, O](),
 		codec:     primitiveType.Codec(),
 		log: log.WithFields(
 			logging.String("Service", primitiveType.Service()),
 			logging.Uint64("Primitive", uint64(id)),
-			logging.String("Namespace", namespace),
-			logging.String("Name", name)),
+			logging.String("Namespace", spec.Namespace),
+			logging.String("Profile", spec.Profile),
+			logging.String("Name", spec.Name)),
 	}
 }
 
 type primitiveContext[I, O any] struct {
 	session.Context
 	id        ID
-	namespace string
-	name      string
-	service   string
+	spec      multiraftv1.PrimitiveSpec
 	codec     Codec[I, O]
 	sessions  *primitiveSessions[I, O]
 	proposals *primitiveProposals[I, O]
@@ -131,15 +130,19 @@ func (c *primitiveContext[I, O]) ID() ID {
 }
 
 func (c *primitiveContext[I, O]) Service() string {
-	return c.service
+	return c.spec.Service
 }
 
 func (c *primitiveContext[I, O]) Namespace() string {
-	return c.namespace
+	return c.spec.Namespace
 }
 
 func (c *primitiveContext[I, O]) Name() string {
-	return c.name
+	return c.spec.Name
+}
+
+func (c *primitiveContext[I, O]) Profile() string {
+	return c.spec.Profile
 }
 
 func (c *primitiveContext[I, O]) Sessions() Sessions {
@@ -150,8 +153,8 @@ func (c *primitiveContext[I, O]) Proposals() Proposals[I, O] {
 	return c.proposals
 }
 
-func newPrimitive[I, O any](parent session.Context, id ID, namespace string, name string, primitiveType Type[I, O]) managedPrimitive {
-	context := newPrimitiveContext[I, O](parent, id, namespace, name, primitiveType)
+func newPrimitive[I, O any](parent session.Context, id ID, spec multiraftv1.PrimitiveSpec, primitiveType Type[I, O]) managedPrimitive {
+	context := newPrimitiveContext[I, O](parent, id, spec, primitiveType)
 	return &primitiveExecutor[I, O]{
 		primitiveContext: context,
 		sm:               primitiveType.NewStateMachine(context),

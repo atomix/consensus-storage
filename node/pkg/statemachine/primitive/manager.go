@@ -66,7 +66,7 @@ func (m *primitiveManager) Recover(reader *snapshot.Reader) error {
 			return errors.NewFault("primitive type not found")
 		}
 		primitiveID := ID(snapshot.PrimitiveID)
-		primitive := factory(m.Context, primitiveID, snapshot.Spec.Namespace, snapshot.Spec.Name)
+		primitive := factory(m.Context, primitiveID, snapshot.Spec)
 		m.primitives[primitiveID] = primitive
 		if err := primitive.Recover(reader); err != nil {
 			return err
@@ -89,7 +89,8 @@ func (m *primitiveManager) CreatePrimitive(proposal session.CreatePrimitivePropo
 	var primitive managedPrimitive
 	for _, p := range m.primitives {
 		if p.Namespace() == proposal.Input().Namespace &&
-			p.Name() == proposal.Input().Name {
+			p.Name() == proposal.Input().Name &&
+			p.Profile() == proposal.Input().Profile {
 			if p.Service() != proposal.Input().Service {
 				proposal.Error(errors.NewForbidden("cannot create primitive of a different type with the same name"))
 				proposal.Close()
@@ -108,7 +109,7 @@ func (m *primitiveManager) CreatePrimitive(proposal session.CreatePrimitivePropo
 			return
 		} else {
 			primitiveID := ID(proposal.ID())
-			primitive = factory(m.Context, primitiveID, proposal.Input().Namespace, proposal.Input().Name)
+			primitive = factory(m.Context, primitiveID, proposal.Input().PrimitiveSpec)
 			m.primitives[primitiveID] = primitive
 		}
 	}

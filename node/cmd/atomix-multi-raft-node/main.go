@@ -9,7 +9,7 @@ import (
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/node"
-	"github.com/atomix/runtime/sdk/pkg/runtime"
+	"github.com/atomix/runtime/sdk/pkg/network"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/spf13/cobra"
 	"io/ioutil"
@@ -61,7 +61,7 @@ func main() {
 
 			// Create the multi-raft node
 			node := node.New(
-				runtime.NewNetwork(),
+				network.NewNetwork(),
 				node.WithHost(apiHost),
 				node.WithPort(apiPort),
 				node.WithConfig(multiraftv1.NodeConfig{
