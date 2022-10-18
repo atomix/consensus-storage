@@ -6,7 +6,7 @@
 
 // Package v3beta1 contains API Schema definitions for the cloud v3beta1 API group
 // +k8s:deepcopy-gen=package,register
-// +groupName=multiraft.storage.atomix.io
+// +groupName=multiraft.atomix.io
 package v3beta1
 
 import (
@@ -16,7 +16,7 @@ import (
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: "multiraft.storage.atomix.io", Version: "v3beta1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: "multiraft.atomix.io", Version: "v3beta1"}
 
 // Kind takes an unqualified kind and returns a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {

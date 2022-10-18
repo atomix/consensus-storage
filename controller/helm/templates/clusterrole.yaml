@@ -43,8 +43,8 @@ rules:
     verbs:
       - '*'
   - apiGroups:
-      - storage.atomix.io
-      - multiraft.storage.atomix.io
+      - atomix.io
+      - multiraft.atomix.io
     resources:
       - '*'
     verbs:

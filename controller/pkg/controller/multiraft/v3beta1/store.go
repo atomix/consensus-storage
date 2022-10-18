@@ -9,7 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	atomixv3beta2 "github.com/atomix/runtime/controller/pkg/apis/storage/v3beta2"
+	atomixv3beta3 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta3"
 	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -51,8 +51,8 @@ const (
 	storeLabel               = "store"
 	appAtomix                = "atomix"
 	nodeContainerName        = "atomix-multi-raft-node"
-	multiRaftStoreAnnotation = "multiraft.storage.atomix.io/store"
-	multiRaftPodFinalizer    = "multiraft.storage.atomix.io/pod"
+	multiRaftStoreAnnotation = "multiraft.atomix.io/store"
+	multiRaftPodFinalizer    = "multiraft.atomix.io/pod"
 )
 
 const (
@@ -124,7 +124,7 @@ func addMultiRaftStoreController(mgr manager.Manager) error {
 	}
 
 	// Watch for changes to secondary resource Store
-	err = controller.Watch(&source.Kind{Type: &atomixv3beta2.Store{}}, &handler.EnqueueRequestForOwner{
+	err = controller.Watch(&source.Kind{Type: &atomixv3beta3.DataStore{}}, &handler.EnqueueRequestForOwner{
 		OwnerType:    &storagev3beta1.MultiRaftStore{},
 		IsController: true,
 	})
@@ -786,7 +786,7 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 		return false, nil
 	}
 
-	atomixStore := &atomixv3beta2.Store{}
+	atomixStore := &atomixv3beta3.DataStore{}
 	atomixStoreName := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      store.Name,
@@ -803,14 +803,14 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 			return false, err
 		}
 
-		atomixStore = &atomixv3beta2.Store{
+		atomixStore = &atomixv3beta3.DataStore{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: atomixStoreName.Namespace,
 				Name:      atomixStoreName.Name,
 				Labels:    store.Labels,
 			},
-			Spec: atomixv3beta2.StoreSpec{
-				Driver: atomixv3beta2.Driver{
+			Spec: atomixv3beta3.DataStoreSpec{
+				Driver: atomixv3beta3.Driver{
 					Name:    driverName,
 					Version: driverVersion,
 				},
