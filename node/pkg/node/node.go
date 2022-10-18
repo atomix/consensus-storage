@@ -9,6 +9,7 @@ import (
 	counterv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/counter/v1"
 	countermapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/countermap/v1"
 	electionv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/election/v1"
+	indexedmapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/indexedmap/v1"
 	lockv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/lock/v1"
 	mapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/map/v1"
 	multimapv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/multimap/v1"
@@ -20,6 +21,7 @@ import (
 	counterv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/counter/v1"
 	countermapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/countermap/v1"
 	electionv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/election/v1"
+	indexedmapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/indexedmap/v1"
 	lockv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/lock/v1"
 	mapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/map/v1"
 	multimapv1server "github.com/atomix/multi-raft-storage/node/pkg/protocol/multimap/v1"
@@ -29,6 +31,7 @@ import (
 	countersmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/counter/v1"
 	countermapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/countermap/v1"
 	electionsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/election/v1"
+	indexedmapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/indexedmap/v1"
 	locksmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/lock/v1"
 	mapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/map/v1"
 	multimapsmv1 "github.com/atomix/multi-raft-storage/node/pkg/statemachine/primitive/multimap/v1"
@@ -48,6 +51,7 @@ func New(network runtime.Network, opts ...Option) *MultiRaftNode {
 	registry := primitive.NewTypeRegistry()
 	countersmv1.Register(registry)
 	countermapsmv1.Register(registry)
+	indexedmapsmv1.Register(registry)
 	locksmv1.Register(registry)
 	electionsmv1.Register(registry)
 	mapsmv1.Register(registry)
@@ -87,6 +91,7 @@ func (s *MultiRaftNode) Start() error {
 
 	counterv1.RegisterCounterServer(s.server, counterv1server.NewCounterServer(s.protocol))
 	countermapv1.RegisterCounterMapServer(s.server, countermapv1server.NewCounterMapServer(s.protocol))
+	indexedmapv1.RegisterIndexedMapServer(s.server, indexedmapv1server.NewIndexedMapServer(s.protocol))
 	electionv1.RegisterLeaderElectionServer(s.server, electionv1server.NewLeaderElectionServer(s.protocol))
 	lockv1.RegisterLockServer(s.server, lockv1server.NewLockServer(s.protocol))
 	mapv1.RegisterMapServer(s.server, mapv1server.NewMapServer(s.protocol))
