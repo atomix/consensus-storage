@@ -157,14 +157,7 @@ func (s *multiRaftIndexedMapServer) Append(ctx context.Context, request *indexed
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.AppendResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("Append",
 		logging.Stringer("AppendRequest", stringer.Truncate(request, truncLen)),
@@ -195,11 +188,11 @@ func (s *multiRaftIndexedMapServer) Update(ctx context.Context, request *indexed
 		return api.NewIndexedMapClient(conn).Update(ctx, &api.UpdateRequest{
 			Headers: headers,
 			UpdateInput: &api.UpdateInput{
-				Key:       request.Key,
-				Index:     request.Index,
-				Value:     request.Value,
-				TTL:       request.TTL,
-				PrevIndex: multiraftv1.Index(request.PrevVersion),
+				Key:         request.Key,
+				Index:       request.Index,
+				Value:       request.Value,
+				TTL:         request.TTL,
+				PrevVersion: request.PrevVersion,
 			},
 		})
 	})
@@ -210,14 +203,7 @@ func (s *multiRaftIndexedMapServer) Update(ctx context.Context, request *indexed
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.UpdateResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("Update",
 		logging.Stringer("UpdateRequest", stringer.Truncate(request, truncLen)),
@@ -260,14 +246,7 @@ func (s *multiRaftIndexedMapServer) Get(ctx context.Context, request *indexedmap
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.GetResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("Get",
 		logging.Stringer("GetRequest", stringer.Truncate(request, truncLen)),
@@ -307,14 +286,7 @@ func (s *multiRaftIndexedMapServer) FirstEntry(ctx context.Context, request *ind
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.FirstEntryResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("FirstEntry",
 		logging.Stringer("FirstEntryRequest", stringer.Truncate(request, truncLen)),
@@ -354,14 +326,7 @@ func (s *multiRaftIndexedMapServer) LastEntry(ctx context.Context, request *inde
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.LastEntryResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("LastEntry",
 		logging.Stringer("LastEntryRequest", stringer.Truncate(request, truncLen)),
@@ -403,14 +368,7 @@ func (s *multiRaftIndexedMapServer) NextEntry(ctx context.Context, request *inde
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.NextEntryResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("NextEntry",
 		logging.Stringer("NextEntryRequest", stringer.Truncate(request, truncLen)),
@@ -452,14 +410,7 @@ func (s *multiRaftIndexedMapServer) PrevEntry(ctx context.Context, request *inde
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.PrevEntryResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("PrevEntry",
 		logging.Stringer("PrevEntryRequest", stringer.Truncate(request, truncLen)),
@@ -490,9 +441,9 @@ func (s *multiRaftIndexedMapServer) Remove(ctx context.Context, request *indexed
 		return api.NewIndexedMapClient(conn).Remove(ctx, &api.RemoveRequest{
 			Headers: headers,
 			RemoveInput: &api.RemoveInput{
-				Key:       request.Key,
-				Index:     request.Index,
-				PrevIndex: multiraftv1.Index(request.PrevVersion),
+				Key:         request.Key,
+				Index:       request.Index,
+				PrevVersion: request.PrevVersion,
 			},
 		})
 	})
@@ -503,14 +454,7 @@ func (s *multiRaftIndexedMapServer) Remove(ctx context.Context, request *indexed
 		return nil, errors.ToProto(err)
 	}
 	response := &indexedmapv1.RemoveResponse{
-		Entry: &indexedmapv1.Entry{
-			Key:   output.Entry.Key,
-			Index: output.Entry.Index,
-			Value: &indexedmapv1.VersionedValue{
-				Value:   output.Entry.Value.Value,
-				Version: uint64(output.Entry.Value.Index),
-			},
-		},
+		Entry: newEntry(output.Entry),
 	}
 	log.Debugw("Remove",
 		logging.Stringer("RemoveRequest", stringer.Truncate(request, truncLen)),
@@ -601,14 +545,7 @@ func (s *multiRaftIndexedMapServer) Entries(request *indexedmapv1.EntriesRequest
 			return errors.ToProto(err)
 		}
 		response := &indexedmapv1.EntriesResponse{
-			Entry: indexedmapv1.Entry{
-				Key:   output.Entry.Key,
-				Index: output.Entry.Index,
-				Value: &indexedmapv1.VersionedValue{
-					Value:   output.Entry.Value.Value,
-					Version: uint64(output.Entry.Value.Index),
-				},
-			},
+			Entry: *newEntry(&output.Entry),
 		}
 		log.Debugw("Entries",
 			logging.Stringer("EntriesRequest", stringer.Truncate(request, truncLen)),
@@ -678,10 +615,7 @@ func (s *multiRaftIndexedMapServer) Events(request *indexedmapv1.EventsRequest, 
 				Event: indexedmapv1.Event{
 					Event: &indexedmapv1.Event_Inserted_{
 						Inserted: &indexedmapv1.Event_Inserted{
-							Value: indexedmapv1.VersionedValue{
-								Value:   e.Inserted.Value.Value,
-								Version: uint64(e.Inserted.Value.Index),
-							},
+							Value: *newValue(&e.Inserted.Value),
 						},
 					},
 				},
@@ -691,14 +625,8 @@ func (s *multiRaftIndexedMapServer) Events(request *indexedmapv1.EventsRequest, 
 				Event: indexedmapv1.Event{
 					Event: &indexedmapv1.Event_Updated_{
 						Updated: &indexedmapv1.Event_Updated{
-							Value: indexedmapv1.VersionedValue{
-								Value:   e.Updated.Value.Value,
-								Version: uint64(e.Updated.Value.Index),
-							},
-							PrevValue: indexedmapv1.VersionedValue{
-								Value:   e.Updated.PrevValue.Value,
-								Version: uint64(e.Updated.PrevValue.Index),
-							},
+							Value:     *newValue(&e.Updated.Value),
+							PrevValue: *newValue(&e.Updated.PrevValue),
 						},
 					},
 				},
@@ -708,10 +636,7 @@ func (s *multiRaftIndexedMapServer) Events(request *indexedmapv1.EventsRequest, 
 				Event: indexedmapv1.Event{
 					Event: &indexedmapv1.Event_Removed_{
 						Removed: &indexedmapv1.Event_Removed{
-							Value: indexedmapv1.VersionedValue{
-								Value:   e.Removed.Value.Value,
-								Version: uint64(e.Removed.Value.Index),
-							},
+							Value:   *newValue(&e.Removed.Value),
 							Expired: e.Removed.Expired,
 						},
 					},
@@ -728,6 +653,27 @@ func (s *multiRaftIndexedMapServer) Events(request *indexedmapv1.EventsRequest, 
 				logging.Error("Error", err))
 			return err
 		}
+	}
+}
+
+func newEntry(entry *api.Entry) *indexedmapv1.Entry {
+	if entry == nil {
+		return nil
+	}
+	return &indexedmapv1.Entry{
+		Key:   entry.Key,
+		Index: entry.Index,
+		Value: newValue(entry.Value),
+	}
+}
+
+func newValue(value *api.Value) *indexedmapv1.VersionedValue {
+	if value == nil {
+		return nil
+	}
+	return &indexedmapv1.VersionedValue{
+		Value:   value.Value,
+		Version: value.Version,
 	}
 }
 
