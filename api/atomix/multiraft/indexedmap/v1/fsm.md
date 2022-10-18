@@ -353,7 +353,6 @@
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| index | [uint64](#uint64) |  |  |
 | key | [string](#string) |  |  |
 
 
