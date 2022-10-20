@@ -17,7 +17,8 @@ require (
 )
 
 require (
-	github.com/atomix/runtime/sdk v0.6.1-0.20221020071228-8e807aa7c782
+	github.com/atomix/runtime/primitives v0.0.0-20221020214105-c0f4807997af
+	github.com/atomix/runtime/sdk v0.6.1-0.20221020190955-a193448b2897
 	github.com/lni/dragonboat/v3 v3.3.5
 	github.com/spf13/cobra v1.4.0
 )
@@ -26,7 +27,6 @@ require (
 	github.com/VictoriaMetrics/metrics v1.6.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
 	github.com/atomix/runtime/api v0.6.0 // indirect
-	github.com/atomix/runtime/primitives v0.0.0-20221020071355-adffceab2ff3 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.2.0 // indirect
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
