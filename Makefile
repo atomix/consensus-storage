@@ -3,11 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 .PHONY: build
-build: api node controller driver
-
-.PHONY: api
-api:
-	$(MAKE) -C api build
+build: node controller driver
 
 .PHONY: node
 node:
