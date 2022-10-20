@@ -18,8 +18,8 @@ require (
 
 require (
 	github.com/atomix/runtime/api v0.6.0
-	github.com/atomix/runtime/primitives v0.0.0-20221020071355-adffceab2ff3
-	github.com/atomix/runtime/sdk v0.6.1-0.20221020071228-8e807aa7c782
+	github.com/atomix/runtime/primitives v0.0.0-20221020214105-c0f4807997af
+	github.com/atomix/runtime/sdk v0.6.1-0.20221020190955-a193448b2897
 )
 
 require (
