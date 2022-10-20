@@ -31,6 +31,13 @@ kind: build
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
 	kind load docker-image atomix/multi-raft-node:latest
 
+generate:
+	@find . -name '*.pb.go' -delete
+	docker run -i \
+		-v `pwd`:/build \
+		atomix/codegen:go-latest \
+	    --proto-path ./pkg --go-path ./pkg --import-path github.com/atomix/multi-raft-storage/node/pkg
+
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse
 

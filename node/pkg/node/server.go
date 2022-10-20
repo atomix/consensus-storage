@@ -2,81 +2,77 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package server
+package node
 
 import (
 	"context"
-	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
-	"github.com/atomix/multi-raft-storage/node/pkg/protocol"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/logging"
 )
 
-var log = logging.GetLogger()
-
-func NewNodeServer(node *protocol.Node) multiraftv1.NodeServer {
+func newNodeServer(protocol *Protocol) NodeServer {
 	return &nodeServer{
-		node: node,
+		protocol: protocol,
 	}
 }
 
 type nodeServer struct {
-	node *protocol.Node
+	protocol *Protocol
 }
 
-func (s *nodeServer) Bootstrap(ctx context.Context, request *multiraftv1.BootstrapRequest) (*multiraftv1.BootstrapResponse, error) {
+func (s *nodeServer) Bootstrap(ctx context.Context, request *BootstrapRequest) (*BootstrapResponse, error) {
 	log.Debugw("Bootstrap",
 		logging.Stringer("BootstrapRequest", request))
-	if err := s.node.Bootstrap(request.Group); err != nil {
+	if err := s.protocol.Bootstrap(request.Group); err != nil {
 		log.Warnw("Bootstrap",
 			logging.Stringer("BootstrapRequest", request),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &multiraftv1.BootstrapResponse{}
+	response := &BootstrapResponse{}
 	log.Debugw("Bootstrap",
 		logging.Stringer("BootstrapRequest", request),
 		logging.Stringer("BootstrapResponse", response))
 	return response, nil
 }
 
-func (s *nodeServer) Join(ctx context.Context, request *multiraftv1.JoinRequest) (*multiraftv1.JoinResponse, error) {
+func (s *nodeServer) Join(ctx context.Context, request *JoinRequest) (*JoinResponse, error) {
 	log.Debugw("Join",
 		logging.Stringer("JoinRequest", request))
-	if err := s.node.Join(request.Group); err != nil {
+	if err := s.protocol.Join(request.Group); err != nil {
 		log.Warnw("Join",
 			logging.Stringer("JoinRequest", request),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &multiraftv1.JoinResponse{}
+	response := &JoinResponse{}
 	log.Debugw("Join",
 		logging.Stringer("JoinRequest", request),
 		logging.Stringer("JoinResponse", response))
 	return response, nil
 }
 
-func (s *nodeServer) Leave(ctx context.Context, request *multiraftv1.LeaveRequest) (*multiraftv1.LeaveResponse, error) {
+func (s *nodeServer) Leave(ctx context.Context, request *LeaveRequest) (*LeaveResponse, error) {
 	log.Debugw("Leave",
 		logging.Stringer("LeaveRequest", request))
-	if err := s.node.Leave(request.GroupID); err != nil {
+	if err := s.protocol.Leave(request.GroupID); err != nil {
 		log.Warnw("Leave",
 			logging.Stringer("LeaveRequest", request),
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	response := &multiraftv1.LeaveResponse{}
+	response := &LeaveResponse{}
 	log.Debugw("Leave",
 		logging.Stringer("LeaveRequest", request),
 		logging.Stringer("LeaveResponse", response))
 	return response, nil
 }
 
-func (s *nodeServer) Watch(request *multiraftv1.WatchRequest, server multiraftv1.Node_WatchServer) error {
+func (s *nodeServer) Watch(request *WatchRequest, server Node_WatchServer) error {
 	log.Debugw("Watch",
 		logging.Stringer("WatchRequest", request))
-	ch := make(chan multiraftv1.Event, 100)
-	go s.node.Watch(server.Context(), ch)
+	ch := make(chan Event, 100)
+	go s.protocol.Watch(server.Context(), ch)
 	for event := range ch {
 		log.Debugw("Watch",
 			logging.Stringer("WatchRequest", request),

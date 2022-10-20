@@ -17,28 +17,28 @@ require (
 )
 
 require (
-	github.com/atomix/multi-raft-storage/api v0.6.5-0.20221018202412-efeb2e04a206
-	github.com/atomix/runtime/sdk v0.6.1-0.20221018202010-52c5cf1c6a76
-	github.com/bits-and-blooms/bloom/v3 v3.2.0
-	github.com/golang/mock v1.6.0
-	github.com/google/uuid v1.1.2
+	github.com/atomix/runtime/sdk v0.6.1-0.20221020071228-8e807aa7c782
 	github.com/lni/dragonboat/v3 v3.3.5
 	github.com/spf13/cobra v1.4.0
-	github.com/stretchr/testify v1.7.1
 )
 
 require (
 	github.com/VictoriaMetrics/metrics v1.6.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
+	github.com/atomix/runtime/api v0.6.0 // indirect
+	github.com/atomix/runtime/primitives v0.0.0-20221020071355-adffceab2ff3 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
+	github.com/bits-and-blooms/bloom/v3 v3.2.0 // indirect
+	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cockroachdb/errors v1.7.5 // indirect
 	github.com/cockroachdb/logtags v0.0.0-20190617123548-eb05cc24525f // indirect
 	github.com/cockroachdb/pebble v0.0.0-20210331181633-27fc006b8bfb // indirect
 	github.com/cockroachdb/redact v1.0.6 // indirect
 	github.com/cockroachdb/sentry-go v0.6.1-cockroachdb.2 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.3-0.20201103224600-674baa8c7fc3 // indirect
 	github.com/google/btree v1.0.0 // indirect
+	github.com/google/uuid v1.1.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack v0.5.3 // indirect
@@ -54,7 +54,6 @@ require (
 	github.com/miekg/dns v1.1.26 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/fastrand v1.0.0 // indirect

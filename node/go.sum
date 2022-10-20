@@ -22,10 +22,12 @@ github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6/go.mod h1:grANhF5
 github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmVTwzkszR9V5SSuryQ31EELlFMUz1kKyl939pY=
 github.com/armon/go-metrics v0.3.10 h1:FR+drcQStOe+32sYyJYyZ7FIdgoGGBnwLl+flodp8Uo=
 github.com/armon/go-metrics v0.3.10/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
-github.com/atomix/multi-raft-storage/api v0.6.5-0.20221018202412-efeb2e04a206 h1:t/AdWTUhDZJ8/n20scZL9MYUtLPeQJLTX39TWHsrXIQ=
-github.com/atomix/multi-raft-storage/api v0.6.5-0.20221018202412-efeb2e04a206/go.mod h1:d4NYqqKf8/chxB0fVfGatdsT3htAr108ewobUtCs0+E=
-github.com/atomix/runtime/sdk v0.6.1-0.20221018202010-52c5cf1c6a76 h1:DGEEeb8PJqq2q/w26QI9hu7s3fpNtCIGVg8hUBv3iNU=
-github.com/atomix/runtime/sdk v0.6.1-0.20221018202010-52c5cf1c6a76/go.mod h1:KQoweHo9rnlCRyzHbpvWBNGULCcstDa+TTch6lc+nhY=
+github.com/atomix/runtime/api v0.6.0 h1:h6yLhwhlFCEFlRiByahmJ26PJn/2hIjFJrLSLmC1j2Y=
+github.com/atomix/runtime/api v0.6.0/go.mod h1:tjbd3w4yij89ZHCYdQUbmvZMC0HoHQQ/3/gVzQuOCH0=
+github.com/atomix/runtime/primitives v0.0.0-20221020071355-adffceab2ff3 h1:H05oO1bnVzq6oxUoyj8U8f78+W+ncBC4/R87jogNnQM=
+github.com/atomix/runtime/primitives v0.0.0-20221020071355-adffceab2ff3/go.mod h1:Okr/skKKHJgtBux1LR8K8Zr7NKHWTsSFmZAI6xc9GOw=
+github.com/atomix/runtime/sdk v0.6.1-0.20221020071228-8e807aa7c782 h1:sAFIVYTyxbYJ/+c3dEzSxowxbje/HCNVCTjF5zsv8Tc=
+github.com/atomix/runtime/sdk v0.6.1-0.20221020071228-8e807aa7c782/go.mod h1:6Y3JsDUK81Z/exjzELWj64pkSHqk5VAfgnIWmRFO6bY=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
@@ -36,6 +38,8 @@ github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjL
 github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bits-and-blooms/bloom/v3 v3.2.0 h1:N+g3GTQ0TVbghahYyzwkQbMZR+IwIwFFC8dpIChtN0U=
 github.com/bits-and-blooms/bloom/v3 v3.2.0/go.mod h1:MC8muvBzzPOFsrcdND/A7kU7kMhkqb9KI70JlZCP+C8=
+github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
+github.com/cenkalti/backoff v2.2.1+incompatible/go.mod h1:90ReRw6GdpyfrHakVjL/QHaoyV4aDUVVkXQJJJ3NXXM=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/certifi/gocertifi v0.0.0-20200211180108-c7c1fbc02894/go.mod h1:sGbDF6GwGcLpkNXPUTkMRoywsNa/ol15pxFe6ERfguA=
 github.com/cespare/xxhash/v2 v2.1.1/go.mod h1:VGX0DQ3Q6kWi7AoAeZDth3/j3BFtOZR5XLFGgcrjCOs=
@@ -312,7 +316,6 @@ github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5
 github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
-github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqriFuLhtthL60Sar/7RFoluCcXsuvEwTV5KM=
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=

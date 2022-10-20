@@ -7,7 +7,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
 	"github.com/atomix/multi-raft-storage/node/pkg/node"
 	"github.com/atomix/runtime/sdk/pkg/network"
 	"github.com/gogo/protobuf/jsonpb"
@@ -48,7 +47,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			config := multiraftv1.MultiRaftConfig{}
+			config := node.MultiRaftConfig{}
 			configBytes, err := ioutil.ReadFile(configPath)
 			if err != nil {
 				fmt.Println(err)
@@ -62,13 +61,13 @@ func main() {
 			// Create the multi-raft node
 			node := node.New(
 				network.NewNetwork(),
-				node.WithHost(apiHost),
-				node.WithPort(apiPort),
-				node.WithConfig(multiraftv1.NodeConfig{
+				node.NodeConfig{
 					Host:            raftHost,
 					Port:            int32(raftPort),
 					MultiRaftConfig: config,
-				}))
+				},
+				node.WithHost(apiHost),
+				node.WithPort(apiPort))
 
 			// Start the node
 			if err := node.Start(); err != nil {
