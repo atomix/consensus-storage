@@ -7,7 +7,7 @@ package v3beta1
 import (
 	"context"
 	"fmt"
-	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/node"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/grpc/retry"
 	"github.com/cenkalti/backoff"
@@ -159,10 +159,10 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 		return err
 	}
 
-	client := multiraftv1.NewNodeClient(conn)
+	client := node.NewNodeClient(conn)
 	ctx, cancel := context.WithCancel(context.Background())
 
-	request := &multiraftv1.WatchRequest{}
+	request := &node.WatchRequest{}
 	stream, err := client.Watch(ctx, request)
 	if err != nil {
 		cancel()
@@ -188,7 +188,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 				log.Infof("Received event %+v from %s", event, address)
 				timestamp := metav1.NewTime(event.Timestamp)
 				switch e := event.Event.(type) {
-				case *multiraftv1.Event_MemberReady:
+				case *node.Event_MemberReady:
 					r.recordMemberEvent(ctx, storeName, e.MemberReady.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							if status.State != storagev3beta1.RaftMemberReady {
@@ -216,7 +216,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							status.Followers = append(status.Followers, memberName)
 							return true
 						}, func(group *storagev3beta1.RaftGroup) {})
-				case *multiraftv1.Event_LeaderUpdated:
+				case *node.Event_LeaderUpdated:
 					r.recordMemberEvent(ctx, storeName, e.LeaderUpdated.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							term := uint64(e.LeaderUpdated.Term)
@@ -275,14 +275,14 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								r.events.Eventf(group, "Normal", "TermChanged", "Term changed to %d", e.LeaderUpdated.Term)
 							}
 						})
-				case *multiraftv1.Event_MembershipChanged:
+				case *node.Event_MembershipChanged:
 					r.recordMemberEvent(ctx, storeName, e.MembershipChanged.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							return true
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "MembershipChanged", "Membership changed")
 						})
-				case *multiraftv1.Event_SendSnapshotStarted:
+				case *node.Event_SendSnapshotStarted:
 					r.recordMemberEvent(ctx, storeName, e.SendSnapshotStarted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							return true
@@ -290,7 +290,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							r.events.Eventf(member, "Normal", "SendSnapshotStared", "Started sending snapshot at index %d to %s-%d-%d",
 								e.SendSnapshotStarted.Index, storeName.Name, e.SendSnapshotStarted.GroupID, e.SendSnapshotStarted.To)
 						})
-				case *multiraftv1.Event_SendSnapshotCompleted:
+				case *node.Event_SendSnapshotCompleted:
 					r.recordMemberEvent(ctx, storeName, e.SendSnapshotCompleted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							return true
@@ -298,7 +298,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							r.events.Eventf(member, "Normal", "SendSnapshotCompleted", "Completed sending snapshot at index %d to %s-%d-%d",
 								e.SendSnapshotCompleted.Index, storeName.Name, e.SendSnapshotCompleted.GroupID, e.SendSnapshotCompleted.To)
 						})
-				case *multiraftv1.Event_SendSnapshotAborted:
+				case *node.Event_SendSnapshotAborted:
 					r.recordMemberEvent(ctx, storeName, e.SendSnapshotAborted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							return true
@@ -306,7 +306,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							r.events.Eventf(member, "Normal", "SendSnapshotAborted", "Aborted sending snapshot at index %d to %s-%d-%d",
 								e.SendSnapshotAborted.Index, storeName.Name, e.SendSnapshotAborted.GroupID, e.SendSnapshotAborted.To)
 						})
-				case *multiraftv1.Event_SnapshotReceived:
+				case *node.Event_SnapshotReceived:
 					index := uint64(e.SnapshotReceived.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotReceived.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
@@ -321,7 +321,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							r.events.Eventf(member, "Normal", "SnapshotReceived", "Snapshot received from %s-%d-%d at index %d",
 								storeName.Name, e.SnapshotReceived.GroupID, e.SnapshotReceived.From, e.SnapshotReceived.Index)
 						})
-				case *multiraftv1.Event_SnapshotRecovered:
+				case *node.Event_SnapshotRecovered:
 					index := uint64(e.SnapshotRecovered.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotRecovered.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
@@ -335,7 +335,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotRecovered", "Recovered from snapshot at index %d", e.SnapshotRecovered.Index)
 						})
-				case *multiraftv1.Event_SnapshotCreated:
+				case *node.Event_SnapshotCreated:
 					index := uint64(e.SnapshotCreated.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCreated.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
@@ -349,7 +349,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotCreated", "Created snapshot at index %d", e.SnapshotCreated.Index)
 						})
-				case *multiraftv1.Event_SnapshotCompacted:
+				case *node.Event_SnapshotCompacted:
 					index := uint64(e.SnapshotCompacted.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCompacted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
@@ -363,14 +363,14 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotCompacted", "Compacted snapshot at index %d", e.SnapshotCompacted.Index)
 						})
-				case *multiraftv1.Event_LogCompacted:
+				case *node.Event_LogCompacted:
 					r.recordMemberEvent(ctx, storeName, e.LogCompacted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							return true
 						}, func(member *storagev3beta1.RaftMember) {
 							r.events.Eventf(member, "Normal", "LogCompacted", "Compacted log at index %d", e.LogCompacted.Index)
 						})
-				case *multiraftv1.Event_LogdbCompacted:
+				case *node.Event_LogdbCompacted:
 					r.recordMemberEvent(ctx, storeName, e.LogdbCompacted.MemberEvent,
 						func(status *storagev3beta1.RaftMemberStatus) bool {
 							return true
@@ -385,7 +385,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 }
 
 func (r *PodReconciler) recordMemberEvent(ctx context.Context,
-	storeName types.NamespacedName, event multiraftv1.MemberEvent,
+	storeName types.NamespacedName, event node.MemberEvent,
 	updater func(*storagev3beta1.RaftMemberStatus) bool, recorder func(*storagev3beta1.RaftMember)) {
 	memberName := types.NamespacedName{
 		Namespace: storeName.Namespace,
@@ -418,7 +418,7 @@ func (r *PodReconciler) tryRecordMemberEvent(ctx context.Context, memberName typ
 }
 
 func (r *PodReconciler) recordGroupEvent(ctx context.Context,
-	storeName types.NamespacedName, groupID multiraftv1.GroupID,
+	storeName types.NamespacedName, groupID node.GroupID,
 	updater func(status *storagev3beta1.RaftGroupStatus) bool, recorder func(*storagev3beta1.RaftGroup)) {
 	groupName := types.NamespacedName{
 		Namespace: storeName.Namespace,

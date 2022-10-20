@@ -8,8 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	multiraftv1 "github.com/atomix/multi-raft-storage/api/atomix/multiraft/v1"
+	"github.com/atomix/multi-raft-storage/node/pkg/node"
 	atomixv3beta3 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta3"
+	"github.com/atomix/runtime/sdk/pkg/protocol"
 	"github.com/gogo/protobuf/jsonpb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -69,7 +70,7 @@ const (
 
 const (
 	driverName    = "MultiRaft"
-	driverVersion = "v1beta1"
+	driverVersion = "v2beta1"
 )
 
 const clusterDomainEnv = "CLUSTER_DOMAIN"
@@ -201,7 +202,7 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, nil
 	}
 
-	if ok, err := r.reconcileStore(ctx, store); err != nil {
+	if ok, err := r.reconcileDataStore(ctx, store); err != nil {
 		log.Error(err, "Reconcile MultiRaftStore")
 		return reconcile.Result{}, err
 	} else if ok {
@@ -264,7 +265,7 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *stor
 
 // newRaftConfigString creates a protocol configuration string for the given store and protocol
 func newRaftConfigString(store *storagev3beta1.MultiRaftStore) ([]byte, error) {
-	config := multiraftv1.MultiRaftConfig{}
+	config := node.MultiRaftConfig{}
 
 	electionTimeout := store.Spec.Raft.ElectionTimeout
 	if electionTimeout != nil {
@@ -724,30 +725,30 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 		}
 		defer conn.Close()
 
-		members := make([]multiraftv1.MemberConfig, getNumMembers(store))
+		members := make([]node.MemberConfig, getNumMembers(store))
 		for i := 0; i < getNumMembers(store); i++ {
-			members[i] = multiraftv1.MemberConfig{
-				MemberID: multiraftv1.MemberID(i + 1),
+			members[i] = node.MemberConfig{
+				MemberID: node.MemberID(i + 1),
 				Host:     getPodDNSName(store.Namespace, store.Name, getPodName(store, groupID, i+1)),
 				Port:     protocolPort,
 			}
 		}
 
-		var role multiraftv1.MemberRole
+		var role node.MemberRole
 		switch member.Spec.Type {
 		case storagev3beta1.RaftVotingMember:
-			role = multiraftv1.MemberRole_MEMBER
+			role = node.MemberRole_MEMBER
 		case storagev3beta1.RaftObserver:
-			role = multiraftv1.MemberRole_OBSERVER
+			role = node.MemberRole_OBSERVER
 		case storagev3beta1.RaftWitness:
-			role = multiraftv1.MemberRole_WITNESS
+			role = node.MemberRole_WITNESS
 		}
 
-		client := multiraftv1.NewNodeClient(conn)
-		request := &multiraftv1.BootstrapRequest{
-			Group: multiraftv1.GroupConfig{
-				GroupID:  multiraftv1.GroupID(groupID),
-				MemberID: multiraftv1.MemberID(memberID),
+		client := node.NewNodeClient(conn)
+		request := &node.BootstrapRequest{
+			Group: node.GroupConfig{
+				GroupID:  node.GroupID(groupID),
+				MemberID: node.MemberID(memberID),
 				Role:     role,
 				Members:  members,
 			},
@@ -781,32 +782,32 @@ func (r *MultiRaftStoreReconciler) reconcileStatus(ctx context.Context, store *s
 	return false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *storagev3beta1.MultiRaftStore) (bool, error) {
+func (r *MultiRaftStoreReconciler) reconcileDataStore(ctx context.Context, store *storagev3beta1.MultiRaftStore) (bool, error) {
 	if store.Status.Partitions == nil {
 		return false, nil
 	}
 
-	atomixStore := &atomixv3beta3.DataStore{}
-	atomixStoreName := types.NamespacedName{
+	dataStore := &atomixv3beta3.DataStore{}
+	dataStoreName := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      store.Name,
 	}
-	if err := r.client.Get(ctx, atomixStoreName, atomixStore); err != nil {
+	if err := r.client.Get(ctx, dataStoreName, dataStore); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			return false, err
 		}
 
-		config := getDriverConfig(store.Status.Partitions)
+		config := getProtocolConfig(store.Status.Partitions)
 		marshaler := &jsonpb.Marshaler{}
 		configString, err := marshaler.MarshalToString(&config)
 		if err != nil {
 			return false, err
 		}
 
-		atomixStore = &atomixv3beta3.DataStore{
+		dataStore = &atomixv3beta3.DataStore{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: atomixStoreName.Namespace,
-				Name:      atomixStoreName.Name,
+				Namespace: dataStoreName.Namespace,
+				Name:      dataStoreName.Name,
 				Labels:    store.Labels,
 			},
 			Spec: atomixv3beta3.DataStoreSpec{
@@ -819,32 +820,32 @@ func (r *MultiRaftStoreReconciler) reconcileStore(ctx context.Context, store *st
 				},
 			},
 		}
-		if err := controllerutil.SetControllerReference(store, atomixStore, r.scheme); err != nil {
+		if err := controllerutil.SetControllerReference(store, dataStore, r.scheme); err != nil {
 			return false, err
 		}
-		if err := r.client.Create(ctx, atomixStore); err != nil {
+		if err := r.client.Create(ctx, dataStore); err != nil {
 			return false, err
 		}
 		return false, nil
 	}
 
-	var config multiraftv1.DriverConfig
-	if err := jsonpb.UnmarshalString(string(atomixStore.Spec.Config.Raw), &config); err != nil {
+	var config protocol.ProtocolConfig
+	if err := jsonpb.UnmarshalString(string(dataStore.Spec.Config.Raw), &config); err != nil {
 		return false, err
 	}
 
-	newConfig := getDriverConfig(store.Status.Partitions)
-	if !isDriverConfigEqual(config, newConfig) {
+	newConfig := getProtocolConfig(store.Status.Partitions)
+	if !isProtocolConfigEqual(config, newConfig) {
 		marshaler := &jsonpb.Marshaler{}
 		configString, err := marshaler.MarshalToString(&newConfig)
 		if err != nil {
 			return false, err
 		}
 
-		atomixStore.Spec.Config = runtime.RawExtension{
+		dataStore.Spec.Config = runtime.RawExtension{
 			Raw: []byte(configString),
 		}
-		if err := r.client.Update(ctx, atomixStore); err != nil {
+		if err := r.client.Update(ctx, dataStore); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -890,15 +891,15 @@ func isPartitionStatusEqual(partition1, partition2 storagev3beta1.RaftPartitionS
 	return true
 }
 
-func getDriverConfig(partitions []storagev3beta1.RaftPartitionStatus) multiraftv1.DriverConfig {
-	var config multiraftv1.DriverConfig
+func getProtocolConfig(partitions []storagev3beta1.RaftPartitionStatus) protocol.ProtocolConfig {
+	var config protocol.ProtocolConfig
 	for _, partition := range partitions {
 		var leader string
 		if partition.Leader != nil {
 			leader = *partition.Leader
 		}
-		config.Partitions = append(config.Partitions, multiraftv1.PartitionConfig{
-			PartitionID: multiraftv1.PartitionID(partition.PartitionID),
+		config.Partitions = append(config.Partitions, protocol.PartitionConfig{
+			PartitionID: protocol.PartitionID(partition.PartitionID),
 			Leader:      leader,
 			Followers:   partition.Followers,
 		})
@@ -906,7 +907,7 @@ func getDriverConfig(partitions []storagev3beta1.RaftPartitionStatus) multiraftv
 	return config
 }
 
-func isDriverConfigEqual(config1, config2 multiraftv1.DriverConfig) bool {
+func isProtocolConfigEqual(config1, config2 protocol.ProtocolConfig) bool {
 	if len(config1.Partitions) != len(config2.Partitions) {
 		return false
 	}
@@ -920,7 +921,7 @@ func isDriverConfigEqual(config1, config2 multiraftv1.DriverConfig) bool {
 	return true
 }
 
-func isPartitionConfigEqual(partition1, partition2 multiraftv1.PartitionConfig) bool {
+func isPartitionConfigEqual(partition1, partition2 protocol.PartitionConfig) bool {
 	if partition1.Leader == "" && partition2.Leader != "" {
 		return false
 	}
