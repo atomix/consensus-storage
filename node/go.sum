@@ -24,10 +24,8 @@ github.com/armon/go-metrics v0.3.10 h1:FR+drcQStOe+32sYyJYyZ7FIdgoGGBnwLl+flodp8
 github.com/armon/go-metrics v0.3.10/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
 github.com/atomix/runtime/api v0.6.1-0.20221021064604-da653ed68c8f h1:13rhP1vtix1BvufDe3IzF/XsL/9D2C560yvg+3mYJjM=
 github.com/atomix/runtime/api v0.6.1-0.20221021064604-da653ed68c8f/go.mod h1:tjbd3w4yij89ZHCYdQUbmvZMC0HoHQQ/3/gVzQuOCH0=
-github.com/atomix/runtime/primitives v0.0.0-20221021084227-f6171b618554 h1:HZupC9btCLCOXAcpdG0khxMPmNt6JcxiRmIKAUi1RGw=
-github.com/atomix/runtime/primitives v0.0.0-20221021084227-f6171b618554/go.mod h1:SfS+JfBWCLgTZkfTBXHHXqNkEBgESzWSTF+dWcOaJOg=
-github.com/atomix/runtime/primitives v0.0.0-20221021085523-e6b823157851 h1:uFLR1TkfB6LxVzUOkbgVs49KLIHEfqI77zVlrdfVXa0=
-github.com/atomix/runtime/primitives v0.0.0-20221021085523-e6b823157851/go.mod h1:SfS+JfBWCLgTZkfTBXHHXqNkEBgESzWSTF+dWcOaJOg=
+github.com/atomix/runtime/primitives v0.0.0-20221021093549-88a0bd9f40d8 h1:DpoCW+xlK6VcwMCymT690S1p7JjSuJqgw8pWdU5d1Ng=
+github.com/atomix/runtime/primitives v0.0.0-20221021093549-88a0bd9f40d8/go.mod h1:SfS+JfBWCLgTZkfTBXHHXqNkEBgESzWSTF+dWcOaJOg=
 github.com/atomix/runtime/sdk v0.6.1-0.20221021064604-da653ed68c8f h1:8GFMYutgAFCVPhpZMa6nI0XZi58PT+gRkocNIj1j8SI=
 github.com/atomix/runtime/sdk v0.6.1-0.20221021064604-da653ed68c8f/go.mod h1:CIxhWG1UkcWL82+XJ1wwynz1T5k4nYTZdwNlWp8IMd8=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
