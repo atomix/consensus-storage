@@ -3,12 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 .PHONY: build
-build: test
-	go build ./pkg/...
-
-.PHONY: test
-test:
-	go test github.com/atomix/multi-raft-storage/driver/...
+build:
+	go build .
 
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse
