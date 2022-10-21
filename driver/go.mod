@@ -17,9 +17,9 @@ require (
 )
 
 require (
-	github.com/atomix/runtime/api v0.6.0
-	github.com/atomix/runtime/primitives v0.0.0-20221020214105-c0f4807997af
-	github.com/atomix/runtime/sdk v0.6.1-0.20221020190955-a193448b2897
+	github.com/atomix/runtime/api v0.6.1-0.20221021064604-da653ed68c8f
+	github.com/atomix/runtime/primitives v0.0.0-20221021064604-da653ed68c8f
+	github.com/atomix/runtime/sdk v0.6.1-0.20221021064604-da653ed68c8f
 )
 
 require (
