@@ -3,9 +3,9 @@ module github.com/atomix/multi-raft-storage/controller
 go 1.19
 
 require (
-	github.com/atomix/multi-raft-storage/node v0.9.0
+	github.com/atomix/multi-raft-storage/node v0.9.1-0.20221022092257-69b86be8e3e0
 	github.com/atomix/runtime/controller v0.6.0
-	github.com/atomix/runtime/sdk v0.7.0
+	github.com/atomix/runtime/sdk v0.7.1
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-logr/logr v1.2.0
 	github.com/gogo/protobuf v1.3.2
@@ -24,8 +24,6 @@ require (
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/VictoriaMetrics/metrics v1.6.2 // indirect
 	github.com/armon/go-metrics v0.3.10 // indirect
-	github.com/atomix/runtime/api v0.7.0 // indirect
-	github.com/atomix/runtime/primitives v0.7.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.2.0 // indirect

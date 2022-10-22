@@ -6,6 +6,7 @@ package v3beta1
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -42,11 +43,28 @@ type MultiRaftStoreSpec struct {
 	// VolumeClaimTemplate is the volume claim template for Raft logs
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 
+	// Config is the multi-raft store configuration
+	Config MultiRaftStoreConfig `json:"config,omitempty"`
+}
+
+type MultiRaftStoreConfig struct {
+	// Server is the multi-raft server configuration
+	Server MultiRaftServerConfig `json:"server,omitempty"`
+
 	// Raft is the Raft protocol configuration
 	Raft RaftConfig `json:"raft,omitempty"`
 
 	// Logging is the store logging configuration
 	Logging LoggingConfig `json:"logging,omitempty"`
+}
+
+type MultiRaftServerConfig struct {
+	ReadBufferSize       *int               `json:"readBufferSize"`
+	WriteBufferSize      *int               `json:"writeBufferSize"`
+	MaxRecvMsgSize       *resource.Quantity `json:"maxRecvMsgSize"`
+	MaxSendMsgSize       *resource.Quantity `json:"maxSendMsgSize"`
+	NumStreamWorkers     *uint32            `json:"numStreamWorkers"`
+	MaxConcurrentStreams *uint32            `json:"maxConcurrentStreams"`
 }
 
 // MultiRaftStoreStatus defines the status of a MultiRaftStore

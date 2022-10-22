@@ -6,9 +6,8 @@ package v3beta1
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"github.com/atomix/multi-raft-storage/node/pkg/node"
+	"github.com/atomix/multi-raft-storage/node/pkg/multiraft"
 	atomixv3beta3 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta3"
 	"github.com/atomix/runtime/sdk/pkg/protocol"
 	"github.com/gogo/protobuf/jsonpb"
@@ -234,12 +233,12 @@ func (r *MultiRaftStoreReconciler) reconcileConfigMap(ctx context.Context, store
 
 func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
 	log.Info("Creating raft ConfigMap", "Name", store.Name, "Namespace", store.Namespace)
-	loggingConfig, err := yaml.Marshal(&store.Spec.Logging)
+	loggingConfig, err := yaml.Marshal(&store.Spec.Config.Logging)
 	if err != nil {
 		return err
 	}
 
-	raftConfig, err := newRaftConfigString(store)
+	raftConfig, err := newNodeConfig(store)
 	if err != nil {
 		return err
 	}
@@ -263,35 +262,40 @@ func (r *MultiRaftStoreReconciler) addConfigMap(ctx context.Context, store *stor
 	return r.client.Create(ctx, cm)
 }
 
-// newRaftConfigString creates a protocol configuration string for the given store and protocol
-func newRaftConfigString(store *storagev3beta1.MultiRaftStore) ([]byte, error) {
-	config := node.MultiRaftConfig{}
-
-	electionTimeout := store.Spec.Raft.ElectionTimeout
+// newNodeConfig creates a protocol configuration string for the given store and protocol
+func newNodeConfig(store *storagev3beta1.MultiRaftStore) ([]byte, error) {
+	config := multiraft.Config{}
+	config.Server = multiraft.ServerConfig{
+		ReadBufferSize:       store.Spec.Config.Server.ReadBufferSize,
+		WriteBufferSize:      store.Spec.Config.Server.WriteBufferSize,
+		NumStreamWorkers:     store.Spec.Config.Server.NumStreamWorkers,
+		MaxConcurrentStreams: store.Spec.Config.Server.MaxConcurrentStreams,
+	}
+	if store.Spec.Config.Server.MaxRecvMsgSize != nil {
+		maxRecvMsgSize := int(store.Spec.Config.Server.MaxRecvMsgSize.Value())
+		config.Server.MaxRecvMsgSize = &maxRecvMsgSize
+	}
+	if store.Spec.Config.Server.MaxSendMsgSize != nil {
+		maxSendMsgSize := int(store.Spec.Config.Server.MaxSendMsgSize.Value())
+		config.Server.MaxSendMsgSize = &maxSendMsgSize
+	}
+	electionTimeout := store.Spec.Config.Raft.ElectionTimeout
 	if electionTimeout != nil {
-		config.ElectionTimeout = &electionTimeout.Duration
+		config.Raft.ElectionTimeout = &electionTimeout.Duration
 	}
-
-	heartbeatPeriod := store.Spec.Raft.HeartbeatPeriod
+	heartbeatPeriod := store.Spec.Config.Raft.HeartbeatPeriod
 	if heartbeatPeriod != nil {
-		config.HeartbeatPeriod = &heartbeatPeriod.Duration
+		config.Raft.HeartbeatPeriod = &heartbeatPeriod.Duration
 	}
-
-	entryThreshold := store.Spec.Raft.SnapshotEntryThreshold
-	if entryThreshold != nil {
-		config.SnapshotEntryThreshold = uint64(*entryThreshold)
-	} else {
-		config.SnapshotEntryThreshold = 10000
+	if store.Spec.Config.Raft.SnapshotEntryThreshold != nil {
+		entryThreshold := uint64(*store.Spec.Config.Raft.SnapshotEntryThreshold)
+		config.Raft.SnapshotEntryThreshold = &entryThreshold
 	}
-
-	retainEntries := store.Spec.Raft.CompactionRetainEntries
-	if retainEntries != nil {
-		config.CompactionRetainEntries = uint64(*retainEntries)
-	} else {
-		config.CompactionRetainEntries = 1000
+	if store.Spec.Config.Raft.CompactionRetainEntries != nil {
+		compactionRetainEntries := uint64(*store.Spec.Config.Raft.CompactionRetainEntries)
+		config.Raft.CompactionRetainEntries = &compactionRetainEntries
 	}
-
-	return json.Marshal(&config)
+	return yaml.Marshal(&config)
 }
 
 func (r *MultiRaftStoreReconciler) reconcileStatefulSet(ctx context.Context, store *storagev3beta1.MultiRaftStore) error {
@@ -589,7 +593,7 @@ func (r *MultiRaftStoreReconciler) reconcileGroup(ctx context.Context, store *st
 				Labels:    store.Labels,
 			},
 			Spec: storagev3beta1.RaftGroupSpec{
-				RaftConfig: store.Spec.Raft,
+				RaftConfig: store.Spec.Config.Raft,
 			},
 		}
 		if err := controllerutil.SetControllerReference(store, group, r.scheme); err != nil {
@@ -725,30 +729,30 @@ func (r *MultiRaftStoreReconciler) reconcileMember(ctx context.Context, store *s
 		}
 		defer conn.Close()
 
-		members := make([]node.MemberConfig, getNumMembers(store))
+		members := make([]multiraft.MemberConfig, getNumMembers(store))
 		for i := 0; i < getNumMembers(store); i++ {
-			members[i] = node.MemberConfig{
-				MemberID: node.MemberID(i + 1),
+			members[i] = multiraft.MemberConfig{
+				MemberID: multiraft.MemberID(i + 1),
 				Host:     getPodDNSName(store.Namespace, store.Name, getPodName(store, groupID, i+1)),
 				Port:     protocolPort,
 			}
 		}
 
-		var role node.MemberRole
+		var role multiraft.MemberRole
 		switch member.Spec.Type {
 		case storagev3beta1.RaftVotingMember:
-			role = node.MemberRole_MEMBER
+			role = multiraft.MemberRole_MEMBER
 		case storagev3beta1.RaftObserver:
-			role = node.MemberRole_OBSERVER
+			role = multiraft.MemberRole_OBSERVER
 		case storagev3beta1.RaftWitness:
-			role = node.MemberRole_WITNESS
+			role = multiraft.MemberRole_WITNESS
 		}
 
-		client := node.NewNodeClient(conn)
-		request := &node.BootstrapRequest{
-			Group: node.GroupConfig{
-				GroupID:  node.GroupID(groupID),
-				MemberID: node.MemberID(memberID),
+		client := multiraft.NewNodeClient(conn)
+		request := &multiraft.BootstrapRequest{
+			Group: multiraft.GroupConfig{
+				GroupID:  multiraft.GroupID(groupID),
+				MemberID: multiraft.MemberID(memberID),
 				Role:     role,
 				Members:  members,
 			},
@@ -1009,17 +1013,17 @@ func getNumMembers(store *storagev3beta1.MultiRaftStore) int {
 }
 
 func getNumVotingMembers(store *storagev3beta1.MultiRaftStore) int {
-	if store.Spec.Raft.QuorumSize == nil {
+	if store.Spec.Config.Raft.QuorumSize == nil {
 		return getNumReplicas(store)
 	}
-	return int(*store.Spec.Raft.QuorumSize)
+	return int(*store.Spec.Config.Raft.QuorumSize)
 }
 
 func getNumNonVotingMembers(store *storagev3beta1.MultiRaftStore) int {
-	if store.Spec.Raft.ReadReplicas == nil {
+	if store.Spec.Config.Raft.ReadReplicas == nil {
 		return 0
 	}
-	return int(*store.Spec.Raft.ReadReplicas)
+	return int(*store.Spec.Config.Raft.ReadReplicas)
 }
 
 // getStoreResourceName returns the given resource name for the given store
