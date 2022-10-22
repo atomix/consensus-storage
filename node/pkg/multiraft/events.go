@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package node
+package multiraft
 
 import (
 	"github.com/lni/dragonboat/v3/raftio"

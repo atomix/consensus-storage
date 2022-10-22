@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package node
+package multiraft
 
 import (
 	"github.com/atomix/runtime/sdk/pkg/protocol"

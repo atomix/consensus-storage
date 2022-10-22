@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package node
+package multiraft
 
 import (
 	"context"
@@ -16,7 +16,6 @@ import (
 	raftconfig "github.com/lni/dragonboat/v3/config"
 	dbstatemachine "github.com/lni/dragonboat/v3/statemachine"
 	"sync"
-	"time"
 )
 
 var log = logging.GetLogger()
@@ -31,23 +30,9 @@ type GroupID uint32
 
 type SequenceNum uint64
 
-const (
-	defaultDataDir                 = "/var/lib/atomix/data"
-	defaultSnapshotEntryThreshold  = 10000
-	defaultCompactionRetainEntries = 1000
-	defaultClientTimeout           = time.Minute
-)
-
-func newProtocol(config NodeConfig, registry *statemachine.PrimitiveTypeRegistry) *Protocol {
-	var rtt uint64 = 250
-	if config.HeartbeatPeriod != nil {
-		rtt = uint64(config.HeartbeatPeriod.Milliseconds())
-	}
-
-	dataDir := config.DataDir
-	if dataDir == "" {
-		dataDir = defaultDataDir
-	}
+func NewProtocol(config RaftConfig, registry *statemachine.PrimitiveTypeRegistry, opts ...Option) *Protocol {
+	var options Options
+	options.apply(opts...)
 
 	protocol := &Protocol{
 		config:     config,
@@ -57,11 +42,11 @@ func newProtocol(config NodeConfig, registry *statemachine.PrimitiveTypeRegistry
 	}
 
 	listener := newEventListener(protocol)
-	address := fmt.Sprintf("%s:%d", config.Host, config.Port)
+	address := fmt.Sprintf("%s:%d", options.Host, options.Port)
 	nodeConfig := raftconfig.NodeHostConfig{
-		WALDir:              dataDir,
-		NodeHostDir:         dataDir,
-		RTTMillisecond:      rtt,
+		WALDir:              config.GetDataDir(),
+		NodeHostDir:         config.GetDataDir(),
+		RTTMillisecond:      uint64(config.GetHeartbeatPeriod().Milliseconds()),
 		RaftAddress:         address,
 		RaftEventListener:   listener,
 		SystemEventListener: listener,
@@ -78,7 +63,7 @@ func newProtocol(config NodeConfig, registry *statemachine.PrimitiveTypeRegistry
 
 type Protocol struct {
 	host       *dragonboat.NodeHost
-	config     NodeConfig
+	config     RaftConfig
 	registry   *statemachine.PrimitiveTypeRegistry
 	partitions map[protocol.PartitionID]*Partition
 	watchers   map[int]chan<- Event
@@ -218,33 +203,18 @@ func (n *Protocol) Shutdown() error {
 }
 
 func (n *Protocol) getRaftConfig(config GroupConfig) raftconfig.Config {
-	var rtt uint64 = 250
-	if n.config.HeartbeatPeriod != nil {
-		rtt = uint64(n.config.HeartbeatPeriod.Milliseconds())
-	}
-
 	electionRTT := uint64(10)
 	if n.config.ElectionTimeout != nil {
-		electionRTT = uint64(n.config.ElectionTimeout.Milliseconds()) / rtt
+		electionRTT = uint64(n.config.ElectionTimeout.Milliseconds() / n.config.GetHeartbeatPeriod().Milliseconds())
 	}
-
-	snapshotEntryThreshold := n.config.SnapshotEntryThreshold
-	if snapshotEntryThreshold == 0 {
-		snapshotEntryThreshold = defaultSnapshotEntryThreshold
-	}
-	compactionRetainEntries := n.config.CompactionRetainEntries
-	if compactionRetainEntries == 0 {
-		compactionRetainEntries = defaultCompactionRetainEntries
-	}
-
 	return raftconfig.Config{
 		NodeID:             uint64(config.MemberID),
 		ClusterID:          uint64(config.GroupID),
 		ElectionRTT:        electionRTT,
 		HeartbeatRTT:       1,
 		CheckQuorum:        true,
-		SnapshotEntries:    snapshotEntryThreshold,
-		CompactionOverhead: compactionRetainEntries,
+		SnapshotEntries:    n.config.GetSnapshotEntryThreshold(),
+		CompactionOverhead: n.config.GetCompactionRetainEntries(),
 		IsObserver:         config.Role == MemberRole_OBSERVER,
 		IsWitness:          config.Role == MemberRole_WITNESS,
 	}
