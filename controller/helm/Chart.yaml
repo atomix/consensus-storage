@@ -7,8 +7,8 @@ name: atomix-multi-raft-controller
 description: The multi-raft controller extends the Kubernetes API with custom resources for multi-raft stores.
 kubeVersion: ">=1.17.0"
 type: application
-version: 1.3.2
-appVersion: v0.5.3
+version: 1.3.3
+appVersion: v0.5.4
 keywords:
 - atomix
 - raft
