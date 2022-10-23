@@ -57,7 +57,7 @@ const (
 
 const (
 	configPath        = "/etc/atomix"
-	raftConfigFile    = "raft.json"
+	raftConfigFile    = "raft.yaml"
 	loggingConfigFile = "logging.yaml"
 	dataPath          = "/var/lib/atomix"
 )
