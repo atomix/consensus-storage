@@ -17,10 +17,11 @@ require (
 )
 
 require (
-	github.com/atomix/runtime/primitives v0.7.0
-	github.com/atomix/runtime/sdk v0.7.1
+	github.com/atomix/runtime/primitives v0.7.1
+	github.com/atomix/runtime/sdk v0.7.2
 	github.com/lni/dragonboat/v3 v3.3.5
 	github.com/spf13/cobra v1.4.0
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )
 
 require (
@@ -63,5 +64,4 @@ require (
 	go.uber.org/zap v1.21.0 // indirect
 	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4 // indirect
 	golang.org/x/exp v0.0.0-20200513190911-00229845015e // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
