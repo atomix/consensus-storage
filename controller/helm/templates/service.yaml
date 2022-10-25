@@ -5,12 +5,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "atomix-multi-raft-controller.fullname" . }}
+  name: {{ template "atomix-consensus-controller.fullname" . }}
   labels:
-    name: {{ template "atomix-multi-raft-controller.fullname" . }}
+    name: {{ template "atomix-consensus-controller.fullname" . }}
 spec:
   selector:
-    name: {{ template "atomix-multi-raft-controller.fullname" . }}
+    name: {{ template "atomix-consensus-controller.fullname" . }}
   ports:
     - name: webhook
       port: 443

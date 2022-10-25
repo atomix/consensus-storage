@@ -22,7 +22,6 @@ import (
 	"time"
 
 	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/apis/consensus/v1beta1"
-	multiraftv3beta1 "github.com/atomix/consensus/controller/pkg/apis/multiraft/v3beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -57,7 +56,7 @@ func addConsensusStoreController(mgr manager.Manager) error {
 	}
 
 	// Watch for changes to secondary resource MultiRaftCluster
-	err = controller.Watch(&source.Kind{Type: &multiraftv3beta1.MultiRaftCluster{}}, &handler.EnqueueRequestForOwner{
+	err = controller.Watch(&source.Kind{Type: &consensusv1beta1.MultiRaftCluster{}}, &handler.EnqueueRequestForOwner{
 		OwnerType:    &consensusv1beta1.ConsensusStore{},
 		IsController: true,
 	})
@@ -67,7 +66,7 @@ func addConsensusStoreController(mgr manager.Manager) error {
 
 	// Watch for changes to secondary resource Store
 	err = controller.Watch(&source.Kind{Type: &atomixv3beta3.DataStore{}}, &handler.EnqueueRequestForOwner{
-		OwnerType:    &multiraftv3beta1.MultiRaftCluster{},
+		OwnerType:    &consensusv1beta1.MultiRaftCluster{},
 		IsController: true,
 	})
 	if err != nil {
@@ -98,14 +97,14 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 	}
 
 	log.Info("Reconcile raft protocol stateful set")
-	cluster := &multiraftv3beta1.MultiRaftCluster{}
+	cluster := &consensusv1beta1.MultiRaftCluster{}
 	name := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      store.Name,
 	}
 	if err := r.client.Get(ctx, name, cluster); err != nil && k8serrors.IsNotFound(err) {
 		log.Info("Creating MultiRaftCluster", "Name", store.Name, "Namespace", store.Namespace)
-		cluster = &multiraftv3beta1.MultiRaftCluster{
+		cluster = &consensusv1beta1.MultiRaftCluster{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        store.Name,
 				Namespace:   store.Namespace,
@@ -129,7 +128,7 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, nil
 	}
 
-	if cluster.Status.State == multiraftv3beta1.MultiRaftClusterNotReady &&
+	if cluster.Status.State == consensusv1beta1.MultiRaftClusterNotReady &&
 		store.Status.State != consensusv1beta1.ConsensusStoreNotReady {
 		store.Status.State = consensusv1beta1.ConsensusStoreNotReady
 		if err := r.client.Status().Update(ctx, store); err != nil {
@@ -209,7 +208,7 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, nil
 	}
 
-	if cluster.Status.State == multiraftv3beta1.MultiRaftClusterReady &&
+	if cluster.Status.State == consensusv1beta1.MultiRaftClusterReady &&
 		store.Status.State != consensusv1beta1.ConsensusStoreReady {
 		store.Status.State = consensusv1beta1.ConsensusStoreReady
 		if err := r.client.Status().Update(ctx, store); err != nil {
@@ -220,7 +219,7 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 	return reconcile.Result{}, nil
 }
 
-func getProtocolConfig(partitions []multiraftv3beta1.RaftPartitionStatus) protocol.ProtocolConfig {
+func getProtocolConfig(partitions []consensusv1beta1.RaftPartitionStatus) protocol.ProtocolConfig {
 	var config protocol.ProtocolConfig
 	for _, partition := range partitions {
 		var leader string

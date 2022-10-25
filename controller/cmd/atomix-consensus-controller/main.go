@@ -7,9 +7,8 @@ package main
 import (
 	"context"
 	"fmt"
-	multiraftapis "github.com/atomix/consensus/controller/pkg/apis"
+	consensusapis "github.com/atomix/consensus/controller/pkg/apis"
 	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/controller/consensus/v1beta1"
-	multiraftv3beta1 "github.com/atomix/consensus/controller/pkg/controller/multiraft/v3beta1"
 	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
 	"github.com/atomix/runtime/sdk/pkg/logging"
@@ -43,7 +42,7 @@ func main() {
 
 func getCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:  "atomix-multi-raft-controller",
+		Use:  "atomix-consensus-controller",
 		Args: cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
 			namespace, _ := cmd.Flags().GetString("namespace")
@@ -80,16 +79,12 @@ func getCommand() *cobra.Command {
 				log.Error(err)
 				os.Exit(1)
 			}
-			if err := multiraftapis.AddToScheme(mgr.GetScheme()); err != nil {
+			if err := consensusapis.AddToScheme(mgr.GetScheme()); err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
 
 			// Add all the controllers
-			if err := multiraftv3beta1.AddControllers(mgr); err != nil {
-				log.Error(err)
-				os.Exit(1)
-			}
 			if err := consensusv1beta1.AddControllers(mgr); err != nil {
 				log.Error(err)
 				os.Exit(1)

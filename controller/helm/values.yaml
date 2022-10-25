@@ -7,7 +7,7 @@ replicas: 1
 controller:
   image:
     registry: ""
-    repository: atomix/multi-raft-controller
+    repository: atomix/consensus-controller
     tag: v0.5.4
     pullPolicy: ""
     pullSecrets: []
@@ -15,7 +15,7 @@ controller:
 node:
   image:
     registry: ""
-    repository: atomix/multi-raft-node
+    repository: atomix/consensus-node
     tag: v0.10
     pullPolicy: ""
     pullSecrets: []

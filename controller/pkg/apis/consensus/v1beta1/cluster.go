@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package v3beta1
+package v1beta1
 
 import (
 	corev1 "k8s.io/api/core/v1"
@@ -43,12 +43,12 @@ type MultiRaftClusterSpec struct {
 	// VolumeClaimTemplate is the volume claim template for Raft logs
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 
-	// Config is the multi-raft store configuration
+	// Config is the consensus store configuration
 	Config MultiRaftClusterConfig `json:"config,omitempty"`
 }
 
 type MultiRaftClusterConfig struct {
-	// Server is the multi-raft server configuration
+	// Server is the consensus server configuration
 	Server MultiRaftServerConfig `json:"server,omitempty"`
 
 	// Raft is the Raft protocol configuration

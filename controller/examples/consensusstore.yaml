@@ -1,0 +1,7 @@
+apiVersion: consensus.atomix.io/v1beta1
+kind: ConsensusStore
+metadata:
+  name: example-consensus-store
+spec:
+  replicas: 3
+  groups: 3

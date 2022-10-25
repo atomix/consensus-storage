@@ -5,7 +5,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ template "atomix-multi-raft-controller.fullname" . }}-config
+  name: {{ template "atomix-consensus-controller.fullname" . }}-config
 data:
   logging.yaml: |-
     loggers:

@@ -5,10 +5,10 @@ metadata:
 spec:
   bindings:
     - store:
-        name: example-multi-raft-store
-      selector:
-        foo: bar
-        bar: baz
+        name: example-consensus-store
+      tags:
+        - foo
+        - bar
       services:
         - name: atomix.runtime.map.v1.Map
           config:

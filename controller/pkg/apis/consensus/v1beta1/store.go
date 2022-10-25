@@ -5,13 +5,12 @@
 package v1beta1
 
 import (
-	"github.com/atomix/consensus/controller/pkg/apis/multiraft/v3beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // ConsensusStoreSpec specifies a ConsensusStore configuration
 type ConsensusStoreSpec struct {
-	v3beta1.MultiRaftClusterSpec `json:",inline"`
+	MultiRaftClusterSpec `json:",inline"`
 }
 
 // ConsensusStoreState is a state constant for ConsensusStore

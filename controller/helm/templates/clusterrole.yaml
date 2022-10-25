@@ -6,7 +6,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   creationTimestamp: null
-  name: {{ template "atomix-multi-raft-controller.fullname" . }}
+  name: {{ template "atomix-consensus-controller.fullname" . }}
 rules:
   - apiGroups:
       - ""
@@ -45,7 +45,6 @@ rules:
   - apiGroups:
       - atomix.io
       - consensus.atomix.io
-      - multiraft.atomix.io
     resources:
       - '*'
     verbs:

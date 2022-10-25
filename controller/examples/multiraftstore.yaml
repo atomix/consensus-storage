@@ -1,7 +1,0 @@
-apiVersion: multiraft.atomix.io/v3beta1
-kind: MultiRaftStore
-metadata:
-  name: example-multi-raft-store
-spec:
-  replicas: 3
-  groups: 3

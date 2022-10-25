@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: raftmembers.multiraft.atomix.io
+  name: raftmembers.consensus.atomix.io
 spec:
-  group: multiraft.atomix.io
+  group: consensus.atomix.io
   names:
     kind: RaftMember
     listKind: RaftMemberList
@@ -13,7 +13,7 @@ spec:
       - rm
   scope: Namespaced
   versions:
-    - name: v3beta1
+    - name: v1beta1
       served: true
       storage: true
       subresources:

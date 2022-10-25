@@ -38,6 +38,9 @@ var (
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(SchemeGroupVersion, &ConsensusStore{}, &ConsensusStoreList{})
+	scheme.AddKnownTypes(SchemeGroupVersion, &MultiRaftCluster{}, &MultiRaftClusterList{})
+	scheme.AddKnownTypes(SchemeGroupVersion, &RaftGroup{}, &RaftGroupList{})
+	scheme.AddKnownTypes(SchemeGroupVersion, &RaftMember{}, &RaftMemberList{})
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
 }
