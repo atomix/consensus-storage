@@ -7,10 +7,9 @@ package v3beta1
 import (
 	"context"
 	"fmt"
-	"github.com/atomix/multi-raft-storage/node/pkg/multiraft"
+	"github.com/atomix/consensus/node/pkg/multiraft"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"gopkg.in/yaml.v3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	multiraftv3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/multiraft/v3beta1"
+	multiraftv3beta1 "github.com/atomix/consensus/controller/pkg/apis/multiraft/v3beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

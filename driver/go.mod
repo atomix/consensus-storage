@@ -1,4 +1,4 @@
-module github.com/atomix/multi-raft-storage/driver
+module github.com/atomix/consensus/driver
 
 go 1.19
 

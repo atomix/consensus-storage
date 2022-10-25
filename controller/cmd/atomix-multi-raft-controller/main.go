@@ -7,9 +7,9 @@ package main
 import (
 	"context"
 	"fmt"
-	multiraftapis "github.com/atomix/multi-raft-storage/controller/pkg/apis"
-	consensusv1beta1 "github.com/atomix/multi-raft-storage/controller/pkg/controller/consensus/v1beta1"
-	multiraftv3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/controller/multiraft/v3beta1"
+	multiraftapis "github.com/atomix/consensus/controller/pkg/apis"
+	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/controller/consensus/v1beta1"
+	multiraftv3beta1 "github.com/atomix/consensus/controller/pkg/controller/multiraft/v3beta1"
 	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
 	"github.com/atomix/runtime/sdk/pkg/logging"

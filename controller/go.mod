@@ -1,9 +1,9 @@
-module github.com/atomix/multi-raft-storage/controller
+module github.com/atomix/consensus/controller
 
 go 1.19
 
 require (
-	github.com/atomix/multi-raft-storage/node v0.9.1-0.20221022092257-69b86be8e3e0
+	github.com/atomix/consensus/node v0.9.1-0.20221022092257-69b86be8e3e0
 	github.com/atomix/runtime/controller v0.6.0
 	github.com/atomix/runtime/sdk v0.7.1
 	github.com/cenkalti/backoff v2.2.1+incompatible

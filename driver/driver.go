@@ -11,8 +11,8 @@ import (
 )
 
 var driverID = runtime.DriverID{
-	Name:    "MultiRaft",
-	Version: "v2beta1",
+	Name:    "Consensus",
+	Version: "v1beta1",
 }
 
 func New(network network.Network) runtime.Driver {

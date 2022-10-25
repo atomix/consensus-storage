@@ -5,7 +5,7 @@
 package v1beta1
 
 import (
-	"github.com/atomix/multi-raft-storage/controller/pkg/apis/multiraft/v3beta1"
+	"github.com/atomix/consensus/controller/pkg/apis/multiraft/v3beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

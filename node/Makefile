@@ -15,7 +15,7 @@ build: test
 
 .PHONY: test
 test:
-	CGO_ENABLED=1 go test -race github.com/atomix/multi-raft-storage/node/...
+	CGO_ENABLED=1 go test -race github.com/atomix/consensus/node/...
 
 .PHONY: release
 release: build
@@ -36,7 +36,7 @@ generate:
 	docker run -i \
 		-v `pwd`:/build \
 		atomix/codegen:go-latest \
-	    --proto-path ./pkg --go-path ./pkg --import-path github.com/atomix/multi-raft-storage/node/pkg
+	    --proto-path ./pkg --go-path ./pkg --import-path github.com/atomix/consensus/node/pkg
 
 reuse-tool: # @HELP install reuse if not present
 	command -v reuse || python3 -m pip install reuse

@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/atomix/multi-raft-storage/node/pkg/multiraft"
+	"github.com/atomix/consensus/node/pkg/multiraft"
 	counterv1 "github.com/atomix/runtime/primitives/pkg/counter/v1"
 	countermapv1 "github.com/atomix/runtime/primitives/pkg/countermap/v1"
 	electionv1 "github.com/atomix/runtime/primitives/pkg/election/v1"

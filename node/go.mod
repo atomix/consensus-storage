@@ -1,4 +1,4 @@
-module github.com/atomix/multi-raft-storage/node
+module github.com/atomix/consensus/node
 
 go 1.19
 

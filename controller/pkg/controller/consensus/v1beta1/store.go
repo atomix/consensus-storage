@@ -21,8 +21,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
-	consensusv1beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/consensus/v1beta1"
-	multiraftv3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/apis/multiraft/v3beta1"
+	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/apis/consensus/v1beta1"
+	multiraftv3beta1 "github.com/atomix/consensus/controller/pkg/apis/multiraft/v3beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,8 +30,8 @@ import (
 )
 
 const (
-	driverName    = "MultiRaft"
-	driverVersion = "v2beta1"
+	driverName    = "Consensus"
+	driverVersion = "v1beta1"
 )
 
 func addConsensusStoreController(mgr manager.Manager) error {
