@@ -10,18 +10,18 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// MultiRaftStoreState is a state constant for MultiRaftStore
-type MultiRaftStoreState string
+// MultiRaftClusterState is a state constant for MultiRaftCluster
+type MultiRaftClusterState string
 
 const (
-	// MultiRaftStoreNotReady indicates a MultiRaftStore is not yet ready
-	MultiRaftStoreNotReady MultiRaftStoreState = "NotReady"
-	// MultiRaftStoreReady indicates a MultiRaftStore is ready
-	MultiRaftStoreReady MultiRaftStoreState = "Ready"
+	// MultiRaftClusterNotReady indicates a MultiRaftCluster is not yet ready
+	MultiRaftClusterNotReady MultiRaftClusterState = "NotReady"
+	// MultiRaftClusterReady indicates a MultiRaftCluster is ready
+	MultiRaftClusterReady MultiRaftClusterState = "Ready"
 )
 
-// MultiRaftStoreSpec specifies a MultiRaftStore configuration
-type MultiRaftStoreSpec struct {
+// MultiRaftClusterSpec specifies a MultiRaftCluster configuration
+type MultiRaftClusterSpec struct {
 	// Replicas is the number of raft replicas
 	Replicas int32 `json:"replicas,omitempty"`
 
@@ -44,10 +44,10 @@ type MultiRaftStoreSpec struct {
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 
 	// Config is the multi-raft store configuration
-	Config MultiRaftStoreConfig `json:"config,omitempty"`
+	Config MultiRaftClusterConfig `json:"config,omitempty"`
 }
 
-type MultiRaftStoreConfig struct {
+type MultiRaftClusterConfig struct {
 	// Server is the multi-raft server configuration
 	Server MultiRaftServerConfig `json:"server,omitempty"`
 
@@ -67,9 +67,9 @@ type MultiRaftServerConfig struct {
 	MaxConcurrentStreams *uint32            `json:"maxConcurrentStreams"`
 }
 
-// MultiRaftStoreStatus defines the status of a MultiRaftStore
-type MultiRaftStoreStatus struct {
-	State      MultiRaftStoreState   `json:"state,omitempty"`
+// MultiRaftClusterStatus defines the status of a MultiRaftCluster
+type MultiRaftClusterStatus struct {
+	State      MultiRaftClusterState `json:"state,omitempty"`
 	Partitions []RaftPartitionStatus `json:"partitions,omitempty"`
 }
 
@@ -82,22 +82,22 @@ type RaftPartitionStatus struct {
 // +genclient
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// MultiRaftStore is the Schema for the MultiRaftStore API
+// MultiRaftCluster is the Schema for the MultiRaftCluster API
 // +k8s:openapi-gen=true
-type MultiRaftStore struct {
+type MultiRaftCluster struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              MultiRaftStoreSpec   `json:"spec,omitempty"`
-	Status            MultiRaftStoreStatus `json:"status,omitempty"`
+	Spec              MultiRaftClusterSpec   `json:"spec,omitempty"`
+	Status            MultiRaftClusterStatus `json:"status,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// MultiRaftStoreList contains a list of MultiRaftStore
-type MultiRaftStoreList struct {
+// MultiRaftClusterList contains a list of MultiRaftCluster
+type MultiRaftClusterList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 
-	// Items is the MultiRaftStore of items in the list
-	Items []MultiRaftStore `json:"items"`
+	// Items is the MultiRaftCluster of items in the list
+	Items []MultiRaftCluster `json:"items"`
 }

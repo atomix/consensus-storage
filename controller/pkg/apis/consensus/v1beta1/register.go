@@ -4,10 +4,10 @@
 
 // NOTE: Boilerplate only.  Ignore this file.
 
-// Package v3beta1 contains API Schema definitions for the cloud v3beta1 API group
+// Package v1beta1 contains API Schema definitions for the consensus v1beta1 API group
 // +k8s:deepcopy-gen=package,register
-// +groupName=multiraft.atomix.io
-package v3beta1
+// +groupName=consensus.atomix.io
+package v1beta1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,7 +16,7 @@ import (
 )
 
 // SchemeGroupVersion is group version used to register these objects
-var SchemeGroupVersion = schema.GroupVersion{Group: "multiraft.atomix.io", Version: "v3beta1"}
+var SchemeGroupVersion = schema.GroupVersion{Group: "consensus.atomix.io", Version: "v1beta1"}
 
 // Kind takes an unqualified kind and returns a Group qualified GroupKind
 func Kind(kind string) schema.GroupKind {
@@ -37,9 +37,7 @@ var (
 
 // Adds the list of known types to Scheme.
 func addKnownTypes(scheme *runtime.Scheme) error {
-	scheme.AddKnownTypes(SchemeGroupVersion, &MultiRaftCluster{}, &MultiRaftClusterList{})
-	scheme.AddKnownTypes(SchemeGroupVersion, &RaftGroup{}, &RaftGroupList{})
-	scheme.AddKnownTypes(SchemeGroupVersion, &RaftMember{}, &RaftMemberList{})
+	scheme.AddKnownTypes(SchemeGroupVersion, &ConsensusStore{}, &ConsensusStoreList{})
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil
 }

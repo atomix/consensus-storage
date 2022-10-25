@@ -12,10 +12,9 @@ import (
 
 var log = logging.GetLogger()
 
-// AddControllers creates a new Partition ManagementGroup and adds it to the Manager. The Manager will set fields on the ManagementGroup
-// and Start it when the Manager is Started.
+// AddControllers adds multi-raft controllers to the manager
 func AddControllers(mgr manager.Manager) error {
-	if err := addMultiRaftStoreController(mgr); err != nil {
+	if err := addMultiRaftClusterController(mgr); err != nil {
 		return err
 	}
 	if err := addPodController(mgr); err != nil {

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	multiraftapis "github.com/atomix/multi-raft-storage/controller/pkg/apis"
+	consensusv1beta1 "github.com/atomix/multi-raft-storage/controller/pkg/controller/consensus/v1beta1"
 	multiraftv3beta1 "github.com/atomix/multi-raft-storage/controller/pkg/controller/multiraft/v3beta1"
 	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
@@ -86,6 +87,10 @@ func getCommand() *cobra.Command {
 
 			// Add all the controllers
 			if err := multiraftv3beta1.AddControllers(mgr); err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
+			if err := consensusv1beta1.AddControllers(mgr); err != nil {
 				log.Error(err)
 				os.Exit(1)
 			}
