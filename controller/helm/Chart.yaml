@@ -7,10 +7,11 @@ name: atomix-consensus-controller
 description: The consensus controller extends the Kubernetes API with custom resources for consensus stores.
 kubeVersion: ">=1.17.0"
 type: application
-version: 1.3.3
-appVersion: v0.5.4
+version: 1.4.0
+appVersion: v0.6.0
 keywords:
 - atomix
+- consensus
 - raft
 home: https://atomix.io
 maintainers:
