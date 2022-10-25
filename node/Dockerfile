@@ -12,7 +12,7 @@ COPY ./go.sum /build
 COPY ./cmd /build/cmd
 COPY ./pkg /build/pkg
 
-RUN go build -mod=readonly -trimpath -o /build/dist/bin/atomix-multi-raft-node ./cmd/atomix-multi-raft-node
+RUN go build -mod=readonly -trimpath -o /build/dist/bin/atomix-consensus-node ./cmd/atomix-consensus-node
 
 FROM alpine:3.15
 
@@ -22,6 +22,6 @@ RUN addgroup -S atomix && adduser -S -G atomix atomix
 
 USER atomix
 
-COPY --from=build /build/dist/bin/atomix-multi-raft-node /usr/local/bin/atomix-multi-raft-node
+COPY --from=build /build/dist/bin/atomix-consensus-node /usr/local/bin/atomix-consensus-node
 
-ENTRYPOINT ["atomix-multi-raft-node"]
+ENTRYPOINT ["atomix-consensus-node"]

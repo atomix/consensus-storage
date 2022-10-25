@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/atomix/consensus/node/pkg/multiraft"
+	"github.com/atomix/consensus/node/pkg/consensus"
 	counterv1 "github.com/atomix/runtime/primitives/pkg/counter/v1"
 	countermapv1 "github.com/atomix/runtime/primitives/pkg/countermap/v1"
 	electionv1 "github.com/atomix/runtime/primitives/pkg/election/v1"
@@ -30,7 +30,7 @@ import (
 
 func main() {
 	cmd := &cobra.Command{
-		Use: "atomix-multi-raft-node",
+		Use: "atomix-consensus-node",
 		Run: func(cmd *cobra.Command, args []string) {
 			configPath, err := cmd.Flags().GetString("config")
 			if err != nil {
@@ -58,7 +58,7 @@ func main() {
 				os.Exit(1)
 			}
 
-			config := multiraft.Config{}
+			config := consensus.Config{}
 			configBytes, err := ioutil.ReadFile(configPath)
 			if err != nil {
 				fmt.Println(err)
@@ -80,11 +80,11 @@ func main() {
 			setv1.RegisterStateMachine(registry)
 			valuev1.RegisterStateMachine(registry)
 
-			protocol := multiraft.NewProtocol(
+			protocol := consensus.NewProtocol(
 				config.Raft,
 				registry,
-				multiraft.WithHost(raftHost),
-				multiraft.WithPort(raftPort))
+				consensus.WithHost(raftHost),
+				consensus.WithPort(raftPort))
 
 			var serverOptions []grpc.ServerOption
 			if config.Server.ReadBufferSize != nil {
@@ -123,7 +123,7 @@ func main() {
 			setv1.RegisterServer(node)
 			valuev1.RegisterServer(node)
 			node.RegisterService(func(server *grpc.Server) {
-				multiraft.RegisterNodeServer(server, multiraft.NewNodeServer(protocol))
+				consensus.RegisterNodeServer(server, consensus.NewNodeServer(protocol))
 			})
 
 			// Start the node
@@ -144,7 +144,7 @@ func main() {
 			}
 		},
 	}
-	cmd.Flags().StringP("config", "c", "", "the path to the multi-raft cluster configuration")
+	cmd.Flags().StringP("config", "c", "", "the path to the consensus cluster configuration")
 	cmd.Flags().String("api-host", "", "the host to which to bind the API server")
 	cmd.Flags().Int("api-port", 8080, "the port to which to bind the API server")
 	cmd.Flags().String("raft-host", "", "the host to which to bind the Multi-Raft server")

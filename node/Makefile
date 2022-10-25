@@ -11,7 +11,7 @@ endif
 
 .PHONY: build
 build: test
-	docker build . -t atomix/multi-raft-node:latest
+	docker build . -t atomix/consensus-node:latest
 
 .PHONY: test
 test:
@@ -19,17 +19,17 @@ test:
 
 .PHONY: release
 release: build
-	docker push atomix/multi-raft-node:latest
+	docker push atomix/consensus-node:latest
 ifdef TAG
-	docker tag atomix/multi-raft-node:latest atomix/multi-raft-node:${MAJOR}.${MINOR}.${PATCH}
-	docker tag atomix/multi-raft-node:latest atomix/multi-raft-node:${MAJOR}.${MINOR}
-	docker push atomix/multi-raft-node:${MAJOR}.${MINOR}.${PATCH}
-	docker push atomix/multi-raft-node:${MAJOR}.${MINOR}
+	docker tag atomix/consensus-node:latest atomix/consensus-node:${MAJOR}.${MINOR}.${PATCH}
+	docker tag atomix/consensus-node:latest atomix/consensus-node:${MAJOR}.${MINOR}
+	docker push atomix/consensus-node:${MAJOR}.${MINOR}.${PATCH}
+	docker push atomix/consensus-node:${MAJOR}.${MINOR}
 endif
 
 kind: build
 	@if [ "`kind get clusters`" = '' ]; then echo "no kind cluster found" && exit 1; fi
-	kind load docker-image atomix/multi-raft-node:latest
+	kind load docker-image atomix/consensus-node:latest
 
 generate:
 	@find . -name '*.pb.go' -delete

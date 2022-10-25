@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
 
-package atomix.multiraft.node.v1;
+package atomix.consensus.node.v1;
 
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
