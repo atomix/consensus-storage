@@ -3,7 +3,7 @@ module github.com/atomix/consensus-storage/controller
 go 1.19
 
 require (
-	github.com/atomix/consensus-storage/node v0.12.0
+	github.com/atomix/consensus-storage/node v0.12.1-0.20221028092338-2fac65f8e0b4
 	github.com/atomix/runtime/controller v0.6.0
 	github.com/atomix/runtime/sdk v0.7.2
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -11,7 +11,6 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/spf13/cobra v1.4.0
 	google.golang.org/grpc v1.46.0
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 	k8s.io/api v0.24.0
 	k8s.io/apimachinery v0.24.0
 	k8s.io/client-go v0.24.0
@@ -98,6 +97,7 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/component-base v0.24.0 // indirect
 	k8s.io/klog/v2 v2.60.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220328201542-3ee0da9b0b42 // indirect
