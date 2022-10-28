@@ -64,7 +64,7 @@ type PodReconciler struct {
 	scheme   *runtime.Scheme
 	events   record.EventRecorder
 	watchers map[string]context.CancelFunc
-	mu       sync.Mutex
+	mu       sync.RWMutex
 }
 
 // Reconcile reads that state of the cluster for a Store object and makes changes based on the state read
@@ -149,38 +149,45 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 		return nil
 	}
 
-	log.Infof("Creating new Watch for %s", address)
-	conn, err := grpc.Dial(
-		address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithStreamInterceptor(retry.RetryingStreamClientInterceptor(retry.WithRetryOn(codes.Unavailable))))
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	client := consensus.NewNodeClient(conn)
 	ctx, cancel := context.WithCancel(context.Background())
-
-	request := &consensus.WatchRequest{}
-	stream, err := client.Watch(ctx, request)
-	if err != nil {
-		cancel()
-		log.Error(err)
-		return err
-	}
-
 	r.watchers[address] = cancel
 
 	go func() {
+		defer func() {
+			r.mu.Lock()
+			delete(r.watchers, address)
+			r.mu.Unlock()
+		}()
+
+		log.Infof("Creating new Watch for %s", address)
+		conn, err := grpc.Dial(
+			address,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithStreamInterceptor(retry.RetryingStreamClientInterceptor(retry.WithRetryOn(codes.Unavailable))))
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		client := consensus.NewNodeClient(conn)
+
+		request := &consensus.WatchRequest{}
+		stream, err := client.Watch(ctx, request)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
 		for {
 			event, err := stream.Recv()
 			if err == io.EOF {
+				log.Debugf("Watch for %s complete", address)
 				return
 			}
 			if err != nil {
 				err = errors.FromProto(err)
 				if errors.IsCanceled(err) {
+					log.Warnf("Watch for %s canceled", address)
 					return
 				}
 				log.Error(err)
@@ -451,12 +458,12 @@ func (r *PodReconciler) tryRecordGroupEvent(ctx context.Context, groupName types
 }
 
 func (r *PodReconciler) unwatch(address string) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-	if cancel, ok := r.watchers[address]; ok {
+	r.mu.RLock()
+	cancel, ok := r.watchers[address]
+	r.mu.RUnlock()
+	if ok {
 		log.Infof("Cancelling Watch for %s", address)
 		cancel()
-		delete(r.watchers, address)
 	}
 	return nil
 }
