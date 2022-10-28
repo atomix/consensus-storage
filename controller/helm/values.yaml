@@ -4,13 +4,12 @@
 
 replicas: 1
 
-controller:
-  image:
-    registry: ""
-    repository: atomix/consensus-controller
-    tag: v0.6.0
-    pullPolicy: ""
-    pullSecrets: []
+image:
+  registry: ""
+  repository: atomix/consensus-controller
+  tag: v0.6.0
+  pullPolicy: ""
+  pullSecrets: []
 
 node:
   image:

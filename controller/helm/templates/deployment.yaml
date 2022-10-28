@@ -19,11 +19,11 @@ spec:
       serviceAccountName: {{ template "atomix-consensus-controller.fullname" . }}
       containers:
         - name: atomix-consensus-controller
-          image: {{ include "atomix-consensus-controller.imagename" .Values.controller.image | quote }}
+          image: {{ include "atomix-consensus-controller.imagename" .Values.image | quote }}
           securityContext:
             allowPrivilegeEscalation: false
             runAsUser: 0
-          imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           readinessProbe:
             exec:
               command:
