@@ -10,6 +10,7 @@ import (
 	"github.com/atomix/consensus-storage/node/pkg/consensus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"gopkg.in/yaml.v3"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
