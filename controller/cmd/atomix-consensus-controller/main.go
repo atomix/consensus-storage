@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 	consensusapis "github.com/atomix/consensus-storage/controller/pkg/apis"
-	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/controller/consensus-storage/v1beta1"
+	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/controller/consensus/v1beta1"
 	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
 	"github.com/atomix/runtime/sdk/pkg/logging"
