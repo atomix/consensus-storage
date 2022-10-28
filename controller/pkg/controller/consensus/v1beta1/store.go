@@ -21,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 	"time"
 
-	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/apis/consensus/v1beta1"
+	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/apis/consensus-storage/v1beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

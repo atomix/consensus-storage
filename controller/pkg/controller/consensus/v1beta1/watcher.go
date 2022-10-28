@@ -7,7 +7,7 @@ package v1beta1
 import (
 	"context"
 	"fmt"
-	"github.com/atomix/consensus/node/pkg/consensus"
+	"github.com/atomix/consensus-storage/node/pkg/consensus"
 	"github.com/atomix/runtime/sdk/pkg/errors"
 	"github.com/atomix/runtime/sdk/pkg/grpc/retry"
 	"github.com/cenkalti/backoff"
@@ -27,7 +27,7 @@ import (
 	"sync"
 	"time"
 
-	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/apis/consensus/v1beta1"
+	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/apis/consensus-storage/v1beta1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

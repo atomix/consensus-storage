@@ -1,4 +1,4 @@
-module github.com/atomix/consensus/driver
+module github.com/atomix/consensus-storage/driver
 
 go 1.19
 

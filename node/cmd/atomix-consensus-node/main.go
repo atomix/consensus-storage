@@ -6,7 +6,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/atomix/consensus/node/pkg/consensus"
+	"github.com/atomix/consensus-storage/node/pkg/consensus"
 	counterv1 "github.com/atomix/runtime/primitives/pkg/counter/v1"
 	countermapv1 "github.com/atomix/runtime/primitives/pkg/countermap/v1"
 	electionv1 "github.com/atomix/runtime/primitives/pkg/election/v1"

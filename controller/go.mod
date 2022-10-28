@@ -1,9 +1,9 @@
-module github.com/atomix/consensus/controller
+module github.com/atomix/consensus-storage/controller
 
 go 1.19
 
 require (
-	github.com/atomix/consensus/node v0.12.0
+	github.com/atomix/consensus-storage/node v0.12.0
 	github.com/atomix/runtime/controller v0.6.0
 	github.com/atomix/runtime/sdk v0.7.2
 	github.com/cenkalti/backoff v2.2.1+incompatible

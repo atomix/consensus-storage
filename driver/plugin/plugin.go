@@ -5,7 +5,7 @@
 package main
 
 import (
-	"github.com/atomix/consensus/driver"
+	"github.com/atomix/consensus-storage/driver"
 	"github.com/atomix/runtime/sdk/pkg/network"
 )
 

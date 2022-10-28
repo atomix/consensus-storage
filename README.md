@@ -1,7 +1,7 @@
-[![Controller](https://github.com/atomix/consensus/actions/workflows/controller.yml/badge.svg)](https://github.com/atomix/consensus/actions/workflows/controller.yml)
-[![Node](https://github.com/atomix/consensus/actions/workflows/node.yml/badge.svg)](https://github.com/atomix/consensus/actions/workflows/node.yml)
-[![Driver](https://github.com/atomix/consensus/actions/workflows/driver.yml/badge.svg)](https://github.com/atomix/consensus/actions/workflows/driver.yml)
+[![Controller](https://github.com/atomix/consensus-storage/actions/workflows/controller.yml/badge.svg)](https://github.com/atomix/consensus-storage/actions/workflows/controller.yml)
+[![Node](https://github.com/atomix/consensus-storage/actions/workflows/node.yml/badge.svg)](https://github.com/atomix/consensus-storage/actions/workflows/node.yml)
+[![Driver](https://github.com/atomix/consensus-storage/actions/workflows/driver.yml/badge.svg)](https://github.com/atomix/consensus-storage/actions/workflows/driver.yml)
 
-# MultiRaft Storage
+# Consensus Storage
 
-MultiRaft storage for Atomix Cloud
+Consensus storage engine for Atomix Cloud

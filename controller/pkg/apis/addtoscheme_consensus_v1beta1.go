@@ -5,7 +5,7 @@
 package apis
 
 import (
-	consensusv1beta1 "github.com/atomix/consensus/controller/pkg/apis/consensus/v1beta1"
+	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/apis/consensus-storage/v1beta1"
 )
 
 func init() {

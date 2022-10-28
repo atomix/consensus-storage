@@ -1,4 +1,4 @@
-module github.com/atomix/consensus/node
+module github.com/atomix/consensus-storage/node
 
 go 1.19
 
