@@ -17,7 +17,7 @@ require (
 )
 
 require (
-	github.com/atomix/runtime/primitives v0.7.3
+	github.com/atomix/runtime/primitives v0.7.4
 	github.com/atomix/runtime/sdk v0.7.5
 	github.com/lni/dragonboat/v3 v3.3.5
 	github.com/spf13/cobra v1.4.0
