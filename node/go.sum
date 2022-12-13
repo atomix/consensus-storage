@@ -26,8 +26,8 @@ github.com/atomix/runtime/api v0.7.0 h1:yCDoORQqk2rzWr9Eg/NrLFgOu4C/lR3D306IVWzr
 github.com/atomix/runtime/api v0.7.0/go.mod h1:tjbd3w4yij89ZHCYdQUbmvZMC0HoHQQ/3/gVzQuOCH0=
 github.com/atomix/runtime/primitives v0.7.8 h1:WMSvakh6aPV65OV4nK9TMfBvB5THlQuWwvKEjUM53EI=
 github.com/atomix/runtime/primitives v0.7.8/go.mod h1:wU6BcivBp8yNS6gFtFAY2WeqNpkOgRCvI1wAMhPajVY=
-github.com/atomix/runtime/sdk v0.7.5 h1:+jdVSrzF2QMWV7BePRzdzPL2kKAmDJcdjmdAn2Nu5fY=
-github.com/atomix/runtime/sdk v0.7.5/go.mod h1:CIxhWG1UkcWL82+XJ1wwynz1T5k4nYTZdwNlWp8IMd8=
+github.com/atomix/runtime/sdk v0.7.6 h1:sYH9+9B2ChTnd7iv2Brw6H8Jplb1nHoS5ZjRiz4HNmo=
+github.com/atomix/runtime/sdk v0.7.6/go.mod h1:CIxhWG1UkcWL82+XJ1wwynz1T5k4nYTZdwNlWp8IMd8=
 github.com/aymerick/raymond v2.0.3-0.20180322193309-b565731e1464+incompatible/go.mod h1:osfaiScAUVup+UC9Nfq76eWqDhXlp+4UYaA8uhTBO6g=
 github.com/benbjohnson/clock v1.1.0 h1:Q92kusRqC1XV2MjkWETPvjJVqKetz1OzxZB7mHJLju8=
 github.com/benbjohnson/clock v1.1.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
