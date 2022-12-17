@@ -97,7 +97,6 @@ func getCommand() *cobra.Command {
 
 			// Start the manager
 			log.Info("Starting the Manager")
-			mgr.GetWebhookServer().Port = 443
 			if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 				log.Error(err, "controller exited non-zero")
 				os.Exit(1)

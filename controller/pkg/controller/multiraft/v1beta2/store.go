@@ -166,8 +166,8 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   partitionName.Namespace,
 				Name:        partitionName.Name,
-				Labels:      newGroupLabels(store, ordinal),
-				Annotations: newGroupAnnotations(store, ordinal),
+				Labels:      newPartitionLabels(store, ordinal, int(shard)),
+				Annotations: newPartitionAnnotations(store, ordinal, int(shard)),
 			},
 			Spec: multiraftv1beta2.RaftPartitionSpec{
 				RaftConfig:  store.Spec.RaftConfig,
@@ -378,25 +378,29 @@ func isPartitionConfigEqual(partition1, partition2 protocol.PartitionConfig) boo
 
 var _ reconcile.Reconciler = (*MultiRaftStoreReconciler)(nil)
 
-// newGroupLabels returns the labels for the given cluster
-func newGroupLabels(store *multiraftv1beta2.MultiRaftStore, partitionID int) map[string]string {
+// newPartitionLabels returns the labels for the given partition
+func newPartitionLabels(store *multiraftv1beta2.MultiRaftStore, partitionID int, shardID int) map[string]string {
 	labels := make(map[string]string)
 	for key, value := range store.Labels {
 		labels[key] = value
 	}
+	labels[storeKey] = store.Name
 	labels[multiRaftStoreKey] = store.Name
 	labels[multiRaftClusterKey] = store.Spec.Cluster.Name
 	labels[raftPartitionKey] = strconv.Itoa(partitionID)
+	labels[raftShardKey] = strconv.Itoa(shardID)
 	return labels
 }
 
-func newGroupAnnotations(store *multiraftv1beta2.MultiRaftStore, partitionID int) map[string]string {
+func newPartitionAnnotations(store *multiraftv1beta2.MultiRaftStore, partitionID int, shardID int) map[string]string {
 	annotations := make(map[string]string)
-	for key, value := range store.Labels {
+	for key, value := range store.Annotations {
 		annotations[key] = value
 	}
+	annotations[storeKey] = store.Name
 	annotations[multiRaftStoreKey] = store.Name
 	annotations[multiRaftClusterKey] = store.Spec.Cluster.Name
 	annotations[raftPartitionKey] = strconv.Itoa(partitionID)
+	annotations[raftShardKey] = strconv.Itoa(shardID)
 	return annotations
 }

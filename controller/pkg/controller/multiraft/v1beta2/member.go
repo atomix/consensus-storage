@@ -29,10 +29,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-const (
-	validateRaftMemberPath = "/validate-raft-member"
-)
-
 func addRaftMemberController(mgr manager.Manager) error {
 	options := controller.Options{
 		Reconciler: &RaftMemberReconciler{
