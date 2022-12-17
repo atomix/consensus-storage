@@ -136,45 +136,8 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 		return true, nil
 	}
 
-	// Iterate through partitions and ensure partition info has been added to the cluster status
-	partitionStatuses := cluster.Status.PartitionStatuses
-	for partitionID := uint32(1); partitionID <= store.Spec.Partitions; partitionID++ {
-		partitionName := fmt.Sprintf("%s-%d", store.Name, partitionID)
-
-		hasPartition := false
-		var shardID uint32 = 1
-		for _, partitionStatus := range cluster.Status.PartitionStatuses {
-			if partitionStatus.ShardID >= shardID {
-				shardID = partitionStatus.ShardID + 1
-			}
-			if partitionStatus.Name == partitionName {
-				hasPartition = true
-			}
-		}
-
-		if !hasPartition {
-			partitionStatuses = append(partitionStatuses, multiraftv1beta2.MultiRaftClusterPartitionStatus{
-				LocalObjectReference: corev1.LocalObjectReference{
-					Name: partitionName,
-				},
-				PartitionID: partitionID,
-				ShardID:     shardID,
-			})
-		}
-	}
-
-	// If new member statuses were added, update the partition status
-	if len(partitionStatuses) != len(cluster.Status.PartitionStatuses) {
-		cluster.Status.PartitionStatuses = partitionStatuses
-		if err := r.client.Status().Update(ctx, cluster); err != nil {
-			log.Error(err, "Reconcile RaftPartition")
-			return false, err
-		}
-		return true, nil
-	}
-
-	for ordinal := 1; ordinal <= int(store.Spec.Partitions); ordinal++ {
-		if updated, err := r.reconcilePartition(ctx, store, cluster, ordinal); err != nil {
+	for partitionID := 1; partitionID <= int(store.Spec.Partitions); partitionID++ {
+		if updated, err := r.reconcilePartition(ctx, store, cluster, partitionID); err != nil {
 			return false, err
 		} else if updated {
 			return true, nil
@@ -183,10 +146,10 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 	return false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, ordinal int) (bool, error) {
+func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partitionID int) (bool, error) {
 	partitionName := types.NamespacedName{
 		Namespace: store.Namespace,
-		Name:      fmt.Sprintf("%s-%d", store.Name, ordinal),
+		Name:      fmt.Sprintf("%s-%d", store.Name, partitionID),
 	}
 	partition := &multiraftv1beta2.RaftPartition{}
 	if err := r.client.Get(ctx, partitionName, partition); err != nil {
@@ -197,14 +160,28 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 
 		// Lookup the registered shard ID for this partition in the cluster status.
 		var shardID *uint32
+		var maxShardID uint32
 		for _, partitionStatus := range cluster.Status.PartitionStatuses {
+			if partitionStatus.ShardID > maxShardID {
+				maxShardID = partitionStatus.ShardID
+			}
 			if partitionStatus.Name == partitionName.Name {
 				shardID = &partitionStatus.ShardID
 			}
 		}
 
-		// Return and requeue the store if the shard ID could not be found
 		if shardID == nil {
+			cluster.Status.PartitionStatuses = append(cluster.Status.PartitionStatuses, multiraftv1beta2.MultiRaftClusterPartitionStatus{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: partitionName.Name,
+				},
+				PartitionID: uint32(partitionID),
+				ShardID:     maxShardID + 1,
+			})
+			if err := r.client.Status().Update(ctx, cluster); err != nil {
+				log.Error(err, "Reconcile MultiRaftStore")
+				return false, err
+			}
 			return true, nil
 		}
 
@@ -212,14 +189,14 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   partitionName.Namespace,
 				Name:        partitionName.Name,
-				Labels:      newPartitionLabels(store, ordinal, int(*shardID)),
-				Annotations: newPartitionAnnotations(store, ordinal, int(*shardID)),
+				Labels:      newPartitionLabels(store, partitionID, int(*shardID)),
+				Annotations: newPartitionAnnotations(store, partitionID, int(*shardID)),
 			},
 			Spec: multiraftv1beta2.RaftPartitionSpec{
 				RaftConfig:  store.Spec.RaftConfig,
 				Cluster:     store.Spec.Cluster,
 				ShardID:     *shardID,
-				PartitionID: uint32(ordinal),
+				PartitionID: uint32(partitionID),
 			},
 		}
 		if store.Spec.ReplicationFactor != nil && *store.Spec.ReplicationFactor <= cluster.Spec.Replicas {

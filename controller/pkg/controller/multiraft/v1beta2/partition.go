@@ -158,11 +158,11 @@ func (r *RaftPartitionReconciler) reconcileMembers(ctx context.Context, cluster 
 
 		hasMember := false
 		var raftNodeID uint32 = 1
-		for _, memberRef := range memberStatuses {
-			if memberRef.RaftNodeID >= raftNodeID {
-				raftNodeID = memberRef.RaftNodeID + 1
+		for _, memberStatus := range memberStatuses {
+			if memberStatus.RaftNodeID >= raftNodeID {
+				raftNodeID = memberStatus.RaftNodeID + 1
 			}
-			if memberRef.Name == memberName {
+			if memberStatus.Name == memberName {
 				hasMember = true
 			}
 		}
@@ -220,14 +220,14 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 		}
 
 		boostrapPolicy := multiraftv1beta2.RaftBootstrap
-		for i, memberRef := range partition.Status.MemberStatuses {
-			if memberRef.Name == memberName.Name {
+		for i, memberStatus := range partition.Status.MemberStatuses {
+			if memberStatus.Name == memberName.Name {
 				// If this member is marked 'deleted', store the new Raft node ID and reset the flags
-				if memberRef.Deleted {
-					memberRef.RaftNodeID = raftNodeID
-					memberRef.Bootstrapped = true
-					memberRef.Deleted = false
-					partition.Status.MemberStatuses[i] = memberRef
+				if memberStatus.Deleted {
+					memberStatus.RaftNodeID = raftNodeID
+					memberStatus.Bootstrapped = true
+					memberStatus.Deleted = false
+					partition.Status.MemberStatuses[i] = memberStatus
 					if err := r.client.Status().Update(ctx, partition); err != nil {
 						log.Error(err, "Reconcile RaftPartition")
 						return false, err
@@ -236,7 +236,7 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 				}
 
 				// If the member has already been bootstrapped, configure the member to join the Raft cluster
-				if memberRef.Bootstrapped {
+				if memberStatus.Bootstrapped {
 					boostrapPolicy = multiraftv1beta2.RaftJoin
 				} else {
 					boostrapPolicy = multiraftv1beta2.RaftBootstrap
