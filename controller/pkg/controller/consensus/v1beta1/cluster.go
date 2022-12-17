@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strconv"
 	"strings"
 	"time"
 
@@ -38,18 +39,20 @@ import (
 )
 
 const (
-	apiPort                  = 5678
-	protocolPort             = 5679
-	probePort                = 5679
-	defaultImageEnv          = "DEFAULT_NODE_IMAGE"
-	defaultImage             = "atomix/consensus-node:latest"
-	headlessServiceSuffix    = "hs"
-	appLabel                 = "app"
-	storeLabel               = "store"
-	appAtomix                = "atomix"
-	nodeContainerName        = "atomix-consensus-node"
-	multiRaftStoreAnnotation = "multiraft.atomix.io/store"
-	multiRaftPodFinalizer    = "multiraft.atomix.io/pod"
+	apiPort               = 5678
+	protocolPort          = 5679
+	probePort             = 5679
+	defaultImageEnv       = "DEFAULT_NODE_IMAGE"
+	defaultImage          = "atomix/consensus-node:latest"
+	headlessServiceSuffix = "hs"
+	nodeContainerName     = "atomix-consensus-node"
+	multiRaftPodFinalizer = "multiraft.atomix.io/pod"
+	storeKey              = "atomix.io/store"
+	multiRaftStoreKey     = "multiraft.atomix.io/store"
+	multiRaftClusterKey   = "multiraft.atomix.io/cluster"
+	raftGroupKey          = "multiraft.atomix.io/group"
+	raftPartitionKey      = "multiraft.atomix.io/partition"
+	raftMemberKey         = "multiraft.atomix.io/member"
 )
 
 const (
@@ -117,7 +120,7 @@ func addMultiRaftClusterController(mgr manager.Manager) error {
 
 	// Watch for changes to secondary resource Pod
 	err = controller.Watch(&source.Kind{Type: &corev1.Pod{}}, handler.EnqueueRequestsFromMapFunc(func(object client.Object) []reconcile.Request {
-		store, ok := object.GetAnnotations()[multiRaftStoreAnnotation]
+		clusterName, ok := object.GetAnnotations()[multiRaftClusterKey]
 		if !ok {
 			return nil
 		}
@@ -125,7 +128,7 @@ func addMultiRaftClusterController(mgr manager.Manager) error {
 			{
 				NamespacedName: types.NamespacedName{
 					Namespace: object.GetNamespace(),
-					Name:      store,
+					Name:      clusterName,
 				},
 			},
 		}
@@ -147,8 +150,8 @@ type MultiRaftClusterReconciler struct {
 // and what is in the Store.Spec
 func (r *MultiRaftClusterReconciler) Reconcile(ctx context.Context, request reconcile.Request) (reconcile.Result, error) {
 	log.Info("Reconcile MultiRaftCluster")
-	store := &consensusv1beta1.MultiRaftCluster{}
-	err := r.client.Get(ctx, request.NamespacedName, store)
+	cluster := &consensusv1beta1.MultiRaftCluster{}
+	err := r.client.Get(ctx, request.NamespacedName, cluster)
 	if err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		if k8serrors.IsNotFound(err) {
@@ -157,34 +160,34 @@ func (r *MultiRaftClusterReconciler) Reconcile(ctx context.Context, request reco
 		return reconcile.Result{}, err
 	}
 
-	if err := r.reconcileConfigMap(ctx, store); err != nil {
+	if err := r.reconcileConfigMap(ctx, cluster); err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		return reconcile.Result{}, err
 	}
 
-	if err := r.reconcileStatefulSet(ctx, store); err != nil {
+	if err := r.reconcileStatefulSet(ctx, cluster); err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		return reconcile.Result{}, err
 	}
 
-	if err := r.reconcileService(ctx, store); err != nil {
+	if err := r.reconcileService(ctx, cluster); err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		return reconcile.Result{}, err
 	}
 
-	if err := r.reconcileHeadlessService(ctx, store); err != nil {
+	if err := r.reconcileHeadlessService(ctx, cluster); err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		return reconcile.Result{}, err
 	}
 
-	if ok, err := r.reconcileGroups(ctx, store); err != nil {
+	if ok, err := r.reconcileGroups(ctx, cluster); err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		return reconcile.Result{}, err
 	} else if ok {
 		return reconcile.Result{}, nil
 	}
 
-	if ok, err := r.reconcileStatus(ctx, store); err != nil {
+	if ok, err := r.reconcileStatus(ctx, cluster); err != nil {
 		log.Error(err, "Reconcile MultiRaftCluster")
 		return reconcile.Result{}, err
 	} else if ok {
@@ -193,38 +196,38 @@ func (r *MultiRaftClusterReconciler) Reconcile(ctx context.Context, request reco
 	return reconcile.Result{}, nil
 }
 
-func (r *MultiRaftClusterReconciler) reconcileConfigMap(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
+func (r *MultiRaftClusterReconciler) reconcileConfigMap(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
 	log.Info("Reconcile raft protocol config map")
 	cm := &corev1.ConfigMap{}
 	name := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      store.Name,
+		Namespace: cluster.Namespace,
+		Name:      cluster.Name,
 	}
 	err := r.client.Get(ctx, name, cm)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addConfigMap(ctx, store)
+		err = r.addConfigMap(ctx, cluster)
 	}
 	return err
 }
 
-func (r *MultiRaftClusterReconciler) addConfigMap(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
-	log.Info("Creating raft ConfigMap", "Name", store.Name, "Namespace", store.Namespace)
-	loggingConfig, err := yaml.Marshal(&store.Spec.Config.Logging)
+func (r *MultiRaftClusterReconciler) addConfigMap(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
+	log.Info("Creating raft ConfigMap", "Name", cluster.Name, "Namespace", cluster.Namespace)
+	loggingConfig, err := yaml.Marshal(&cluster.Spec.Config.Logging)
 	if err != nil {
 		return err
 	}
 
-	raftConfig, err := newNodeConfig(store)
+	raftConfig, err := newNodeConfig(cluster)
 	if err != nil {
 		return err
 	}
 
 	cm := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        store.Name,
-			Namespace:   store.Namespace,
-			Labels:      newStoreLabels(store),
-			Annotations: newStoreAnnotations(store),
+			Name:        cluster.Name,
+			Namespace:   cluster.Namespace,
+			Labels:      cluster.Labels,
+			Annotations: cluster.Annotations,
 		},
 		Data: map[string]string{
 			raftConfigFile:    string(raftConfig),
@@ -232,73 +235,72 @@ func (r *MultiRaftClusterReconciler) addConfigMap(ctx context.Context, store *co
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(store, cm, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(cluster, cm, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, cm)
 }
 
-// newNodeConfig creates a protocol configuration string for the given store and protocol
-func newNodeConfig(store *consensusv1beta1.MultiRaftCluster) ([]byte, error) {
+func newNodeConfig(cluster *consensusv1beta1.MultiRaftCluster) ([]byte, error) {
 	config := consensus.Config{}
 	config.Server = consensus.ServerConfig{
-		ReadBufferSize:       store.Spec.Config.Server.ReadBufferSize,
-		WriteBufferSize:      store.Spec.Config.Server.WriteBufferSize,
-		NumStreamWorkers:     store.Spec.Config.Server.NumStreamWorkers,
-		MaxConcurrentStreams: store.Spec.Config.Server.MaxConcurrentStreams,
+		ReadBufferSize:       cluster.Spec.Config.Server.ReadBufferSize,
+		WriteBufferSize:      cluster.Spec.Config.Server.WriteBufferSize,
+		NumStreamWorkers:     cluster.Spec.Config.Server.NumStreamWorkers,
+		MaxConcurrentStreams: cluster.Spec.Config.Server.MaxConcurrentStreams,
 	}
-	if store.Spec.Config.Server.MaxRecvMsgSize != nil {
-		maxRecvMsgSize := int(store.Spec.Config.Server.MaxRecvMsgSize.Value())
+	if cluster.Spec.Config.Server.MaxRecvMsgSize != nil {
+		maxRecvMsgSize := int(cluster.Spec.Config.Server.MaxRecvMsgSize.Value())
 		config.Server.MaxRecvMsgSize = &maxRecvMsgSize
 	}
-	if store.Spec.Config.Server.MaxSendMsgSize != nil {
-		maxSendMsgSize := int(store.Spec.Config.Server.MaxSendMsgSize.Value())
+	if cluster.Spec.Config.Server.MaxSendMsgSize != nil {
+		maxSendMsgSize := int(cluster.Spec.Config.Server.MaxSendMsgSize.Value())
 		config.Server.MaxSendMsgSize = &maxSendMsgSize
 	}
-	electionTimeout := store.Spec.Config.Raft.ElectionTimeout
+	electionTimeout := cluster.Spec.Config.Raft.ElectionTimeout
 	if electionTimeout != nil {
 		config.Raft.ElectionTimeout = &electionTimeout.Duration
 	}
-	heartbeatPeriod := store.Spec.Config.Raft.HeartbeatPeriod
+	heartbeatPeriod := cluster.Spec.Config.Raft.HeartbeatPeriod
 	if heartbeatPeriod != nil {
 		config.Raft.HeartbeatPeriod = &heartbeatPeriod.Duration
 	}
-	if store.Spec.Config.Raft.SnapshotEntryThreshold != nil {
-		entryThreshold := uint64(*store.Spec.Config.Raft.SnapshotEntryThreshold)
+	if cluster.Spec.Config.Raft.SnapshotEntryThreshold != nil {
+		entryThreshold := uint64(*cluster.Spec.Config.Raft.SnapshotEntryThreshold)
 		config.Raft.SnapshotEntryThreshold = &entryThreshold
 	}
-	if store.Spec.Config.Raft.CompactionRetainEntries != nil {
-		compactionRetainEntries := uint64(*store.Spec.Config.Raft.CompactionRetainEntries)
+	if cluster.Spec.Config.Raft.CompactionRetainEntries != nil {
+		compactionRetainEntries := uint64(*cluster.Spec.Config.Raft.CompactionRetainEntries)
 		config.Raft.CompactionRetainEntries = &compactionRetainEntries
 	}
 	return yaml.Marshal(&config)
 }
 
-func (r *MultiRaftClusterReconciler) reconcileStatefulSet(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
+func (r *MultiRaftClusterReconciler) reconcileStatefulSet(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
 	log.Info("Reconcile raft protocol stateful set")
 	statefulSet := &appsv1.StatefulSet{}
 	name := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      store.Name,
+		Namespace: cluster.Namespace,
+		Name:      cluster.Name,
 	}
 	err := r.client.Get(ctx, name, statefulSet)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addStatefulSet(ctx, store)
+		err = r.addStatefulSet(ctx, cluster)
 	}
 	return err
 }
 
-func (r *MultiRaftClusterReconciler) addStatefulSet(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
-	log.Info("Creating raft replicas", "Name", store.Name, "Namespace", store.Namespace)
+func (r *MultiRaftClusterReconciler) addStatefulSet(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
+	log.Info("Creating raft replicas", "Name", cluster.Name, "Namespace", cluster.Namespace)
 
-	image := getImage(store)
+	image := getImage(cluster)
 	volumes := []corev1.Volume{
 		{
 			Name: configVolume,
 			VolumeSource: corev1.VolumeSource{
 				ConfigMap: &corev1.ConfigMapVolumeSource{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: store.Name,
+						Name: cluster.Name,
 					},
 				},
 			},
@@ -308,8 +310,8 @@ func (r *MultiRaftClusterReconciler) addStatefulSet(ctx context.Context, store *
 	var volumeClaimTemplates []corev1.PersistentVolumeClaim
 
 	dataVolumeName := dataVolume
-	if store.Spec.VolumeClaimTemplate != nil {
-		pvc := store.Spec.VolumeClaimTemplate
+	if cluster.Spec.VolumeClaimTemplate != nil {
+		pvc := cluster.Spec.VolumeClaimTemplate
 		if pvc.Name == "" {
 			pvc.Name = dataVolume
 		} else {
@@ -327,16 +329,16 @@ func (r *MultiRaftClusterReconciler) addStatefulSet(ctx context.Context, store *
 
 	set := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        store.Name,
-			Namespace:   store.Namespace,
-			Labels:      newStoreLabels(store),
-			Annotations: newStoreAnnotations(store),
+			Name:        cluster.Name,
+			Namespace:   cluster.Namespace,
+			Labels:      cluster.Labels,
+			Annotations: cluster.Annotations,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			ServiceName: getStoreHeadlessServiceName(store.Name),
-			Replicas:    pointer.Int32Ptr(int32(getNumReplicas(store))),
+			ServiceName: getHeadlessServiceName(cluster.Name),
+			Replicas:    pointer.Int32Ptr(int32(getNumReplicas(cluster))),
 			Selector: &metav1.LabelSelector{
-				MatchLabels: newStoreLabels(store),
+				MatchLabels: cluster.Labels,
 			},
 			UpdateStrategy: appsv1.StatefulSetUpdateStrategy{
 				Type: appsv1.RollingUpdateStatefulSetStrategyType,
@@ -344,15 +346,15 @@ func (r *MultiRaftClusterReconciler) addStatefulSet(ctx context.Context, store *
 			PodManagementPolicy: appsv1.ParallelPodManagement,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      newStoreLabels(store),
-					Annotations: newStoreAnnotations(store),
+					Labels:      cluster.Labels,
+					Annotations: cluster.Annotations,
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
 							Name:            nodeContainerName,
 							Image:           image,
-							ImagePullPolicy: store.Spec.ImagePullPolicy,
+							ImagePullPolicy: cluster.Spec.ImagePullPolicy,
 							Ports: []corev1.ContainerPort{
 								{
 									Name:          "api",
@@ -370,7 +372,7 @@ func (r *MultiRaftClusterReconciler) addStatefulSet(ctx context.Context, store *
 [[ `+"`hostname`"+` =~ -([0-9]+)$ ]] || exit 1
 ordinal=${BASH_REMATCH[1]}
 atomix-consensus-node --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%s.svc.%s --raft-port %d`,
-									configPath, raftConfigFile, apiPort, store.Name, getStoreHeadlessServiceName(store.Name), store.Namespace, getClusterDomain(), protocolPort),
+									configPath, raftConfigFile, apiPort, cluster.Name, getHeadlessServiceName(cluster.Name), cluster.Namespace, getClusterDomain(), protocolPort),
 							},
 							ReadinessProbe: &corev1.Probe{
 								ProbeHandler: corev1.ProbeHandler{
@@ -391,7 +393,7 @@ atomix-consensus-node --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%s
 								InitialDelaySeconds: 60,
 								TimeoutSeconds:      10,
 							},
-							SecurityContext: store.Spec.SecurityContext,
+							SecurityContext: cluster.Spec.SecurityContext,
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									Name:      dataVolumeName,
@@ -411,16 +413,16 @@ atomix-consensus-node --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%s
 									Weight: 1,
 									PodAffinityTerm: corev1.PodAffinityTerm{
 										LabelSelector: &metav1.LabelSelector{
-											MatchLabels: newStoreLabels(store),
+											MatchLabels: cluster.Labels,
 										},
-										Namespaces:  []string{store.Namespace},
+										Namespaces:  []string{cluster.Namespace},
 										TopologyKey: "kubernetes.io/hostname",
 									},
 								},
 							},
 						},
 					},
-					ImagePullSecrets: store.Spec.ImagePullSecrets,
+					ImagePullSecrets: cluster.Spec.ImagePullSecrets,
 					Volumes:          volumes,
 				},
 			},
@@ -428,35 +430,35 @@ atomix-consensus-node --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%s
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(store, set, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(cluster, set, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, set)
 }
 
-func (r *MultiRaftClusterReconciler) reconcileService(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
+func (r *MultiRaftClusterReconciler) reconcileService(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
 	log.Info("Reconcile raft protocol service")
 	service := &corev1.Service{}
 	name := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      store.Name,
+		Namespace: cluster.Namespace,
+		Name:      cluster.Name,
 	}
 	err := r.client.Get(ctx, name, service)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addService(ctx, store)
+		err = r.addService(ctx, cluster)
 	}
 	return err
 }
 
-func (r *MultiRaftClusterReconciler) addService(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
-	log.Info("Creating raft service", "Name", store.Name, "Namespace", store.Namespace)
+func (r *MultiRaftClusterReconciler) addService(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
+	log.Info("Creating raft service", "Name", cluster.Name, "Namespace", cluster.Namespace)
 
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        store.Name,
-			Namespace:   store.Namespace,
-			Labels:      newStoreLabels(store),
-			Annotations: newStoreAnnotations(store),
+			Name:        cluster.Name,
+			Namespace:   cluster.Namespace,
+			Labels:      cluster.Labels,
+			Annotations: cluster.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -469,41 +471,39 @@ func (r *MultiRaftClusterReconciler) addService(ctx context.Context, store *cons
 					Port: protocolPort,
 				},
 			},
-			Selector: newStoreLabels(store),
+			Selector: cluster.Labels,
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(store, service, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, service)
 }
 
-func (r *MultiRaftClusterReconciler) reconcileHeadlessService(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
+func (r *MultiRaftClusterReconciler) reconcileHeadlessService(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
 	log.Info("Reconcile raft protocol headless service")
 	service := &corev1.Service{}
 	name := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      getStoreHeadlessServiceName(store.Name),
+		Namespace: cluster.Namespace,
+		Name:      getHeadlessServiceName(cluster.Name),
 	}
 	err := r.client.Get(ctx, name, service)
 	if err != nil && k8serrors.IsNotFound(err) {
-		err = r.addHeadlessService(ctx, store)
+		err = r.addHeadlessService(ctx, cluster)
 	}
 	return err
 }
 
-func (r *MultiRaftClusterReconciler) addHeadlessService(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) error {
-	log.Info("Creating headless raft service", "Name", store.Name, "Namespace", store.Namespace)
+func (r *MultiRaftClusterReconciler) addHeadlessService(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) error {
+	log.Info("Creating headless raft service", "Name", cluster.Name, "Namespace", cluster.Namespace)
 
-	annotations := newStoreAnnotations(store)
-	annotations["service.alpha.kubernetes.io/tolerate-unready-endpoints"] = "true"
 	service := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        getStoreHeadlessServiceName(store.Name),
-			Namespace:   store.Namespace,
-			Labels:      newStoreLabels(store),
-			Annotations: annotations,
+			Name:        getHeadlessServiceName(cluster.Name),
+			Namespace:   cluster.Namespace,
+			Labels:      cluster.Labels,
+			Annotations: cluster.Annotations,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -518,21 +518,21 @@ func (r *MultiRaftClusterReconciler) addHeadlessService(ctx context.Context, sto
 			},
 			PublishNotReadyAddresses: true,
 			ClusterIP:                "None",
-			Selector:                 newStoreLabels(store),
+			Selector:                 cluster.Labels,
 		},
 	}
 
-	if err := controllerutil.SetControllerReference(store, service, r.scheme); err != nil {
+	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
 		return err
 	}
 	return r.client.Create(ctx, service)
 }
 
-func (r *MultiRaftClusterReconciler) reconcileGroups(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) (bool, error) {
-	numGroups := getNumGroups(store)
+func (r *MultiRaftClusterReconciler) reconcileGroups(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) (bool, error) {
+	numGroups := getNumGroups(cluster)
 	state := consensusv1beta1.MultiRaftClusterReady
 	for groupID := 1; groupID <= numGroups; groupID++ {
-		if group, updated, err := r.reconcileGroup(ctx, store, groupID); err != nil {
+		if group, updated, err := r.reconcileGroup(ctx, cluster, groupID); err != nil {
 			return false, err
 		} else if updated {
 			return true, nil
@@ -541,9 +541,9 @@ func (r *MultiRaftClusterReconciler) reconcileGroups(ctx context.Context, store 
 		}
 	}
 
-	if store.Status.State != state {
-		store.Status.State = state
-		if err := r.client.Status().Update(ctx, store); err != nil {
+	if cluster.Status.State != state {
+		cluster.Status.State = state
+		if err := r.client.Status().Update(ctx, cluster); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -551,10 +551,10 @@ func (r *MultiRaftClusterReconciler) reconcileGroups(ctx context.Context, store 
 	return false, nil
 }
 
-func (r *MultiRaftClusterReconciler) reconcileGroup(ctx context.Context, store *consensusv1beta1.MultiRaftCluster, groupID int) (*consensusv1beta1.RaftGroup, bool, error) {
+func (r *MultiRaftClusterReconciler) reconcileGroup(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster, groupID int) (*consensusv1beta1.RaftGroup, bool, error) {
 	groupName := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      fmt.Sprintf("%s-%d", store.Name, groupID),
+		Namespace: cluster.Namespace,
+		Name:      fmt.Sprintf("%s-%d", cluster.Name, groupID),
 	}
 	group := &consensusv1beta1.RaftGroup{}
 	if err := r.client.Get(ctx, groupName, group); err != nil {
@@ -564,15 +564,16 @@ func (r *MultiRaftClusterReconciler) reconcileGroup(ctx context.Context, store *
 
 		group = &consensusv1beta1.RaftGroup{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: groupName.Namespace,
-				Name:      groupName.Name,
-				Labels:    store.Labels,
+				Namespace:   groupName.Namespace,
+				Name:        groupName.Name,
+				Labels:      newGroupLabels(cluster, groupID),
+				Annotations: newGroupAnnotations(cluster, groupID),
 			},
 			Spec: consensusv1beta1.RaftGroupSpec{
-				RaftConfig: store.Spec.Config.Raft,
+				RaftConfig: cluster.Spec.Config.Raft,
 			},
 		}
-		if err := controllerutil.SetControllerReference(store, group, r.scheme); err != nil {
+		if err := controllerutil.SetControllerReference(cluster, group, r.scheme); err != nil {
 			return nil, false, err
 		}
 		if err := r.client.Create(ctx, group); err != nil {
@@ -581,7 +582,7 @@ func (r *MultiRaftClusterReconciler) reconcileGroup(ctx context.Context, store *
 		return group, true, nil
 	}
 
-	if ok, err := r.reconcileMembers(ctx, store, group, groupID); err != nil {
+	if ok, err := r.reconcileMembers(ctx, cluster, group, groupID); err != nil {
 		return group, false, err
 	} else if ok {
 		return group, true, nil
@@ -589,10 +590,10 @@ func (r *MultiRaftClusterReconciler) reconcileGroup(ctx context.Context, store *
 	return group, false, nil
 }
 
-func (r *MultiRaftClusterReconciler) reconcileMembers(ctx context.Context, store *consensusv1beta1.MultiRaftCluster, group *consensusv1beta1.RaftGroup, groupID int) (bool, error) {
+func (r *MultiRaftClusterReconciler) reconcileMembers(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster, group *consensusv1beta1.RaftGroup, groupID int) (bool, error) {
 	state := consensusv1beta1.RaftGroupReady
-	for memberID := 1; memberID <= getNumMembers(store); memberID++ {
-		if member, ok, err := r.reconcileMember(ctx, store, group, groupID, memberID); err != nil {
+	for memberID := 1; memberID <= getNumMembers(cluster); memberID++ {
+		if member, ok, err := r.reconcileMember(ctx, cluster, group, groupID, memberID); err != nil {
 			return false, err
 		} else if ok {
 			return true, nil
@@ -611,7 +612,7 @@ func (r *MultiRaftClusterReconciler) reconcileMembers(ctx context.Context, store
 	return false, nil
 }
 
-func (r *MultiRaftClusterReconciler) reconcileMember(ctx context.Context, store *consensusv1beta1.MultiRaftCluster, group *consensusv1beta1.RaftGroup, groupID int, memberID int) (*consensusv1beta1.RaftMember, bool, error) {
+func (r *MultiRaftClusterReconciler) reconcileMember(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster, group *consensusv1beta1.RaftGroup, groupID int, memberID int) (*consensusv1beta1.RaftMember, bool, error) {
 	memberName := types.NamespacedName{
 		Namespace: group.Namespace,
 		Name:      fmt.Sprintf("%s-%d", group.Name, memberID),
@@ -623,9 +624,9 @@ func (r *MultiRaftClusterReconciler) reconcileMember(ctx context.Context, store 
 		}
 
 		var memberType consensusv1beta1.RaftMemberType
-		if memberID <= getNumVotingMembers(store) {
+		if memberID <= getNumVotingMembers(cluster) {
 			memberType = consensusv1beta1.RaftVotingMember
-		} else if memberID <= getNumMembers(store) {
+		} else if memberID <= getNumMembers(cluster) {
 			memberType = consensusv1beta1.RaftObserver
 		} else {
 			memberType = consensusv1beta1.RaftWitness
@@ -633,18 +634,19 @@ func (r *MultiRaftClusterReconciler) reconcileMember(ctx context.Context, store 
 
 		member = &consensusv1beta1.RaftMember{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: memberName.Namespace,
-				Name:      memberName.Name,
-				Labels:    member.Labels,
+				Namespace:   memberName.Namespace,
+				Name:        memberName.Name,
+				Labels:      newMemberLabels(group, memberID),
+				Annotations: newMemberAnnotations(group, memberID),
 			},
 			Spec: consensusv1beta1.RaftMemberSpec{
 				Pod: corev1.LocalObjectReference{
-					Name: getPodName(store, groupID, memberID),
+					Name: getPodName(cluster, groupID, memberID),
 				},
 				Type: memberType,
 			},
 		}
-		if err := controllerutil.SetControllerReference(store, member, r.scheme); err != nil {
+		if err := controllerutil.SetControllerReference(cluster, member, r.scheme); err != nil {
 			return nil, false, err
 		}
 		if err := controllerutil.SetOwnerReference(group, member, r.scheme); err != nil {
@@ -705,11 +707,11 @@ func (r *MultiRaftClusterReconciler) reconcileMember(ctx context.Context, store 
 		}
 		defer conn.Close()
 
-		members := make([]consensus.MemberConfig, getNumMembers(store))
-		for i := 0; i < getNumMembers(store); i++ {
+		members := make([]consensus.MemberConfig, getNumMembers(cluster))
+		for i := 0; i < getNumMembers(cluster); i++ {
 			members[i] = consensus.MemberConfig{
 				MemberID: consensus.MemberID(i + 1),
-				Host:     getPodDNSName(store.Namespace, store.Name, getPodName(store, groupID, i+1)),
+				Host:     getPodDNSName(cluster.Namespace, cluster.Name, getPodName(cluster, groupID, i+1)),
 				Port:     protocolPort,
 			}
 		}
@@ -746,15 +748,15 @@ func (r *MultiRaftClusterReconciler) reconcileMember(ctx context.Context, store 
 	return member, false, nil
 }
 
-func (r *MultiRaftClusterReconciler) reconcileStatus(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) (bool, error) {
-	partitions, err := r.getPartitionStatuses(ctx, store)
+func (r *MultiRaftClusterReconciler) reconcileStatus(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) (bool, error) {
+	partitions, err := r.getPartitionStatuses(ctx, cluster)
 	if err != nil {
 		return false, err
 	}
 
-	if !isPartitionStatusesEqual(store.Status.Partitions, partitions) {
-		store.Status.Partitions = partitions
-		if err := r.client.Status().Update(ctx, store); err != nil {
+	if !isPartitionStatusesEqual(cluster.Status.Partitions, partitions) {
+		cluster.Status.Partitions = partitions
+		if err := r.client.Status().Update(ctx, cluster); err != nil {
 			return false, err
 		}
 		return true, nil
@@ -800,13 +802,13 @@ func isPartitionStatusEqual(partition1, partition2 consensusv1beta1.RaftPartitio
 	return true
 }
 
-func (r *MultiRaftClusterReconciler) getPartitionStatuses(ctx context.Context, store *consensusv1beta1.MultiRaftCluster) ([]consensusv1beta1.RaftPartitionStatus, error) {
-	numGroups := getNumGroups(store)
+func (r *MultiRaftClusterReconciler) getPartitionStatuses(ctx context.Context, cluster *consensusv1beta1.MultiRaftCluster) ([]consensusv1beta1.RaftPartitionStatus, error) {
+	numGroups := getNumGroups(cluster)
 	partitions := make([]consensusv1beta1.RaftPartitionStatus, 0, numGroups)
 	for groupID := 1; groupID <= numGroups; groupID++ {
 		groupName := types.NamespacedName{
-			Namespace: store.Namespace,
-			Name:      fmt.Sprintf("%s-%d", store.Name, groupID),
+			Namespace: cluster.Namespace,
+			Name:      fmt.Sprintf("%s-%d", cluster.Name, groupID),
 		}
 		group := &consensusv1beta1.RaftGroup{}
 		if err := r.client.Get(ctx, groupName, group); err != nil {
@@ -825,7 +827,7 @@ func (r *MultiRaftClusterReconciler) getPartitionStatuses(ctx context.Context, s
 			if err := r.client.Get(ctx, memberName, member); err != nil {
 				return nil, err
 			}
-			address := fmt.Sprintf("%s:%d", getPodDNSName(store.Namespace, store.Name, member.Spec.Pod.Name), apiPort)
+			address := fmt.Sprintf("%s:%d", getPodDNSName(cluster.Namespace, cluster.Name, member.Spec.Pod.Name), apiPort)
 			partition.Leader = &address
 		}
 
@@ -838,7 +840,7 @@ func (r *MultiRaftClusterReconciler) getPartitionStatuses(ctx context.Context, s
 			if err := r.client.Get(ctx, memberName, member); err != nil {
 				return nil, err
 			}
-			address := fmt.Sprintf("%s:%d", getPodDNSName(store.Namespace, store.Name, member.Spec.Pod.Name), apiPort)
+			address := fmt.Sprintf("%s:%d", getPodDNSName(cluster.Namespace, cluster.Name, member.Spec.Pod.Name), apiPort)
 			partition.Followers = append(partition.Followers, address)
 		}
 		partitions = append(partitions, partition)
@@ -848,46 +850,46 @@ func (r *MultiRaftClusterReconciler) getPartitionStatuses(ctx context.Context, s
 
 var _ reconcile.Reconciler = (*MultiRaftClusterReconciler)(nil)
 
-func getNumGroups(store *consensusv1beta1.MultiRaftCluster) int {
-	if store.Spec.Groups == 0 {
+func getNumGroups(cluster *consensusv1beta1.MultiRaftCluster) int {
+	if cluster.Spec.Groups == 0 {
 		return 1
 	}
-	return int(store.Spec.Groups)
+	return int(cluster.Spec.Groups)
 }
 
-func getNumReplicas(store *consensusv1beta1.MultiRaftCluster) int {
-	if store.Spec.Replicas == 0 {
+func getNumReplicas(cluster *consensusv1beta1.MultiRaftCluster) int {
+	if cluster.Spec.Replicas == 0 {
 		return 1
 	}
-	return int(store.Spec.Replicas)
+	return int(cluster.Spec.Replicas)
 }
 
-func getNumMembers(store *consensusv1beta1.MultiRaftCluster) int {
-	return getNumVotingMembers(store) + getNumNonVotingMembers(store)
+func getNumMembers(cluster *consensusv1beta1.MultiRaftCluster) int {
+	return getNumVotingMembers(cluster) + getNumNonVotingMembers(cluster)
 }
 
-func getNumVotingMembers(store *consensusv1beta1.MultiRaftCluster) int {
-	if store.Spec.Config.Raft.QuorumSize == nil {
-		return getNumReplicas(store)
+func getNumVotingMembers(cluster *consensusv1beta1.MultiRaftCluster) int {
+	if cluster.Spec.Config.Raft.QuorumSize == nil {
+		return getNumReplicas(cluster)
 	}
-	return int(*store.Spec.Config.Raft.QuorumSize)
+	return int(*cluster.Spec.Config.Raft.QuorumSize)
 }
 
-func getNumNonVotingMembers(store *consensusv1beta1.MultiRaftCluster) int {
-	if store.Spec.Config.Raft.ReadReplicas == nil {
+func getNumNonVotingMembers(cluster *consensusv1beta1.MultiRaftCluster) int {
+	if cluster.Spec.Config.Raft.ReadReplicas == nil {
 		return 0
 	}
-	return int(*store.Spec.Config.Raft.ReadReplicas)
+	return int(*cluster.Spec.Config.Raft.ReadReplicas)
 }
 
-// getStoreResourceName returns the given resource name for the given store
-func getStoreResourceName(name string, resource string) string {
+// getResourceName returns the given resource name for the given object name
+func getResourceName(name string, resource string) string {
 	return fmt.Sprintf("%s-%s", name, resource)
 }
 
-// getStoreHeadlessServiceName returns the headless service name for the given store
-func getStoreHeadlessServiceName(cluster string) string {
-	return getStoreResourceName(cluster, headlessServiceSuffix)
+// getHeadlessServiceName returns the headless service name for the given cluster
+func getHeadlessServiceName(cluster string) string {
+	return getResourceName(cluster, headlessServiceSuffix)
 }
 
 // getClusterDomain returns Kubernetes cluster domain, default to "cluster.local"
@@ -905,38 +907,81 @@ func getClusterDomain() string {
 }
 
 // getPodDNSName returns the fully qualified DNS name for the given pod ID
-func getPodDNSName(namespace string, store string, name string) string {
-	return fmt.Sprintf("%s.%s.%s.svc.%s", name, getStoreHeadlessServiceName(store), namespace, getClusterDomain())
+func getPodDNSName(namespace string, cluster string, name string) string {
+	return fmt.Sprintf("%s.%s.%s.svc.%s", name, getHeadlessServiceName(cluster), namespace, getClusterDomain())
 }
 
-func getPodName(store *consensusv1beta1.MultiRaftCluster, groupID int, memberID int) string {
-	podOrdinal := ((getNumMembers(store) * groupID) + (memberID - 1)) % getNumReplicas(store)
-	return fmt.Sprintf("%s-%d", store.Name, podOrdinal)
+func getPodName(cluster *consensusv1beta1.MultiRaftCluster, groupID int, memberID int) string {
+	podOrdinal := ((getNumMembers(cluster) * groupID) + (memberID - 1)) % getNumReplicas(cluster)
+	return fmt.Sprintf("%s-%d", cluster.Name, podOrdinal)
 }
 
-// newStoreLabels returns the labels for the given cluster
-func newStoreLabels(store *consensusv1beta1.MultiRaftCluster) map[string]string {
+// newClusterLabels returns the labels for the given cluster
+func newClusterLabels(store *consensusv1beta1.ConsensusStore) map[string]string {
 	labels := make(map[string]string)
 	for key, value := range store.Labels {
 		labels[key] = value
 	}
-	labels[appLabel] = appAtomix
-	labels[storeLabel] = store.Name
+	labels[storeKey] = store.Name
+	labels[multiRaftStoreKey] = store.Name
 	return labels
 }
 
-func newStoreAnnotations(store *consensusv1beta1.MultiRaftCluster) map[string]string {
+// newGroupLabels returns the labels for the given cluster
+func newGroupLabels(cluster *consensusv1beta1.MultiRaftCluster, partitionID int) map[string]string {
+	labels := make(map[string]string)
+	for key, value := range cluster.Labels {
+		labels[key] = value
+	}
+	labels[multiRaftClusterKey] = cluster.Name
+	labels[raftPartitionKey] = strconv.Itoa(partitionID)
+	return labels
+}
+
+// newMemberLabels returns the labels for the given cluster
+func newMemberLabels(group *consensusv1beta1.RaftGroup, memberID int) map[string]string {
+	labels := make(map[string]string)
+	for key, value := range group.Labels {
+		labels[key] = value
+	}
+	labels[raftGroupKey] = group.Name
+	labels[raftMemberKey] = strconv.Itoa(memberID)
+	return labels
+}
+
+func newClusterAnnotations(store *consensusv1beta1.ConsensusStore) map[string]string {
 	annotations := make(map[string]string)
 	for key, value := range store.Annotations {
 		annotations[key] = value
 	}
-	annotations[multiRaftStoreAnnotation] = store.Name
+	annotations[storeKey] = store.Name
+	annotations[multiRaftStoreKey] = store.Name
 	return annotations
 }
 
-func getImage(store *consensusv1beta1.MultiRaftCluster) string {
-	if store.Spec.Image != "" {
-		return store.Spec.Image
+func newGroupAnnotations(cluster *consensusv1beta1.MultiRaftCluster, partitionID int) map[string]string {
+	annotations := make(map[string]string)
+	for key, value := range cluster.Labels {
+		annotations[key] = value
+	}
+	annotations[multiRaftClusterKey] = cluster.Name
+	annotations[raftPartitionKey] = strconv.Itoa(partitionID)
+	return annotations
+}
+
+func newMemberAnnotations(group *consensusv1beta1.RaftGroup, memberID int) map[string]string {
+	annotations := make(map[string]string)
+	for key, value := range group.Labels {
+		annotations[key] = value
+	}
+	annotations[raftGroupKey] = group.Name
+	annotations[raftMemberKey] = strconv.Itoa(memberID)
+	return annotations
+}
+
+func getImage(cluster *consensusv1beta1.MultiRaftCluster) string {
+	if cluster.Spec.Image != "" {
+		return cluster.Spec.Image
 	}
 	return getDefaultImage()
 }

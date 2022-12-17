@@ -108,8 +108,8 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        store.Name,
 				Namespace:   store.Namespace,
-				Labels:      store.Labels,
-				Annotations: store.Annotations,
+				Labels:      newClusterLabels(store),
+				Annotations: newClusterAnnotations(store),
 			},
 			Spec: store.Spec.MultiRaftClusterSpec,
 		}

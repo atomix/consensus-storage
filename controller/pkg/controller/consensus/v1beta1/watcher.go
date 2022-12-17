@@ -95,7 +95,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, request reconcile.Request
 }
 
 func (r *PodReconciler) reconcileCreate(ctx context.Context, pod *corev1.Pod) error {
-	store, ok := pod.Annotations[multiRaftStoreAnnotation]
+	store, ok := pod.Annotations[multiRaftStoreKey]
 	if !ok {
 		return nil
 	}
@@ -120,7 +120,7 @@ func (r *PodReconciler) reconcileCreate(ctx context.Context, pod *corev1.Pod) er
 }
 
 func (r *PodReconciler) reconcileDelete(ctx context.Context, pod *corev1.Pod) error {
-	store, ok := pod.Annotations[multiRaftStoreAnnotation]
+	store, ok := pod.Annotations[multiRaftStoreKey]
 	if !ok {
 		return nil
 	}

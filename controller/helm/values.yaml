@@ -7,7 +7,7 @@ replicas: 1
 image:
   registry: ""
   repository: atomix/consensus-controller
-  tag: v0.7.0
+  tag: v0.7.1
   pullPolicy: ""
   pullSecrets: []
 
