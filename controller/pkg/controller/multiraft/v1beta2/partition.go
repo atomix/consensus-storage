@@ -158,7 +158,7 @@ func (r *RaftPartitionReconciler) reconcileMembers(ctx context.Context, cluster 
 
 		hasMember := false
 		var raftNodeID uint32 = 1
-		for _, memberRef := range partition.Status.MemberStatuses {
+		for _, memberRef := range memberStatuses {
 			if memberRef.RaftNodeID >= raftNodeID {
 				raftNodeID = memberRef.RaftNodeID + 1
 			}
