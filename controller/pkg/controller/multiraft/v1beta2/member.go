@@ -99,62 +99,22 @@ func (r *RaftMemberReconciler) Reconcile(ctx context.Context, request reconcile.
 		return reconcile.Result{}, err
 	}
 
-	storeName := types.NamespacedName{
-		Namespace: member.Namespace,
-		Name:      member.Annotations[multiRaftStoreKey],
-	}
-	store := &multiraftv1beta2.MultiRaftStore{}
-	if err := r.client.Get(ctx, storeName, store); err != nil {
-		log.Error(err, "Reconcile RaftMember")
-		return reconcile.Result{}, err
-	}
-
-	clusterName := types.NamespacedName{
-		Namespace: member.Namespace,
-		Name:      member.Spec.Cluster.Name,
-	}
-	cluster := &multiraftv1beta2.MultiRaftCluster{}
-	if err := r.client.Get(ctx, clusterName, cluster); err != nil {
-		log.Error(err, "Reconcile RaftMember")
-		return reconcile.Result{}, err
-	}
-
-	partitionName := types.NamespacedName{
-		Namespace: member.Namespace,
-		Name:      fmt.Sprintf("%s-%s", storeName.Name, member.Annotations[raftPartitionKey]),
-	}
-	partition := &multiraftv1beta2.RaftPartition{}
-	if err := r.client.Get(ctx, partitionName, partition); err != nil {
-		log.Error(err, "Reconcile RaftMember")
-		return reconcile.Result{}, err
-	}
-
-	podName := types.NamespacedName{
-		Namespace: member.Namespace,
-		Name:      member.Spec.Pod.Name,
-	}
-	pod := &corev1.Pod{}
-	if err := r.client.Get(ctx, podName, pod); err != nil {
-		log.Error(err, "Reconcile RaftMember")
-		return reconcile.Result{}, err
-	}
-
 	if member.DeletionTimestamp != nil {
-		if err := r.reconcileDelete(ctx, store, cluster, partition, pod, member); err != nil {
+		if err := r.reconcileDelete(ctx, member); err != nil {
 			log.Error(err, "Reconcile RaftMember")
 			return reconcile.Result{}, err
 		}
 		return reconcile.Result{}, nil
 	}
 
-	if err := r.reconcileCreate(ctx, store, cluster, partition, pod, member); err != nil {
+	if err := r.reconcileCreate(ctx, member); err != nil {
 		log.Error(err, "Reconcile RaftMember")
 		return reconcile.Result{}, err
 	}
 	return reconcile.Result{}, nil
 }
 
-func (r *RaftMemberReconciler) reconcileCreate(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, pod *corev1.Pod, member *multiraftv1beta2.RaftMember) error {
+func (r *RaftMemberReconciler) reconcileCreate(ctx context.Context, member *multiraftv1beta2.RaftMember) error {
 	if !hasFinalizer(member, raftMemberKey) {
 		log.Infof("Adding '%s' finalizer to RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
 		addFinalizer(member, raftMemberKey)
@@ -165,6 +125,46 @@ func (r *RaftMemberReconciler) reconcileCreate(ctx context.Context, store *multi
 		return nil
 	}
 
+	storeName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Annotations[multiRaftStoreKey],
+	}
+	store := &multiraftv1beta2.MultiRaftStore{}
+	if err := r.client.Get(ctx, storeName, store); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return err
+	}
+
+	clusterName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Spec.Cluster.Name,
+	}
+	cluster := &multiraftv1beta2.MultiRaftCluster{}
+	if err := r.client.Get(ctx, clusterName, cluster); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return err
+	}
+
+	partitionName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      fmt.Sprintf("%s-%s", storeName.Name, member.Annotations[raftPartitionKey]),
+	}
+	partition := &multiraftv1beta2.RaftPartition{}
+	if err := r.client.Get(ctx, partitionName, partition); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return err
+	}
+
+	podName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Spec.Pod.Name,
+	}
+	pod := &corev1.Pod{}
+	if err := r.client.Get(ctx, podName, pod); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return err
+	}
+
 	if ok, err := r.addMember(ctx, store, cluster, partition, pod, member); err != nil {
 		return err
 	} else if ok {
@@ -173,8 +173,84 @@ func (r *RaftMemberReconciler) reconcileCreate(ctx context.Context, store *multi
 	return nil
 }
 
-func (r *RaftMemberReconciler) reconcileDelete(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, pod *corev1.Pod, member *multiraftv1beta2.RaftMember) error {
+func (r *RaftMemberReconciler) reconcileDelete(ctx context.Context, member *multiraftv1beta2.RaftMember) error {
 	if !hasFinalizer(member, raftMemberKey) {
+		return nil
+	}
+
+	storeName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Annotations[multiRaftStoreKey],
+	}
+	store := &multiraftv1beta2.MultiRaftStore{}
+	if err := r.client.Get(ctx, storeName, store); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		log.Infof("Removing '%s' finalizer from RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
+		removeFinalizer(member, raftMemberKey)
+		if err := r.client.Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		return nil
+	}
+
+	clusterName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Spec.Cluster.Name,
+	}
+	cluster := &multiraftv1beta2.MultiRaftCluster{}
+	if err := r.client.Get(ctx, clusterName, cluster); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		log.Infof("Removing '%s' finalizer from RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
+		removeFinalizer(member, raftMemberKey)
+		if err := r.client.Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		return nil
+	}
+
+	partitionName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      fmt.Sprintf("%s-%s", storeName.Name, member.Annotations[raftPartitionKey]),
+	}
+	partition := &multiraftv1beta2.RaftPartition{}
+	if err := r.client.Get(ctx, partitionName, partition); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		log.Infof("Removing '%s' finalizer from RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
+		removeFinalizer(member, raftMemberKey)
+		if err := r.client.Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		return nil
+	}
+
+	podName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Spec.Pod.Name,
+	}
+	pod := &corev1.Pod{}
+	if err := r.client.Get(ctx, podName, pod); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		log.Infof("Removing '%s' finalizer from RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
+		removeFinalizer(member, raftMemberKey)
+		if err := r.client.Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
 		return nil
 	}
 
