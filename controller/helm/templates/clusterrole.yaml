@@ -45,6 +45,7 @@ rules:
   - apiGroups:
       - atomix.io
       - consensus.atomix.io
+      - multiraft.atomix.io
     resources:
       - '*'
     verbs:
