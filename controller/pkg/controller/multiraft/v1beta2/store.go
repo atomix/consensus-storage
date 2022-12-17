@@ -128,8 +128,8 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 		Name:      store.Spec.Cluster.Name,
 	}
 	if err := r.client.Get(ctx, clusterName, cluster); err != nil {
-		log.Error(err, "Reconcile MultiRaftStore")
 		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return false, err
 		}
 		return true, nil
@@ -153,12 +153,14 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 	partition := &multiraftv1beta2.RaftPartition{}
 	if err := r.client.Get(ctx, partitionName, partition); err != nil {
 		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return false, err
 		}
 
 		cluster.Status.Groups++
 		shard := cluster.Status.Groups
 		if err := r.client.Status().Update(ctx, cluster); err != nil {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return false, err
 		}
 
@@ -180,9 +182,11 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 			partition.Spec.Replicas = *store.Spec.ReplicationFactor
 		}
 		if err := controllerutil.SetControllerReference(store, partition, r.scheme); err != nil {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return false, err
 		}
 		if err := r.client.Create(ctx, partition); err != nil {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return false, err
 		}
 		return true, nil
@@ -199,6 +203,7 @@ func (r *MultiRaftStoreReconciler) getPartitions(ctx context.Context, store *mul
 		}
 		partition := &multiraftv1beta2.RaftPartition{}
 		if err := r.client.Get(ctx, partitionName, partition); err != nil {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return nil, err
 		}
 		partitions = append(partitions, partition)
@@ -222,6 +227,7 @@ func (r *MultiRaftStoreReconciler) reconcileDataStore(ctx context.Context, store
 			}
 			member := &multiraftv1beta2.RaftMember{}
 			if err := r.client.Get(ctx, memberName, member); err != nil {
+				log.Error(err, "Reconcile MultiRaftStore")
 				return false, err
 			}
 			leader = fmt.Sprintf("%s:%d", getPodDNSName(store.Namespace, store.Spec.Cluster.Name, member.Spec.Pod.Name), apiPort)
@@ -235,6 +241,7 @@ func (r *MultiRaftStoreReconciler) reconcileDataStore(ctx context.Context, store
 			}
 			member := &multiraftv1beta2.RaftMember{}
 			if err := r.client.Get(ctx, memberName, member); err != nil {
+				log.Error(err, "Reconcile MultiRaftStore")
 				return false, err
 			}
 			followers = append(followers, fmt.Sprintf("%s:%d", getPodDNSName(store.Namespace, store.Spec.Cluster.Name, member.Spec.Pod.Name), apiPort))
@@ -334,6 +341,7 @@ func (r *MultiRaftStoreReconciler) reconcileStatus(ctx context.Context, store *m
 	if store.Status.State != state {
 		store.Status.State = state
 		if err := r.client.Status().Update(ctx, store); err != nil {
+			log.Error(err, "Reconcile MultiRaftStore")
 			return false, err
 		}
 		return true, nil

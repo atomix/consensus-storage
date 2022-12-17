@@ -164,6 +164,7 @@ func (r *RaftPartitionReconciler) reconcileMembers(ctx context.Context, cluster 
 	if len(memberStatuses) != len(partition.Status.MemberStatuses) {
 		partition.Status.MemberStatuses = memberStatuses
 		if err := r.client.Status().Update(ctx, partition); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 		return true, nil
@@ -188,6 +189,7 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 	member := &multiraftv1beta2.RaftMember{}
 	if err := r.client.Get(ctx, memberName, member); err != nil {
 		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 
@@ -209,6 +211,7 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 					memberRef.Deleted = false
 					partition.Status.MemberStatuses[i] = memberRef
 					if err := r.client.Status().Update(ctx, partition); err != nil {
+						log.Error(err, "Reconcile RaftPartition")
 						return false, err
 					}
 					return true, nil
@@ -261,9 +264,11 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 		}
 		addFinalizer(member, raftPartitionKey)
 		if err := controllerutil.SetControllerReference(partition, member, r.scheme); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 		if err := r.client.Create(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 		return true, nil
@@ -278,6 +283,7 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 					memberRef.Deleted = true
 					partition.Status.MemberStatuses[i] = memberRef
 					if err := r.client.Status().Update(ctx, partition); err != nil {
+						log.Error(err, "Reconcile RaftPartition")
 						return false, err
 					}
 				}
@@ -287,6 +293,7 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 
 		removeFinalizer(member, raftPartitionKey)
 		if err := r.client.Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 		return true, nil
@@ -303,6 +310,7 @@ func (r *RaftPartitionReconciler) reconcileStatus(ctx context.Context, partition
 		}
 		member := &multiraftv1beta2.RaftMember{}
 		if err := r.client.Get(ctx, memberName, member); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 		if member.Status.State == multiraftv1beta2.RaftMemberNotReady {
@@ -313,6 +321,7 @@ func (r *RaftPartitionReconciler) reconcileStatus(ctx context.Context, partition
 	if partition.Status.State != state {
 		partition.Status.State = state
 		if err := r.client.Status().Update(ctx, partition); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
 			return false, err
 		}
 		return true, nil

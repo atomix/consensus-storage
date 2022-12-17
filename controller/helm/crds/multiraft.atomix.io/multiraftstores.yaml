@@ -15,7 +15,7 @@ spec:
     plural: multiraftstores
     singular: multiraftstore
     shortNames:
-      - cs
+      - mrs
   versions:
     - name: v1beta2
       served: true

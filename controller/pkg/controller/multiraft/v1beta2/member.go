@@ -99,65 +99,103 @@ func (r *RaftMemberReconciler) Reconcile(ctx context.Context, request reconcile.
 		return reconcile.Result{}, err
 	}
 
-	if member.DeletionTimestamp != nil {
-		if err := r.reconcileDelete(ctx, member); err != nil {
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{}, nil
+	storeName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Annotations[multiRaftStoreKey],
 	}
-
-	if err := r.reconcileCreate(ctx, member); err != nil {
+	store := &multiraftv1beta2.MultiRaftStore{}
+	if err := r.client.Get(ctx, storeName, store); err != nil {
+		log.Error(err, "Reconcile RaftMember")
 		return reconcile.Result{}, err
 	}
-	return reconcile.Result{}, nil
-}
 
-func (r *RaftMemberReconciler) reconcileCreate(ctx context.Context, member *multiraftv1beta2.RaftMember) error {
-	if !hasFinalizer(member, raftMemberKey) {
-		addFinalizer(member, raftMemberKey)
-		if err := r.client.Update(ctx, member); err != nil {
-			return err
-		}
-		return nil
+	clusterName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      member.Spec.Cluster.Name,
+	}
+	cluster := &multiraftv1beta2.MultiRaftCluster{}
+	if err := r.client.Get(ctx, clusterName, cluster); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return reconcile.Result{}, err
 	}
 
-	if ok, err := r.addMember(ctx, member); err != nil {
-		return err
-	} else if ok {
-		return nil
+	partitionName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      fmt.Sprintf("%s-%s", storeName.Name, member.Annotations[raftPartitionKey]),
 	}
-	return nil
-}
-
-func (r *RaftMemberReconciler) reconcileDelete(ctx context.Context, member *multiraftv1beta2.RaftMember) error {
-	if !hasFinalizer(member, raftMemberKey) {
-		return nil
+	partition := &multiraftv1beta2.RaftPartition{}
+	if err := r.client.Get(ctx, partitionName, partition); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return reconcile.Result{}, err
 	}
 
-	if ok, err := r.removeMember(ctx, member); err != nil {
-		return err
-	} else if ok {
-		return nil
-	}
-
-	removeFinalizer(member, raftMemberKey)
-	if err := r.client.Update(ctx, member); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv1beta2.RaftMember) (bool, error) {
 	podName := types.NamespacedName{
 		Namespace: member.Namespace,
 		Name:      member.Spec.Pod.Name,
 	}
 	pod := &corev1.Pod{}
 	if err := r.client.Get(ctx, podName, pod); err != nil {
-		return false, err
+		log.Error(err, "Reconcile RaftMember")
+		return reconcile.Result{}, err
 	}
 
+	if member.DeletionTimestamp != nil {
+		if err := r.reconcileDelete(ctx, store, cluster, partition, pod, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
+	}
+
+	if err := r.reconcileCreate(ctx, store, cluster, partition, pod, member); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{}, nil
+}
+
+func (r *RaftMemberReconciler) reconcileCreate(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, pod *corev1.Pod, member *multiraftv1beta2.RaftMember) error {
+	if !hasFinalizer(member, raftMemberKey) {
+		log.Infof("Adding '%s' finalizer to RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
+		addFinalizer(member, raftMemberKey)
+		if err := r.client.Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
+			return err
+		}
+		return nil
+	}
+
+	if ok, err := r.addMember(ctx, store, cluster, partition, pod, member); err != nil {
+		return err
+	} else if ok {
+		return nil
+	}
+	return nil
+}
+
+func (r *RaftMemberReconciler) reconcileDelete(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, pod *corev1.Pod, member *multiraftv1beta2.RaftMember) error {
+	if !hasFinalizer(member, raftMemberKey) {
+		return nil
+	}
+
+	if ok, err := r.removeMember(ctx, store, cluster, partition, pod, member); err != nil {
+		return err
+	} else if ok {
+		return nil
+	}
+
+	log.Infof("Removing '%s' finalizer from RaftMember %s/%s", raftMemberKey, member.Namespace, member.Name)
+	removeFinalizer(member, raftMemberKey)
+	if err := r.client.Update(ctx, member); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return err
+	}
+	return nil
+}
+
+func (r *RaftMemberReconciler) addMember(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, pod *corev1.Pod, member *multiraftv1beta2.RaftMember) (bool, error) {
 	if member.Status.PodRef == nil || member.Status.PodRef.UID != pod.UID {
+		log.Infof("Pod UID has changed for RaftMember %s/%s; reverting RaftMember status", member.Namespace, member.Name)
 		member.Status.PodRef = &corev1.ObjectReference{
 			APIVersion: pod.APIVersion,
 			Kind:       pod.Kind,
@@ -167,6 +205,7 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 		}
 		member.Status.Version = nil
 		if err := r.client.Status().Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
 			return false, err
 		}
 		return true, nil
@@ -184,6 +223,7 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 		if member.Status.State != multiraftv1beta2.RaftMemberNotReady {
 			member.Status.State = multiraftv1beta2.RaftMemberNotReady
 			if err := r.client.Status().Update(ctx, member); err != nil {
+				log.Error(err, "Reconcile RaftMember")
 				return false, err
 			}
 			r.events.Eventf(member, "Normal", "StateChanged", "State changed to %s", member.Status.State)
@@ -206,11 +246,13 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 			address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
 			conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 			if err != nil {
+				log.Error(err, "Reconcile RaftMember")
 				return false, err
 			}
 			defer conn.Close()
 
 			// Bootstrap the member with the initial configuration
+			log.Infof("Boostrapping RaftMember %s/%s in RaftPartition %s", member.Namespace, member.Name, partition.Name)
 			client := consensus.NewNodeClient(conn)
 			request := &consensus.BootstrapGroupRequest{
 				GroupID:  consensus.GroupID(member.Spec.ShardID),
@@ -218,69 +260,70 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 				Members:  members,
 			}
 			if _, err := client.BootstrapGroup(ctx, request); err != nil {
-				return false, err
+				err = errors.FromProto(err)
+				if !errors.IsAlreadyExists(err) {
+					r.events.Eventf(store, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(cluster, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(partition, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(pod, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(member, "Warning", "BootstrapShardFailed", "Failed to bootstrap node on shard %d: %s", member.Spec.ShardID, err.Error())
+					return false, err
+				}
+			} else {
+				r.events.Eventf(store, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+				r.events.Eventf(cluster, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+				r.events.Eventf(partition, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+				r.events.Eventf(pod, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+				r.events.Eventf(member, "Normal", "BootstrappedShard", "Bootstrapped node on shard %d", member.Spec.ShardID)
 			}
 		case multiraftv1beta2.RaftJoin:
 			// Loop through the list of peers and attempt to add the member to the Raft group until successful
 			for _, peer := range member.Spec.Config.Peers {
-				host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
-				address := fmt.Sprintf("%s:%d", host, protocolPort)
-				conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-				if err != nil {
-					_ = conn.Close()
+				if ok, err := r.tryAddMember(ctx, store, cluster, partition, member, peer); err != nil {
 					return false, err
-				}
+				} else if ok {
+					address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
+					conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+					if err != nil {
+						log.Error(err, "Reconcile RaftMember")
+						return false, err
+					}
 
-				client := consensus.NewNodeClient(conn)
-				getConfigRequest := &consensus.GetConfigRequest{
-					GroupID: consensus.GroupID(member.Spec.ShardID),
-				}
-				getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
-				if err != nil {
-					return false, err
-				}
-
-				addMemberRequest := &consensus.AddMemberRequest{
-					GroupID: consensus.GroupID(member.Spec.ShardID),
-					Member: consensus.MemberConfig{
+					// Bootstrap the member by joining it to the cluster
+					log.Infof("Joining RaftMember %s/%s to RaftPartition %s", member.Namespace, member.Name, partition.Name)
+					client := consensus.NewNodeClient(conn)
+					request := &consensus.JoinGroupRequest{
+						GroupID:  consensus.GroupID(member.Spec.ShardID),
 						MemberID: consensus.MemberID(member.Spec.MemberID),
-						Host:     fmt.Sprintf("%s.%s.%s.svc.%s", member.Spec.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain()),
-						Port:     protocolPort,
-					},
-					Version: getConfigResponse.Group.Version,
-				}
-				_, err = client.AddMember(ctx, addMemberRequest)
-				if err != nil {
-					return false, err
-				}
-
-				// Break out of the loop once the member has been added
-				break
-			}
-
-			address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
-			conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-			if err != nil {
-				return false, err
-			}
-			defer conn.Close()
-
-			// Bootstrap the member by joining it to the cluster
-			client := consensus.NewNodeClient(conn)
-			request := &consensus.JoinGroupRequest{
-				GroupID:  consensus.GroupID(member.Spec.ShardID),
-				MemberID: consensus.MemberID(member.Spec.MemberID),
-			}
-			if _, err := client.JoinGroup(ctx, request); err != nil {
-				err = errors.FromProto(err)
-				if errors.IsAlreadyExists(err) {
-					return false, err
+					}
+					if _, err := client.JoinGroup(ctx, request); err != nil {
+						log.Error(err, "Reconcile RaftMember")
+						err = errors.FromProto(err)
+						if !errors.IsAlreadyExists(err) {
+							r.events.Eventf(store, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(cluster, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(partition, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(pod, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(member, "Warning", "JoinShardFailed", "Failed to join node to shard %d: %s", member.Spec.ShardID, err.Error())
+							_ = conn.Close()
+							return false, err
+						}
+					} else {
+						r.events.Eventf(store, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+						r.events.Eventf(cluster, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+						r.events.Eventf(partition, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+						r.events.Eventf(pod, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+						r.events.Eventf(member, "Normal", "JoinedShard", "Joined node to shard %d", member.Spec.ShardID)
+					}
+					_ = conn.Close()
+					break
 				}
 			}
 		}
 
 		member.Status.Version = &containerVersion
 		if err := r.client.Status().Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
 			return false, err
 		}
 		return true, nil
@@ -288,19 +331,67 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 	return false, nil
 }
 
-func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multiraftv1beta2.RaftMember) (bool, error) {
+func (r *RaftMemberReconciler) tryAddMember(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, member *multiraftv1beta2.RaftMember, peer multiraftv1beta2.RaftMemberReference) (bool, error) {
+	pod := &corev1.Pod{}
 	podName := types.NamespacedName{
 		Namespace: member.Namespace,
-		Name:      member.Spec.Pod.Name,
+		Name:      peer.Pod.Name,
 	}
-	pod := &corev1.Pod{}
 	if err := r.client.Get(ctx, podName, pod); err != nil {
 		return false, err
 	}
 
+	address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
+	conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return false, err
+	}
+	defer conn.Close()
+
+	client := consensus.NewNodeClient(conn)
+	getConfigRequest := &consensus.GetConfigRequest{
+		GroupID: consensus.GroupID(member.Spec.ShardID),
+	}
+	getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
+	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return false, err
+	}
+
+	log.Infof("Adding RaftMember %s/%s to RaftPartition %s via %s", member.Namespace, member.Name, partition.Name, peer.Pod.Name)
+	addMemberRequest := &consensus.AddMemberRequest{
+		GroupID: consensus.GroupID(member.Spec.ShardID),
+		Member: consensus.MemberConfig{
+			MemberID: consensus.MemberID(member.Spec.MemberID),
+			Host:     fmt.Sprintf("%s.%s.%s.svc.%s", member.Spec.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain()),
+			Port:     protocolPort,
+		},
+		Version: getConfigResponse.Group.Version,
+	}
+	_, err = client.AddMember(ctx, addMemberRequest)
+	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		r.events.Eventf(store, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(cluster, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(partition, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(pod, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(member, "Warning", "AddMemberFailed", "Failed to add node to shard %d: %s", member.Spec.ShardID, err.Error())
+		return false, err
+	}
+	r.events.Eventf(store, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(cluster, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(partition, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(pod, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(member, "Normal", "AddedMember", "Added node to shard %d: %s", member.Spec.ShardID)
+	return true, nil
+}
+
+func (r *RaftMemberReconciler) removeMember(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, pod *corev1.Pod, member *multiraftv1beta2.RaftMember) (bool, error) {
 	if member.Status.State != multiraftv1beta2.RaftMemberNotReady {
 		member.Status.State = multiraftv1beta2.RaftMemberNotReady
 		if err := r.client.Status().Update(ctx, member); err != nil {
+			log.Error(err, "Reconcile RaftMember")
 			return false, err
 		}
 		r.events.Eventf(member, "Normal", "StateChanged", "State changed to %s", member.Status.State)
@@ -310,54 +401,82 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multira
 	address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
 	conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
 		return false, err
 	}
 	defer conn.Close()
 
 	// Shutdown the group member.
+	log.Infof("Terminating RaftMember %s/%s in RaftPartition %s", member.Namespace, member.Name, partition.Name)
 	client := consensus.NewNodeClient(conn)
 	request := &consensus.LeaveGroupRequest{
 		GroupID: consensus.GroupID(member.Spec.ShardID),
 	}
 	if _, err := client.LeaveGroup(ctx, request); err != nil {
-		err = errors.FromProto(err)
-		if !errors.IsNotFound(err) {
-			return false, err
-		}
+		log.Error(err, "Reconcile RaftMember")
 	}
 
 	// Loop through the list of peers and attempt to remove the member from the Raft group until successful
 	for _, peer := range member.Spec.Config.Peers {
-		host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
-		address := fmt.Sprintf("%s:%d", host, protocolPort)
-		conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-		if err != nil {
-			_ = conn.Close()
+		if ok, err := r.tryRemoveMember(ctx, store, cluster, partition, member, peer); err != nil {
 			return false, err
+		} else if ok {
+			return true, nil
 		}
-
-		client := consensus.NewNodeClient(conn)
-		getConfigRequest := &consensus.GetConfigRequest{
-			GroupID: consensus.GroupID(member.Spec.ShardID),
-		}
-		getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
-		if err != nil {
-			return false, err
-		}
-
-		removeMemberRequest := &consensus.RemoveMemberRequest{
-			GroupID:  consensus.GroupID(member.Spec.ShardID),
-			MemberID: consensus.MemberID(member.Spec.MemberID),
-			Version:  getConfigResponse.Group.Version,
-		}
-		_, err = client.RemoveMember(ctx, removeMemberRequest)
-		if err != nil {
-			return false, err
-		}
-
-		// Break out of the loop once the member has been removed
-		break
 	}
+	return false, nil
+}
+
+func (r *RaftMemberReconciler) tryRemoveMember(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, member *multiraftv1beta2.RaftMember, peer multiraftv1beta2.RaftMemberReference) (bool, error) {
+	pod := &corev1.Pod{}
+	podName := types.NamespacedName{
+		Namespace: member.Namespace,
+		Name:      peer.Pod.Name,
+	}
+	if err := r.client.Get(ctx, podName, pod); err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return false, err
+	}
+
+	address := fmt.Sprintf("%s:%d", pod.Status.PodIP, apiPort)
+	conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return false, err
+	}
+	defer conn.Close()
+
+	client := consensus.NewNodeClient(conn)
+	getConfigRequest := &consensus.GetConfigRequest{
+		GroupID: consensus.GroupID(member.Spec.ShardID),
+	}
+	getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
+	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		return false, err
+	}
+
+	log.Infof("Removing RaftMember %s/%s from RaftPartition %s via %s", member.Namespace, member.Name, partition.Name, peer.Pod.Name)
+	removeMemberRequest := &consensus.RemoveMemberRequest{
+		GroupID:  consensus.GroupID(member.Spec.ShardID),
+		MemberID: consensus.MemberID(member.Spec.MemberID),
+		Version:  getConfigResponse.Group.Version,
+	}
+	_, err = client.RemoveMember(ctx, removeMemberRequest)
+	if err != nil {
+		log.Error(err, "Reconcile RaftMember")
+		r.events.Eventf(store, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(cluster, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(partition, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(pod, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(member, "Warning", "RemoveMemberFailed", "Failed to remove node from shard %d: %s", member.Spec.ShardID, err.Error())
+		return false, err
+	}
+	r.events.Eventf(store, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(cluster, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(partition, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(pod, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(member, "Normal", "RemovedMember", "Removed node from shard %d: %s", member.Spec.ShardID)
 	return true, nil
 }
 

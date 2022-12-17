@@ -49,7 +49,7 @@ const (
 	multiRaftClusterKey   = "multiraft.atomix.io/cluster"
 	raftPartitionKey      = "multiraft.atomix.io/partition"
 	raftShardKey          = "multiraft.atomix.io/shard"
-	raftReplicaKey        = "multiraft.atomix.io/replica"
+	raftNodeKey           = "multiraft.atomix.io/node"
 	raftMemberKey         = "multiraft.atomix.io/member"
 )
 
@@ -167,11 +167,13 @@ func (r *MultiRaftClusterReconciler) addConfigMap(ctx context.Context, cluster *
 	log.Info("Creating raft ConfigMap", "Name", cluster.Name, "Namespace", cluster.Namespace)
 	loggingConfig, err := yaml.Marshal(&cluster.Spec.Config.Logging)
 	if err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
 
 	raftConfig, err := newNodeConfig(cluster)
 	if err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
 
@@ -189,9 +191,14 @@ func (r *MultiRaftClusterReconciler) addConfigMap(ctx context.Context, cluster *
 	}
 
 	if err := controllerutil.SetControllerReference(cluster, cm, r.scheme); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
-	return r.client.Create(ctx, cm)
+	if err := r.client.Create(ctx, cm); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
+		return err
+	}
+	return nil
 }
 
 func newNodeConfig(cluster *multiraftv1beta2.MultiRaftCluster) ([]byte, error) {
@@ -369,9 +376,14 @@ atomix-consensus-node --config %s/%s --api-port %d --raft-host %s-$ordinal.%s.%s
 	}
 
 	if err := controllerutil.SetControllerReference(cluster, set, r.scheme); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
-	return r.client.Create(ctx, set)
+	if err := r.client.Create(ctx, set); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
+		return err
+	}
+	return nil
 }
 
 func (r *MultiRaftClusterReconciler) reconcileService(ctx context.Context, cluster *multiraftv1beta2.MultiRaftCluster) error {
@@ -414,9 +426,14 @@ func (r *MultiRaftClusterReconciler) addService(ctx context.Context, cluster *mu
 	}
 
 	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
-	return r.client.Create(ctx, service)
+	if err := r.client.Create(ctx, service); err != nil {
+		log.Error(err, "Reconcile RaftPMultiRaftClusterartition")
+		return err
+	}
+	return nil
 }
 
 func (r *MultiRaftClusterReconciler) reconcileHeadlessService(ctx context.Context, cluster *multiraftv1beta2.MultiRaftCluster) error {
@@ -461,9 +478,14 @@ func (r *MultiRaftClusterReconciler) addHeadlessService(ctx context.Context, clu
 	}
 
 	if err := controllerutil.SetControllerReference(cluster, service, r.scheme); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
-	return r.client.Create(ctx, service)
+	if err := r.client.Create(ctx, service); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
+		return err
+	}
+	return nil
 }
 
 func (r *MultiRaftClusterReconciler) reconcileStatus(ctx context.Context, cluster *multiraftv1beta2.MultiRaftCluster) error {
@@ -473,6 +495,7 @@ func (r *MultiRaftClusterReconciler) reconcileStatus(ctx context.Context, cluste
 		Name:      cluster.Name,
 	}
 	if err := r.client.Get(ctx, name, statefulSet); err != nil {
+		log.Error(err, "Reconcile MultiRaftCluster")
 		return err
 	}
 
@@ -481,6 +504,7 @@ func (r *MultiRaftClusterReconciler) reconcileStatus(ctx context.Context, cluste
 		if statefulSet.Status.ReadyReplicas == statefulSet.Status.Replicas {
 			cluster.Status.State = multiraftv1beta2.MultiRaftClusterReady
 			if err := r.client.Status().Update(ctx, cluster); err != nil {
+				log.Error(err, "Reconcile MultiRaftCluster")
 				return err
 			}
 		}
@@ -488,6 +512,7 @@ func (r *MultiRaftClusterReconciler) reconcileStatus(ctx context.Context, cluste
 		if statefulSet.Status.ReadyReplicas != statefulSet.Status.Replicas {
 			cluster.Status.State = multiraftv1beta2.MultiRaftClusterNotReady
 			if err := r.client.Status().Update(ctx, cluster); err != nil {
+				log.Error(err, "Reconcile MultiRaftCluster")
 				return err
 			}
 		}
@@ -551,14 +576,14 @@ func newClusterSelector(cluster *multiraftv1beta2.MultiRaftCluster) map[string]s
 }
 
 // newMemberLabels returns the labels for the given cluster
-func newMemberLabels(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, ordinal int, memberID int) map[string]string {
+func newMemberLabels(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID int, raftNodeID int) map[string]string {
 	labels := make(map[string]string)
 	for key, value := range partition.Labels {
 		labels[key] = value
 	}
-	labels[podKey] = getMemberPodName(cluster, partition, ordinal)
-	labels[raftReplicaKey] = strconv.Itoa(ordinal)
+	labels[podKey] = getMemberPodName(cluster, partition, memberID)
 	labels[raftMemberKey] = strconv.Itoa(memberID)
+	labels[raftNodeKey] = strconv.Itoa(raftNodeID)
 	return labels
 }
 
@@ -571,14 +596,14 @@ func newClusterAnnotations(cluster *multiraftv1beta2.MultiRaftCluster) map[strin
 	return annotations
 }
 
-func newMemberAnnotations(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, ordinal int, memberID int) map[string]string {
+func newMemberAnnotations(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID int, raftNodeID int) map[string]string {
 	annotations := make(map[string]string)
 	for key, value := range partition.Labels {
 		annotations[key] = value
 	}
-	annotations[podKey] = getMemberPodName(cluster, partition, ordinal)
-	annotations[raftReplicaKey] = strconv.Itoa(ordinal)
+	annotations[podKey] = getMemberPodName(cluster, partition, memberID)
 	annotations[raftMemberKey] = strconv.Itoa(memberID)
+	annotations[raftNodeKey] = strconv.Itoa(raftNodeID)
 	return annotations
 }
 
