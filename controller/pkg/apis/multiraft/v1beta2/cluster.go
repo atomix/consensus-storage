@@ -48,9 +48,6 @@ type MultiRaftClusterConfig struct {
 	// Server is the multiraft server configuration
 	Server MultiRaftServerConfig `json:"server,omitempty"`
 
-	// Raft is the Raft protocol configuration
-	Raft RaftConfig `json:"raft,omitempty"`
-
 	// Logging is the store logging configuration
 	Logging LoggingConfig `json:"logging,omitempty"`
 }

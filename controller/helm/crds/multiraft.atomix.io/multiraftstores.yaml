@@ -17,7 +17,7 @@ spec:
     shortNames:
       - cs
   versions:
-    - name: v1beta1
+    - name: v1beta2
       served: true
       storage: true
       subresources:
@@ -33,142 +33,35 @@ spec:
                 The specification for the store.
               type: object
               properties:
-                replicas:
+                cluster:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                partitions:
                   type: integer
                   minimum: 1
-                  default: 1
-                groups:
+                  maximum: 1024
+                  nullable: true
+                replicationFactor:
                   type: integer
                   minimum: 1
                   maximum: 1024
                   default: 1
-                image:
+                heartbeatPeriod:
                   type: string
-                imagePullPolicy:
+                electionTimeout:
                   type: string
-                  enum:
-                    - Never
-                    - IfNotPresent
-                    - Always
-                imagePullSecrets:
-                  type: array
-                  items:
-                    type: object
-                    required:
-                      - name
-                    properties:
-                      name:
-                        type: string
-                securityContext:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                volumeClaimTemplate:
-                  x-kubernetes-preserve-unknown-fields: true
-                  type: object
-                config:
-                  type: object
-                  properties:
-                    server:
-                      type: object
-                      properties:
-                        readBufferSize:
-                          type: integer
-                          nullable: true
-                        writeBufferSize:
-                          type: integer
-                          nullable: true
-                        maxSendMsgSize:
-                          type: string
-                          nullable: true
-                        maxRecvMsgSize:
-                          type: string
-                          nullable: true
-                        numStreamWorkers:
-                          type: integer
-                          nullable: true
-                        maxConcurrentStreams:
-                          type: integer
-                          nullable: true
-                    raft:
-                      type: object
-                      properties:
-                        quorumSize:
-                          type: integer
-                          nullable: true
-                        readReplicas:
-                          type: integer
-                          nullable: true
-                        heartbeatPeriod:
-                          type: string
-                        electionTimeout:
-                          type: string
-                        snapshotEntryThreshold:
-                          type: integer
-                          minimum: 1
-                          nullable: true
-                        compactionRetainEntries:
-                          type: integer
-                          minimum: 0
-                          nullable: true
-                    logging:
-                      type: object
-                      properties:
-                        loggers:
-                          type: object
-                          additionalProperties:
-                            type: object
-                            properties:
-                              level:
-                                type: string
-                                nullable: true
-                                enum:
-                                  - debug
-                                  - info
-                                  - warn
-                                  - error
-                                  - fatal
-                                  - panic
-                              output:
-                                type: object
-                                additionalProperties:
-                                  type: object
-                                  properties:
-                                    sink:
-                                      type: string
-                                    level:
-                                      type: string
-                                      nullable: true
-                                      enum:
-                                        - debug
-                                        - info
-                                        - warn
-                                        - error
-                                        - fatal
-                                        - panic
-                        sinks:
-                          type: object
-                          additionalProperties:
-                            type: object
-                            properties:
-                              encoding:
-                                type: string
-                                nullable: true
-                                enum:
-                                  - console
-                                  - json
-                              stdout:
-                                type: object
-                                properties: {}
-                              stderr:
-                                type: object
-                                properties: {}
-                              file:
-                                type: object
-                                properties:
-                                  path:
-                                    type: string
-                                required:
-                                  - path
+                snapshotEntryThreshold:
+                  type: integer
+                  minimum: 1
+                  nullable: true
+                compactionRetainEntries:
+                  type: integer
+                  minimum: 0
+                  nullable: true
             status:
               type: object
               properties:

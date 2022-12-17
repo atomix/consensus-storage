@@ -13,7 +13,7 @@ spec:
       - rp
   scope: Namespaced
   versions:
-    - name: v1beta1
+    - name: v1beta2
       served: true
       storage: true
       subresources:
@@ -26,21 +26,29 @@ spec:
           properties:
             spec:
               type: object
+              required:
+                - cluster
+                - partitionID
+                - shardID
               properties:
-                heartbeatPeriod:
-                  type: string
-                  nullable: true
-                electionTimeout:
-                  type: string
-                  nullable: true
-                snapshotEntryThreshold:
+                cluster:
+                  type: object
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                replicas:
                   type: integer
                   minimum: 1
-                  nullable: true
-                compactionRetainEntries:
+                  maximum: 1024
+                partitionID:
                   type: integer
-                  minimum: 0
-                  nullable: true
+                  minimum: 1
+                  maximum: 1024
+                shardID:
+                  type: integer
+                  minimum: 1
             status:
               type: object
               properties:
@@ -69,6 +77,28 @@ spec:
                     properties:
                       name:
                         type: string
+                memberStatuses:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - memberID
+                      - raftNodeID
+                    properties:
+                      name:
+                        type: string
+                      memberID:
+                        type: integer
+                        minimum: 1
+                        maximum: 1024
+                      raftNodeID:
+                        type: integer
+                        minimum: 1
+                      bootstrapped:
+                        type: boolean
+                      deleted:
+                        type: boolean
       additionalPrinterColumns:
         - name: Leader
           type: string
