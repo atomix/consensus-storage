@@ -53,8 +53,13 @@ type RaftMemberSpec struct {
 	RaftNodeID      uint32                      `json:"raftNodeID"`
 	Pod             corev1.LocalObjectReference `json:"pod"`
 	Type            RaftMemberType              `json:"type"`
-	Peers           []RaftMemberReference       `json:"peers"`
+	Config          RaftMemberConfig            `json:"config"`
 	BootstrapPolicy RaftBootstrapPolicy         `json:"bootstrapPolicy"`
+}
+
+type RaftMemberConfig struct {
+	RaftConfig `json:",inline"`
+	Peers      []RaftMemberReference `json:"peers"`
 }
 
 type RaftMemberReference struct {

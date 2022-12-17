@@ -210,22 +210,7 @@ func newNodeConfig(cluster *multiraftv1beta2.MultiRaftCluster) ([]byte, error) {
 		maxSendMsgSize := int(cluster.Spec.Config.Server.MaxSendMsgSize.Value())
 		config.Server.MaxSendMsgSize = &maxSendMsgSize
 	}
-	electionTimeout := cluster.Spec.Config.Raft.ElectionTimeout
-	if electionTimeout != nil {
-		config.Raft.ElectionTimeout = &electionTimeout.Duration
-	}
-	heartbeatPeriod := cluster.Spec.Config.Raft.HeartbeatPeriod
-	if heartbeatPeriod != nil {
-		config.Raft.HeartbeatPeriod = &heartbeatPeriod.Duration
-	}
-	if cluster.Spec.Config.Raft.SnapshotEntryThreshold != nil {
-		entryThreshold := uint64(*cluster.Spec.Config.Raft.SnapshotEntryThreshold)
-		config.Raft.SnapshotEntryThreshold = &entryThreshold
-	}
-	if cluster.Spec.Config.Raft.CompactionRetainEntries != nil {
-		compactionRetainEntries := uint64(*cluster.Spec.Config.Raft.CompactionRetainEntries)
-		config.Raft.CompactionRetainEntries = &compactionRetainEntries
-	}
+	config.Node.RTT = &cluster.Spec.Config.RTT.Duration
 	return yaml.Marshal(&config)
 }
 

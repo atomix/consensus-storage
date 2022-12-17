@@ -117,12 +117,6 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 						MaxConcurrentStreams: store.Spec.Config.Server.MaxConcurrentStreams,
 						NumStreamWorkers:     store.Spec.Config.Server.NumStreamWorkers,
 					},
-					Raft: multiraftv1beta2.RaftConfig{
-						HeartbeatPeriod:         store.Spec.Config.Raft.HeartbeatPeriod,
-						ElectionTimeout:         store.Spec.Config.Raft.ElectionTimeout,
-						SnapshotEntryThreshold:  store.Spec.Config.Raft.SnapshotEntryThreshold,
-						CompactionRetainEntries: store.Spec.Config.Raft.CompactionRetainEntries,
-					},
 				},
 			},
 		}
@@ -168,12 +162,6 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 			Spec: multiraftv1beta2.MultiRaftStoreSpec{
 				Cluster: corev1.LocalObjectReference{
 					Name: store.Name,
-				},
-				RaftConfig: multiraftv1beta2.RaftConfig{
-					HeartbeatPeriod:         store.Spec.Config.Raft.HeartbeatPeriod,
-					ElectionTimeout:         store.Spec.Config.Raft.ElectionTimeout,
-					SnapshotEntryThreshold:  store.Spec.Config.Raft.SnapshotEntryThreshold,
-					CompactionRetainEntries: store.Spec.Config.Raft.CompactionRetainEntries,
 				},
 				Partitions: uint32(store.Spec.Groups),
 			},

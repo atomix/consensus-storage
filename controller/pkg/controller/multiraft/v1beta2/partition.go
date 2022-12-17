@@ -252,8 +252,11 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 					Name: getMemberPodName(cluster, partition, memberID),
 				},
 				Type:            multiraftv1beta2.RaftVoter,
-				Peers:           peers,
 				BootstrapPolicy: boostrapPolicy,
+				Config: multiraftv1beta2.RaftMemberConfig{
+					RaftConfig: partition.Spec.RaftConfig,
+					Peers:      peers,
+				},
 			},
 		}
 		addFinalizer(member, raftPartitionKey)

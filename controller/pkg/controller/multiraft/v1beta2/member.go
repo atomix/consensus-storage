@@ -196,8 +196,8 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 
 		switch member.Spec.BootstrapPolicy {
 		case multiraftv1beta2.RaftBootstrap:
-			members := make([]consensus.MemberConfig, 0, len(member.Spec.Peers))
-			for _, peer := range member.Spec.Peers {
+			members := make([]consensus.MemberConfig, 0, len(member.Spec.Config.Peers))
+			for _, peer := range member.Spec.Config.Peers {
 				host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
 				members = append(members, consensus.MemberConfig{
 					MemberID: consensus.MemberID(peer.RaftNodeID),
@@ -226,7 +226,7 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 			}
 		case multiraftv1beta2.RaftJoin:
 			// Loop through the list of peers and attempt to add the member to the Raft group until successful
-			for _, peer := range member.Spec.Peers {
+			for _, peer := range member.Spec.Config.Peers {
 				host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
 				address := fmt.Sprintf("%s:%d", host, protocolPort)
 				conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -331,7 +331,7 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multira
 	}
 
 	// Loop through the list of peers and attempt to remove the member from the Raft group until successful
-	for _, peer := range member.Spec.Peers {
+	for _, peer := range member.Spec.Config.Peers {
 		host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
 		address := fmt.Sprintf("%s:%d", host, protocolPort)
 		conn, err := grpc.DialContext(ctx, address, grpc.WithTransportCredentials(insecure.NewCredentials()))

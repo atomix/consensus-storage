@@ -3,7 +3,7 @@ module github.com/atomix/consensus-storage/controller
 go 1.19
 
 require (
-	github.com/atomix/consensus-storage/node v0.13.0
+	github.com/atomix/consensus-storage/node v0.13.8-0.20221217131425-b0bb0c0254a1
 	github.com/atomix/runtime/controller v0.6.0
 	github.com/atomix/runtime/sdk v0.7.6
 	github.com/cenkalti/backoff v2.2.1+incompatible
@@ -105,5 +105,3 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/atomix/consensus-storage/node => github.com/atomix/consensus-storage/node v0.13.8-0.20221217124011-5c842c8bad09

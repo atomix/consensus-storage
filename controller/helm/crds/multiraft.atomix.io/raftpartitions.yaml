@@ -49,6 +49,21 @@ spec:
                 shardID:
                   type: integer
                   minimum: 1
+                electionRTT:
+                  type: integer
+                  nullable: true
+                heartbeatRTT:
+                  type: integer
+                  nullable: true
+                snapshotEntries:
+                  type: integer
+                  nullable: true
+                compactionOverhead:
+                  type: integer
+                  nullable: true
+                maxInMemLogSize:
+                  type: string
+                  nullable: true
             status:
               type: object
               properties:

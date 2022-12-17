@@ -63,6 +63,9 @@ spec:
                 config:
                   type: object
                   properties:
+                    rtt:
+                      type: string
+                      default: 10ms
                     server:
                       type: object
                       properties:

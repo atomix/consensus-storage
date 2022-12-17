@@ -50,17 +50,20 @@ spec:
                   minimum: 1
                   maximum: 1024
                   default: 1
-                heartbeatPeriod:
-                  type: string
-                electionTimeout:
-                  type: string
-                snapshotEntryThreshold:
+                electionRTT:
                   type: integer
-                  minimum: 1
                   nullable: true
-                compactionRetainEntries:
+                heartbeatRTT:
                   type: integer
-                  minimum: 0
+                  nullable: true
+                snapshotEntries:
+                  type: integer
+                  nullable: true
+                compactionOverhead:
+                  type: integer
+                  nullable: true
+                maxInMemLogSize:
+                  type: string
                   nullable: true
             status:
               type: object

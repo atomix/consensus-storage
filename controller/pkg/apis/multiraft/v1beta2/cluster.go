@@ -45,6 +45,9 @@ type MultiRaftClusterSpec struct {
 }
 
 type MultiRaftClusterConfig struct {
+	// RTT is the estimated round trip time between nodes
+	RTT metav1.Duration `json:"rtt"`
+
 	// Server is the multiraft server configuration
 	Server MultiRaftServerConfig `json:"server,omitempty"`
 
