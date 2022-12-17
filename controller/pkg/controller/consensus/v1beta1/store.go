@@ -7,7 +7,6 @@ package v1beta1
 import (
 	"context"
 	multiraftv1beta2 "github.com/atomix/consensus-storage/controller/pkg/apis/multiraft/v1beta2"
-	atomixv3beta3 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta3"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/tools/record"
@@ -47,8 +46,8 @@ func addConsensusStoreController(mgr manager.Manager) error {
 		return err
 	}
 
-	// Watch for changes to secondary resource MultiRaftCluster
-	err = controller.Watch(&source.Kind{Type: &consensusv1beta1.MultiRaftCluster{}}, &handler.EnqueueRequestForOwner{
+	// Watch for changes to secondary resource MultiRaftStore
+	err = controller.Watch(&source.Kind{Type: &multiraftv1beta2.MultiRaftStore{}}, &handler.EnqueueRequestForOwner{
 		OwnerType:    &consensusv1beta1.ConsensusStore{},
 		IsController: true,
 	})
@@ -56,9 +55,9 @@ func addConsensusStoreController(mgr manager.Manager) error {
 		return err
 	}
 
-	// Watch for changes to secondary resource Store
-	err = controller.Watch(&source.Kind{Type: &atomixv3beta3.DataStore{}}, &handler.EnqueueRequestForOwner{
-		OwnerType:    &consensusv1beta1.MultiRaftCluster{},
+	// Watch for changes to secondary resource MultiRaftCluster
+	err = controller.Watch(&source.Kind{Type: &multiraftv1beta2.MultiRaftCluster{}}, &handler.EnqueueRequestForOwner{
+		OwnerType:    &consensusv1beta1.ConsensusStore{},
 		IsController: true,
 	})
 	if err != nil {
