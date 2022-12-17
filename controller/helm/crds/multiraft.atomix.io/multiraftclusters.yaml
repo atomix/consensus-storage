@@ -177,6 +177,10 @@ spec:
                         type: integer
                         minimum: 1
       additionalPrinterColumns:
+        - name: Replicas
+          type: integer
+          description: The number of replicas in the cluster
+          jsonPath: .spec.replicas
         - name: Status
           type: string
           description: The cluster state

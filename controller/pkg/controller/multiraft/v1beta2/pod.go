@@ -478,6 +478,7 @@ func (r *PodReconciler) tryRecordMemberEvent(
 				if k8serrors.IsNotFound(err) {
 					return nil
 				}
+				log.Error(err)
 				return err
 			}
 			recorder(&member)
@@ -508,6 +509,7 @@ func (r *PodReconciler) tryRecordPartitionEvent(
 				if k8serrors.IsNotFound(err) {
 					return nil
 				}
+				log.Error(err)
 				return err
 			}
 			recorder(&partition)

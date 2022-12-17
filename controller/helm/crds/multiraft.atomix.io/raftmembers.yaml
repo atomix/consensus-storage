@@ -152,12 +152,8 @@ spec:
                   type: integer
                   nullable: true
                 leader:
-                  type: object
-                  required:
-                    - name
-                  properties:
-                    name:
-                      type: string
+                  type: integer
+                  nullable: true
                 lastUpdated:
                   type: string
                   format: date-time
@@ -168,6 +164,18 @@ spec:
                   type: string
                   format: date-time
       additionalPrinterColumns:
+        - name: MemberID
+          type: integer
+          description: The identifier of the memember
+          jsonPath: .spec.memberID
+        - name: ReplicaID
+          type: integer
+          description: The identifier of the Raft replica associated with the member
+          jsonPath: .spec.replicaID
+        - name: ShardID
+          type: integer
+          description: The shard to which the member belongs
+          jsonPath: .spec.shardID
         - name: Pod
           type: string
           description: The pod to which the member belongs
@@ -181,9 +189,9 @@ spec:
           description: The member role
           jsonPath: .status.role
         - name: Leader
-          type: string
+          type: integer
           description: The current leader on the member
-          jsonPath: .status.leader.name
+          jsonPath: .status.leader
         - name: Term
           type: integer
           description: The current term on the member

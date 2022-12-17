@@ -77,21 +77,12 @@ spec:
                   type: integer
                   nullable: true
                 leader:
-                  type: object
-                  required:
-                    - name
-                  properties:
-                    name:
-                      type: string
+                  type: integer
+                  nullable: true
                 followers:
                   type: array
                   items:
-                    type: object
-                    required:
-                      - name
-                    properties:
-                      name:
-                        type: string
+                    type: integer
                 lastReplicaID:
                   type: integer
                 memberStatuses:
@@ -117,10 +108,26 @@ spec:
                       deleted:
                         type: boolean
       additionalPrinterColumns:
-        - name: Leader
+        - name: PartitionID
+          type: integer
+          description: The identifier of the partition
+          jsonPath: .spec.partitionID
+        - name: ShardID
+          type: integer
+          description: The partition's shard identifier
+          jsonPath: .spec.shardID
+        - name: Cluster
           type: string
+          description: The cluster in which the partition is stored
+          jsonPath: .spec.cluster.name
+        - name: Replicas
+          type: integer
+          description: The number of replicas in the partition
+          jsonPath: .spec.replicas
+        - name: Leader
+          type: integer
           description: The current leader for the partition
-          jsonPath: .status.leader.name
+          jsonPath: .status.leader
         - name: Term
           type: integer
           description: The current term for the partition

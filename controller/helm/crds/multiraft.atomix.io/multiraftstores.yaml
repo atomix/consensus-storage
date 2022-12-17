@@ -75,6 +75,18 @@ spec:
                     - NotReady
                     - Ready
       additionalPrinterColumns:
+        - name: Cluster
+          type: string
+          description: The MultiRaftCluster associated with the store
+          jsonPath: .spec.cluster.name
+        - name: Partitions
+          type: integer
+          description: The number of partitions in the store
+          jsonPath: .spec.partitions
+        - name: ReplicationFactor
+          type: integer
+          description: The number of replicas per partition
+          jsonPath: .spec.replicationFactor
         - name: Status
           type: string
           description: The store state
