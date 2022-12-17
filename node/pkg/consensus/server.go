@@ -56,7 +56,7 @@ func (s *nodeServer) BootstrapGroup(ctx context.Context, request *BootstrapGroup
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	if err := s.protocol.BootstrapGroup(ctx, request.GroupID, request.MemberID, request.Members...); err != nil {
+	if err := s.protocol.BootstrapGroup(ctx, request.GroupID, request.MemberID, request.Config, request.Members...); err != nil {
 		log.Warnw("BootstrapGroup",
 			logging.Stringer("BootstrapGroupRequest", request),
 			logging.Error("Error", err))
@@ -153,7 +153,7 @@ func (s *nodeServer) JoinGroup(ctx context.Context, request *JoinGroupRequest) (
 			logging.Error("Error", err))
 		return nil, errors.ToProto(err)
 	}
-	if err := s.protocol.JoinGroup(ctx, request.GroupID, request.MemberID); err != nil {
+	if err := s.protocol.JoinGroup(ctx, request.GroupID, request.MemberID, request.Config); err != nil {
 		log.Warnw("JoinGroup",
 			logging.Stringer("JoinGroupRequest", request),
 			logging.Error("Error", err))

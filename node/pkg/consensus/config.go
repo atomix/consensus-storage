@@ -7,16 +7,18 @@ package consensus
 import "time"
 
 const (
-	defaultDataDir                 = "/var/lib/atomix/data"
-	defaultSnapshotEntryThreshold  = uint64(10000)
-	defaultCompactionRetainEntries = uint64(1000)
-	defaultHeartbeatPeriod         = 200 * time.Millisecond
-	defaultClientTimeout           = time.Minute
+	defaultDataDir            = "/var/lib/atomix/data"
+	defaultRTT                = 10 * time.Millisecond
+	defaultElectionRTT        = 100
+	defaultHeartbeatRTT       = 10
+	defaultSnapshotEntries    = uint64(10000)
+	defaultCompactionOverhead = uint64(1000)
+	defaultClientTimeout      = time.Minute
 )
 
 type Config struct {
 	Server ServerConfig `json:"server" yaml:"server"`
-	Raft   RaftConfig   `json:"raft" yaml:"raft"`
+	Raft   NodeConfig   `json:"raft" yaml:"raft"`
 }
 
 type ServerConfig struct {
@@ -28,38 +30,21 @@ type ServerConfig struct {
 	MaxConcurrentStreams *uint32 `json:"maxConcurrentStreams" yaml:"maxConcurrentStreams"`
 }
 
-type RaftConfig struct {
-	HeartbeatPeriod         *time.Duration `json:"heartbeatPeriod" yaml:"heartbeatPeriod"`
-	ElectionTimeout         *time.Duration `json:"electionTimeout" yaml:"electionTimeout"`
-	SnapshotEntryThreshold  *uint64        `json:"snapshotEntryThreshold" yaml:"snapshotEntryThreshold"`
-	CompactionRetainEntries *uint64        `json:"compactionRetainEntries" yaml:"compactionRetainEntries"`
-	DataDir                 *string        `json:"dataDir" yaml:"dataDir"`
+type NodeConfig struct {
+	RTT     *time.Duration `json:"rtt" yaml:"rtt"`
+	DataDir *string        `json:"dataDir" yaml:"dataDir"`
 }
 
-func (c RaftConfig) GetDataDir() string {
+func (c NodeConfig) GetDataDir() string {
 	if c.DataDir != nil {
 		return *c.DataDir
 	}
 	return defaultDataDir
 }
 
-func (c RaftConfig) GetSnapshotEntryThreshold() uint64 {
-	if c.SnapshotEntryThreshold != nil {
-		return *c.SnapshotEntryThreshold
+func (c NodeConfig) GetRTT() time.Duration {
+	if c.RTT != nil {
+		return *c.RTT
 	}
-	return defaultSnapshotEntryThreshold
-}
-
-func (c RaftConfig) GetCompactionRetainEntries() uint64 {
-	if c.CompactionRetainEntries != nil {
-		return *c.CompactionRetainEntries
-	}
-	return defaultCompactionRetainEntries
-}
-
-func (c RaftConfig) GetHeartbeatPeriod() time.Duration {
-	if c.HeartbeatPeriod != nil {
-		return *c.HeartbeatPeriod
-	}
-	return defaultHeartbeatPeriod
+	return defaultRTT
 }

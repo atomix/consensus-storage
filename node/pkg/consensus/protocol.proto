@@ -40,6 +40,20 @@ message MemberConfig {
     MemberRole role = 4;
 }
 
+message RaftConfig {
+    uint64 election_rtt = 1 [
+        (gogoproto.customname) = "ElectionRTT"
+    ];
+    uint64 heartbeat_rtt = 2 [
+        (gogoproto.customname) = "HeartbeatRTT"
+    ];
+    uint64 snapshot_entries = 3;
+    uint64 compaction_overhead = 4;
+    uint64 max_in_mem_log_size = 5;
+    bool disable_auto_compactions = 6;
+    bool ordered_config_change = 7;
+}
+
 message RaftProposal {
     uint64 term = 1 [
         (gogoproto.casttype) = "Term"
@@ -84,6 +98,9 @@ message BootstrapGroupRequest {
         (gogoproto.casttype) = "MemberID"
     ];
     repeated MemberConfig members = 3 [
+        (gogoproto.nullable) = false
+    ];
+    RaftConfig config = 4 [
         (gogoproto.nullable) = false
     ];
 }
@@ -131,6 +148,9 @@ message JoinGroupRequest {
     uint32 member_id = 2 [
         (gogoproto.customname) = "MemberID",
         (gogoproto.casttype) = "MemberID"
+    ];
+    RaftConfig config = 3 [
+        (gogoproto.nullable) = false
     ];
 }
 

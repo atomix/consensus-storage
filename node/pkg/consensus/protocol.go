@@ -33,7 +33,7 @@ type GroupID uint32
 
 type SequenceNum uint64
 
-func NewProtocol(config RaftConfig, registry *statemachine.PrimitiveTypeRegistry, opts ...Option) *Protocol {
+func NewProtocol(config NodeConfig, registry *statemachine.PrimitiveTypeRegistry, opts ...Option) *Protocol {
 	var options Options
 	options.apply(opts...)
 
@@ -49,7 +49,7 @@ func NewProtocol(config RaftConfig, registry *statemachine.PrimitiveTypeRegistry
 	nodeConfig := raftconfig.NodeHostConfig{
 		WALDir:              config.GetDataDir(),
 		NodeHostDir:         config.GetDataDir(),
-		RTTMillisecond:      uint64(config.GetHeartbeatPeriod().Milliseconds()),
+		RTTMillisecond:      uint64(config.GetRTT().Milliseconds()),
 		RaftAddress:         address,
 		RaftEventListener:   listener,
 		SystemEventListener: listener,
@@ -66,7 +66,7 @@ func NewProtocol(config RaftConfig, registry *statemachine.PrimitiveTypeRegistry
 
 type Protocol struct {
 	host       *dragonboat.NodeHost
-	config     RaftConfig
+	config     NodeConfig
 	registry   *statemachine.PrimitiveTypeRegistry
 	partitions map[protocol.PartitionID]*Partition
 	watchers   map[int]chan<- Event
@@ -217,7 +217,7 @@ func getMember(nodeID uint64, address string, role MemberRole) (MemberConfig, er
 	}, nil
 }
 
-func (n *Protocol) BootstrapGroup(ctx context.Context, groupID GroupID, memberID MemberID, members ...MemberConfig) error {
+func (n *Protocol) BootstrapGroup(ctx context.Context, groupID GroupID, memberID MemberID, config RaftConfig, members ...MemberConfig) error {
 	var member *MemberConfig
 	for _, m := range members {
 		if m.MemberID == memberID {
@@ -230,7 +230,7 @@ func (n *Protocol) BootstrapGroup(ctx context.Context, groupID GroupID, memberID
 		return errors.NewInvalid("unknown member %d", memberID)
 	}
 
-	raftConfig := n.getRaftConfig(groupID, memberID, member.Role)
+	raftConfig := n.getRaftConfig(groupID, memberID, member.Role, config)
 	targets := make(map[uint64]dragonboat.Target)
 	for _, member := range members {
 		targets[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
@@ -265,8 +265,8 @@ func (n *Protocol) RemoveMember(ctx context.Context, groupID GroupID, memberID M
 	return nil
 }
 
-func (n *Protocol) JoinGroup(ctx context.Context, groupID GroupID, memberID MemberID) error {
-	raftConfig := n.getRaftConfig(groupID, memberID, MemberRole_MEMBER)
+func (n *Protocol) JoinGroup(ctx context.Context, groupID GroupID, memberID MemberID, config RaftConfig) error {
+	raftConfig := n.getRaftConfig(groupID, memberID, MemberRole_MEMBER, config)
 	if err := n.host.StartCluster(map[uint64]dragonboat.Target{}, true, n.newStateMachine, raftConfig); err != nil {
 		if err == dragonboat.ErrClusterAlreadyExist {
 			return errors.NewAlreadyExists(err.Error())
@@ -302,21 +302,36 @@ func (n *Protocol) newStateMachine(clusterID, nodeID uint64) dbstatemachine.ISta
 	return newStateMachine(streams, n.registry)
 }
 
-func (n *Protocol) getRaftConfig(groupID GroupID, memberID MemberID, role MemberRole) raftconfig.Config {
-	electionRTT := uint64(10)
-	if n.config.ElectionTimeout != nil {
-		electionRTT = uint64(n.config.ElectionTimeout.Milliseconds() / n.config.GetHeartbeatPeriod().Milliseconds())
+func (n *Protocol) getRaftConfig(groupID GroupID, memberID MemberID, role MemberRole, config RaftConfig) raftconfig.Config {
+	electionRTT := config.ElectionRTT
+	if electionRTT == 0 {
+		electionRTT = defaultElectionRTT
+	}
+	heartbeatRTT := config.HeartbeatRTT
+	if heartbeatRTT == 0 {
+		heartbeatRTT = defaultHeartbeatRTT
+	}
+	snapshotEntries := config.SnapshotEntries
+	if snapshotEntries == 0 {
+		snapshotEntries = defaultSnapshotEntries
+	}
+	compactionOverhead := config.CompactionOverhead
+	if compactionOverhead == 0 {
+		compactionOverhead = defaultCompactionOverhead
 	}
 	return raftconfig.Config{
-		NodeID:             uint64(memberID),
-		ClusterID:          uint64(groupID),
-		ElectionRTT:        electionRTT,
-		HeartbeatRTT:       1,
-		CheckQuorum:        true,
-		SnapshotEntries:    n.config.GetSnapshotEntryThreshold(),
-		CompactionOverhead: n.config.GetCompactionRetainEntries(),
-		IsObserver:         role == MemberRole_OBSERVER,
-		IsWitness:          role == MemberRole_WITNESS,
+		NodeID:                 uint64(memberID),
+		ClusterID:              uint64(groupID),
+		ElectionRTT:            electionRTT,
+		HeartbeatRTT:           heartbeatRTT,
+		CheckQuorum:            true,
+		SnapshotEntries:        snapshotEntries,
+		CompactionOverhead:     compactionOverhead,
+		MaxInMemLogSize:        config.MaxInMemLogSize,
+		OrderedConfigChange:    config.OrderedConfigChange,
+		DisableAutoCompactions: config.DisableAutoCompactions,
+		IsObserver:             role == MemberRole_OBSERVER,
+		IsWitness:              role == MemberRole_WITNESS,
 	}
 }
 
