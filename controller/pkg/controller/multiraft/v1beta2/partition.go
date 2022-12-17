@@ -9,6 +9,7 @@ import (
 	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
@@ -17,6 +18,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strconv"
 	"time"
 
 	multiraftv1beta2 "github.com/atomix/consensus-storage/controller/pkg/apis/multiraft/v1beta2"
@@ -101,6 +103,22 @@ func (r *RaftPartitionReconciler) Reconcile(ctx context.Context, request reconci
 			return reconcile.Result{}, nil
 		}
 		return reconcile.Result{}, err
+	}
+
+	if partition.DeletionTimestamp != nil {
+		return r.reconcileDelete(ctx, partition)
+	}
+	return r.reconcileCreate(ctx, partition)
+}
+
+func (r *RaftPartitionReconciler) reconcileCreate(ctx context.Context, partition *multiraftv1beta2.RaftPartition) (reconcile.Result, error) {
+	if !hasFinalizer(partition, raftPartitionKey) {
+		addFinalizer(partition, raftPartitionKey)
+		if err := r.client.Update(ctx, partition); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
 	}
 
 	cluster := &multiraftv1beta2.MultiRaftCluster{}
@@ -327,6 +345,39 @@ func (r *RaftPartitionReconciler) reconcileStatus(ctx context.Context, partition
 		return true, nil
 	}
 	return false, nil
+}
+
+func (r *RaftPartitionReconciler) reconcileDelete(ctx context.Context, partition *multiraftv1beta2.RaftPartition) (reconcile.Result, error) {
+	if !hasFinalizer(partition, raftPartitionKey) {
+		return reconcile.Result{}, nil
+	}
+
+	options := &client.ListOptions{
+		Namespace: partition.Namespace,
+		LabelSelector: labels.SelectorFromSet(map[string]string{
+			raftPartitionKey: strconv.Itoa(int(partition.Spec.PartitionID)),
+		}),
+	}
+	members := &multiraftv1beta2.RaftMemberList{}
+	if err := r.client.List(ctx, members, options); err != nil {
+		return reconcile.Result{}, err
+	}
+
+	for _, member := range members.Items {
+		if hasFinalizer(&member, raftPartitionKey) {
+			removeFinalizer(&member, raftPartitionKey)
+			if err := r.client.Update(ctx, &member); err != nil {
+				log.Error(err, "Reconcile RaftPartition")
+				return reconcile.Result{}, err
+			}
+		}
+	}
+
+	removeFinalizer(partition, raftPartitionKey)
+	if err := r.client.Update(ctx, partition); err != nil {
+		return reconcile.Result{}, err
+	}
+	return reconcile.Result{}, nil
 }
 
 var _ reconcile.Reconciler = (*RaftPartitionReconciler)(nil)
