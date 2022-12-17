@@ -308,14 +308,14 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, store *multiraftv1
 
 		switch member.Spec.BootstrapPolicy {
 		case multiraftv1beta2.RaftBootstrap:
-			members := make([]consensus.MemberConfig, 0, len(member.Spec.Config.Peers))
+			replicas := make([]consensus.ReplicaConfig, 0, len(member.Spec.Config.Peers))
 			for _, peer := range member.Spec.Config.Peers {
 				host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
-				members = append(members, consensus.MemberConfig{
-					MemberID: consensus.MemberID(peer.RaftNodeID),
-					Host:     host,
-					Port:     protocolPort,
-					Role:     consensus.MemberRole_MEMBER,
+				replicas = append(replicas, consensus.ReplicaConfig{
+					ReplicaID: consensus.ReplicaID(peer.ReplicaID),
+					Host:      host,
+					Port:      protocolPort,
+					Role:      consensus.ReplicaRole_MEMBER,
 				})
 			}
 
@@ -330,26 +330,26 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, store *multiraftv1
 			// Bootstrap the member with the initial configuration
 			log.Infof("Boostrapping RaftMember %s/%s in RaftPartition %s", member.Namespace, member.Name, partition.Name)
 			client := consensus.NewNodeClient(conn)
-			request := &consensus.BootstrapGroupRequest{
-				GroupID:  consensus.GroupID(member.Spec.ShardID),
-				MemberID: consensus.MemberID(member.Spec.MemberID),
-				Members:  members,
+			request := &consensus.BootstrapShardRequest{
+				ShardID:   consensus.ShardID(member.Spec.ShardID),
+				ReplicaID: consensus.ReplicaID(member.Spec.MemberID),
+				Replicas:  replicas,
 			}
-			if _, err := client.BootstrapGroup(ctx, request); err != nil {
+			if _, err := client.BootstrapShard(ctx, request); err != nil {
 				err = errors.FromProto(err)
 				if !errors.IsAlreadyExists(err) {
-					r.events.Eventf(store, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-					r.events.Eventf(cluster, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-					r.events.Eventf(partition, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-					r.events.Eventf(pod, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(store, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(cluster, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(partition, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+					r.events.Eventf(pod, "Warning", "BootstrapShardFailed", "Failed to bootstrap node %d on shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
 					r.events.Eventf(member, "Warning", "BootstrapShardFailed", "Failed to bootstrap node on shard %d: %s", member.Spec.ShardID, err.Error())
 					return false, err
 				}
 			} else {
-				r.events.Eventf(store, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
-				r.events.Eventf(cluster, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
-				r.events.Eventf(partition, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
-				r.events.Eventf(pod, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+				r.events.Eventf(store, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
+				r.events.Eventf(cluster, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
+				r.events.Eventf(partition, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
+				r.events.Eventf(pod, "Normal", "BootstrappedShard", "Bootstrapped node %d on shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
 				r.events.Eventf(member, "Normal", "BootstrappedShard", "Bootstrapped node on shard %d", member.Spec.ShardID)
 			}
 		case multiraftv1beta2.RaftJoin:
@@ -368,27 +368,27 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, store *multiraftv1
 					// Bootstrap the member by joining it to the cluster
 					log.Infof("Joining RaftMember %s/%s to RaftPartition %s", member.Namespace, member.Name, partition.Name)
 					client := consensus.NewNodeClient(conn)
-					request := &consensus.JoinGroupRequest{
-						GroupID:  consensus.GroupID(member.Spec.ShardID),
-						MemberID: consensus.MemberID(member.Spec.MemberID),
+					request := &consensus.JoinShardRequest{
+						ShardID:   consensus.ShardID(member.Spec.ShardID),
+						ReplicaID: consensus.ReplicaID(member.Spec.MemberID),
 					}
-					if _, err := client.JoinGroup(ctx, request); err != nil {
+					if _, err := client.JoinShard(ctx, request); err != nil {
 						log.Error(err, "Reconcile RaftMember")
 						err = errors.FromProto(err)
 						if !errors.IsAlreadyExists(err) {
-							r.events.Eventf(store, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-							r.events.Eventf(cluster, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-							r.events.Eventf(partition, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-							r.events.Eventf(pod, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(store, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(cluster, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(partition, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+							r.events.Eventf(pod, "Warning", "JoinShardFailed", "Failed to join node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
 							r.events.Eventf(member, "Warning", "JoinShardFailed", "Failed to join node to shard %d: %s", member.Spec.ShardID, err.Error())
 							_ = conn.Close()
 							return false, err
 						}
 					} else {
-						r.events.Eventf(store, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
-						r.events.Eventf(cluster, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
-						r.events.Eventf(partition, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
-						r.events.Eventf(pod, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.RaftNodeID, member.Spec.ShardID)
+						r.events.Eventf(store, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
+						r.events.Eventf(cluster, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
+						r.events.Eventf(partition, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
+						r.events.Eventf(pod, "Normal", "JoinedShard", "Joined node %d to shard %d", member.Spec.ReplicaID, member.Spec.ShardID)
 						r.events.Eventf(member, "Normal", "JoinedShard", "Joined node to shard %d", member.Spec.ShardID)
 					}
 					_ = conn.Close()
@@ -427,7 +427,7 @@ func (r *RaftMemberReconciler) tryAddMember(ctx context.Context, store *multiraf
 
 	client := consensus.NewNodeClient(conn)
 	getConfigRequest := &consensus.GetConfigRequest{
-		GroupID: consensus.GroupID(member.Spec.ShardID),
+		ShardID: consensus.ShardID(member.Spec.ShardID),
 	}
 	getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
 	if err != nil {
@@ -436,29 +436,29 @@ func (r *RaftMemberReconciler) tryAddMember(ctx context.Context, store *multiraf
 	}
 
 	log.Infof("Adding RaftMember %s/%s to RaftPartition %s via %s", member.Namespace, member.Name, partition.Name, peer.Pod.Name)
-	addMemberRequest := &consensus.AddMemberRequest{
-		GroupID: consensus.GroupID(member.Spec.ShardID),
-		Member: consensus.MemberConfig{
-			MemberID: consensus.MemberID(member.Spec.MemberID),
-			Host:     fmt.Sprintf("%s.%s.%s.svc.%s", member.Spec.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain()),
-			Port:     protocolPort,
+	addReplicaRequest := &consensus.AddReplicaRequest{
+		ShardID: consensus.ShardID(member.Spec.ShardID),
+		Replica: consensus.ReplicaConfig{
+			ReplicaID: consensus.ReplicaID(member.Spec.MemberID),
+			Host:      fmt.Sprintf("%s.%s.%s.svc.%s", member.Spec.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain()),
+			Port:      protocolPort,
 		},
-		Version: getConfigResponse.Group.Version,
+		Version: getConfigResponse.Shard.Version,
 	}
-	_, err = client.AddMember(ctx, addMemberRequest)
+	_, err = client.AddReplica(ctx, addReplicaRequest)
 	if err != nil {
 		log.Error(err, "Reconcile RaftMember")
-		r.events.Eventf(store, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-		r.events.Eventf(cluster, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-		r.events.Eventf(partition, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-		r.events.Eventf(pod, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(store, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(cluster, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(partition, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(pod, "Warning", "AddMemberFailed", "Failed to add node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
 		r.events.Eventf(member, "Warning", "AddMemberFailed", "Failed to add node to shard %d: %s", member.Spec.ShardID, err.Error())
 		return false, err
 	}
-	r.events.Eventf(store, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
-	r.events.Eventf(cluster, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
-	r.events.Eventf(partition, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
-	r.events.Eventf(pod, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(store, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
+	r.events.Eventf(cluster, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
+	r.events.Eventf(partition, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
+	r.events.Eventf(pod, "Normal", "AddedMember", "Added node %d to shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
 	r.events.Eventf(member, "Normal", "AddedMember", "Added node to shard %d: %s", member.Spec.ShardID)
 	return true, nil
 }
@@ -485,10 +485,10 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, store *multiraf
 	// Shutdown the group member.
 	log.Infof("Terminating RaftMember %s/%s in RaftPartition %s", member.Namespace, member.Name, partition.Name)
 	client := consensus.NewNodeClient(conn)
-	request := &consensus.LeaveGroupRequest{
-		GroupID: consensus.GroupID(member.Spec.ShardID),
+	request := &consensus.LeaveShardRequest{
+		ShardID: consensus.ShardID(member.Spec.ShardID),
 	}
-	if _, err := client.LeaveGroup(ctx, request); err != nil {
+	if _, err := client.LeaveShard(ctx, request); err != nil {
 		log.Error(err, "Reconcile RaftMember")
 	}
 
@@ -524,7 +524,7 @@ func (r *RaftMemberReconciler) tryRemoveMember(ctx context.Context, store *multi
 
 	client := consensus.NewNodeClient(conn)
 	getConfigRequest := &consensus.GetConfigRequest{
-		GroupID: consensus.GroupID(member.Spec.ShardID),
+		ShardID: consensus.ShardID(member.Spec.ShardID),
 	}
 	getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
 	if err != nil {
@@ -533,25 +533,25 @@ func (r *RaftMemberReconciler) tryRemoveMember(ctx context.Context, store *multi
 	}
 
 	log.Infof("Removing RaftMember %s/%s from RaftPartition %s via %s", member.Namespace, member.Name, partition.Name, peer.Pod.Name)
-	removeMemberRequest := &consensus.RemoveMemberRequest{
-		GroupID:  consensus.GroupID(member.Spec.ShardID),
-		MemberID: consensus.MemberID(member.Spec.MemberID),
-		Version:  getConfigResponse.Group.Version,
+	removeReplicaRequest := &consensus.RemoveReplicaRequest{
+		ShardID:   consensus.ShardID(member.Spec.ShardID),
+		ReplicaID: consensus.ReplicaID(member.Spec.MemberID),
+		Version:   getConfigResponse.Shard.Version,
 	}
-	_, err = client.RemoveMember(ctx, removeMemberRequest)
+	_, err = client.RemoveReplica(ctx, removeReplicaRequest)
 	if err != nil {
 		log.Error(err, "Reconcile RaftMember")
-		r.events.Eventf(store, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-		r.events.Eventf(cluster, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-		r.events.Eventf(partition, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
-		r.events.Eventf(pod, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(store, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(cluster, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(partition, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
+		r.events.Eventf(pod, "Warning", "RemoveMemberFailed", "Failed to remove node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID, err.Error())
 		r.events.Eventf(member, "Warning", "RemoveMemberFailed", "Failed to remove node from shard %d: %s", member.Spec.ShardID, err.Error())
 		return false, err
 	}
-	r.events.Eventf(store, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
-	r.events.Eventf(cluster, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
-	r.events.Eventf(partition, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
-	r.events.Eventf(pod, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.RaftNodeID, member.Spec.ShardID)
+	r.events.Eventf(store, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
+	r.events.Eventf(cluster, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
+	r.events.Eventf(partition, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
+	r.events.Eventf(pod, "Normal", "RemovedMember", "Removed node %d from shard %d: %s", member.Spec.ReplicaID, member.Spec.ShardID)
 	r.events.Eventf(member, "Normal", "RemovedMember", "Removed node from shard %d: %s", member.Spec.ShardID)
 	return true, nil
 }

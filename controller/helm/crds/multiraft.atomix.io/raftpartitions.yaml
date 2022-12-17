@@ -92,7 +92,7 @@ spec:
                     properties:
                       name:
                         type: string
-                lastRaftNodeID:
+                lastReplicaID:
                   type: integer
                 memberStatuses:
                   type: array
@@ -101,7 +101,7 @@ spec:
                     required:
                       - name
                       - memberID
-                      - raftNodeID
+                      - replicaID
                     properties:
                       name:
                         type: string
@@ -109,7 +109,7 @@ spec:
                         type: integer
                         minimum: 1
                         maximum: 1024
-                      raftNodeID:
+                      replicaID:
                         type: integer
                         minimum: 1
                       bootstrapped:

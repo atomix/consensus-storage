@@ -49,7 +49,7 @@ const (
 	multiRaftClusterKey   = "multiraft.atomix.io/cluster"
 	raftPartitionKey      = "multiraft.atomix.io/partition"
 	raftShardKey          = "multiraft.atomix.io/shard"
-	raftNodeKey           = "multiraft.atomix.io/node"
+	raftReplicaKey        = "multiraft.atomix.io/replica"
 	raftMemberKey         = "multiraft.atomix.io/member"
 )
 
@@ -551,12 +551,12 @@ func getPodDNSName(namespace string, cluster string, name string) string {
 	return fmt.Sprintf("%s.%s.%s.svc.%s", name, getHeadlessServiceName(cluster), namespace, getClusterDomain())
 }
 
-func getMemberPodOrdinal(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, ordinal int) int {
-	return (int(partition.Spec.Replicas*partition.Spec.ShardID) + (ordinal - 1)) % int(cluster.Spec.Replicas)
+func getMemberPodOrdinal(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID multiraftv1beta2.MemberID) int {
+	return (int(partition.Spec.Replicas)*int(partition.Spec.ShardID) + (int(memberID) - 1)) % int(cluster.Spec.Replicas)
 }
 
-func getMemberPodName(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, ordinal int) string {
-	return fmt.Sprintf("%s-%d", cluster.Name, getMemberPodOrdinal(cluster, partition, ordinal))
+func getMemberPodName(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID multiraftv1beta2.MemberID) string {
+	return fmt.Sprintf("%s-%d", cluster.Name, getMemberPodOrdinal(cluster, partition, memberID))
 }
 
 // newClusterLabels returns the labels for the given cluster
@@ -576,14 +576,14 @@ func newClusterSelector(cluster *multiraftv1beta2.MultiRaftCluster) map[string]s
 }
 
 // newMemberLabels returns the labels for the given cluster
-func newMemberLabels(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID int, raftNodeID int) map[string]string {
+func newMemberLabels(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID multiraftv1beta2.MemberID, raftNodeID multiraftv1beta2.ReplicaID) map[string]string {
 	labels := make(map[string]string)
 	for key, value := range partition.Labels {
 		labels[key] = value
 	}
 	labels[podKey] = getMemberPodName(cluster, partition, memberID)
-	labels[raftMemberKey] = strconv.Itoa(memberID)
-	labels[raftNodeKey] = strconv.Itoa(raftNodeID)
+	labels[raftMemberKey] = strconv.Itoa(int(memberID))
+	labels[raftReplicaKey] = strconv.Itoa(int(raftNodeID))
 	return labels
 }
 
@@ -596,14 +596,14 @@ func newClusterAnnotations(cluster *multiraftv1beta2.MultiRaftCluster) map[strin
 	return annotations
 }
 
-func newMemberAnnotations(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID int, raftNodeID int) map[string]string {
+func newMemberAnnotations(cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID multiraftv1beta2.MemberID, raftNodeID multiraftv1beta2.ReplicaID) map[string]string {
 	annotations := make(map[string]string)
 	for key, value := range partition.Labels {
 		annotations[key] = value
 	}
 	annotations[podKey] = getMemberPodName(cluster, partition, memberID)
-	annotations[raftMemberKey] = strconv.Itoa(memberID)
-	annotations[raftNodeKey] = strconv.Itoa(raftNodeID)
+	annotations[raftMemberKey] = strconv.Itoa(int(memberID))
+	annotations[raftReplicaKey] = strconv.Itoa(int(raftNodeID))
 	return annotations
 }
 

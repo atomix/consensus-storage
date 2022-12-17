@@ -30,7 +30,7 @@ spec:
                 - cluster
                 - shardID
                 - memberID
-                - raftNodeID
+                - replicaID
                 - pod
                 - type
                 - config
@@ -49,7 +49,7 @@ spec:
                   type: integer
                   minimum: 1
                   maximum: 1024
-                raftNodeID:
+                replicaID:
                   type: integer
                   minimum: 1
                 pod:
@@ -93,7 +93,7 @@ spec:
                         required:
                           - pod
                           - memberID
-                          - raftNodeID
+                          - replicaID
                         properties:
                           pod:
                             type: object
@@ -106,7 +106,7 @@ spec:
                             type: integer
                             minimum: 1
                             maximum: 1024
-                          raftNodeID:
+                          replicaID:
                             type: integer
                             minimum: 1
                 bootstrapPolicy:

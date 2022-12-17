@@ -136,8 +136,8 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 		return true, nil
 	}
 
-	for partitionID := 1; partitionID <= int(store.Spec.Partitions); partitionID++ {
-		if updated, err := r.reconcilePartition(ctx, store, cluster, partitionID); err != nil {
+	for ordinal := 1; ordinal <= int(store.Spec.Partitions); ordinal++ {
+		if updated, err := r.reconcilePartition(ctx, store, cluster, multiraftv1beta2.PartitionID(ordinal)); err != nil {
 			return false, err
 		} else if updated {
 			return true, nil
@@ -146,7 +146,7 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 	return false, nil
 }
 
-func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partitionID int) (bool, error) {
+func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store *multiraftv1beta2.MultiRaftStore, cluster *multiraftv1beta2.MultiRaftCluster, partitionID multiraftv1beta2.PartitionID) (bool, error) {
 	partitionName := types.NamespacedName{
 		Namespace: store.Namespace,
 		Name:      fmt.Sprintf("%s-%d", store.Name, partitionID),
@@ -159,7 +159,7 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 		}
 
 		// Lookup the registered shard ID for this partition in the cluster status.
-		var shardID *uint32
+		var shardID *multiraftv1beta2.ShardID
 		for _, partitionStatus := range cluster.Status.PartitionStatuses {
 			if partitionStatus.Name == partitionName.Name {
 				shardID = &partitionStatus.ShardID
@@ -173,7 +173,7 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: partitionName.Name,
 				},
-				PartitionID: uint32(partitionID),
+				PartitionID: partitionID,
 				ShardID:     cluster.Status.LastShardID,
 			})
 			if err := r.client.Status().Update(ctx, cluster); err != nil {
@@ -187,14 +187,14 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   partitionName.Namespace,
 				Name:        partitionName.Name,
-				Labels:      newPartitionLabels(store, partitionID, int(*shardID)),
-				Annotations: newPartitionAnnotations(store, partitionID, int(*shardID)),
+				Labels:      newPartitionLabels(store, partitionID, *shardID),
+				Annotations: newPartitionAnnotations(store, partitionID, *shardID),
 			},
 			Spec: multiraftv1beta2.RaftPartitionSpec{
 				RaftConfig:  store.Spec.RaftConfig,
 				Cluster:     store.Spec.Cluster,
 				ShardID:     *shardID,
-				PartitionID: uint32(partitionID),
+				PartitionID: partitionID,
 			},
 		}
 		if store.Spec.ReplicationFactor != nil && *store.Spec.ReplicationFactor <= cluster.Spec.Replicas {
@@ -244,7 +244,7 @@ func (r *MultiRaftStoreReconciler) reconcileDataStore(ctx context.Context, store
 		if partition.Status.Leader != nil {
 			memberName := types.NamespacedName{
 				Namespace: partition.Namespace,
-				Name:      partition.Status.Leader.Name,
+				Name:      fmt.Sprintf("%s-%d-%d", store.Name, partition.Spec.PartitionID, *partition.Status.Leader),
 			}
 			member := &multiraftv1beta2.RaftMember{}
 			if err := r.client.Get(ctx, memberName, member); err != nil {
@@ -255,10 +255,10 @@ func (r *MultiRaftStoreReconciler) reconcileDataStore(ctx context.Context, store
 		}
 
 		followers := make([]string, 0, len(partition.Status.Followers))
-		for _, memberRef := range partition.Status.Followers {
+		for _, memberID := range partition.Status.Followers {
 			memberName := types.NamespacedName{
 				Namespace: partition.Namespace,
-				Name:      memberRef.Name,
+				Name:      fmt.Sprintf("%s-%d-%d", store.Name, partition.Spec.PartitionID, memberID),
 			}
 			member := &multiraftv1beta2.RaftMember{}
 			if err := r.client.Get(ctx, memberName, member); err != nil {
@@ -408,7 +408,7 @@ func isPartitionConfigEqual(partition1, partition2 protocol.PartitionConfig) boo
 var _ reconcile.Reconciler = (*MultiRaftStoreReconciler)(nil)
 
 // newPartitionLabels returns the labels for the given partition
-func newPartitionLabels(store *multiraftv1beta2.MultiRaftStore, partitionID int, shardID int) map[string]string {
+func newPartitionLabels(store *multiraftv1beta2.MultiRaftStore, partitionID multiraftv1beta2.PartitionID, shardID multiraftv1beta2.ShardID) map[string]string {
 	labels := make(map[string]string)
 	for key, value := range store.Labels {
 		labels[key] = value
@@ -416,12 +416,12 @@ func newPartitionLabels(store *multiraftv1beta2.MultiRaftStore, partitionID int,
 	labels[storeKey] = store.Name
 	labels[multiRaftStoreKey] = store.Name
 	labels[multiRaftClusterKey] = store.Spec.Cluster.Name
-	labels[raftPartitionKey] = strconv.Itoa(partitionID)
-	labels[raftShardKey] = strconv.Itoa(shardID)
+	labels[raftPartitionKey] = strconv.Itoa(int(partitionID))
+	labels[raftShardKey] = strconv.Itoa(int(shardID))
 	return labels
 }
 
-func newPartitionAnnotations(store *multiraftv1beta2.MultiRaftStore, partitionID int, shardID int) map[string]string {
+func newPartitionAnnotations(store *multiraftv1beta2.MultiRaftStore, partitionID multiraftv1beta2.PartitionID, shardID multiraftv1beta2.ShardID) map[string]string {
 	annotations := make(map[string]string)
 	for key, value := range store.Annotations {
 		annotations[key] = value
@@ -429,7 +429,7 @@ func newPartitionAnnotations(store *multiraftv1beta2.MultiRaftStore, partitionID
 	annotations[storeKey] = store.Name
 	annotations[multiRaftStoreKey] = store.Name
 	annotations[multiRaftClusterKey] = store.Spec.Cluster.Name
-	annotations[raftPartitionKey] = strconv.Itoa(partitionID)
-	annotations[raftShardKey] = strconv.Itoa(shardID)
+	annotations[raftPartitionKey] = strconv.Itoa(int(partitionID))
+	annotations[raftShardKey] = strconv.Itoa(int(shardID))
 	return annotations
 }
