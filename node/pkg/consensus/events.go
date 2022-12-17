@@ -28,12 +28,12 @@ func (e *eventListener) LeaderUpdated(info raftio.LeaderInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_LeaderUpdated{
 			LeaderUpdated: &LeaderUpdatedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Term:   Term(info.Term),
-				Leader: MemberID(info.LeaderID),
+				Leader: ReplicaID(info.LeaderID),
 			},
 		},
 	})
@@ -50,11 +50,11 @@ func (e *eventListener) NodeUnloaded(info raftio.NodeInfo) {
 func (e *eventListener) NodeReady(info raftio.NodeInfo) {
 	e.publish(&Event{
 		Timestamp: time.Now(),
-		Event: &Event_MemberReady{
-			MemberReady: &MemberReadyEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+		Event: &Event_ReplicaReady{
+			ReplicaReady: &ReplicaReadyEvent{
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 			},
 		},
@@ -64,11 +64,11 @@ func (e *eventListener) NodeReady(info raftio.NodeInfo) {
 func (e *eventListener) MembershipChanged(info raftio.NodeInfo) {
 	e.publish(&Event{
 		Timestamp: time.Now(),
-		Event: &Event_MembershipChanged{
-			MembershipChanged: &MembershipChangedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+		Event: &Event_ConfigurationChanged{
+			ConfigurationChanged: &ConfigurationChangedEvent{
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 			},
 		},
@@ -108,12 +108,12 @@ func (e *eventListener) SendSnapshotStarted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SendSnapshotStarted{
 			SendSnapshotStarted: &SendSnapshotStartedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
-				To:    MemberID(info.NodeID),
+				To:    ReplicaID(info.NodeID),
 			},
 		},
 	})
@@ -124,12 +124,12 @@ func (e *eventListener) SendSnapshotCompleted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SendSnapshotCompleted{
 			SendSnapshotCompleted: &SendSnapshotCompletedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
-				To:    MemberID(info.NodeID),
+				To:    ReplicaID(info.NodeID),
 			},
 		},
 	})
@@ -140,12 +140,12 @@ func (e *eventListener) SendSnapshotAborted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SendSnapshotAborted{
 			SendSnapshotAborted: &SendSnapshotAbortedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
-				To:    MemberID(info.NodeID),
+				To:    ReplicaID(info.NodeID),
 			},
 		},
 	})
@@ -156,12 +156,12 @@ func (e *eventListener) SnapshotReceived(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SnapshotReceived{
 			SnapshotReceived: &SnapshotReceivedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
-				From:  MemberID(info.From),
+				From:  ReplicaID(info.From),
 			},
 		},
 	})
@@ -172,9 +172,9 @@ func (e *eventListener) SnapshotRecovered(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SnapshotRecovered{
 			SnapshotRecovered: &SnapshotRecoveredEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
 			},
@@ -187,9 +187,9 @@ func (e *eventListener) SnapshotCreated(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SnapshotCreated{
 			SnapshotCreated: &SnapshotCreatedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
 			},
@@ -202,9 +202,9 @@ func (e *eventListener) SnapshotCompacted(info raftio.SnapshotInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_SnapshotCompacted{
 			SnapshotCompacted: &SnapshotCompactedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
 			},
@@ -217,9 +217,9 @@ func (e *eventListener) LogCompacted(info raftio.EntryInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_LogCompacted{
 			LogCompacted: &LogCompactedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
 			},
@@ -232,9 +232,9 @@ func (e *eventListener) LogDBCompacted(info raftio.EntryInfo) {
 		Timestamp: time.Now(),
 		Event: &Event_LogdbCompacted{
 			LogdbCompacted: &LogDBCompactedEvent{
-				MemberEvent: MemberEvent{
-					GroupID:  GroupID(info.ClusterID),
-					MemberID: MemberID(info.NodeID),
+				ReplicaEvent: ReplicaEvent{
+					ShardID:   ShardID(info.ClusterID),
+					ReplicaID: ReplicaID(info.NodeID),
 				},
 				Index: Index(info.Index),
 			},

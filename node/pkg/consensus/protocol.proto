@@ -11,7 +11,7 @@ package atomix.consensus.node.v1;
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
-enum MemberRole {
+enum ReplicaRole {
     UNKNOWN = 0;
     MEMBER = 1;
     OBSERVER = 2;
@@ -19,25 +19,25 @@ enum MemberRole {
     REMOVED = 4;
 }
 
-message GroupConfig {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message ShardConfig {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    repeated MemberConfig members = 2 [
+    repeated ReplicaConfig replicas = 2 [
         (gogoproto.nullable) = false
     ];
     uint64 version = 3;
 }
 
-message MemberConfig {
-    uint32 member_id = 1 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+message ReplicaConfig {
+    uint32 replica_id = 1 [
+        (gogoproto.customname) = "ReplicaID",
+        (gogoproto.casttype) = "ReplicaID"
     ];
     string host = 2;
     int32 port = 3;
-    MemberRole role = 4;
+    ReplicaRole role = 4;
 }
 
 message RaftConfig {
@@ -66,38 +66,38 @@ message RaftProposal {
 
 service Node {
     rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
-    rpc BootstrapGroup(BootstrapGroupRequest) returns (BootstrapGroupResponse);
-    rpc AddMember(AddMemberRequest) returns (AddMemberResponse);
-    rpc RemoveMember(RemoveMemberRequest) returns (RemoveMemberResponse);
-    rpc JoinGroup(JoinGroupRequest) returns (JoinGroupResponse);
-    rpc LeaveGroup(LeaveGroupRequest) returns (LeaveGroupResponse);
+    rpc BootstrapShard(BootstrapShardRequest) returns (BootstrapShardResponse);
+    rpc AddReplica(AddReplicaRequest) returns (AddReplicaResponse);
+    rpc RemoveReplica(RemoveReplicaRequest) returns (RemoveReplicaResponse);
+    rpc JoinShard(JoinShardRequest) returns (JoinShardResponse);
+    rpc LeaveShard(LeaveShardRequest) returns (LeaveShardResponse);
     rpc DeleteData(DeleteDataRequest) returns (DeleteDataResponse);
     rpc Watch(WatchRequest) returns (stream Event);
 }
 
 message GetConfigRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
 }
 
 message GetConfigResponse {
-    GroupConfig group = 1 [
+    ShardConfig shard = 1 [
         (gogoproto.nullable) = false
     ];
 }
 
-message BootstrapGroupRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message BootstrapShardRequest {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    uint32 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+    uint32 replica_id = 2 [
+        (gogoproto.customname) = "ReplicaID",
+        (gogoproto.casttype) = "ReplicaID"
     ];
-    repeated MemberConfig members = 3 [
+    repeated ReplicaConfig replicas = 3 [
         (gogoproto.nullable) = false
     ];
     RaftConfig config = 4 [
@@ -105,78 +105,78 @@ message BootstrapGroupRequest {
     ];
 }
 
-message BootstrapGroupResponse {
+message BootstrapShardResponse {
 
 }
 
-message AddMemberRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message AddReplicaRequest {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    MemberConfig member = 2 [
+    ReplicaConfig replica = 2 [
         (gogoproto.nullable) = false
     ];
     uint64 version = 3;
 }
 
-message AddMemberResponse {
+message AddReplicaResponse {
 
 }
 
-message RemoveMemberRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message RemoveReplicaRequest {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    uint32 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+    uint32 replica_id = 2 [
+        (gogoproto.customname) = "ReplicaID",
+        (gogoproto.casttype) = "ReplicaID"
     ];
     uint64 version = 3;
 }
 
-message RemoveMemberResponse {
+message RemoveReplicaResponse {
 
 }
 
-message JoinGroupRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message JoinShardRequest {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    uint32 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+    uint32 replica_id = 2 [
+        (gogoproto.customname) = "ReplicaID",
+        (gogoproto.casttype) = "ReplicaID"
     ];
     RaftConfig config = 3 [
         (gogoproto.nullable) = false
     ];
 }
 
-message JoinGroupResponse {
+message JoinShardResponse {
 
 }
 
-message LeaveGroupRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message LeaveShardRequest {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
 }
 
-message LeaveGroupResponse {
+message LeaveShardResponse {
 
 }
 
 message DeleteDataRequest {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    uint32 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+    uint32 replica_id = 2 [
+        (gogoproto.customname) = "ReplicaID",
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
@@ -194,9 +194,9 @@ message Event {
         (gogoproto.stdtime) = true
     ];
     oneof event {
-        MemberReadyEvent member_ready = 2;
+        ReplicaReadyEvent replica_ready = 2;
         LeaderUpdatedEvent leader_updated = 3;
-        MembershipChangedEvent membership_changed = 4;
+        ConfigurationChangedEvent configuration_changed = 4;
         SendSnapshotStartedEvent send_snapshot_started = 5;
         SendSnapshotCompletedEvent send_snapshot_completed = 6;
         SendSnapshotAbortedEvent send_snapshot_aborted = 7;
@@ -216,33 +216,33 @@ message ConnectionInfo {
     bool snapshot = 2;
 }
 
-message MemberEvent {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
+message ReplicaEvent {
+    uint32 shard_id = 1 [
+        (gogoproto.customname) = "ShardID",
+        (gogoproto.casttype) = "ShardID"
     ];
-    uint64 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
+    uint64 replica_id = 2 [
+        (gogoproto.customname) = "ReplicaID",
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
-message MemberReadyEvent {
-    MemberEvent member = 1 [
+message ReplicaReadyEvent {
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
-message MembershipChangedEvent {
-    MemberEvent member = 1 [
+message ConfigurationChangedEvent {
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
 }
 
 message LeaderUpdatedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -250,12 +250,12 @@ message LeaderUpdatedEvent {
         (gogoproto.casttype) = "Term"
     ];
     uint64 leader = 3 [
-        (gogoproto.casttype) = "MemberID"
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
 message SendSnapshotStartedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -263,12 +263,12 @@ message SendSnapshotStartedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 to = 3 [
-        (gogoproto.casttype) = "MemberID"
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
 message SendSnapshotCompletedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -276,12 +276,12 @@ message SendSnapshotCompletedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 to = 3 [
-        (gogoproto.casttype) = "MemberID"
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
 message SendSnapshotAbortedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -289,12 +289,12 @@ message SendSnapshotAbortedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 to = 3 [
-        (gogoproto.casttype) = "MemberID"
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
 message SnapshotReceivedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -302,12 +302,12 @@ message SnapshotReceivedEvent {
         (gogoproto.casttype) = "Index"
     ];
     uint64 from = 3 [
-        (gogoproto.casttype) = "MemberID"
+        (gogoproto.casttype) = "ReplicaID"
     ];
 }
 
 message SnapshotRecoveredEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -317,7 +317,7 @@ message SnapshotRecoveredEvent {
 }
 
 message SnapshotCreatedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -327,7 +327,7 @@ message SnapshotCreatedEvent {
 }
 
 message SnapshotCompactedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -337,7 +337,7 @@ message SnapshotCompactedEvent {
 }
 
 message LogEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -347,7 +347,7 @@ message LogEvent {
 }
 
 message LogCompactedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];
@@ -357,7 +357,7 @@ message LogCompactedEvent {
 }
 
 message LogDBCompactedEvent {
-    MemberEvent member = 1 [
+    ReplicaEvent replica = 1 [
         (gogoproto.nullable) = false,
         (gogoproto.embed) = true
     ];

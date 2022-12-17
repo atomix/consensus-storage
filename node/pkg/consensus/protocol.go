@@ -27,9 +27,9 @@ type Index uint64
 
 type Term uint64
 
-type MemberID uint32
+type ReplicaID uint32
 
-type GroupID uint32
+type ShardID uint32
 
 type SequenceNum uint64
 
@@ -78,12 +78,12 @@ func (n *Protocol) publish(event *Event) {
 	n.mu.RLock()
 	defer n.mu.RUnlock()
 	switch e := event.Event.(type) {
-	case *Event_MemberReady:
-		if partition, ok := n.partitions[protocol.PartitionID(e.MemberReady.GroupID)]; ok {
+	case *Event_ReplicaReady:
+		if partition, ok := n.partitions[protocol.PartitionID(e.ReplicaReady.ShardID)]; ok {
 			partition.setReady()
 		}
 	case *Event_LeaderUpdated:
-		if partition, ok := n.partitions[protocol.PartitionID(e.LeaderUpdated.GroupID)]; ok {
+		if partition, ok := n.partitions[protocol.PartitionID(e.LeaderUpdated.ShardID)]; ok {
 			partition.setLeader(e.LeaderUpdated.Term, e.LeaderUpdated.Leader)
 		}
 	}
@@ -122,9 +122,9 @@ func (n *Protocol) Watch(ctx context.Context, watcher chan<- Event) {
 			watcher <- Event{
 				Event: &Event_LeaderUpdated{
 					LeaderUpdated: &LeaderUpdatedEvent{
-						MemberEvent: MemberEvent{
-							GroupID:  GroupID(partition.ID()),
-							MemberID: partition.memberID,
+						ReplicaEvent: ReplicaEvent{
+							ShardID:   ShardID(partition.ID()),
+							ReplicaID: partition.replicaID,
 						},
 						Term:   term,
 						Leader: leader,
@@ -135,11 +135,11 @@ func (n *Protocol) Watch(ctx context.Context, watcher chan<- Event) {
 		ready := partition.getReady()
 		if ready {
 			watcher <- Event{
-				Event: &Event_MemberReady{
-					MemberReady: &MemberReadyEvent{
-						MemberEvent: MemberEvent{
-							GroupID:  GroupID(partition.ID()),
-							MemberID: partition.memberID,
+				Event: &Event_ReplicaReady{
+					ReplicaReady: &ReplicaReadyEvent{
+						ReplicaEvent: ReplicaEvent{
+							ShardID:   ShardID(partition.ID()),
+							ReplicaID: partition.replicaID,
 						},
 					},
 				},
@@ -157,83 +157,83 @@ func (n *Protocol) Watch(ctx context.Context, watcher chan<- Event) {
 	}()
 }
 
-func (n *Protocol) GetConfig(groupID GroupID) (GroupConfig, error) {
+func (n *Protocol) GetConfig(shardID ShardID) (ShardConfig, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	membership, err := n.host.SyncGetClusterMembership(ctx, uint64(groupID))
+	membership, err := n.host.SyncGetClusterMembership(ctx, uint64(shardID))
 	if err != nil {
 		if err == dragonboat.ErrClusterNotFound {
-			return GroupConfig{}, errors.NewNotFound(err.Error())
+			return ShardConfig{}, errors.NewNotFound(err.Error())
 		}
-		return GroupConfig{}, wrapError(err)
+		return ShardConfig{}, wrapError(err)
 	}
 
-	var members []MemberConfig
-	for nodeID, address := range membership.Nodes {
-		member, err := getMember(nodeID, address, MemberRole_MEMBER)
+	var replicas []ReplicaConfig
+	for replicaID, address := range membership.Nodes {
+		member, err := getReplica(replicaID, address, ReplicaRole_MEMBER)
 		if err != nil {
-			return GroupConfig{}, err
+			return ShardConfig{}, err
 		}
-		members = append(members, member)
+		replicas = append(replicas, member)
 	}
-	for nodeID, address := range membership.Observers {
-		member, err := getMember(nodeID, address, MemberRole_OBSERVER)
+	for replicaID, address := range membership.Observers {
+		member, err := getReplica(replicaID, address, ReplicaRole_OBSERVER)
 		if err != nil {
-			return GroupConfig{}, err
+			return ShardConfig{}, err
 		}
-		members = append(members, member)
+		replicas = append(replicas, member)
 	}
-	for nodeID, address := range membership.Witnesses {
-		member, err := getMember(nodeID, address, MemberRole_WITNESS)
+	for replicaID, address := range membership.Witnesses {
+		member, err := getReplica(replicaID, address, ReplicaRole_WITNESS)
 		if err != nil {
-			return GroupConfig{}, err
+			return ShardConfig{}, err
 		}
-		members = append(members, member)
+		replicas = append(replicas, member)
 	}
-	for nodeID := range membership.Removed {
-		members = append(members, MemberConfig{
-			MemberID: MemberID(nodeID),
-			Role:     MemberRole_REMOVED,
+	for replicaID := range membership.Removed {
+		replicas = append(replicas, ReplicaConfig{
+			ReplicaID: ReplicaID(replicaID),
+			Role:      ReplicaRole_REMOVED,
 		})
 	}
-	return GroupConfig{
-		GroupID: groupID,
-		Members: members,
+	return ShardConfig{
+		ShardID:  shardID,
+		Replicas: replicas,
 	}, nil
 }
 
-func getMember(nodeID uint64, address string, role MemberRole) (MemberConfig, error) {
+func getReplica(replicaID uint64, address string, role ReplicaRole) (ReplicaConfig, error) {
 	parts := strings.Split(address, ":")
 	host, portS := parts[0], parts[1]
 	port, err := strconv.Atoi(portS)
 	if err != nil {
-		return MemberConfig{}, err
+		return ReplicaConfig{}, err
 	}
-	return MemberConfig{
-		MemberID: MemberID(nodeID),
-		Host:     host,
-		Port:     int32(port),
-		Role:     MemberRole_MEMBER,
+	return ReplicaConfig{
+		ReplicaID: ReplicaID(replicaID),
+		Host:      host,
+		Port:      int32(port),
+		Role:      role,
 	}, nil
 }
 
-func (n *Protocol) BootstrapGroup(ctx context.Context, groupID GroupID, memberID MemberID, config RaftConfig, members ...MemberConfig) error {
-	var member *MemberConfig
-	for _, m := range members {
-		if m.MemberID == memberID {
-			member = &m
+func (n *Protocol) BootstrapShard(ctx context.Context, shardID ShardID, replicaID ReplicaID, config RaftConfig, replicas ...ReplicaConfig) error {
+	var member *ReplicaConfig
+	for _, r := range replicas {
+		if r.ReplicaID == replicaID {
+			member = &r
 			break
 		}
 	}
 
 	if member == nil {
-		return errors.NewInvalid("unknown member %d", memberID)
+		return errors.NewInvalid("unknown member %d", replicaID)
 	}
 
-	raftConfig := n.getRaftConfig(groupID, memberID, member.Role, config)
+	raftConfig := n.getRaftConfig(shardID, replicaID, member.Role, config)
 	targets := make(map[uint64]dragonboat.Target)
-	for _, member := range members {
-		targets[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
+	for _, member := range replicas {
+		targets[uint64(member.ReplicaID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
 	}
 	if err := n.host.StartCluster(targets, false, n.newStateMachine, raftConfig); err != nil {
 		if err == dragonboat.ErrClusterAlreadyExist {
@@ -244,9 +244,9 @@ func (n *Protocol) BootstrapGroup(ctx context.Context, groupID GroupID, memberID
 	return nil
 }
 
-func (n *Protocol) AddMember(ctx context.Context, groupID GroupID, member MemberConfig, version uint64) error {
+func (n *Protocol) AddReplica(ctx context.Context, shardID ShardID, member ReplicaConfig, version uint64) error {
 	address := fmt.Sprintf("%s:%d", member.Host, member.Port)
-	if err := n.host.SyncRequestAddNode(ctx, uint64(groupID), uint64(member.MemberID), address, version); err != nil {
+	if err := n.host.SyncRequestAddNode(ctx, uint64(shardID), uint64(member.ReplicaID), address, version); err != nil {
 		if err == dragonboat.ErrClusterNotFound {
 			return errors.NewNotFound(err.Error())
 		}
@@ -255,8 +255,8 @@ func (n *Protocol) AddMember(ctx context.Context, groupID GroupID, member Member
 	return nil
 }
 
-func (n *Protocol) RemoveMember(ctx context.Context, groupID GroupID, memberID MemberID, version uint64) error {
-	if err := n.host.SyncRequestDeleteNode(ctx, uint64(groupID), uint64(memberID), version); err != nil {
+func (n *Protocol) RemoveReplica(ctx context.Context, shardID ShardID, replicaID ReplicaID, version uint64) error {
+	if err := n.host.SyncRequestDeleteNode(ctx, uint64(shardID), uint64(replicaID), version); err != nil {
 		if err == dragonboat.ErrClusterNotFound {
 			return errors.NewNotFound(err.Error())
 		}
@@ -265,8 +265,8 @@ func (n *Protocol) RemoveMember(ctx context.Context, groupID GroupID, memberID M
 	return nil
 }
 
-func (n *Protocol) JoinGroup(ctx context.Context, groupID GroupID, memberID MemberID, config RaftConfig) error {
-	raftConfig := n.getRaftConfig(groupID, memberID, MemberRole_MEMBER, config)
+func (n *Protocol) JoinShard(ctx context.Context, shardID ShardID, replicaID ReplicaID, config RaftConfig) error {
+	raftConfig := n.getRaftConfig(shardID, replicaID, ReplicaRole_MEMBER, config)
 	if err := n.host.StartCluster(map[uint64]dragonboat.Target{}, true, n.newStateMachine, raftConfig); err != nil {
 		if err == dragonboat.ErrClusterAlreadyExist {
 			return errors.NewAlreadyExists(err.Error())
@@ -276,8 +276,8 @@ func (n *Protocol) JoinGroup(ctx context.Context, groupID GroupID, memberID Memb
 	return nil
 }
 
-func (n *Protocol) LeaveGroup(ctx context.Context, groupID GroupID) error {
-	if err := n.host.StopCluster(uint64(groupID)); err != nil {
+func (n *Protocol) LeaveShard(ctx context.Context, shardID ShardID) error {
+	if err := n.host.StopCluster(uint64(shardID)); err != nil {
 		if err == dragonboat.ErrClusterNotFound {
 			return errors.NewNotFound(err.Error())
 		}
@@ -286,23 +286,23 @@ func (n *Protocol) LeaveGroup(ctx context.Context, groupID GroupID) error {
 	return nil
 }
 
-func (n *Protocol) DeleteData(ctx context.Context, groupID GroupID, memberID MemberID) error {
-	if err := n.host.SyncRemoveData(ctx, uint64(groupID), uint64(memberID)); err != nil {
+func (n *Protocol) DeleteData(ctx context.Context, shardID ShardID, replicaID ReplicaID) error {
+	if err := n.host.SyncRemoveData(ctx, uint64(shardID), uint64(replicaID)); err != nil {
 		return wrapError(err)
 	}
 	return nil
 }
 
-func (n *Protocol) newStateMachine(clusterID, nodeID uint64) dbstatemachine.IStateMachine {
+func (n *Protocol) newStateMachine(clusterID, replicaID uint64) dbstatemachine.IStateMachine {
 	streams := newContext()
-	partition := newPartition(protocol.PartitionID(clusterID), MemberID(nodeID), n.host, streams)
+	partition := newPartition(protocol.PartitionID(clusterID), ReplicaID(replicaID), n.host, streams)
 	n.mu.Lock()
 	n.partitions[partition.ID()] = partition
 	n.mu.Unlock()
 	return newStateMachine(streams, n.registry)
 }
 
-func (n *Protocol) getRaftConfig(groupID GroupID, memberID MemberID, role MemberRole, config RaftConfig) raftconfig.Config {
+func (n *Protocol) getRaftConfig(shardID ShardID, replicaID ReplicaID, role ReplicaRole, config RaftConfig) raftconfig.Config {
 	electionRTT := config.ElectionRTT
 	if electionRTT == 0 {
 		electionRTT = defaultElectionRTT
@@ -320,8 +320,8 @@ func (n *Protocol) getRaftConfig(groupID GroupID, memberID MemberID, role Member
 		compactionOverhead = defaultCompactionOverhead
 	}
 	return raftconfig.Config{
-		NodeID:                 uint64(memberID),
-		ClusterID:              uint64(groupID),
+		NodeID:                 uint64(replicaID),
+		ClusterID:              uint64(shardID),
 		ElectionRTT:            electionRTT,
 		HeartbeatRTT:           heartbeatRTT,
 		CheckQuorum:            true,
@@ -330,8 +330,8 @@ func (n *Protocol) getRaftConfig(groupID GroupID, memberID MemberID, role Member
 		MaxInMemLogSize:        config.MaxInMemLogSize,
 		OrderedConfigChange:    config.OrderedConfigChange,
 		DisableAutoCompactions: config.DisableAutoCompactions,
-		IsObserver:             role == MemberRole_OBSERVER,
-		IsWitness:              role == MemberRole_WITNESS,
+		IsObserver:             role == ReplicaRole_OBSERVER,
+		IsWitness:              role == ReplicaRole_WITNESS,
 	}
 }
 
