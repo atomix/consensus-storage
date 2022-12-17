@@ -66,8 +66,14 @@ type MultiRaftServerConfig struct {
 
 // MultiRaftClusterStatus defines the status of a MultiRaftCluster
 type MultiRaftClusterStatus struct {
-	State  MultiRaftClusterState `json:"state"`
-	Groups uint32                `json:"groups"`
+	State             MultiRaftClusterState             `json:"state"`
+	PartitionStatuses []MultiRaftClusterPartitionStatus `json:"partitionStatuses"`
+}
+
+type MultiRaftClusterPartitionStatus struct {
+	corev1.LocalObjectReference `json:",inline"`
+	PartitionID                 uint32 `json:"partitionID"`
+	ShardID                     uint32 `json:"shardID"`
 }
 
 // +genclient

@@ -157,8 +157,24 @@ spec:
                   enum:
                     - NotReady
                     - Ready
-                groups:
-                  type: integer
+                partitionStatuses:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - name
+                      - partitionID
+                      - shardID
+                    properties:
+                      name:
+                        type: string
+                      partitionID:
+                        type: integer
+                        minimum: 1
+                        maximum: 1024
+                      shardID:
+                        type: integer
+                        minimum: 1
       additionalPrinterColumns:
         - name: Status
           type: string

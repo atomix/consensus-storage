@@ -10,6 +10,7 @@ import (
 	atomixv3beta3 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta3"
 	"github.com/atomix/runtime/sdk/pkg/protocol"
 	"github.com/gogo/protobuf/jsonpb"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
@@ -135,6 +136,43 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 		return true, nil
 	}
 
+	// Iterate through partitions and ensure partition info has been added to the cluster status
+	partitionStatuses := cluster.Status.PartitionStatuses
+	for partitionID := uint32(1); partitionID <= store.Spec.Partitions; partitionID++ {
+		partitionName := fmt.Sprintf("%s-%d", store.Name, partitionID)
+
+		hasPartition := false
+		var shardID uint32 = 1
+		for _, partitionStatus := range cluster.Status.PartitionStatuses {
+			if partitionStatus.ShardID >= shardID {
+				shardID = partitionStatus.ShardID + 1
+			}
+			if partitionStatus.Name == partitionName {
+				hasPartition = true
+			}
+		}
+
+		if !hasPartition {
+			partitionStatuses = append(partitionStatuses, multiraftv1beta2.MultiRaftClusterPartitionStatus{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: partitionName,
+				},
+				PartitionID: partitionID,
+				ShardID:     shardID,
+			})
+		}
+	}
+
+	// If new member statuses were added, update the partition status
+	if len(partitionStatuses) != len(cluster.Status.PartitionStatuses) {
+		cluster.Status.PartitionStatuses = partitionStatuses
+		if err := r.client.Status().Update(ctx, cluster); err != nil {
+			log.Error(err, "Reconcile RaftPartition")
+			return false, err
+		}
+		return true, nil
+	}
+
 	for ordinal := 1; ordinal <= int(store.Spec.Partitions); ordinal++ {
 		if updated, err := r.reconcilePartition(ctx, store, cluster, ordinal); err != nil {
 			return false, err
@@ -157,29 +195,37 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 			return false, err
 		}
 
-		cluster.Status.Groups++
-		shard := cluster.Status.Groups
-		if err := r.client.Status().Update(ctx, cluster); err != nil {
-			log.Error(err, "Reconcile MultiRaftStore")
-			return false, err
+		// Lookup the registered shard ID for this partition in the cluster status.
+		var shardID *uint32
+		for _, partitionStatus := range cluster.Status.PartitionStatuses {
+			if partitionStatus.Name == partitionName.Name {
+				shardID = &partitionStatus.ShardID
+			}
+		}
+
+		// Return and requeue the store if the shard ID could not be found
+		if shardID == nil {
+			return true, nil
 		}
 
 		partition = &multiraftv1beta2.RaftPartition{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   partitionName.Namespace,
 				Name:        partitionName.Name,
-				Labels:      newPartitionLabels(store, ordinal, int(shard)),
-				Annotations: newPartitionAnnotations(store, ordinal, int(shard)),
+				Labels:      newPartitionLabels(store, ordinal, int(*shardID)),
+				Annotations: newPartitionAnnotations(store, ordinal, int(*shardID)),
 			},
 			Spec: multiraftv1beta2.RaftPartitionSpec{
 				RaftConfig:  store.Spec.RaftConfig,
 				Cluster:     store.Spec.Cluster,
-				ShardID:     shard,
+				ShardID:     *shardID,
 				PartitionID: uint32(ordinal),
 			},
 		}
 		if store.Spec.ReplicationFactor != nil && *store.Spec.ReplicationFactor <= cluster.Spec.Replicas {
 			partition.Spec.Replicas = *store.Spec.ReplicationFactor
+		} else {
+			partition.Spec.Replicas = cluster.Spec.Replicas
 		}
 		if err := controllerutil.SetControllerReference(store, partition, r.scheme); err != nil {
 			log.Error(err, "Reconcile MultiRaftStore")
