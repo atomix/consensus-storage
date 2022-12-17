@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-package v1beta1
+package v1beta2
 
 import (
 	"context"
@@ -17,6 +17,7 @@ import (
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
@@ -24,10 +25,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+	"strconv"
 	"sync"
 	"time"
 
-	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/apis/consensus/v1beta1"
+	multiraftv1beta2 "github.com/atomix/consensus-storage/controller/pkg/apis/multiraft/v1beta2"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,11 +48,12 @@ func addPodController(mgr manager.Manager) error {
 	}
 
 	// Create a new controller
-	controller, err := controller.New("pod-v1", mgr, options)
+	controller, err := controller.New("atomix-multiraft-pod", mgr, options)
 	if err != nil {
 		return err
 	}
 
+	// Watch for changes to multiraft Pods
 	err = controller.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
@@ -58,7 +61,7 @@ func addPodController(mgr manager.Manager) error {
 	return nil
 }
 
-// PodReconciler reconciles a MultiRaftCluster object
+// PodReconciler reconciles a Pod object
 type PodReconciler struct {
 	client   client.Client
 	scheme   *runtime.Scheme
@@ -100,8 +103,8 @@ func (r *PodReconciler) reconcileCreate(ctx context.Context, pod *corev1.Pod) er
 		return nil
 	}
 
-	if !hasFinalizer(pod, multiRaftPodFinalizer) {
-		addFinalizer(pod, multiRaftPodFinalizer)
+	if !hasFinalizer(pod, podKey) {
+		addFinalizer(pod, podKey)
 		if err := r.client.Update(ctx, pod); err != nil {
 			return err
 		}
@@ -125,7 +128,7 @@ func (r *PodReconciler) reconcileDelete(ctx context.Context, pod *corev1.Pod) er
 		return nil
 	}
 
-	if !hasFinalizer(pod, multiRaftPodFinalizer) {
+	if !hasFinalizer(pod, podKey) {
 		return nil
 	}
 
@@ -134,7 +137,7 @@ func (r *PodReconciler) reconcileDelete(ctx context.Context, pod *corev1.Pod) er
 		return err
 	}
 
-	removeFinalizer(pod, multiRaftPodFinalizer)
+	removeFinalizer(pod, podKey)
 	if err := r.client.Update(ctx, pod); err != nil {
 		return err
 	}
@@ -197,18 +200,18 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 				switch e := event.Event.(type) {
 				case *consensus.Event_MemberReady:
 					r.recordMemberEvent(ctx, storeName, e.MemberReady.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
-							if status.State != consensusv1beta1.RaftMemberReady {
-								status.State = consensusv1beta1.RaftMemberReady
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
+							if status.State != multiraftv1beta2.RaftMemberReady {
+								status.State = multiraftv1beta2.RaftMemberReady
 								status.LastUpdated = &timestamp
 								return true
 							}
 							return false
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "StateChanged", "Member is ready")
 						})
-					r.recordGroupEvent(ctx, storeName, e.MemberReady.GroupID,
-						func(status *consensusv1beta1.RaftGroupStatus) bool {
+					r.recordShardEvent(ctx, storeName, e.MemberReady.GroupID,
+						func(status *multiraftv1beta2.RaftPartitionStatus) bool {
 							memberName := corev1.LocalObjectReference{
 								Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.MemberReady.GroupID, e.MemberReady.MemberID),
 							}
@@ -222,13 +225,13 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 							}
 							status.Followers = append(status.Followers, memberName)
 							return true
-						}, func(group *consensusv1beta1.RaftGroup) {})
+						}, func(group *multiraftv1beta2.RaftPartition) {})
 				case *consensus.Event_LeaderUpdated:
 					r.recordMemberEvent(ctx, storeName, e.LeaderUpdated.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							term := uint64(e.LeaderUpdated.Term)
 							if status.Term == nil || *status.Term < term || (*status.Term == term && status.Leader == nil && e.LeaderUpdated.Leader != 0) {
-								role := consensusv1beta1.RaftFollower
+								role := multiraftv1beta2.RaftFollower
 								if e.LeaderUpdated.Leader == 0 {
 									status.Leader = nil
 								} else {
@@ -236,7 +239,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 										Name: fmt.Sprintf("%s-%d-%d", storeName.Name, e.LeaderUpdated.GroupID, e.LeaderUpdated.Leader),
 									}
 									if e.LeaderUpdated.Leader == e.LeaderUpdated.MemberID {
-										role = consensusv1beta1.RaftLeader
+										role = multiraftv1beta2.RaftLeader
 									}
 								}
 								status.Term = &term
@@ -245,13 +248,13 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								return true
 							}
 							return false
-						}, func(member *consensusv1beta1.RaftMember) {
-							if member.Status.Role != nil && *member.Status.Role == consensusv1beta1.RaftLeader {
+						}, func(member *multiraftv1beta2.RaftMember) {
+							if member.Status.Role != nil && *member.Status.Role == multiraftv1beta2.RaftLeader {
 								r.events.Eventf(member, "Normal", "ElectedLeader", "Elected leader for term %d", e.LeaderUpdated.Term)
 							}
 						})
-					r.recordGroupEvent(ctx, storeName, e.LeaderUpdated.MemberEvent.GroupID,
-						func(status *consensusv1beta1.RaftGroupStatus) bool {
+					r.recordShardEvent(ctx, storeName, e.LeaderUpdated.MemberEvent.GroupID,
+						func(status *multiraftv1beta2.RaftPartitionStatus) bool {
 							term := uint64(e.LeaderUpdated.Term)
 							if status.Term == nil || *status.Term < term || (*status.Term == term && status.Leader == nil && e.LeaderUpdated.Leader != 0) {
 								var leader *corev1.LocalObjectReference
@@ -275,7 +278,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								return true
 							}
 							return false
-						}, func(group *consensusv1beta1.RaftGroup) {
+						}, func(group *multiraftv1beta2.RaftPartition) {
 							if group.Status.Leader != nil {
 								r.events.Eventf(group, "Normal", "LeaderChanged", "%s elected leader for term %d", group.Status.Leader.Name, e.LeaderUpdated.Term)
 							} else {
@@ -284,39 +287,39 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 						})
 				case *consensus.Event_MembershipChanged:
 					r.recordMemberEvent(ctx, storeName, e.MembershipChanged.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							return true
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "MembershipChanged", "Membership changed")
 						})
 				case *consensus.Event_SendSnapshotStarted:
 					r.recordMemberEvent(ctx, storeName, e.SendSnapshotStarted.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							return true
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SendSnapshotStared", "Started sending snapshot at index %d to %s-%d-%d",
 								e.SendSnapshotStarted.Index, storeName.Name, e.SendSnapshotStarted.GroupID, e.SendSnapshotStarted.To)
 						})
 				case *consensus.Event_SendSnapshotCompleted:
 					r.recordMemberEvent(ctx, storeName, e.SendSnapshotCompleted.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							return true
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SendSnapshotCompleted", "Completed sending snapshot at index %d to %s-%d-%d",
 								e.SendSnapshotCompleted.Index, storeName.Name, e.SendSnapshotCompleted.GroupID, e.SendSnapshotCompleted.To)
 						})
 				case *consensus.Event_SendSnapshotAborted:
 					r.recordMemberEvent(ctx, storeName, e.SendSnapshotAborted.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							return true
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SendSnapshotAborted", "Aborted sending snapshot at index %d to %s-%d-%d",
 								e.SendSnapshotAborted.Index, storeName.Name, e.SendSnapshotAborted.GroupID, e.SendSnapshotAborted.To)
 						})
 				case *consensus.Event_SnapshotReceived:
 					index := uint64(e.SnapshotReceived.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotReceived.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
 								status.LastUpdated = &timestamp
 								status.LastSnapshotTime = &timestamp
@@ -324,14 +327,14 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								return true
 							}
 							return false
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotReceived", "Snapshot received from %s-%d-%d at index %d",
 								storeName.Name, e.SnapshotReceived.GroupID, e.SnapshotReceived.From, e.SnapshotReceived.Index)
 						})
 				case *consensus.Event_SnapshotRecovered:
 					index := uint64(e.SnapshotRecovered.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotRecovered.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
 								status.LastUpdated = &timestamp
 								status.LastSnapshotTime = &timestamp
@@ -339,13 +342,13 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								return true
 							}
 							return false
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotRecovered", "Recovered from snapshot at index %d", e.SnapshotRecovered.Index)
 						})
 				case *consensus.Event_SnapshotCreated:
 					index := uint64(e.SnapshotCreated.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCreated.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
 								status.LastUpdated = &timestamp
 								status.LastSnapshotTime = &timestamp
@@ -353,13 +356,13 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								return true
 							}
 							return false
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotCreated", "Created snapshot at index %d", e.SnapshotCreated.Index)
 						})
 				case *consensus.Event_SnapshotCompacted:
 					index := uint64(e.SnapshotCompacted.Index)
 					r.recordMemberEvent(ctx, storeName, e.SnapshotCompacted.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							if index > 0 && (status.LastSnapshotIndex == nil || index > *status.LastSnapshotIndex) {
 								status.LastUpdated = &timestamp
 								status.LastSnapshotTime = &timestamp
@@ -367,21 +370,21 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 								return true
 							}
 							return false
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "SnapshotCompacted", "Compacted snapshot at index %d", e.SnapshotCompacted.Index)
 						})
 				case *consensus.Event_LogCompacted:
 					r.recordMemberEvent(ctx, storeName, e.LogCompacted.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							return true
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "LogCompacted", "Compacted log at index %d", e.LogCompacted.Index)
 						})
 				case *consensus.Event_LogdbCompacted:
 					r.recordMemberEvent(ctx, storeName, e.LogdbCompacted.MemberEvent,
-						func(status *consensusv1beta1.RaftMemberStatus) bool {
+						func(status *multiraftv1beta2.RaftMemberStatus) bool {
 							return true
-						}, func(member *consensusv1beta1.RaftMember) {
+						}, func(member *multiraftv1beta2.RaftMember) {
 							r.events.Eventf(member, "Normal", "LogCompacted", "Compacted log at index %d", e.LogdbCompacted.Index)
 						})
 				}
@@ -393,7 +396,7 @@ func (r *PodReconciler) watch(storeName types.NamespacedName, address string) er
 
 func (r *PodReconciler) recordMemberEvent(ctx context.Context,
 	storeName types.NamespacedName, event consensus.MemberEvent,
-	updater func(*consensusv1beta1.RaftMemberStatus) bool, recorder func(*consensusv1beta1.RaftMember)) {
+	updater func(*multiraftv1beta2.RaftMemberStatus) bool, recorder func(*multiraftv1beta2.RaftMember)) {
 	memberName := types.NamespacedName{
 		Namespace: storeName.Namespace,
 		Name:      fmt.Sprintf("%s-%d-%d", storeName.Name, event.GroupID, event.MemberID),
@@ -403,8 +406,8 @@ func (r *PodReconciler) recordMemberEvent(ctx context.Context,
 	}, backoff.NewExponentialBackOff())
 }
 
-func (r *PodReconciler) tryRecordMemberEvent(ctx context.Context, memberName types.NamespacedName, updater func(*consensusv1beta1.RaftMemberStatus) bool, recorder func(*consensusv1beta1.RaftMember)) error {
-	member := &consensusv1beta1.RaftMember{}
+func (r *PodReconciler) tryRecordMemberEvent(ctx context.Context, memberName types.NamespacedName, updater func(*multiraftv1beta2.RaftMemberStatus) bool, recorder func(*multiraftv1beta2.RaftMember)) error {
+	member := &multiraftv1beta2.RaftMember{}
 	if err := r.client.Get(ctx, memberName, member); err != nil {
 		if k8serrors.IsNotFound(err) {
 			return nil
@@ -424,35 +427,40 @@ func (r *PodReconciler) tryRecordMemberEvent(ctx context.Context, memberName typ
 	return nil
 }
 
-func (r *PodReconciler) recordGroupEvent(ctx context.Context,
+func (r *PodReconciler) recordShardEvent(ctx context.Context,
 	storeName types.NamespacedName, groupID consensus.GroupID,
-	updater func(status *consensusv1beta1.RaftGroupStatus) bool, recorder func(*consensusv1beta1.RaftGroup)) {
-	groupName := types.NamespacedName{
-		Namespace: storeName.Namespace,
-		Name:      fmt.Sprintf("%s-%d", storeName.Name, groupID),
-	}
+	updater func(status *multiraftv1beta2.RaftPartitionStatus) bool, recorder func(*multiraftv1beta2.RaftPartition)) {
 	_ = backoff.Retry(func() error {
-		return r.tryRecordGroupEvent(ctx, groupName, updater, recorder)
+		return r.tryRecordShardEvent(ctx, storeName, groupID, updater, recorder)
 	}, backoff.NewExponentialBackOff())
 }
 
-func (r *PodReconciler) tryRecordGroupEvent(ctx context.Context, groupName types.NamespacedName, updater func(status *consensusv1beta1.RaftGroupStatus) bool, recorder func(*consensusv1beta1.RaftGroup)) error {
-	group := &consensusv1beta1.RaftGroup{}
-	if err := r.client.Get(ctx, groupName, group); err != nil {
-		if k8serrors.IsNotFound(err) {
-			return nil
-		}
+func (r *PodReconciler) tryRecordShardEvent(ctx context.Context, storeName types.NamespacedName, groupID consensus.GroupID, updater func(status *multiraftv1beta2.RaftPartitionStatus) bool, recorder func(*multiraftv1beta2.RaftPartition)) error {
+	partitions := &multiraftv1beta2.RaftPartitionList{}
+	options := &client.ListOptions{
+		Namespace: storeName.Namespace,
+		LabelSelector: labels.SelectorFromSet(map[string]string{
+			raftShardKey: strconv.Itoa(int(groupID)),
+		}),
+	}
+	if err := r.client.List(ctx, partitions, options); err != nil {
 		return err
 	}
 
-	if updater(&group.Status) {
-		if err := r.client.Status().Update(ctx, group); err != nil {
-			if k8serrors.IsNotFound(err) {
-				return nil
+	if len(partitions.Items) == 0 {
+		return nil
+	}
+
+	for _, partition := range partitions.Items {
+		if updater(&partition.Status) {
+			if err := r.client.Status().Update(ctx, &partition); err != nil {
+				if k8serrors.IsNotFound(err) {
+					return nil
+				}
+				return err
 			}
-			return err
+			recorder(&partition)
 		}
-		recorder(group)
 	}
 	return nil
 }
@@ -469,26 +477,3 @@ func (r *PodReconciler) unwatch(address string) error {
 }
 
 var _ reconcile.Reconciler = (*PodReconciler)(nil)
-
-func hasFinalizer(object client.Object, name string) bool {
-	for _, finalizer := range object.GetFinalizers() {
-		if finalizer == name {
-			return true
-		}
-	}
-	return false
-}
-
-func addFinalizer(object client.Object, name string) {
-	object.SetFinalizers(append(object.GetFinalizers(), name))
-}
-
-func removeFinalizer(object client.Object, name string) {
-	var finalizers []string
-	for _, finalizer := range object.GetFinalizers() {
-		if finalizer != name {
-			finalizers = append(finalizers, finalizer)
-		}
-	}
-	object.SetFinalizers(finalizers)
-}

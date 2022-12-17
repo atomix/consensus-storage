@@ -6,16 +6,13 @@ package v1beta1
 
 import (
 	"context"
+	multiraftv1beta2 "github.com/atomix/consensus-storage/controller/pkg/apis/multiraft/v1beta2"
 	atomixv3beta3 "github.com/atomix/runtime/controller/pkg/apis/atomix/v3beta3"
-	"github.com/atomix/runtime/sdk/pkg/protocol"
-	"github.com/gogo/protobuf/jsonpb"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
-	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -26,11 +23,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-)
-
-const (
-	driverName    = "Consensus"
-	driverVersion = "v1beta1"
 )
 
 func addConsensusStoreController(mgr manager.Manager) error {
@@ -44,7 +36,7 @@ func addConsensusStoreController(mgr manager.Manager) error {
 	}
 
 	// Create a new controller
-	controller, err := controller.New("atomix-consensus-store-v1beta1", mgr, options)
+	controller, err := controller.New("atomix-consensus-store", mgr, options)
 	if err != nil {
 		return err
 	}
@@ -96,178 +88,103 @@ func (r *MultiRaftStoreReconciler) Reconcile(ctx context.Context, request reconc
 		return reconcile.Result{}, err
 	}
 
-	log.Info("Reconcile raft protocol stateful set")
-	cluster := &consensusv1beta1.MultiRaftCluster{}
-	name := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      store.Name,
-	}
-	if err := r.client.Get(ctx, name, cluster); err != nil && k8serrors.IsNotFound(err) {
-		log.Info("Creating MultiRaftCluster", "Name", store.Name, "Namespace", store.Namespace)
-		cluster = &consensusv1beta1.MultiRaftCluster{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:        store.Name,
-				Namespace:   store.Namespace,
-				Labels:      newClusterLabels(store),
-				Annotations: newClusterAnnotations(store),
-			},
-			Spec: store.Spec.MultiRaftClusterSpec,
-		}
-		if err := controllerutil.SetControllerReference(store, cluster, r.scheme); err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-		if err := r.client.Create(ctx, cluster); err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{}, nil
-	}
-
-	if cluster.Status.Partitions == nil {
-		return reconcile.Result{}, nil
-	}
-
-	if cluster.Status.State == consensusv1beta1.MultiRaftClusterNotReady &&
-		store.Status.State != consensusv1beta1.ConsensusStoreNotReady {
-		store.Status.State = consensusv1beta1.ConsensusStoreNotReady
-		if err := r.client.Status().Update(ctx, store); err != nil {
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{Requeue: true}, nil
-	}
-
-	dataStore := &atomixv3beta3.DataStore{}
-	dataStoreName := types.NamespacedName{
-		Namespace: store.Namespace,
-		Name:      store.Name,
-	}
-	if err := r.client.Get(ctx, dataStoreName, dataStore); err != nil {
+	multiRaftCluster := &multiraftv1beta2.MultiRaftCluster{}
+	if err := r.client.Get(ctx, request.NamespacedName, multiRaftCluster); err != nil {
 		if !k8serrors.IsNotFound(err) {
 			log.Error(err, "Reconcile ConsensusStore")
 			return reconcile.Result{}, err
 		}
 
-		config := getProtocolConfig(cluster.Status.Partitions)
-		marshaler := &jsonpb.Marshaler{}
-		configString, err := marshaler.MarshalToString(&config)
-		if err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-
-		dataStore = &atomixv3beta3.DataStore{
+		multiRaftCluster = &multiraftv1beta2.MultiRaftCluster{
 			ObjectMeta: metav1.ObjectMeta{
-				Namespace: dataStoreName.Namespace,
-				Name:      dataStoreName.Name,
-				Labels:    store.Labels,
+				Name:        store.Name,
+				Namespace:   store.Namespace,
+				Labels:      store.Labels,
+				Annotations: store.Annotations,
 			},
-			Spec: atomixv3beta3.DataStoreSpec{
-				Driver: atomixv3beta3.Driver{
-					Name:    driverName,
-					Version: driverVersion,
-				},
-				Config: runtime.RawExtension{
-					Raw: []byte(configString),
+			Spec: multiraftv1beta2.MultiRaftClusterSpec{
+				Replicas:            uint32(store.Spec.Replicas),
+				Image:               store.Spec.Image,
+				ImagePullPolicy:     store.Spec.ImagePullPolicy,
+				ImagePullSecrets:    store.Spec.ImagePullSecrets,
+				SecurityContext:     store.Spec.SecurityContext,
+				VolumeClaimTemplate: store.Spec.VolumeClaimTemplate,
+				Config: multiraftv1beta2.MultiRaftClusterConfig{
+					Server: multiraftv1beta2.MultiRaftServerConfig{
+						ReadBufferSize:       store.Spec.Config.Server.ReadBufferSize,
+						WriteBufferSize:      store.Spec.Config.Server.WriteBufferSize,
+						MaxRecvMsgSize:       store.Spec.Config.Server.MaxRecvMsgSize,
+						MaxSendMsgSize:       store.Spec.Config.Server.MaxSendMsgSize,
+						MaxConcurrentStreams: store.Spec.Config.Server.MaxConcurrentStreams,
+						NumStreamWorkers:     store.Spec.Config.Server.NumStreamWorkers,
+					},
+					Raft: multiraftv1beta2.RaftConfig{
+						HeartbeatPeriod:         store.Spec.Config.Raft.HeartbeatPeriod,
+						ElectionTimeout:         store.Spec.Config.Raft.ElectionTimeout,
+						SnapshotEntryThreshold:  store.Spec.Config.Raft.SnapshotEntryThreshold,
+						CompactionRetainEntries: store.Spec.Config.Raft.CompactionRetainEntries,
+					},
 				},
 			},
 		}
-		if err := controllerutil.SetControllerReference(store, dataStore, r.scheme); err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-		if err := r.client.Create(ctx, dataStore); err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{}, nil
-	}
 
-	var config protocol.ProtocolConfig
-	if err := jsonpb.UnmarshalString(string(dataStore.Spec.Config.Raw), &config); err != nil {
-		log.Error(err, "Reconcile ConsensusStore")
-		return reconcile.Result{}, err
-	}
-
-	newConfig := getProtocolConfig(cluster.Status.Partitions)
-	if !isProtocolConfigEqual(config, newConfig) {
-		marshaler := &jsonpb.Marshaler{}
-		configString, err := marshaler.MarshalToString(&newConfig)
-		if err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-
-		dataStore.Spec.Config = runtime.RawExtension{
-			Raw: []byte(configString),
-		}
-		if err := r.client.Update(ctx, dataStore); err != nil {
-			log.Error(err, "Reconcile ConsensusStore")
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{}, nil
-	}
-
-	if cluster.Status.State == consensusv1beta1.MultiRaftClusterReady &&
-		store.Status.State != consensusv1beta1.ConsensusStoreReady {
-		store.Status.State = consensusv1beta1.ConsensusStoreReady
-		if err := r.client.Status().Update(ctx, store); err != nil {
-			return reconcile.Result{}, err
-		}
-		return reconcile.Result{Requeue: true}, nil
-	}
-	return reconcile.Result{}, nil
-}
-
-func getProtocolConfig(partitions []consensusv1beta1.RaftPartitionStatus) protocol.ProtocolConfig {
-	var config protocol.ProtocolConfig
-	for _, partition := range partitions {
-		var leader string
-		if partition.Leader != nil {
-			leader = *partition.Leader
-		}
-		config.Partitions = append(config.Partitions, protocol.PartitionConfig{
-			PartitionID: protocol.PartitionID(partition.PartitionID),
-			Leader:      leader,
-			Followers:   partition.Followers,
-		})
-	}
-	return config
-}
-
-func isProtocolConfigEqual(config1, config2 protocol.ProtocolConfig) bool {
-	if len(config1.Partitions) != len(config2.Partitions) {
-		return false
-	}
-	for _, partition1 := range config1.Partitions {
-		for _, partition2 := range config2.Partitions {
-			if partition1.PartitionID == partition2.PartitionID && !isPartitionConfigEqual(partition1, partition2) {
-				return false
+		if store.Spec.Config.Logging.Loggers != nil {
+			multiRaftCluster.Spec.Config.Logging.Loggers = make(map[string]multiraftv1beta2.LoggerConfig)
+			for name, config := range store.Spec.Config.Logging.Loggers {
+				loggerConfig := multiraftv1beta2.LoggerConfig{
+					Level: config.Level,
+				}
+				if config.Output != nil {
+					loggerConfig.Output = make(map[string]multiraftv1beta2.OutputConfig)
+					for outputName, outputConfig := range config.Output {
+						loggerConfig.Output[outputName] = multiraftv1beta2.OutputConfig{
+							Sink:  outputConfig.Sink,
+							Level: outputConfig.Level,
+						}
+					}
+				}
+				multiRaftCluster.Spec.Config.Logging.Loggers[name] = loggerConfig
 			}
 		}
-	}
-	return true
-}
-
-func isPartitionConfigEqual(partition1, partition2 protocol.PartitionConfig) bool {
-	if partition1.Leader == "" && partition2.Leader != "" {
-		return false
-	}
-	if partition1.Leader != "" && partition2.Leader == "" {
-		return false
-	}
-	if partition1.Leader != "" && partition2.Leader != "" && partition1.Leader != partition2.Leader {
-		return false
-	}
-	if len(partition1.Followers) != len(partition2.Followers) {
-		return false
-	}
-	for _, follower := range partition1.Followers {
-		if !slices.Contains(partition2.Followers, follower) {
-			return false
+		if err := r.client.Create(ctx, multiRaftCluster); err != nil && !k8serrors.IsAlreadyExists(err) {
+			log.Error(err, "Reconcile ConsensusStore")
+			return reconcile.Result{}, err
 		}
 	}
-	return true
+
+	multiRaftStore := &multiraftv1beta2.MultiRaftStore{}
+	if err := r.client.Get(ctx, request.NamespacedName, multiRaftStore); err != nil {
+		if !k8serrors.IsNotFound(err) {
+			log.Error(err, "Reconcile ConsensusStore")
+			return reconcile.Result{}, err
+		}
+
+		multiRaftStore = &multiraftv1beta2.MultiRaftStore{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:        store.Name,
+				Namespace:   store.Namespace,
+				Labels:      store.Labels,
+				Annotations: store.Annotations,
+			},
+			Spec: multiraftv1beta2.MultiRaftStoreSpec{
+				Cluster: corev1.LocalObjectReference{
+					Name: store.Name,
+				},
+				RaftConfig: multiraftv1beta2.RaftConfig{
+					HeartbeatPeriod:         store.Spec.Config.Raft.HeartbeatPeriod,
+					ElectionTimeout:         store.Spec.Config.Raft.ElectionTimeout,
+					SnapshotEntryThreshold:  store.Spec.Config.Raft.SnapshotEntryThreshold,
+					CompactionRetainEntries: store.Spec.Config.Raft.CompactionRetainEntries,
+				},
+				Partitions: uint32(store.Spec.Groups),
+			},
+		}
+		if err := r.client.Create(ctx, multiRaftStore); err != nil && !k8serrors.IsAlreadyExists(err) {
+			log.Error(err, "Reconcile ConsensusStore")
+			return reconcile.Result{}, err
+		}
+	}
+	return reconcile.Result{}, nil
 }
 
 var _ reconcile.Reconciler = (*MultiRaftStoreReconciler)(nil)

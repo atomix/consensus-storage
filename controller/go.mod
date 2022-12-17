@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/atomix/consensus-storage/node v0.13.0
 	github.com/atomix/runtime/controller v0.6.0
-	github.com/atomix/runtime/sdk v0.7.2
+	github.com/atomix/runtime/sdk v0.7.6
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-logr/logr v1.2.0
 	github.com/gogo/protobuf v1.3.2
@@ -105,3 +105,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.1 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
+
+replace github.com/atomix/consensus-storage/node => ../node

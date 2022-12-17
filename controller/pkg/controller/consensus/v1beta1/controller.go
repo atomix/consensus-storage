@@ -16,11 +16,5 @@ func AddControllers(mgr manager.Manager) error {
 	if err := addConsensusStoreController(mgr); err != nil {
 		return err
 	}
-	if err := addMultiRaftClusterController(mgr); err != nil {
-		return err
-	}
-	if err := addPodController(mgr); err != nil {
-		return err
-	}
 	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	consensusapis "github.com/atomix/consensus-storage/controller/pkg/apis"
 	consensusv1beta1 "github.com/atomix/consensus-storage/controller/pkg/controller/consensus/v1beta1"
+	multiraftv1beta2 "github.com/atomix/consensus-storage/controller/pkg/controller/multiraft/v1beta2"
 	runtimeapis "github.com/atomix/runtime/controller/pkg/apis"
 	"github.com/atomix/runtime/controller/pkg/controller/util/k8s"
 	"github.com/atomix/runtime/sdk/pkg/logging"
@@ -89,9 +90,14 @@ func getCommand() *cobra.Command {
 				log.Error(err)
 				os.Exit(1)
 			}
+			if err := multiraftv1beta2.AddControllers(mgr); err != nil {
+				log.Error(err)
+				os.Exit(1)
+			}
 
 			// Start the manager
 			log.Info("Starting the Manager")
+			mgr.GetWebhookServer().Port = 443
 			if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 				log.Error(err, "controller exited non-zero")
 				os.Exit(1)
