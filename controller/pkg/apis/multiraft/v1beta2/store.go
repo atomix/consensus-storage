@@ -29,7 +29,8 @@ const (
 
 // MultiRaftStoreStatus defines the status of a MultiRaftStore
 type MultiRaftStoreStatus struct {
-	State MultiRaftStoreState `json:"state,omitempty"`
+	ReplicationFactor *uint32             `json:"replicationFactor"`
+	State             MultiRaftStoreState `json:"state,omitempty"`
 }
 
 // +genclient

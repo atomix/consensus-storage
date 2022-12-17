@@ -136,6 +136,19 @@ func (r *MultiRaftStoreReconciler) reconcilePartitions(ctx context.Context, stor
 		return true, nil
 	}
 
+	if store.Status.ReplicationFactor == nil {
+		if store.Spec.ReplicationFactor != nil && *store.Spec.ReplicationFactor <= cluster.Spec.Replicas {
+			store.Status.ReplicationFactor = store.Spec.ReplicationFactor
+		} else {
+			store.Status.ReplicationFactor = &cluster.Spec.Replicas
+		}
+		if err := r.client.Status().Update(ctx, store); err != nil {
+			log.Error(err, "Reconcile MultiRaftStore")
+			return false, err
+		}
+		return true, nil
+	}
+
 	for ordinal := 1; ordinal <= int(store.Spec.Partitions); ordinal++ {
 		if updated, err := r.reconcilePartition(ctx, store, cluster, multiraftv1beta2.PartitionID(ordinal)); err != nil {
 			return false, err
@@ -195,12 +208,8 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 				Cluster:     store.Spec.Cluster,
 				ShardID:     *shardID,
 				PartitionID: partitionID,
+				Replicas:    *store.Status.ReplicationFactor,
 			},
-		}
-		if store.Spec.ReplicationFactor != nil && *store.Spec.ReplicationFactor <= cluster.Spec.Replicas {
-			partition.Spec.Replicas = *store.Spec.ReplicationFactor
-		} else {
-			partition.Spec.Replicas = cluster.Spec.Replicas
 		}
 		if err := controllerutil.SetControllerReference(store, partition, r.scheme); err != nil {
 			log.Error(err, "Reconcile MultiRaftStore")

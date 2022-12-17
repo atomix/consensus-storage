@@ -68,6 +68,8 @@ spec:
             status:
               type: object
               properties:
+                replicationFactor:
+                  type: integer
                 state:
                   type: string
                   default: NotReady
@@ -86,7 +88,7 @@ spec:
         - name: ReplicationFactor
           type: integer
           description: The number of replicas per partition
-          jsonPath: .spec.replicationFactor
+          jsonPath: .status.replicationFactor
         - name: Status
           type: string
           description: The store state
