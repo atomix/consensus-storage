@@ -121,7 +121,6 @@ func (in *MultiRaftCluster) DeepCopyObject() runtime.Object {
 func (in *MultiRaftClusterConfig) DeepCopyInto(out *MultiRaftClusterConfig) {
 	*out = *in
 	in.Server.DeepCopyInto(&out.Server)
-	in.Raft.DeepCopyInto(&out.Raft)
 	in.Logging.DeepCopyInto(&out.Logging)
 	return
 }
