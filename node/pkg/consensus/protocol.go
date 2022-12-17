@@ -15,7 +15,10 @@ import (
 	"github.com/lni/dragonboat/v3"
 	raftconfig "github.com/lni/dragonboat/v3/config"
 	dbstatemachine "github.com/lni/dragonboat/v3/statemachine"
+	"strconv"
+	"strings"
 	"sync"
+	"time"
 )
 
 var log = logging.GetLogger()
@@ -154,13 +157,85 @@ func (n *Protocol) Watch(ctx context.Context, watcher chan<- Event) {
 	}()
 }
 
-func (n *Protocol) Bootstrap(config GroupConfig) error {
-	raftConfig := n.getRaftConfig(config)
-	members := make(map[uint64]dragonboat.Target)
-	for _, member := range config.Members {
-		members[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
+func (n *Protocol) GetConfig(groupID GroupID) (GroupConfig, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	defer cancel()
+	membership, err := n.host.SyncGetClusterMembership(ctx, uint64(groupID))
+	if err != nil {
+		if err == dragonboat.ErrClusterNotFound {
+			return GroupConfig{}, errors.NewNotFound(err.Error())
+		}
+		return GroupConfig{}, wrapError(err)
 	}
-	if err := n.host.StartCluster(members, false, n.newStateMachine, raftConfig); err != nil {
+
+	var members []MemberConfig
+	for nodeID, address := range membership.Nodes {
+		member, err := getMember(nodeID, address, MemberRole_MEMBER)
+		if err != nil {
+			return GroupConfig{}, err
+		}
+		members = append(members, member)
+	}
+	for nodeID, address := range membership.Observers {
+		member, err := getMember(nodeID, address, MemberRole_OBSERVER)
+		if err != nil {
+			return GroupConfig{}, err
+		}
+		members = append(members, member)
+	}
+	for nodeID, address := range membership.Witnesses {
+		member, err := getMember(nodeID, address, MemberRole_WITNESS)
+		if err != nil {
+			return GroupConfig{}, err
+		}
+		members = append(members, member)
+	}
+	for nodeID := range membership.Removed {
+		members = append(members, MemberConfig{
+			MemberID: MemberID(nodeID),
+			Role:     MemberRole_REMOVED,
+		})
+	}
+	return GroupConfig{
+		GroupID: groupID,
+		Members: members,
+	}, nil
+}
+
+func getMember(nodeID uint64, address string, role MemberRole) (MemberConfig, error) {
+	parts := strings.Split(address, ":")
+	host, portS := parts[0], parts[1]
+	port, err := strconv.Atoi(portS)
+	if err != nil {
+		return MemberConfig{}, err
+	}
+	return MemberConfig{
+		MemberID: MemberID(nodeID),
+		Host:     host,
+		Port:     int32(port),
+		Role:     MemberRole_MEMBER,
+	}, nil
+}
+
+func (n *Protocol) BootstrapGroup(ctx context.Context, groupID GroupID, memberID MemberID, members ...MemberConfig) error {
+	var member *MemberConfig
+	for _, m := range members {
+		if m.MemberID == memberID {
+			member = &m
+			break
+		}
+	}
+
+	if member == nil {
+		return errors.NewInvalid("unknown member %d", memberID)
+	}
+
+	raftConfig := n.getRaftConfig(groupID, memberID, member.Role)
+	targets := make(map[uint64]dragonboat.Target)
+	for _, member := range members {
+		targets[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
+	}
+	if err := n.host.StartCluster(targets, false, n.newStateMachine, raftConfig); err != nil {
 		if err == dragonboat.ErrClusterAlreadyExist {
 			return nil
 		}
@@ -169,23 +244,53 @@ func (n *Protocol) Bootstrap(config GroupConfig) error {
 	return nil
 }
 
-func (n *Protocol) Join(config GroupConfig) error {
-	raftConfig := n.getRaftConfig(config)
-	members := make(map[uint64]dragonboat.Target)
-	for _, member := range config.Members {
-		members[uint64(member.MemberID)] = fmt.Sprintf("%s:%d", member.Host, member.Port)
-	}
-	if err := n.host.StartCluster(members, true, n.newStateMachine, raftConfig); err != nil {
-		if err == dragonboat.ErrClusterAlreadyExist {
-			return nil
+func (n *Protocol) AddMember(ctx context.Context, groupID GroupID, member MemberConfig, version uint64) error {
+	address := fmt.Sprintf("%s:%d", member.Host, member.Port)
+	if err := n.host.SyncRequestAddNode(ctx, uint64(groupID), uint64(member.MemberID), address, version); err != nil {
+		if err == dragonboat.ErrClusterNotFound {
+			return errors.NewNotFound(err.Error())
 		}
 		return wrapError(err)
 	}
 	return nil
 }
 
-func (n *Protocol) Leave(groupID GroupID) error {
-	return n.host.StopCluster(uint64(groupID))
+func (n *Protocol) RemoveMember(ctx context.Context, groupID GroupID, memberID MemberID, version uint64) error {
+	if err := n.host.SyncRequestDeleteNode(ctx, uint64(groupID), uint64(memberID), version); err != nil {
+		if err == dragonboat.ErrClusterNotFound {
+			return errors.NewNotFound(err.Error())
+		}
+		return wrapError(err)
+	}
+	return nil
+}
+
+func (n *Protocol) JoinGroup(ctx context.Context, groupID GroupID, memberID MemberID) error {
+	raftConfig := n.getRaftConfig(groupID, memberID, MemberRole_MEMBER)
+	if err := n.host.StartCluster(map[uint64]dragonboat.Target{}, true, n.newStateMachine, raftConfig); err != nil {
+		if err == dragonboat.ErrClusterAlreadyExist {
+			return errors.NewAlreadyExists(err.Error())
+		}
+		return wrapError(err)
+	}
+	return nil
+}
+
+func (n *Protocol) LeaveGroup(ctx context.Context, groupID GroupID) error {
+	if err := n.host.StopCluster(uint64(groupID)); err != nil {
+		if err == dragonboat.ErrClusterNotFound {
+			return errors.NewNotFound(err.Error())
+		}
+		return wrapError(err)
+	}
+	return nil
+}
+
+func (n *Protocol) DeleteData(ctx context.Context, groupID GroupID, memberID MemberID) error {
+	if err := n.host.SyncRemoveData(ctx, uint64(groupID), uint64(memberID)); err != nil {
+		return wrapError(err)
+	}
+	return nil
 }
 
 func (n *Protocol) newStateMachine(clusterID, nodeID uint64) dbstatemachine.IStateMachine {
@@ -197,26 +302,21 @@ func (n *Protocol) newStateMachine(clusterID, nodeID uint64) dbstatemachine.ISta
 	return newStateMachine(streams, n.registry)
 }
 
-func (n *Protocol) Shutdown() error {
-	n.host.Stop()
-	return nil
-}
-
-func (n *Protocol) getRaftConfig(config GroupConfig) raftconfig.Config {
+func (n *Protocol) getRaftConfig(groupID GroupID, memberID MemberID, role MemberRole) raftconfig.Config {
 	electionRTT := uint64(10)
 	if n.config.ElectionTimeout != nil {
 		electionRTT = uint64(n.config.ElectionTimeout.Milliseconds() / n.config.GetHeartbeatPeriod().Milliseconds())
 	}
 	return raftconfig.Config{
-		NodeID:             uint64(config.MemberID),
-		ClusterID:          uint64(config.GroupID),
+		NodeID:             uint64(memberID),
+		ClusterID:          uint64(groupID),
 		ElectionRTT:        electionRTT,
 		HeartbeatRTT:       1,
 		CheckQuorum:        true,
 		SnapshotEntries:    n.config.GetSnapshotEntryThreshold(),
 		CompactionOverhead: n.config.GetCompactionRetainEntries(),
-		IsObserver:         config.Role == MemberRole_OBSERVER,
-		IsWitness:          config.Role == MemberRole_WITNESS,
+		IsObserver:         role == MemberRole_OBSERVER,
+		IsWitness:          role == MemberRole_WITNESS,
 	}
 }
 

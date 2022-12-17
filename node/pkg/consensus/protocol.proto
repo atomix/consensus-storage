@@ -11,26 +11,23 @@ package atomix.consensus.node.v1;
 import "google/protobuf/timestamp.proto";
 import "gogoproto/gogo.proto";
 
-message GroupConfig {
-    uint32 group_id = 1 [
-        (gogoproto.customname) = "GroupID",
-        (gogoproto.casttype) = "GroupID"
-    ];
-    uint32 member_id = 2 [
-        (gogoproto.customname) = "MemberID",
-        (gogoproto.casttype) = "MemberID"
-    ];
-    MemberRole role = 3;
-    repeated MemberConfig members = 4 [
-        (gogoproto.nullable) = false
-    ];
-}
-
 enum MemberRole {
     UNKNOWN = 0;
     MEMBER = 1;
     OBSERVER = 2;
     WITNESS = 3;
+    REMOVED = 4;
+}
+
+message GroupConfig {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    repeated MemberConfig members = 2 [
+        (gogoproto.nullable) = false
+    ];
+    uint64 version = 3;
 }
 
 message MemberConfig {
@@ -40,6 +37,7 @@ message MemberConfig {
     ];
     string host = 2;
     int32 port = 3;
+    MemberRole role = 4;
 }
 
 message RaftProposal {
@@ -53,40 +51,116 @@ message RaftProposal {
 }
 
 service Node {
-    rpc Bootstrap(BootstrapRequest) returns (BootstrapResponse);
-    rpc Join(JoinRequest) returns (JoinResponse);
-    rpc Leave(LeaveRequest) returns (LeaveResponse);
+    rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+    rpc BootstrapGroup(BootstrapGroupRequest) returns (BootstrapGroupResponse);
+    rpc AddMember(AddMemberRequest) returns (AddMemberResponse);
+    rpc RemoveMember(RemoveMemberRequest) returns (RemoveMemberResponse);
+    rpc JoinGroup(JoinGroupRequest) returns (JoinGroupResponse);
+    rpc LeaveGroup(LeaveGroupRequest) returns (LeaveGroupResponse);
+    rpc DeleteData(DeleteDataRequest) returns (DeleteDataResponse);
     rpc Watch(WatchRequest) returns (stream Event);
 }
 
-message BootstrapRequest {
-    GroupConfig group = 1 [
-        (gogoproto.nullable) = false
-    ];
-}
-
-message BootstrapResponse {
-
-}
-
-message JoinRequest {
-    GroupConfig group = 1 [
-        (gogoproto.nullable) = false
-    ];
-}
-
-message JoinResponse {
-
-}
-
-message LeaveRequest {
+message GetConfigRequest {
     uint32 group_id = 1 [
         (gogoproto.customname) = "GroupID",
         (gogoproto.casttype) = "GroupID"
     ];
 }
 
-message LeaveResponse {
+message GetConfigResponse {
+    GroupConfig group = 1 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message BootstrapGroupRequest {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint32 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
+    ];
+    repeated MemberConfig members = 3 [
+        (gogoproto.nullable) = false
+    ];
+}
+
+message BootstrapGroupResponse {
+
+}
+
+message AddMemberRequest {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    MemberConfig member = 2 [
+        (gogoproto.nullable) = false
+    ];
+    uint64 version = 3;
+}
+
+message AddMemberResponse {
+
+}
+
+message RemoveMemberRequest {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint32 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
+    ];
+    uint64 version = 3;
+}
+
+message RemoveMemberResponse {
+
+}
+
+message JoinGroupRequest {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint32 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
+    ];
+}
+
+message JoinGroupResponse {
+
+}
+
+message LeaveGroupRequest {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+}
+
+message LeaveGroupResponse {
+
+}
+
+message DeleteDataRequest {
+    uint32 group_id = 1 [
+        (gogoproto.customname) = "GroupID",
+        (gogoproto.casttype) = "GroupID"
+    ];
+    uint32 member_id = 2 [
+        (gogoproto.customname) = "MemberID",
+        (gogoproto.casttype) = "MemberID"
+    ];
+}
+
+message DeleteDataResponse {
 
 }
 
@@ -159,7 +233,6 @@ message LeaderUpdatedEvent {
         (gogoproto.casttype) = "MemberID"
     ];
 }
-
 
 message SendSnapshotStartedEvent {
     MemberEvent member = 1 [
