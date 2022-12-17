@@ -106,4 +106,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/atomix/consensus-storage/node => ../node
+replace github.com/atomix/consensus-storage/node => github.com/atomix/consensus-storage/node v0.13.8-0.20221217124011-5c842c8bad09

@@ -74,6 +74,8 @@ github.com/armon/go-metrics v0.3.10 h1:FR+drcQStOe+32sYyJYyZ7FIdgoGGBnwLl+flodp8
 github.com/armon/go-metrics v0.3.10/go.mod h1:4O98XIr/9W0sxpJ8UaYkvjk10Iff7SnFrb4QAOwNTFc=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
+github.com/atomix/consensus-storage/node v0.13.8-0.20221217124011-5c842c8bad09 h1:6CGbqdeqNJtwA2nyKfY0de8muFV+ZiBvsEGKsFEwxtw=
+github.com/atomix/consensus-storage/node v0.13.8-0.20221217124011-5c842c8bad09/go.mod h1:HUiGUxEWGW3N+KaYG0elBTYqJox0np5I6veAR2HQ4OI=
 github.com/atomix/runtime/controller v0.6.0 h1:K8e/9pt4uneOGgNhh4+tkaoPYf8xx7QB6oKNnNAm71E=
 github.com/atomix/runtime/controller v0.6.0/go.mod h1:8UIKE/2LeuETaEYOZNSqEZWzA0TgDGeK5QYeZ/yoa20=
 github.com/atomix/runtime/sdk v0.7.6 h1:sYH9+9B2ChTnd7iv2Brw6H8Jplb1nHoS5ZjRiz4HNmo=
