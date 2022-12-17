@@ -157,35 +157,28 @@ func (r *RaftPartitionReconciler) reconcileMembers(ctx context.Context, cluster 
 		memberName := fmt.Sprintf("%s-%d", partition.Name, memberID)
 
 		hasMember := false
-		var raftNodeID uint32 = 1
 		for _, memberStatus := range memberStatuses {
-			if memberStatus.RaftNodeID >= raftNodeID {
-				raftNodeID = memberStatus.RaftNodeID + 1
-			}
 			if memberStatus.Name == memberName {
 				hasMember = true
+				break
 			}
 		}
 
 		if !hasMember {
-			memberStatuses = append(memberStatuses, multiraftv1beta2.RaftPartitionMemberStatus{
+			partition.Status.LastRaftNodeID++
+			partition.Status.MemberStatuses = append(partition.Status.MemberStatuses, multiraftv1beta2.RaftPartitionMemberStatus{
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: memberName,
 				},
 				MemberID:   memberID,
-				RaftNodeID: raftNodeID,
+				RaftNodeID: partition.Status.LastRaftNodeID,
 			})
+			if err := r.client.Status().Update(ctx, partition); err != nil {
+				log.Error(err, "Reconcile RaftPartition")
+				return false, err
+			}
+			return true, nil
 		}
-	}
-
-	// If new member statuses were added, update the partition status
-	if len(memberStatuses) != len(partition.Status.MemberStatuses) {
-		partition.Status.MemberStatuses = memberStatuses
-		if err := r.client.Status().Update(ctx, partition); err != nil {
-			log.Error(err, "Reconcile RaftPartition")
-			return false, err
-		}
-		return true, nil
 	}
 
 	// Iterate through partition members and reconcile them, returning in the event of any state change
@@ -211,20 +204,15 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 			return false, err
 		}
 
-		// Compute the next Raft node ID from the member statuses
-		var raftNodeID uint32 = 1
-		for _, memberRef := range partition.Status.MemberStatuses {
-			if memberRef.RaftNodeID >= raftNodeID {
-				raftNodeID = memberRef.RaftNodeID + 1
-			}
-		}
-
+		// Lookup the Raft node ID for the member in the partition status
+		var raftNodeID *uint32
 		boostrapPolicy := multiraftv1beta2.RaftBootstrap
 		for i, memberStatus := range partition.Status.MemberStatuses {
 			if memberStatus.Name == memberName.Name {
 				// If this member is marked 'deleted', store the new Raft node ID and reset the flags
 				if memberStatus.Deleted {
-					memberStatus.RaftNodeID = raftNodeID
+					partition.Status.LastRaftNodeID++
+					memberStatus.RaftNodeID = partition.Status.LastRaftNodeID
 					memberStatus.Bootstrapped = true
 					memberStatus.Deleted = false
 					partition.Status.MemberStatuses[i] = memberStatus
@@ -241,7 +229,27 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 				} else {
 					boostrapPolicy = multiraftv1beta2.RaftBootstrap
 				}
+
+				raftNodeID = &memberStatus.RaftNodeID
+				break
 			}
+		}
+
+		// If the member is not found in the partition status, add a new member status
+		if raftNodeID == nil {
+			partition.Status.LastRaftNodeID++
+			partition.Status.MemberStatuses = append(partition.Status.MemberStatuses, multiraftv1beta2.RaftPartitionMemberStatus{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: memberName.Name,
+				},
+				MemberID:   uint32(memberID),
+				RaftNodeID: partition.Status.LastRaftNodeID,
+			})
+			if err := r.client.Status().Update(ctx, partition); err != nil {
+				log.Error(err, "Reconcile RaftPartition")
+				return false, err
+			}
+			return true, nil
 		}
 
 		// Get the current configuration from the partition member statuses
@@ -261,14 +269,14 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   memberName.Namespace,
 				Name:        memberName.Name,
-				Labels:      newMemberLabels(cluster, partition, memberID, int(raftNodeID)),
-				Annotations: newMemberAnnotations(cluster, partition, memberID, int(raftNodeID)),
+				Labels:      newMemberLabels(cluster, partition, memberID, int(*raftNodeID)),
+				Annotations: newMemberAnnotations(cluster, partition, memberID, int(*raftNodeID)),
 			},
 			Spec: multiraftv1beta2.RaftMemberSpec{
 				Cluster:    partition.Spec.Cluster,
 				ShardID:    partition.Spec.ShardID,
 				MemberID:   uint32(memberID),
-				RaftNodeID: raftNodeID,
+				RaftNodeID: *raftNodeID,
 				Pod: corev1.LocalObjectReference{
 					Name: getMemberPodName(cluster, partition, memberID),
 				},

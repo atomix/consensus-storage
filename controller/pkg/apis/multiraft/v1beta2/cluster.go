@@ -67,6 +67,7 @@ type MultiRaftServerConfig struct {
 // MultiRaftClusterStatus defines the status of a MultiRaftCluster
 type MultiRaftClusterStatus struct {
 	State             MultiRaftClusterState             `json:"state"`
+	LastShardID       uint32                            `json:"lastShardID"`
 	PartitionStatuses []MultiRaftClusterPartitionStatus `json:"partitionStatuses"`
 }
 

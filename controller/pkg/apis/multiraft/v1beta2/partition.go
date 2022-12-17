@@ -34,6 +34,7 @@ type RaftPartitionStatus struct {
 	Term           *uint64                       `json:"term,omitempty"`
 	Leader         *corev1.LocalObjectReference  `json:"leader,omitempty"`
 	Followers      []corev1.LocalObjectReference `json:"followers,omitempty"`
+	LastRaftNodeID uint32                        `json:"lastRaftNodeID"`
 	MemberStatuses []RaftPartitionMemberStatus   `json:"memberStatuses"`
 }
 

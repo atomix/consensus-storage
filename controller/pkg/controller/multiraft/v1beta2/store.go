@@ -160,23 +160,21 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 
 		// Lookup the registered shard ID for this partition in the cluster status.
 		var shardID *uint32
-		var maxShardID uint32
 		for _, partitionStatus := range cluster.Status.PartitionStatuses {
-			if partitionStatus.ShardID > maxShardID {
-				maxShardID = partitionStatus.ShardID
-			}
 			if partitionStatus.Name == partitionName.Name {
 				shardID = &partitionStatus.ShardID
+				break
 			}
 		}
 
 		if shardID == nil {
+			cluster.Status.LastShardID++
 			cluster.Status.PartitionStatuses = append(cluster.Status.PartitionStatuses, multiraftv1beta2.MultiRaftClusterPartitionStatus{
 				LocalObjectReference: corev1.LocalObjectReference{
 					Name: partitionName.Name,
 				},
 				PartitionID: uint32(partitionID),
-				ShardID:     maxShardID + 1,
+				ShardID:     cluster.Status.LastShardID,
 			})
 			if err := r.client.Status().Update(ctx, cluster); err != nil {
 				log.Error(err, "Reconcile MultiRaftStore")
