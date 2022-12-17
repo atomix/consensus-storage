@@ -44,12 +44,12 @@ spec:
                   type: integer
                   minimum: 1
                   maximum: 1024
-                  nullable: true
+                  default: 1
                 replicationFactor:
                   type: integer
                   minimum: 1
                   maximum: 1024
-                  default: 1
+                  nullable: true
                 electionRTT:
                   type: integer
                   nullable: true
