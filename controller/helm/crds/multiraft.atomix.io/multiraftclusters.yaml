@@ -62,6 +62,7 @@ spec:
                   type: object
                 config:
                   type: object
+                  default: {}
                   properties:
                     rtt:
                       type: string
@@ -148,6 +149,7 @@ spec:
                                   - path
             status:
               type: object
+              default: {}
               properties:
                 state:
                   type: string

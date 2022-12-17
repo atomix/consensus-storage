@@ -1,0 +1,8 @@
+apiVersion: multiraft.atomix.io/v1beta2
+kind: MultiRaftStore
+metadata:
+  name: example-multi-raft-store
+spec:
+  cluster:
+    name: example-multi-raft-cluster
+  partitions: 3

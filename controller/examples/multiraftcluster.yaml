@@ -1,0 +1,8 @@
+apiVersion: multiraft.atomix.io/v1beta2
+kind: MultiRaftCluster
+metadata:
+  name: example-multi-raft-cluster
+spec:
+  replicas: 3
+  image: atomix/consensus-node:latest
+  imagePullPolicy: Never
