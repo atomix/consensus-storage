@@ -17,6 +17,34 @@ spec:
         name: {{ template "atomix-consensus-controller.fullname" . }}
     spec:
       serviceAccountName: {{ template "atomix-consensus-controller.fullname" . }}
+      initContainers:
+        - name: init-certs
+          image: {{ include "atomix-consensus-controller.imagename" .Values.init.image | quote }}
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          env:
+            - name: CONTROLLER_NAME
+              value: {{ template "atomix-consensus-controller.fullname" . }}
+            - name: CONTROLLER_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          volumeMounts:
+            - name: config
+              mountPath: /etc/atomix/config
+              readOnly: true
+            - name: certs
+              mountPath: /etc/webhook/certs
       containers:
         - name: atomix-consensus-controller
           image: {{ include "atomix-consensus-controller.imagename" .Values.image | quote }}
@@ -50,10 +78,15 @@ spec:
             - name: DEFAULT_NODE_IMAGE
               value: {{ include "atomix-consensus-controller.imagename" .Values.node.image | quote }}
           volumeMounts:
+            - name: certs
+              mountPath: /tmp/k8s-webhook-server/serving-certs
+              readOnly: true
             - name: config
               mountPath: /etc/atomix/config
               readOnly: true
       volumes:
+        - name: certs
+          emptyDir: {}
         - name: config
           configMap:
             name: {{ template "atomix-consensus-controller.fullname" . }}-config

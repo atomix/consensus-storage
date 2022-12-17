@@ -11,6 +11,14 @@ image:
   pullPolicy: ""
   pullSecrets: []
 
+init:
+  image:
+    registry: ""
+    repository: atomix/runtime-controller-init
+    tag: v0.7.7
+    pullPolicy: Always
+    pullSecrets: []
+
 node:
   image:
     registry: ""
