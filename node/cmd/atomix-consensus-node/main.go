@@ -81,7 +81,7 @@ func main() {
 			valuev1.RegisterStateMachine(registry)
 
 			protocol := consensus.NewProtocol(
-				config.Raft,
+				config.Node,
 				registry,
 				consensus.WithHost(raftHost),
 				consensus.WithPort(raftPort))

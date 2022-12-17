@@ -18,7 +18,7 @@ const (
 
 type Config struct {
 	Server ServerConfig `json:"server" yaml:"server"`
-	Raft   NodeConfig   `json:"raft" yaml:"raft"`
+	Node   NodeConfig   `json:"node" yaml:"node"`
 }
 
 type ServerConfig struct {
