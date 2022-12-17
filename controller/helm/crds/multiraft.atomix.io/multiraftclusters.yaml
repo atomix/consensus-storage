@@ -157,6 +157,8 @@ spec:
                   enum:
                     - NotReady
                     - Ready
+                groups:
+                  type: integer
       additionalPrinterColumns:
         - name: Status
           type: string
