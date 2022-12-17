@@ -170,10 +170,10 @@ func (r *MultiRaftStoreReconciler) reconcilePartition(ctx context.Context, store
 				Annotations: newGroupAnnotations(store, ordinal),
 			},
 			Spec: multiraftv1beta2.RaftPartitionSpec{
-				RaftConfig: store.Spec.RaftConfig,
-				Cluster:    store.Spec.Cluster,
-				Shard:      shard,
-				Ordinal:    uint32(ordinal),
+				RaftConfig:  store.Spec.RaftConfig,
+				Cluster:     store.Spec.Cluster,
+				ShardID:     shard,
+				PartitionID: uint32(ordinal),
 			},
 		}
 		if store.Spec.ReplicationFactor != nil && *store.Spec.ReplicationFactor <= cluster.Spec.Replicas {
@@ -241,7 +241,7 @@ func (r *MultiRaftStoreReconciler) reconcileDataStore(ctx context.Context, store
 		}
 
 		config.Partitions = append(config.Partitions, protocol.PartitionConfig{
-			PartitionID: protocol.PartitionID(partition.Spec.Ordinal),
+			PartitionID: protocol.PartitionID(partition.Spec.PartitionID),
 			Leader:      leader,
 			Followers:   followers,
 		})

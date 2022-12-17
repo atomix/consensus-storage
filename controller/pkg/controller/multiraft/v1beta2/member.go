@@ -15,13 +15,10 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
-	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"sigs.k8s.io/controller-runtime/pkg/webhook"
-	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"sync"
 	"time"
 
@@ -37,13 +34,6 @@ const (
 )
 
 func addRaftMemberController(mgr manager.Manager) error {
-	mgr.GetWebhookServer().Register(validateRaftMemberPath, &webhook.Admission{
-		Handler: &RaftMemberValidator{
-			client: mgr.GetClient(),
-			scheme: mgr.GetScheme(),
-		},
-	})
-
 	options := controller.Options{
 		Reconciler: &RaftMemberReconciler{
 			client: mgr.GetClient(),
@@ -210,7 +200,7 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 			for _, peer := range member.Spec.Peers {
 				host := fmt.Sprintf("%s.%s.%s.svc.%s", peer.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain())
 				members = append(members, consensus.MemberConfig{
-					MemberID: consensus.MemberID(peer.Ordinal),
+					MemberID: consensus.MemberID(peer.RaftNodeID),
 					Host:     host,
 					Port:     protocolPort,
 					Role:     consensus.MemberRole_MEMBER,
@@ -227,8 +217,8 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 			// Bootstrap the member with the initial configuration
 			client := consensus.NewNodeClient(conn)
 			request := &consensus.BootstrapGroupRequest{
-				GroupID:  consensus.GroupID(member.Spec.Shard),
-				MemberID: consensus.MemberID(member.Spec.Ordinal),
+				GroupID:  consensus.GroupID(member.Spec.ShardID),
+				MemberID: consensus.MemberID(member.Spec.MemberID),
 				Members:  members,
 			}
 			if _, err := client.BootstrapGroup(ctx, request); err != nil {
@@ -247,7 +237,7 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 
 				client := consensus.NewNodeClient(conn)
 				getConfigRequest := &consensus.GetConfigRequest{
-					GroupID: consensus.GroupID(member.Spec.Shard),
+					GroupID: consensus.GroupID(member.Spec.ShardID),
 				}
 				getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
 				if err != nil {
@@ -255,9 +245,9 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 				}
 
 				addMemberRequest := &consensus.AddMemberRequest{
-					GroupID: consensus.GroupID(member.Spec.Shard),
+					GroupID: consensus.GroupID(member.Spec.ShardID),
 					Member: consensus.MemberConfig{
-						MemberID: consensus.MemberID(member.Spec.Ordinal),
+						MemberID: consensus.MemberID(member.Spec.MemberID),
 						Host:     fmt.Sprintf("%s.%s.%s.svc.%s", member.Spec.Pod.Name, getHeadlessServiceName(member.Spec.Cluster.Name), member.Namespace, getClusterDomain()),
 						Port:     protocolPort,
 					},
@@ -282,8 +272,8 @@ func (r *RaftMemberReconciler) addMember(ctx context.Context, member *multiraftv
 			// Bootstrap the member by joining it to the cluster
 			client := consensus.NewNodeClient(conn)
 			request := &consensus.JoinGroupRequest{
-				GroupID:  consensus.GroupID(member.Spec.Shard),
-				MemberID: consensus.MemberID(member.Spec.Ordinal),
+				GroupID:  consensus.GroupID(member.Spec.ShardID),
+				MemberID: consensus.MemberID(member.Spec.MemberID),
 			}
 			if _, err := client.JoinGroup(ctx, request); err != nil {
 				err = errors.FromProto(err)
@@ -331,7 +321,7 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multira
 	// Shutdown the group member.
 	client := consensus.NewNodeClient(conn)
 	request := &consensus.LeaveGroupRequest{
-		GroupID: consensus.GroupID(member.Spec.Shard),
+		GroupID: consensus.GroupID(member.Spec.ShardID),
 	}
 	if _, err := client.LeaveGroup(ctx, request); err != nil {
 		err = errors.FromProto(err)
@@ -352,7 +342,7 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multira
 
 		client := consensus.NewNodeClient(conn)
 		getConfigRequest := &consensus.GetConfigRequest{
-			GroupID: consensus.GroupID(member.Spec.Shard),
+			GroupID: consensus.GroupID(member.Spec.ShardID),
 		}
 		getConfigResponse, err := client.GetConfig(ctx, getConfigRequest)
 		if err != nil {
@@ -360,8 +350,8 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multira
 		}
 
 		removeMemberRequest := &consensus.RemoveMemberRequest{
-			GroupID:  consensus.GroupID(member.Spec.Shard),
-			MemberID: consensus.MemberID(member.Spec.Ordinal),
+			GroupID:  consensus.GroupID(member.Spec.ShardID),
+			MemberID: consensus.MemberID(member.Spec.MemberID),
 			Version:  getConfigResponse.Group.Version,
 		}
 		_, err = client.RemoveMember(ctx, removeMemberRequest)
@@ -376,46 +366,3 @@ func (r *RaftMemberReconciler) removeMember(ctx context.Context, member *multira
 }
 
 var _ reconcile.Reconciler = (*RaftMemberReconciler)(nil)
-
-// RaftMemberValidator is a validating webhook that validates RaftMembers
-type RaftMemberValidator struct {
-	client  client.Client
-	scheme  *runtime.Scheme
-	decoder *admission.Decoder
-}
-
-// InjectDecoder :
-func (i *RaftMemberValidator) InjectDecoder(decoder *admission.Decoder) error {
-	i.decoder = decoder
-	return nil
-}
-
-// Handle :
-func (i *RaftMemberValidator) Handle(ctx context.Context, request admission.Request) admission.Response {
-	log.Infof("Received admission request for RaftMember '%s'", request.UID)
-
-	// Decode the RaftMember
-	member := &multiraftv1beta2.RaftMember{}
-	if err := i.decoder.Decode(request, member); err != nil {
-		log.Errorf("Could not decode Pod '%s'", request.UID, err)
-		return admission.Errored(http.StatusBadRequest, err)
-	}
-
-	groupName := types.NamespacedName{
-		Namespace: request.Namespace,
-		Name:      member.Spec.Cluster.Name,
-	}
-	group := &multiraftv1beta2.RaftPartition{}
-	if err := i.client.Get(ctx, groupName, group); err != nil {
-		return admission.Denied(fmt.Sprintf("MultiRaftCluster '%s' not found", member.Spec.Cluster.Name))
-	}
-
-	for _, groupStatus := range group.Status.Members {
-		if groupStatus.Ordinal == member.Spec.Ordinal {
-			return admission.Denied(fmt.Sprintf("ordinal %d has already been assigned in MultiRaftCluster '%s'", member.Spec.Ordinal, member.Spec.Cluster.Name))
-		}
-	}
-	return admission.Allowed(fmt.Sprintf("ordinal %s is available in MultiRaftCluster '%s'", member.Spec.Ordinal, member.Spec.Cluster.Name))
-}
-
-var _ admission.Handler = &RaftMemberValidator{}

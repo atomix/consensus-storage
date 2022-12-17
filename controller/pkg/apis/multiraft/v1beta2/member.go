@@ -48,17 +48,19 @@ const (
 
 type RaftMemberSpec struct {
 	Cluster         corev1.LocalObjectReference `json:"cluster"`
-	Shard           uint32                      `json:"shard"`
-	Ordinal         uint32                      `json:"ordinal"`
+	ShardID         uint32                      `json:"shardID"`
+	MemberID        uint32                      `json:"memberID"`
+	RaftNodeID      uint32                      `json:"raftNodeID"`
 	Pod             corev1.LocalObjectReference `json:"pod"`
 	Type            RaftMemberType              `json:"type"`
-	Peers           []RaftPeer                  `json:"peers"`
+	Peers           []RaftMemberReference       `json:"peers"`
 	BootstrapPolicy RaftBootstrapPolicy         `json:"bootstrapPolicy"`
 }
 
-type RaftPeer struct {
-	Pod     corev1.LocalObjectReference `json:"pod"`
-	Ordinal uint32                      `json:"ordinal"`
+type RaftMemberReference struct {
+	Pod        corev1.LocalObjectReference `json:"pod"`
+	MemberID   uint32                      `json:"memberID"`
+	RaftNodeID uint32                      `json:"raftNodeID"`
 }
 
 // RaftMemberStatus defines the status of a RaftMember

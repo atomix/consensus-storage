@@ -21,25 +21,28 @@ const (
 
 // RaftPartitionSpec specifies a RaftPartitionSpec configuration
 type RaftPartitionSpec struct {
-	RaftConfig `json:",inline"`
-	Cluster    corev1.LocalObjectReference `json:"cluster"`
-	Replicas   uint32                      `json:"replicas"`
-	Shard      uint32                      `json:"shard"`
-	Ordinal    uint32                      `json:"ordinal"`
+	RaftConfig  `json:",inline"`
+	Cluster     corev1.LocalObjectReference `json:"cluster"`
+	Replicas    uint32                      `json:"replicas"`
+	PartitionID uint32                      `json:"partitionID"`
+	ShardID     uint32                      `json:"shardID"`
 }
 
 // RaftPartitionStatus defines the status of a RaftPartition
 type RaftPartitionStatus struct {
-	State     RaftPartitionState            `json:"state,omitempty"`
-	Term      *uint64                       `json:"term,omitempty"`
-	Leader    *corev1.LocalObjectReference  `json:"leader,omitempty"`
-	Followers []corev1.LocalObjectReference `json:"followers,omitempty"`
-	Members   []RaftMemberReference         `json:"members"`
+	State          RaftPartitionState            `json:"state,omitempty"`
+	Term           *uint64                       `json:"term,omitempty"`
+	Leader         *corev1.LocalObjectReference  `json:"leader,omitempty"`
+	Followers      []corev1.LocalObjectReference `json:"followers,omitempty"`
+	MemberStatuses []RaftPartitionMemberStatus   `json:"memberStatuses"`
 }
 
-type RaftMemberReference struct {
-	Pod     corev1.LocalObjectReference `json:"pod"`
-	Ordinal uint32                      `json:"ordinal"`
+type RaftPartitionMemberStatus struct {
+	corev1.LocalObjectReference `json:",inline"`
+	MemberID                    uint32 `json:"memberID"`
+	RaftNodeID                  uint32 `json:"raftNodeID"`
+	Bootstrapped                bool   `json:"bootstrapped"`
+	Deleted                     bool   `json:"deleted"`
 }
 
 // +genclient

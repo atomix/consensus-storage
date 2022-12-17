@@ -133,8 +133,45 @@ func (r *RaftPartitionReconciler) Reconcile(ctx context.Context, request reconci
 }
 
 func (r *RaftPartitionReconciler) reconcileMembers(ctx context.Context, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition) (bool, error) {
-	for ordinal := 0; ordinal < int(partition.Spec.Replicas); ordinal++ {
-		if ok, err := r.reconcileMember(ctx, cluster, partition, ordinal); err != nil {
+	// Iterate through partition members and ensure member statuses have been added to the partition status
+	memberStatuses := partition.Status.MemberStatuses
+	for memberID := uint32(1); memberID <= partition.Spec.Replicas; memberID++ {
+		memberName := fmt.Sprintf("%s-%d", partition.Name, memberID)
+
+		hasMember := false
+		var raftNodeID uint32 = 1
+		for _, memberRef := range partition.Status.MemberStatuses {
+			if memberRef.RaftNodeID >= raftNodeID {
+				raftNodeID = memberRef.RaftNodeID + 1
+			}
+			if memberRef.Name == memberName {
+				hasMember = true
+			}
+		}
+
+		if !hasMember {
+			memberStatuses = append(memberStatuses, multiraftv1beta2.RaftPartitionMemberStatus{
+				LocalObjectReference: corev1.LocalObjectReference{
+					Name: memberName,
+				},
+				MemberID:   memberID,
+				RaftNodeID: raftNodeID,
+			})
+		}
+	}
+
+	// If new member statuses were added, update the partition status
+	if len(memberStatuses) != len(partition.Status.MemberStatuses) {
+		partition.Status.MemberStatuses = memberStatuses
+		if err := r.client.Status().Update(ctx, partition); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	// Iterate through partition members and reconcile them, returning in the event of any state change
+	for memberID := 1; memberID <= int(partition.Spec.Replicas); memberID++ {
+		if ok, err := r.reconcileMember(ctx, cluster, partition, memberID); err != nil {
 			return false, err
 		} else if ok {
 			return true, nil
@@ -143,10 +180,10 @@ func (r *RaftPartitionReconciler) reconcileMembers(ctx context.Context, cluster 
 	return false, nil
 }
 
-func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, ordinal int) (bool, error) {
+func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *multiraftv1beta2.MultiRaftCluster, partition *multiraftv1beta2.RaftPartition, memberID int) (bool, error) {
 	memberName := types.NamespacedName{
 		Namespace: partition.Namespace,
-		Name:      fmt.Sprintf("%s-%d", partition.Name, ordinal),
+		Name:      fmt.Sprintf("%s-%d", partition.Name, memberID),
 	}
 	member := &multiraftv1beta2.RaftMember{}
 	if err := r.client.Get(ctx, memberName, member); err != nil {
@@ -154,24 +191,99 @@ func (r *RaftPartitionReconciler) reconcileMember(ctx context.Context, cluster *
 			return false, err
 		}
 
+		// Compute the next Raft node ID from the member statuses
+		var raftNodeID uint32 = 1
+		for _, memberRef := range partition.Status.MemberStatuses {
+			if memberRef.RaftNodeID >= raftNodeID {
+				raftNodeID = memberRef.RaftNodeID + 1
+			}
+		}
+
+		boostrapPolicy := multiraftv1beta2.RaftBootstrap
+		for i, memberRef := range partition.Status.MemberStatuses {
+			if memberRef.Name == memberName.Name {
+				// If this member is marked 'deleted', store the new Raft node ID and reset the flags
+				if memberRef.Deleted {
+					memberRef.RaftNodeID = raftNodeID
+					memberRef.Bootstrapped = true
+					memberRef.Deleted = false
+					partition.Status.MemberStatuses[i] = memberRef
+					if err := r.client.Status().Update(ctx, partition); err != nil {
+						return false, err
+					}
+					return true, nil
+				}
+
+				// If the member has already been bootstrapped, configure the member to join the Raft cluster
+				if memberRef.Bootstrapped {
+					boostrapPolicy = multiraftv1beta2.RaftJoin
+				} else {
+					boostrapPolicy = multiraftv1beta2.RaftBootstrap
+				}
+			}
+		}
+
+		// Get the current configuration from the partition member statuses
+		peers := make([]multiraftv1beta2.RaftMemberReference, 0, len(partition.Status.MemberStatuses))
+		for _, memberStatus := range partition.Status.MemberStatuses {
+			peers = append(peers, multiraftv1beta2.RaftMemberReference{
+				Pod: corev1.LocalObjectReference{
+					Name: getMemberPodName(cluster, partition, int(memberStatus.MemberID)),
+				},
+				MemberID:   memberStatus.MemberID,
+				RaftNodeID: memberStatus.RaftNodeID,
+			})
+		}
+
+		// Create the new member
 		member = &multiraftv1beta2.RaftMember{
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:   memberName.Namespace,
 				Name:        memberName.Name,
-				Labels:      newMemberLabels(cluster, partition, ordinal),
-				Annotations: newMemberAnnotations(cluster, partition, ordinal),
+				Labels:      newMemberLabels(cluster, partition, memberID, int(raftNodeID)),
+				Annotations: newMemberAnnotations(cluster, partition, memberID, int(raftNodeID)),
 			},
 			Spec: multiraftv1beta2.RaftMemberSpec{
+				Cluster:    partition.Spec.Cluster,
+				ShardID:    partition.Spec.ShardID,
+				MemberID:   uint32(memberID),
+				RaftNodeID: raftNodeID,
 				Pod: corev1.LocalObjectReference{
-					Name: getMemberPodName(cluster, partition, ordinal),
+					Name: getMemberPodName(cluster, partition, memberID),
 				},
-				Type: multiraftv1beta2.RaftVoter,
+				Type:            multiraftv1beta2.RaftVoter,
+				Peers:           peers,
+				BootstrapPolicy: boostrapPolicy,
 			},
 		}
+		addFinalizer(member, raftPartitionKey)
 		if err := controllerutil.SetControllerReference(partition, member, r.scheme); err != nil {
 			return false, err
 		}
 		if err := r.client.Create(ctx, member); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	// If the member is being deleted, mark the member's status as 'deleted' in the partition
+	// statuses and remove the finalizer.
+	if member.DeletionTimestamp != nil && hasFinalizer(member, raftPartitionKey) {
+		for i, memberRef := range partition.Status.MemberStatuses {
+			if memberRef.Name == member.Name {
+				if !memberRef.Deleted {
+					memberRef.Deleted = true
+					partition.Status.MemberStatuses[i] = memberRef
+					if err := r.client.Status().Update(ctx, partition); err != nil {
+						return false, err
+					}
+				}
+				break
+			}
+		}
+
+		removeFinalizer(member, raftPartitionKey)
+		if err := r.client.Update(ctx, member); err != nil {
 			return false, err
 		}
 		return true, nil
